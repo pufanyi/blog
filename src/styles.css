@@ -11,7 +11,7 @@
   --paper-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.06);
   --font-body: "Charter", Georgia, "Times New Roman", serif;
   --font-heading: "Space Grotesk", system-ui, -apple-system, sans-serif;
-  --font-mono: "Courier New", monospace;
+  --font-mono: "Fira Code", monospace;
   --code-header-bg: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
 }
 

@@ -111,11 +111,13 @@
   border: none;
   padding: 0;
   font-size: 0.87rem;
+  white-space: normal;
 }
 
 .post-body .code-block pre.shiki .line {
   display: block;
   min-height: 1.4em;
+  white-space: pre;
 }
 
 /* @shikijs/transformers — diff lines */
