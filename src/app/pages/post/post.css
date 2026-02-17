@@ -54,7 +54,25 @@
   border-radius: 3px;
 }
 
-.post-body pre {
+/* Shiki code blocks */
+.post-body pre.shiki {
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+  border-radius: 4px;
+  overflow-x: auto;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.post-body pre.shiki code {
+  background: none;
+  padding: 0;
+  font-size: 0.88em;
+}
+
+/* Fallback for non-Shiki pre blocks */
+.post-body pre:not(.shiki) {
   margin: 1.25rem 0;
   padding: 1rem 1.25rem;
   background: color-mix(in srgb, var(--border-color) 8%, var(--paper-bg));
@@ -65,7 +83,7 @@
   text-align: left;
 }
 
-.post-body pre code {
+.post-body pre:not(.shiki) code {
   background: none;
   padding: 0;
   font-size: 0.88em;

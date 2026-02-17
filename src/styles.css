@@ -52,6 +52,13 @@ a {
 
 a:hover { text-decoration: underline; }
 
+/* Shiki dark mode: swap to --shiki-dark colors */
+[data-theme="dark"] .shiki,
+[data-theme="dark"] .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+
 @media print {
   :root {
     --text-color: #222;
