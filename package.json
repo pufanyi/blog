@@ -32,6 +32,7 @@
     "@angular/platform-browser": "^21.1.0",
     "@angular/router": "^21.1.0",
     "@phosphor-icons/web": "^2.1.2",
+    "@shikijs/transformers": "^3.22.0",
     "charter-webfont": "^4.1.0",
     "marked": "^17.0.2",
     "modern-normalize": "^3.0.1",

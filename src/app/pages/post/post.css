@@ -79,36 +79,91 @@
   border-radius: 3px;
 }
 
-/* Shiki code blocks */
-.post-body pre.shiki {
+/* Code block container */
+.post-body .code-block {
   margin: 1.5rem 0;
-  padding: 1.25rem 1.5rem;
   border: 1px solid color-mix(in srgb, var(--border-color) 15%, transparent);
-  border-radius: 6px;
-  overflow-x: auto;
-  line-height: 1.5;
-  text-align: left;
-  font-size: 0.92rem;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.post-body pre.shiki::-webkit-scrollbar {
+.post-body .code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 1rem;
+  background: var(--code-header-bg);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 10%, transparent);
+}
+
+.post-body .code-lang {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.post-body .code-copy {
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.post-body .code-copy:hover {
+  color: var(--text-color);
+  border-color: color-mix(in srgb, var(--border-color) 25%, transparent);
+  background: color-mix(in srgb, var(--border-color) 6%, transparent);
+}
+
+.post-body .code-block pre.shiki {
+  margin: 0;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 0;
+  overflow-x: auto;
+  line-height: 1.6;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.post-body .code-block pre.shiki::-webkit-scrollbar {
   height: 6px;
 }
 
-.post-body pre.shiki::-webkit-scrollbar-track {
+.post-body .code-block pre.shiki::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.post-body pre.shiki::-webkit-scrollbar-thumb {
+.post-body .code-block pre.shiki::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--border-color) 25%, transparent);
   border-radius: 3px;
 }
 
-.post-body pre.shiki code {
+.post-body .code-block pre.shiki code {
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.88em;
+  font-size: 0.875rem;
+}
+
+/* @shikijs/transformers — diff lines */
+.post-body .code-block pre.shiki .diff.add {
+  background: color-mix(in srgb, #22c55e 12%, transparent);
+}
+
+.post-body .code-block pre.shiki .diff.remove {
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+}
+
+.post-body .code-block pre.shiki .highlighted {
+  background: color-mix(in srgb, var(--link-color) 10%, transparent);
 }
 
 /* Fallback for non-Shiki pre blocks */
@@ -131,11 +186,30 @@
   font-size: 0.88em;
 }
 
+/* Table wrapper */
+.post-body .table-wrapper {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.post-body .table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.post-body .table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.post-body .table-wrapper::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--border-color) 25%, transparent);
+  border-radius: 3px;
+}
+
 /* Booktabs-style tables */
 .post-body table {
   width: 100%;
   border-collapse: collapse;
-  margin: 1.5rem 0;
+  margin: 0;
   font-size: 0.95rem;
 }
 
@@ -257,6 +331,10 @@
 
 @media print {
   .back-link {
+    display: none;
+  }
+
+  .post-body .code-copy {
     display: none;
   }
 

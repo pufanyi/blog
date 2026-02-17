@@ -12,6 +12,7 @@
   --font-body: "Charter", Georgia, "Times New Roman", serif;
   --font-heading: "Space Grotesk", system-ui, -apple-system, sans-serif;
   --font-mono: "Courier New", monospace;
+  --code-header-bg: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
 }
 
 [data-theme="dark"] {

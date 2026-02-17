@@ -2,6 +2,10 @@ import { readdirSync, readFileSync, writeFileSync } from 'fs';
 import { join, basename } from 'path';
 import { marked } from 'marked';
 import { createHighlighter } from 'shiki';
+import {
+  transformerNotationDiff,
+  transformerNotationHighlight,
+} from '@shikijs/transformers';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const CONFIG_DIR = join(ROOT, 'content/config');
@@ -79,10 +83,23 @@ async function main() {
     renderer: {
       code({ text, lang }) {
         const language = lang && highlighter.getLoadedLanguages().includes(lang) ? lang : 'text';
-        return highlighter.codeToHtml(text, {
+        const html = highlighter.codeToHtml(text, {
           lang: language,
           themes: { light: 'github-light', dark: 'github-dark' },
+          transformers: [
+            transformerNotationDiff(),
+            transformerNotationHighlight(),
+          ],
         });
+        const langLabel = language !== 'text' ? language : '';
+        return `<div class="code-block"><div class="code-header"><span class="code-lang">${langLabel}</span><button class="code-copy" aria-label="Copy code">Copy</button></div>${html}</div>`;
+      },
+      table({ header, rows }) {
+        const headerRow = header.map(cell => `<th${cell.align ? ` align="${cell.align}"` : ''}>${cell.text}</th>`).join('');
+        const bodyRows = rows.map(row =>
+          `<tr>${row.map(cell => `<td${cell.align ? ` align="${cell.align}"` : ''}>${cell.text}</td>`).join('')}</tr>`
+        ).join('\n');
+        return `<div class="table-wrapper"><table><thead><tr>${headerRow}</tr></thead><tbody>${bodyRows}</tbody></table></div>`;
       },
     },
   });
