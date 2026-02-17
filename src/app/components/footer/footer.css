@@ -2,8 +2,9 @@
   font-family: var(--font-heading);
   margin-top: 3rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
   color: var(--text-secondary);
 }

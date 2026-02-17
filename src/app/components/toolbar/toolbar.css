@@ -9,7 +9,7 @@
 
 .toolbar button {
   background: var(--paper-bg);
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
   border-radius: 50%;
   width: 36px;
   height: 36px;
@@ -17,11 +17,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-color);
-  transition: opacity 0.2s, background 0.3s ease;
+  color: var(--text-secondary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: color 0.2s, background 0.3s ease, box-shadow 0.2s, border-color 0.2s;
   font-family: var(--font-heading);
 }
 
 .toolbar button:hover {
-  opacity: 0.7;
+  color: var(--text-color);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
 }

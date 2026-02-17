@@ -1,17 +1,18 @@
 .paper {
   max-width: 900px;
   width: 92%;
-  margin: 2rem auto;
-  padding: 3rem 2.5rem 4rem;
+  margin: 2.5rem auto;
+  padding: 3rem 3.5rem 4rem;
   background: var(--paper-bg);
   box-shadow: var(--paper-shadow);
-  border-radius: 2px;
+  border-radius: 3px;
   transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 @media (max-width: 600px) {
   .paper {
-    width: 94%;
+    width: 96%;
     padding: 2rem 1.5rem 3rem;
+    border-radius: 0;
   }
 }

@@ -1,23 +1,36 @@
 .post-body {
   text-align: justify;
   line-height: 1.7;
+  hyphens: auto;
 }
 
 .post-body h2 {
   font-family: var(--font-heading);
   font-size: 1.3rem;
-  font-weight: bold;
-  margin: 2rem 0 1rem;
-  padding-bottom: 0.3rem;
-  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 2.5rem 0 1rem;
+  padding-bottom: 0.5rem;
   text-align: left;
+  position: relative;
+}
+
+.post-body h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: color-mix(in srgb, var(--border-color) 40%, transparent);
 }
 
 .post-body h3 {
   font-family: var(--font-heading);
   font-size: 1.1rem;
-  font-weight: bold;
-  margin: 1.25rem 0 0.75rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 1.75rem 0 0.75rem;
   text-align: left;
 }
 
@@ -34,12 +47,23 @@
   margin-bottom: 0.35rem;
 }
 
+.post-body li::marker {
+  color: var(--text-secondary);
+}
+
+.post-body li > ul,
+.post-body li > ol {
+  margin-top: 0.25rem;
+}
+
 .post-body blockquote {
-  border-left: 3px solid var(--border-color);
-  margin: 1.25rem 0;
-  padding: 0.5rem 1.25rem;
+  border-left: 2.5px solid color-mix(in srgb, var(--border-color) 40%, transparent);
+  margin: 1.5rem 0;
+  padding: 0.75rem 1.25rem;
   color: var(--text-secondary);
   font-style: italic;
+  background: var(--accent-bg);
+  border-radius: 0 4px 4px 0;
 }
 
 .post-body blockquote p:last-child {
@@ -48,78 +72,131 @@
 
 .post-body code {
   font-family: var(--font-mono);
-  font-size: 0.9em;
-  background: color-mix(in srgb, var(--border-color) 10%, transparent);
+  font-size: 0.88em;
+  background: color-mix(in srgb, var(--border-color) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 12%, transparent);
   padding: 0.15em 0.4em;
   border-radius: 3px;
 }
 
 /* Shiki code blocks */
 .post-body pre.shiki {
-  margin: 1.25rem 0;
-  padding: 1rem 1.25rem;
-  border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
-  border-radius: 4px;
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--border-color) 15%, transparent);
+  border-radius: 6px;
   overflow-x: auto;
   line-height: 1.5;
   text-align: left;
+  font-size: 0.92rem;
+}
+
+.post-body pre.shiki::-webkit-scrollbar {
+  height: 6px;
+}
+
+.post-body pre.shiki::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.post-body pre.shiki::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--border-color) 25%, transparent);
+  border-radius: 3px;
 }
 
 .post-body pre.shiki code {
   background: none;
+  border: none;
   padding: 0;
   font-size: 0.88em;
 }
 
 /* Fallback for non-Shiki pre blocks */
 .post-body pre:not(.shiki) {
-  margin: 1.25rem 0;
-  padding: 1rem 1.25rem;
-  background: color-mix(in srgb, var(--border-color) 8%, var(--paper-bg));
-  border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
-  border-radius: 4px;
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  background: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
+  border: 1px solid color-mix(in srgb, var(--border-color) 15%, transparent);
+  border-radius: 6px;
   overflow-x: auto;
   line-height: 1.5;
   text-align: left;
+  font-size: 0.92rem;
 }
 
 .post-body pre:not(.shiki) code {
   background: none;
+  border: none;
   padding: 0;
   font-size: 0.88em;
 }
 
+/* Booktabs-style tables */
 .post-body table {
   width: 100%;
   border-collapse: collapse;
-  margin: 1.25rem 0;
+  margin: 1.5rem 0;
   font-size: 0.95rem;
 }
 
 .post-body th,
 .post-body td {
-  border: 1px solid color-mix(in srgb, var(--border-color) 30%, transparent);
+  border: none;
   padding: 0.5rem 0.75rem;
   text-align: left;
+}
+
+.post-body thead tr {
+  border-top: 2px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.post-body tbody tr {
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 15%, transparent);
+}
+
+.post-body tbody tr:last-child {
+  border-bottom: 2px solid var(--border-color);
+}
+
+.post-body tbody tr:hover {
+  background: var(--accent-bg);
 }
 
 .post-body th {
   font-family: var(--font-heading);
   font-weight: 600;
-  background: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
 }
 
+/* Three-dot HR separator */
 .post-body hr {
   border: none;
-  height: 1px;
-  background: var(--border-color);
-  margin: 2rem 0;
+  height: auto;
+  background: none;
+  margin: 2.5rem 0;
+  text-align: center;
+}
+
+.post-body hr::after {
+  content: '***';
+  display: block;
+  letter-spacing: 1em;
+  color: var(--text-secondary);
+  font-size: 1rem;
 }
 
 .post-body img {
   max-width: 100%;
   height: auto;
-  border-radius: 2px;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.post-body p > img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .post-body strong {
@@ -130,16 +207,42 @@
   font-style: italic;
 }
 
+/* Post body links — persistent underline */
+.post-body a {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--link-color) 35%, transparent);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
+.post-body a:hover {
+  text-decoration-color: var(--link-color);
+}
+
 .post-body .math-display {
   text-align: center;
-  margin: 1.25rem 0;
+  margin: 1.75rem 0;
   overflow-x: auto;
 }
 
 .back-link {
   margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-light);
   font-family: var(--font-heading);
   font-size: 0.95rem;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.back-link a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.back-link a:hover {
+  color: var(--link-color);
+  text-decoration: none;
 }
 
 .not-found {
@@ -161,5 +264,9 @@
     white-space: pre-wrap;
     word-wrap: break-word;
     border-color: #ccc;
+  }
+
+  .post-body hr::after {
+    color: #555;
   }
 }
