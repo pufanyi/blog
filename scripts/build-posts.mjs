@@ -2,50 +2,14 @@ import { readdirSync, readFileSync, writeFileSync } from 'fs';
 import { join, basename } from 'path';
 import { marked } from 'marked';
 import { createHighlighter } from 'shiki';
-import {
-  transformerNotationDiff,
-  transformerNotationHighlight,
-} from '@shikijs/transformers';
+import { mathBlock, mathInline } from './lib/math-extensions.mjs';
+import { createCodeRenderer } from './lib/code-renderer.mjs';
+import { tableRenderer } from './lib/table-renderer.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const CONFIG_DIR = join(ROOT, 'content/config');
 const POSTS_DIR = join(ROOT, 'content/posts');
 const OUTPUT = join(ROOT, 'src/app/data/posts.ts');
-
-function escapeHtml(s) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-// marked extension: protect math delimiters and convert to \(...\) / \[...\]
-const mathBlock = {
-  name: 'mathBlock',
-  level: 'block',
-  start(src) { return src.match(/\$\$/)?.index; },
-  tokenizer(src) {
-    const match = src.match(/^\$\$([\s\S]+?)\$\$/);
-    if (match) {
-      return { type: 'mathBlock', raw: match[0], text: match[1].trim() };
-    }
-  },
-  renderer(token) {
-    return `<div class="math-display">\\[${escapeHtml(token.text)}\\]</div>\n`;
-  },
-};
-
-const mathInline = {
-  name: 'mathInline',
-  level: 'inline',
-  start(src) { return src.match(/\$/)?.index; },
-  tokenizer(src) {
-    const match = src.match(/^\$([^\$\n]+?)\$/);
-    if (match) {
-      return { type: 'mathInline', raw: match[0], text: match[1] };
-    }
-  },
-  renderer(token) {
-    return `\\(${escapeHtml(token.text)}\\)`;
-  },
-};
 
 // Collect languages used across all posts for Shiki
 function collectLangs(posts) {
@@ -77,30 +41,12 @@ async function main() {
     langs: langs.length ? langs : ['text'],
   });
 
-  // Configure marked with math extensions + Shiki code renderer
+  // Configure marked with math extensions + Shiki code renderer + table renderer
   marked.use({
     extensions: [mathBlock, mathInline],
     renderer: {
-      code({ text, lang }) {
-        const language = lang && highlighter.getLoadedLanguages().includes(lang) ? lang : 'text';
-        const html = highlighter.codeToHtml(text, {
-          lang: language,
-          themes: { light: 'github-light', dark: 'github-dark' },
-          transformers: [
-            transformerNotationDiff(),
-            transformerNotationHighlight(),
-          ],
-        });
-        const langLabel = language !== 'text' ? language : '';
-        return `<div class="code-block"><div class="code-header"><span class="code-lang">${langLabel}</span><button class="code-copy" aria-label="Copy code">Copy</button></div>${html}</div>`;
-      },
-      table({ header, rows }) {
-        const headerRow = header.map(cell => `<th${cell.align ? ` align="${cell.align}"` : ''}>${cell.text}</th>`).join('');
-        const bodyRows = rows.map(row =>
-          `<tr>${row.map(cell => `<td${cell.align ? ` align="${cell.align}"` : ''}>${cell.text}</td>`).join('')}</tr>`
-        ).join('\n');
-        return `<div class="table-wrapper"><table><thead><tr>${headerRow}</tr></thead><tbody>${bodyRows}</tbody></table></div>`;
-      },
+      code: createCodeRenderer(highlighter),
+      table: tableRenderer,
     },
   });
 

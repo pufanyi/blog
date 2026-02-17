@@ -6,13 +6,20 @@ import { map } from 'rxjs';
 import { POSTS } from '../../data/posts';
 import { PostHeaderComponent } from '../../components/post-header/post-header';
 import { FooterComponent } from '../../components/footer/footer';
+import { typesetMath, initCodeCopyButtons } from '../../utils/post-content-hooks';
 
 @Component({
   selector: 'app-post',
   standalone: true,
   imports: [RouterLink, PostHeaderComponent, FooterComponent],
   templateUrl: './post.html',
-  styleUrl: './post.css',
+  styleUrls: [
+    './styles/typography.css',
+    './styles/code-blocks.css',
+    './styles/tables.css',
+    './styles/media.css',
+    './styles/layout.css',
+  ],
 })
 export class PostComponent {
   private route = inject(ActivatedRoute);
@@ -32,19 +39,7 @@ export class PostComponent {
   constructor() {
     effect(() => {
       this.safeHtml();
-      setTimeout(() => {
-        (window as any).MathJax?.typesetPromise?.();
-        document.querySelectorAll('.code-copy').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const code = btn.closest('.code-block')?.querySelector('code');
-            if (code) {
-              navigator.clipboard.writeText(code.textContent || '');
-              btn.textContent = 'Copied!';
-              setTimeout(() => (btn.textContent = 'Copy'), 2000);
-            }
-          });
-        });
-      });
+      setTimeout(() => { typesetMath(); initCodeCopyButtons(); });
     });
   }
 }

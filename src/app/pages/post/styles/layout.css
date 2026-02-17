@@ -1,0 +1,49 @@
+.back-link {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-light);
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.back-link a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.back-link a:hover {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.not-found {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.not-found h1 {
+  font-family: var(--font-heading);
+  margin-bottom: 1rem;
+}
+
+@media print {
+  .back-link {
+    display: none;
+  }
+
+  .post-body .code-copy {
+    display: none;
+  }
+
+  .post-body pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    border-color: #ccc;
+  }
+
+  .post-body hr::after {
+    color: #555;
+  }
+}

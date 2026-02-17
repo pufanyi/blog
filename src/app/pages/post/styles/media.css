@@ -1,0 +1,36 @@
+.post-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.post-body p > img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.post-body .math-display {
+  text-align: center;
+  margin: 1.75rem 0;
+  overflow-x: auto;
+}
+
+/* Three-dot HR separator */
+.post-body hr {
+  border: none;
+  height: auto;
+  background: none;
+  margin: 2.5rem 0;
+  text-align: center;
+}
+
+.post-body hr::after {
+  content: '***';
+  display: block;
+  letter-spacing: 1em;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
