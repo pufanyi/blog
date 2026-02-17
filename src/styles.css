@@ -1,0 +1,98 @@
+:root {
+  --text-color: #222;
+  --text-secondary: #555;
+  --link-color: #0066cc;
+  --border-color: #000;
+  --background: #eee;
+  --paper-bg: #fff;
+  --paper-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+  --font-body: "Charter", Georgia, "Times New Roman", serif;
+  --font-heading: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  --font-mono: "Courier New", monospace;
+}
+
+[data-theme="dark"] {
+  --background: #1a1a1a;
+  --paper-bg: #262626;
+  --text-color: #e0e0e0;
+  --text-secondary: #aaa;
+  --link-color: #6db3f2;
+  --border-color: #555;
+  --paper-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+}
+
+::selection { background: #b4d5fe; }
+[data-theme="dark"] ::selection { background: #2a5a8e; }
+
+* { margin: 0; padding: 0; }
+
+html {
+  font-size: 15px;
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 768px) {
+  html { font-size: 14px; }
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-color);
+  background: var(--background);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+  transition: color 0.2s ease-in-out, text-decoration-color 0.2s ease-in-out;
+}
+
+a:hover { text-decoration: underline; }
+
+@media print {
+  :root {
+    --text-color: #222;
+    --text-secondary: #555;
+    --link-color: #222;
+    --border-color: #000;
+    --background: #fff;
+    --paper-bg: #fff;
+    --paper-shadow: none;
+  }
+
+  body {
+    background: white;
+    color: black;
+    font-size: 11pt;
+  }
+
+  .toolbar {
+    display: none !important;
+  }
+
+  .paper {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  @page {
+    margin: 2cm 2.5cm;
+    size: A4;
+  }
+
+  a {
+    color: #222;
+    text-decoration: underline;
+  }
+
+  * {
+    transition: none !important;
+  }
+}

@@ -1,0 +1,21 @@
+<div class="title-block">
+  <div class="title-wrapper">
+    <hr class="title-rule-top" />
+    <h1 class="title">Blog</h1>
+    <hr class="title-rule-bottom" />
+  </div>
+</div>
+
+<section class="post-list">
+  @for (post of posts; track post.slug) {
+    <a class="post-entry" [routerLink]="['/post', post.slug]">
+      <div class="post-row">
+        <span class="post-title">{{ post.title }}</span>
+        <span class="post-date">{{ post.date }}</span>
+      </div>
+      <div class="post-description">{{ post.description }}</div>
+    </a>
+  }
+</section>
+
+<app-footer />

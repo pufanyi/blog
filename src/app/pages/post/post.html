@@ -1,0 +1,16 @@
+@if (post(); as post) {
+  <app-post-header [title]="post.title" [date]="post.date" />
+
+  <article class="post-body" [innerHTML]="post.content"></article>
+
+  <div class="back-link">
+    <a routerLink="/">&larr; Back to all posts</a>
+  </div>
+
+  <app-footer />
+} @else {
+  <div class="not-found">
+    <h1>Post not found</h1>
+    <a routerLink="/">&larr; Back to all posts</a>
+  </div>
+}
