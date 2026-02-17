@@ -10,6 +10,7 @@
   margin: 2rem 0 1rem;
   padding-bottom: 0.3rem;
   border-bottom: 1px solid var(--border-color);
+  text-align: left;
 }
 
 .post-body h3 {
@@ -17,10 +18,104 @@
   font-size: 1.1rem;
   font-weight: bold;
   margin: 1.25rem 0 0.75rem;
+  text-align: left;
 }
 
 .post-body p {
   margin-bottom: 1rem;
+}
+
+.post-body ul,
+.post-body ol {
+  margin: 0 0 1rem 1.5rem;
+}
+
+.post-body li {
+  margin-bottom: 0.35rem;
+}
+
+.post-body blockquote {
+  border-left: 3px solid var(--border-color);
+  margin: 1.25rem 0;
+  padding: 0.5rem 1.25rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.post-body blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.post-body code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: color-mix(in srgb, var(--border-color) 10%, transparent);
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+}
+
+.post-body pre {
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  background: color-mix(in srgb, var(--border-color) 8%, var(--paper-bg));
+  border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+  border-radius: 4px;
+  overflow-x: auto;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.post-body pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.88em;
+}
+
+.post-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.95rem;
+}
+
+.post-body th,
+.post-body td {
+  border: 1px solid color-mix(in srgb, var(--border-color) 30%, transparent);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.post-body th {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
+}
+
+.post-body hr {
+  border: none;
+  height: 1px;
+  background: var(--border-color);
+  margin: 2rem 0;
+}
+
+.post-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 2px;
+}
+
+.post-body strong {
+  font-weight: bold;
+}
+
+.post-body em {
+  font-style: italic;
+}
+
+.post-body .math-display {
+  text-align: center;
+  margin: 1.25rem 0;
+  overflow-x: auto;
 }
 
 .back-link {
@@ -42,5 +137,11 @@
 @media print {
   .back-link {
     display: none;
+  }
+
+  .post-body pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    border-color: #ccc;
   }
 }

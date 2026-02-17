@@ -3,9 +3,11 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prebuild": "node scripts/build-posts.mjs",
+    "prestart": "node scripts/build-posts.mjs",
     "start": "ng serve",
     "build": "ng build",
-    "watch": "ng build --watch --configuration development",
+    "watch": "node scripts/build-posts.mjs && ng build --watch --configuration development",
     "test": "ng test"
   },
   "prettier": {
@@ -31,8 +33,10 @@
     "@angular/router": "^21.1.0",
     "@phosphor-icons/web": "^2.1.2",
     "charter-webfont": "^4.1.0",
+    "marked": "^17.0.2",
     "modern-normalize": "^3.0.1",
     "rxjs": "~7.8.0",
+    "shiki": "^3.22.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {

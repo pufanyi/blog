@@ -3,5 +3,5 @@ export interface Post {
   title: string;
   date: string;
   description: string;
-  content: string;
+  contentHtml: string;
 }

@@ -2,6 +2,7 @@
 
 # Compiled output
 /dist
+/src/app/data/posts.ts
 /tmp
 /out-tsc
 /bazel-out
