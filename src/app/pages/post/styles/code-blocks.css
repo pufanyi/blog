@@ -1,55 +1,93 @@
 /* Code block container */
 .post-body .code-block {
-  margin: 1.5rem 0;
-  border: 1px solid color-mix(in srgb, var(--border-color) 15%, transparent);
-  border-radius: 8px;
+  margin: 1.75rem 0;
+  border: 1px solid color-mix(in srgb, var(--border-color) 18%, transparent);
+  border-radius: 12px;
   overflow: hidden;
+  background: var(--paper-bg);
+  box-shadow: 0 8px 22px color-mix(in srgb, #000 10%, transparent);
 }
 
 .post-body .code-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.4rem 1rem;
-  background: var(--code-header-bg);
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 10%, transparent);
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem 0.5rem 0.9rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--border-color) 7%, var(--paper-bg)),
+    color-mix(in srgb, var(--border-color) 4%, var(--paper-bg))
+  );
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 16%, transparent);
 }
 
 .post-body .code-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--text-secondary);
 }
 
+.post-body .code-lang::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--link-color) 45%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--link-color) 35%, transparent);
+}
+
 .post-body .code-copy {
+  appearance: none;
   font-family: var(--font-heading);
-  font-size: 0.75rem;
+  font-size: 0.73rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
   color: var(--text-secondary);
-  background: none;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  padding: 0.15rem 0.5rem;
+  background: color-mix(in srgb, var(--paper-bg) 82%, var(--border-color) 18%);
+  border: 1px solid color-mix(in srgb, var(--border-color) 24%, transparent);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
 }
 
 .post-body .code-copy:hover {
   color: var(--text-color);
-  border-color: color-mix(in srgb, var(--border-color) 25%, transparent);
-  background: color-mix(in srgb, var(--border-color) 6%, transparent);
+  border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
+  background: color-mix(in srgb, var(--border-color) 12%, var(--paper-bg));
+  transform: translateY(-1px);
+}
+
+.post-body .code-copy:active {
+  transform: translateY(0);
+}
+
+.post-body .code-copy.is-copied {
+  color: #166534;
+  border-color: color-mix(in srgb, #16a34a 45%, transparent);
+  background: color-mix(in srgb, #16a34a 18%, transparent);
+}
+
+[data-theme='dark'] .post-body .code-copy.is-copied {
+  color: #86efac;
 }
 
 .post-body .code-block pre.shiki {
   margin: 0;
-  padding: 1rem 1.5rem;
+  padding: 0.95rem 1.1rem 1.05rem;
   border: none;
   border-radius: 0;
   overflow-x: auto;
-  line-height: 1.6;
+  line-height: 1.65;
   text-align: left;
-  font-size: 0.875rem;
+  font-size: 0.87rem;
 }
 
 .post-body .code-block pre.shiki::-webkit-scrollbar {
@@ -66,10 +104,18 @@
 }
 
 .post-body .code-block pre.shiki code {
+  display: block;
+  min-width: max-content;
+  font-family: var(--font-mono);
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.875rem;
+  font-size: 0.87rem;
+}
+
+.post-body .code-block pre.shiki .line {
+  display: block;
+  min-height: 1.4em;
 }
 
 /* @shikijs/transformers — diff lines */
@@ -87,20 +133,30 @@
 
 /* Fallback for non-Shiki pre blocks */
 .post-body pre:not(.shiki) {
-  margin: 1.5rem 0;
-  padding: 1.25rem 1.5rem;
+  margin: 1.75rem 0;
+  padding: 1.1rem 1.2rem;
   background: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
-  border: 1px solid color-mix(in srgb, var(--border-color) 15%, transparent);
-  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 18%, transparent);
+  border-radius: 10px;
   overflow-x: auto;
-  line-height: 1.5;
+  line-height: 1.6;
   text-align: left;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
 }
 
 .post-body pre:not(.shiki) code {
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.88em;
+  font-size: 0.87em;
+}
+
+@media (max-width: 768px) {
+  .post-body .code-header {
+    padding: 0.45rem 0.6rem 0.45rem 0.75rem;
+  }
+
+  .post-body .code-block pre.shiki {
+    padding: 0.85rem 0.8rem 0.95rem;
+  }
 }

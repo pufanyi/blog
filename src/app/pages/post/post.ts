@@ -1,4 +1,4 @@
-import { Component, computed, inject, effect } from '@angular/core';
+import { Component, ViewEncapsulation, computed, inject, effect } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -20,6 +20,7 @@ import { typesetMath, initCodeCopyButtons } from '../../utils/post-content-hooks
     './styles/media.css',
     './styles/layout.css',
   ],
+  encapsulation: ViewEncapsulation.None,
 })
 export class PostComponent {
   private route = inject(ActivatedRoute);

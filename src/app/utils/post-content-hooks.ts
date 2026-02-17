@@ -3,14 +3,26 @@ export function typesetMath(): void {
 }
 
 export function initCodeCopyButtons(): void {
-  document.querySelectorAll('.code-copy').forEach(btn => {
-    btn.addEventListener('click', () => {
+  document.querySelectorAll<HTMLButtonElement>('.code-copy').forEach(btn => {
+    if (btn.dataset['copyBound'] === 'true') return;
+    btn.dataset['copyBound'] = 'true';
+
+    btn.addEventListener('click', async () => {
       const code = btn.closest('.code-block')?.querySelector('code');
-      if (code) {
-        navigator.clipboard.writeText(code.textContent || '');
-        btn.textContent = 'Copied!';
-        setTimeout(() => (btn.textContent = 'Copy'), 2000);
+      if (!code) return;
+
+      try {
+        await navigator.clipboard.writeText(code.textContent || '');
+        btn.classList.add('is-copied');
+        btn.textContent = 'Copied';
+      } catch {
+        btn.textContent = 'Copy failed';
       }
+
+      setTimeout(() => {
+        btn.classList.remove('is-copied');
+        btn.textContent = 'Copy';
+      }, 1800);
     });
   });
 }

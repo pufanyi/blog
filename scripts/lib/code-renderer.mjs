@@ -14,7 +14,7 @@ export function createCodeRenderer(highlighter) {
         transformerNotationHighlight(),
       ],
     });
-    const langLabel = language !== 'text' ? language : '';
-    return `<div class="code-block"><div class="code-header"><span class="code-lang">${langLabel}</span><button class="code-copy" aria-label="Copy code">Copy</button></div>${html}</div>`;
+    const langLabel = language !== 'text' ? language : 'code';
+    return `<div class="code-block"><div class="code-header"><span class="code-lang">${langLabel}</span><button class="code-copy" type="button" aria-label="Copy code">Copy</button></div>${html}</div>`;
   };
 }
