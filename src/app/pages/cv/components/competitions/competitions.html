@@ -1,0 +1,46 @@
+<app-section [number]="4" [title]="t.competitions[lang()]" id="competitions">
+  @switch (lang()) {
+    @case ('zh') {
+      <h3 class="subsection-heading">4.1 &nbsp; ICPC (International Collegiate Programming Contest)</h3>
+      <ul class="itemize">
+        <li><strong>第 22 名</strong>，ICPC 亚太区锦标赛，2024 年</li>
+        <li><strong>第 13 名</strong>，ICPC 亚洲雅加达区域赛，2023 年</li>
+        <li><strong>第 6 名</strong>，ICPC 亚洲马尼拉区域赛，2022 年</li>
+        <li><strong>金牌</strong>，ICPC 亚洲昆明区域赛，2021 年</li>
+        <li><strong>银牌</strong>，ICPC 亚洲南京区域赛，2021 年</li>
+      </ul>
+      <h3 class="subsection-heading">4.2 &nbsp; Simon Marais Mathematics Competition</h3>
+      <ul class="itemize">
+        <li><strong>校内最佳奖</strong>，南洋理工大学，2022 年 12 月</li>
+      </ul>
+    }
+    @case ('ja') {
+      <h3 class="subsection-heading">4.1 &nbsp; ICPC (International Collegiate Programming Contest)</h3>
+      <ul class="itemize">
+        <li><strong>第22位</strong>、ICPC アジア太平洋選手権、2024年</li>
+        <li><strong>第13位</strong>、ICPC アジア・ジャカルタ地区大会、2023年</li>
+        <li><strong>第6位</strong>、ICPC アジア・マニラ地区大会、2022年</li>
+        <li><strong>金メダル</strong>、ICPC アジア・昆明地区大会、2021年</li>
+        <li><strong>銀メダル</strong>、ICPC アジア・南京地区大会、2021年</li>
+      </ul>
+      <h3 class="subsection-heading">4.2 &nbsp; Simon Marais Mathematics Competition</h3>
+      <ul class="itemize">
+        <li><strong>学内最優秀賞</strong>、Nanyang Technological University (NTU)、2022年12月</li>
+      </ul>
+    }
+    @default {
+      <h3 class="subsection-heading">4.1 &nbsp; ICPC (International Collegiate Programming Contest)</h3>
+      <ul class="itemize">
+        <li><strong>Ranked 22nd</strong>, ICPC Asia Pacific Championship, 2024</li>
+        <li><strong>Ranked 13th</strong>, ICPC Asia Jakarta Regional, 2023</li>
+        <li><strong>Ranked 6th</strong>, ICPC Asia Manila Regional, 2022</li>
+        <li><strong>Gold Medal</strong>, ICPC Asia Kunming Regional, 2021</li>
+        <li><strong>Silver Medal</strong>, ICPC Asia Nanjing Regional, 2021</li>
+      </ul>
+      <h3 class="subsection-heading">4.2 &nbsp; Simon Marais Mathematics Competition</h3>
+      <ul class="itemize">
+        <li><strong>Best-in-University Prize</strong>, Nanyang Technological University, Dec 2022</li>
+      </ul>
+    }
+  }
+</app-section>

@@ -8,7 +8,7 @@
 
 <section class="post-list">
   @for (post of posts; track post.slug) {
-    <a class="post-entry" [routerLink]="['/post', post.slug]">
+    <a class="post-entry" [routerLink]="['/blog', post.slug]">
       @if (post.coverImage) {
         <img
           [ngSrc]="post.coverImage"

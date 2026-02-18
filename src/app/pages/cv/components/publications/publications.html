@@ -1,0 +1,196 @@
+<app-section [number]="2" [title]="t.publications[lang()]" id="publications-research-projects">
+  @switch (lang()) {
+    @case ('zh') {
+      <app-entry title="SenseNova-SI: Scaling Spatial Intelligence with Multimodal Foundation Models" date="2025年9月 – 至今">
+        <span detail>
+          预印本，共同第一作者
+          <span class="publication-links">
+            [<a href="#" target="_blank" rel="noopener noreferrer">论文</a>]
+            [<a href="#" target="_blank" rel="noopener noreferrer">项目主页</a>]
+          </span>
+        </span>
+        <li>一个旨在扩展空间智能的基础模型，在关键空间基准测试中达到了最先进水平</li>
+        <li>在100+ GPU上使用LMMs-Engine执行了基于Qwen变体的全栈训练流程</li>
+      </app-entry>
+
+      <app-entry title="LMMs-Eval: Reality Check on the Evaluation of Large Multimodal Models" date="2024年1月 – 至今">
+        <span detail>
+          NAACL (Findings)，共同第一作者
+          <span class="publication-links">
+            [<a href="https://arxiv.org/abs/2407.12772" target="_blank" rel="noopener noreferrer">论文</a>]
+            [<a href="https://lmms-lab.github.io/lmms-eval-blog/lmms-eval-0.1/" target="_blank" rel="noopener noreferrer">项目主页</a>]
+          </span>
+        </span>
+        <li><strong>GitHub 3.3K 星</strong>的多模态评估框架</li>
+        <li>为 Multi-modal LiveBench 开发了低成本的自动生成流程</li>
+      </app-entry>
+
+      <app-entry title="Video-MMMU: Evaluating Knowledge Acquisition from Multi-Discipline Professional Videos" date="2024年9月 – 2025年2月">
+        <span detail>
+          预印本，第三作者
+          <span class="publication-links">
+            [<a href="https://arxiv.org/abs/2410.13764" target="_blank" rel="noopener noreferrer">论文</a>]
+            [<a href="https://video-mmmu.github.io/" target="_blank" rel="noopener noreferrer">项目主页</a>]
+          </span>
+        </span>
+        <li>构建了包含300个专家级视频和900个人工标注问题的评估集</li>
+        <li>被 <a href="https://deepmind.google/models/gemini/pro/" target="_blank" rel="noopener noreferrer">Gemini 3 Pro</a> (Google) 和 <a href="https://openai.com/index/introducing-gpt-5/" target="_blank" rel="noopener noreferrer">GPT-5</a> (OpenAI) 引用</li>
+      </app-entry>
+
+      <app-entry title="Otter &amp; MIMIC-IT: Multi-Modal In-Context Instruction Tuning" date="2023年6月 – 2023年12月">
+        <span detail>
+          IEEE TPAMI，共同第一作者
+          <span class="publication-links">
+            [<a href="https://arxiv.org/abs/2306.05425" target="_blank" rel="noopener noreferrer">论文</a>]
+            [<a href="https://github.com/Luodian/Otter" target="_blank" rel="noopener noreferrer">项目主页</a>]
+          </span>
+        </span>
+        <li>早期视觉-语言-智能体 (VLA) 模型实验，<strong>GitHub 3.3K 星</strong></li>
+        <li>使用纯语言模型生成了280万条多模态指令微调数据</li>
+      </app-entry>
+
+      <app-entry title="LMMs-Engine: A Simple, Unified Multimodal Models Training Engine" date="2025年8月 – 至今">
+        <span detail>研究项目，核心开发者</span>
+        <li>轻量灵活的训练框架，用于快速研究原型和大规模生产</li>
+      </app-entry>
+
+      <app-entry title="VLoRP: Memory-Efficient LLM Training by Low-Rank Projection of Gradients" date="2024年8月 – 2025年1月">
+        <span detail>
+          预印本，第四作者
+          <span class="publication-links">
+            [<a href="#" target="_blank" rel="noopener noreferrer">论文</a>]
+          </span>
+        </span>
+        <li>使用 DeepSpeed 集成实现了训练框架；复现了基线方法（LoRA, GaLore, MeZO）</li>
+      </app-entry>
+    }
+    @case ('ja') {
+      <app-entry title="SenseNova-SI: Scaling Spatial Intelligence with Multimodal Foundation Models" date="2025年9月 – 現在">
+        <span detail>
+          プレプリント、共同第一著者
+          <span class="publication-links">
+            [<a href="#" target="_blank" rel="noopener noreferrer">Paper</a>]
+            [<a href="#" target="_blank" rel="noopener noreferrer">Project Page</a>]
+          </span>
+        </span>
+        <li>空間知能のスケーリングを目的とした基盤モデル、主要な空間ベンチマークで最先端を達成</li>
+        <li>LMMs-Engineを使用し、100+ GPUでQwenベースの変種のフルスタック学習パイプラインを実行</li>
+      </app-entry>
+
+      <app-entry title="LMMs-Eval: Reality Check on the Evaluation of Large Multimodal Models" date="2024年1月 – 現在">
+        <span detail>
+          NAACL (Findings)、共同第一著者
+          <span class="publication-links">
+            [<a href="https://arxiv.org/abs/2407.12772" target="_blank" rel="noopener noreferrer">Paper</a>]
+            [<a href="https://lmms-lab.github.io/lmms-eval-blog/lmms-eval-0.1/" target="_blank" rel="noopener noreferrer">Project Page</a>]
+          </span>
+        </span>
+        <li><strong>GitHub 3.3Kスター</strong>のマルチモーダル評価フレームワーク</li>
+        <li>Multi-modal LiveBench向けの低コスト自動生成パイプラインを開発</li>
+      </app-entry>
+
+      <app-entry title="Video-MMMU: Evaluating Knowledge Acquisition from Multi-Discipline Professional Videos" date="2024年9月 – 2025年2月">
+        <span detail>
+          プレプリント、第三著者
+          <span class="publication-links">
+            [<a href="https://arxiv.org/abs/2410.13764" target="_blank" rel="noopener noreferrer">Paper</a>]
+            [<a href="https://video-mmmu.github.io/" target="_blank" rel="noopener noreferrer">Project Page</a>]
+          </span>
+        </span>
+        <li>300本の専門レベル動画と900の人手アノテーション問題からなる評価セットを構築</li>
+        <li><a href="https://deepmind.google/models/gemini/pro/" target="_blank" rel="noopener noreferrer">Gemini 3 Pro</a> (Google) および <a href="https://openai.com/index/introducing-gpt-5/" target="_blank" rel="noopener noreferrer">GPT-5</a> (OpenAI) に引用</li>
+      </app-entry>
+
+      <app-entry title="Otter &amp; MIMIC-IT: Multi-Modal In-Context Instruction Tuning" date="2023年6月 – 2023年12月">
+        <span detail>
+          IEEE TPAMI、共同第一著者
+          <span class="publication-links">
+            [<a href="https://arxiv.org/abs/2306.05425" target="_blank" rel="noopener noreferrer">Paper</a>]
+            [<a href="https://github.com/Luodian/Otter" target="_blank" rel="noopener noreferrer">Project Page</a>]
+          </span>
+        </span>
+        <li>視覚言語エージェント (VLA) モデルの初期実験、<strong>GitHub 3.3Kスター</strong></li>
+        <li>純粋な言語モデルを使用して280万件のマルチモーダル指示チューニングデータを生成</li>
+      </app-entry>
+
+      <app-entry title="LMMs-Engine: A Simple, Unified Multimodal Models Training Engine" date="2025年8月 – 現在">
+        <span detail>研究プロジェクト、コア開発者</span>
+        <li>迅速な研究プロトタイピングと大規模プロダクション向けの軽量で柔軟な学習フレームワーク</li>
+      </app-entry>
+
+      <app-entry title="VLoRP: Memory-Efficient LLM Training by Low-Rank Projection of Gradients" date="2024年8月 – 2025年1月">
+        <span detail>
+          プレプリント、第四著者
+          <span class="publication-links">
+            [<a href="#" target="_blank" rel="noopener noreferrer">Paper</a>]
+          </span>
+        </span>
+        <li>DeepSpeed統合による学習フレームワークを実装、ベースライン（LoRA, GaLore, MeZO）を再現</li>
+      </app-entry>
+    }
+    @default {
+      <app-entry title="SenseNova-SI: Scaling Spatial Intelligence with Multimodal Foundation Models" date="Sep 2025 – Present">
+        <span detail>
+          Preprint, Co-first author
+          <span class="publication-links">
+            [<a href="#" target="_blank" rel="noopener noreferrer">Paper</a>]
+            [<a href="#" target="_blank" rel="noopener noreferrer">Project Page</a>]
+          </span>
+        </span>
+        <li>A foundation model designed to scale spatial intelligence, achieved state-of-the-art on key spatial benchmarks</li>
+        <li>Executed full-stack training pipeline for Qwen-based variants with LMMs-Engine on 100+ GPUs</li>
+      </app-entry>
+
+      <app-entry title="LMMs-Eval: Reality Check on the Evaluation of Large Multimodal Models" date="Jan 2024 – Present">
+        <span detail>
+          NAACL (Findings), Co-first author
+          <span class="publication-links">
+            [<a href="https://arxiv.org/abs/2407.12772" target="_blank" rel="noopener noreferrer">Paper</a>]
+            [<a href="https://lmms-lab.github.io/lmms-eval-blog/lmms-eval-0.1/" target="_blank" rel="noopener noreferrer">Project Page</a>]
+          </span>
+        </span>
+        <li><strong>3.3K GitHub stars</strong> multimodal evaluation framework</li>
+        <li>Developed low-cost automatic generation pipeline for Multi-modal LiveBench</li>
+      </app-entry>
+
+      <app-entry title="Video-MMMU: Evaluating Knowledge Acquisition from Multi-Discipline Professional Videos" date="Sep 2024 – Feb 2025">
+        <span detail>
+          Preprint, Third Author
+          <span class="publication-links">
+            [<a href="https://arxiv.org/abs/2410.13764" target="_blank" rel="noopener noreferrer">Paper</a>]
+            [<a href="https://video-mmmu.github.io/" target="_blank" rel="noopener noreferrer">Project Page</a>]
+          </span>
+        </span>
+        <li>Built evaluation set with 300 expert-level videos and 900 human-annotated questions</li>
+        <li>Cited by <a href="https://deepmind.google/models/gemini/pro/" target="_blank" rel="noopener noreferrer">Gemini 3 Pro</a> (Google) and <a href="https://openai.com/index/introducing-gpt-5/" target="_blank" rel="noopener noreferrer">GPT-5</a> (OpenAI)</li>
+      </app-entry>
+
+      <app-entry title="Otter &amp; MIMIC-IT: Multi-Modal In-Context Instruction Tuning" date="Jun 2023 – Dec 2023">
+        <span detail>
+          IEEE TPAMI, Co-first author
+          <span class="publication-links">
+            [<a href="https://arxiv.org/abs/2306.05425" target="_blank" rel="noopener noreferrer">Paper</a>]
+            [<a href="https://github.com/Luodian/Otter" target="_blank" rel="noopener noreferrer">Project Page</a>]
+          </span>
+        </span>
+        <li>Early experiment on vision-language-agent (VLA) model with <strong>3.3K GitHub stars</strong></li>
+        <li>Generated 2.8M multimodal instruction tuning data using pure language models</li>
+      </app-entry>
+
+      <app-entry title="LMMs-Engine: A Simple, Unified Multimodal Models Training Engine" date="Aug 2025 – Present">
+        <span detail>Research Project, Core Developer</span>
+        <li>Lean and flexible training framework for rapid research prototyping and large-scale production</li>
+      </app-entry>
+
+      <app-entry title="VLoRP: Memory-Efficient LLM Training by Low-Rank Projection of Gradients" date="Aug 2024 – Jan 2025">
+        <span detail>
+          Preprint, Fourth author
+          <span class="publication-links">
+            [<a href="#" target="_blank" rel="noopener noreferrer">Paper</a>]
+          </span>
+        </span>
+        <li>Implemented training framework with DeepSpeed integration; reproduced baselines (LoRA, GaLore, MeZO)</li>
+      </app-entry>
+    }
+  }
+</app-section>

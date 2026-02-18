@@ -1,0 +1,19 @@
+<app-section [number]="6" [title]="t.miscellaneous[lang()]" id="miscellaneous">
+  @switch (lang()) {
+    @case ('zh') {
+      <p>
+        <strong>爱好：</strong>物理、国际象棋（<a href="https://lichess.org/@/pufanyi" target="_blank" rel="noopener noreferrer">Lichess</a> 等级分：2084）、书法、乒乓球
+      </p>
+    }
+    @case ('ja') {
+      <p>
+        <strong>趣味：</strong>物理学、チェス（<a href="https://lichess.org/@/pufanyi" target="_blank" rel="noopener noreferrer">Lichess</a> レーティング：2084）、書道、卓球
+      </p>
+    }
+    @default {
+      <p>
+        <strong>Hobbies:</strong> Physics, Chess (<a href="https://lichess.org/@/pufanyi" target="_blank" rel="noopener noreferrer">Lichess</a> rating: 2084), Calligraphy, Table tennis
+      </p>
+    }
+  }
+</app-section>

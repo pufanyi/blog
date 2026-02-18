@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@angular/cdk':
+        specifier: ^21.1.5
+        version: 21.1.5(@angular/common@21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(@angular/platform-browser@21.1.4(@angular/common@21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2)))(rxjs@7.8.2)
       '@angular/common':
         specifier: ^21.1.0
         version: 21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2)
@@ -32,6 +35,9 @@ importers:
       '@angular/ssr':
         specifier: ^21.1.4
         version: 21.1.4(@angular/common@21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(@angular/platform-server@21.1.4(@angular/common@21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/compiler@21.1.4)(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(@angular/platform-browser@21.1.4(@angular/common@21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2)))(rxjs@7.8.2))(@angular/router@21.1.4(@angular/common@21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(@angular/platform-browser@21.1.4(@angular/common@21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2)))(rxjs@7.8.2))
+      '@formkit/auto-animate':
+        specifier: ^0.9.0
+        version: 0.9.0
       '@phosphor-icons/web':
         specifier: ^2.1.2
         version: 2.1.2
@@ -47,6 +53,9 @@ importers:
       marked:
         specifier: ^17.0.2
         version: 17.0.2
+      medium-zoom:
+        specifier: ^1.1.0
+        version: 1.1.0
       modern-normalize:
         specifier: ^3.0.1
         version: 3.0.1
@@ -207,6 +216,14 @@ packages:
         optional: true
       vitest:
         optional: true
+
+  '@angular/cdk@21.1.5':
+    resolution: {integrity: sha512-AlQPgqe3LLwXCyrDwYSX3m/WKnl2ppCMW7Gb+7bJpIcpMdWYEpSOSQF318jXGYIysKg43YbdJ1tWhJWY/cbn3w==}
+    peerDependencies:
+      '@angular/common': ^21.0.0 || ^22.0.0
+      '@angular/core': ^21.0.0 || ^22.0.0
+      '@angular/platform-browser': ^21.0.0 || ^22.0.0
+      rxjs: ^6.5.3 || ^7.4.0
 
   '@angular/cli@21.1.4':
     resolution: {integrity: sha512-XsMHgxTvHGiXXrhYZz3zMZYhYU0gHdpoHKGiEKXwcx+S1KoYbIssyg6oF2Kq49ZaE0OYCTKjnvgDce6ZqdkJ/A==}
@@ -742,6 +759,9 @@ packages:
     peerDependenciesMeta:
       '@noble/hashes':
         optional: true
+
+  '@formkit/auto-animate@0.9.0':
+    resolution: {integrity: sha512-VhP4zEAacXS3dfTpJpJ88QdLqMTcabMg0jwpOSxZ/VzfQVfl3GkZSCZThhGC5uhq/TxPHPzW0dzr4H9Bb1OgKA==}
 
   '@hono/node-server@1.19.9':
     resolution: {integrity: sha512-vHL6w3ecZsky+8P5MD+eFfaGTyCeOHUIFYMGpQGbrBTSmNNoxv0if69rEZ5giu36weC5saFuznL411gRX7bJDw==}
@@ -2272,6 +2292,9 @@ packages:
     resolution: {integrity: sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw==}
     engines: {node: '>= 0.8'}
 
+  medium-zoom@1.1.0:
+    resolution: {integrity: sha512-ewyDsp7k4InCUp3jRmwHBRFGyjBimKps/AJLjRSox+2q/2H4p/PNpQf+pwONWlJiOudkBXtbdmVbFjqyybfTmQ==}
+
   merge-descriptors@2.0.0:
     resolution: {integrity: sha512-Snk314V5ayFLhp3fkUREub6WtjBfPdCPY1Ln8/8munuLuiYhsABgBVWsozAG+MWMbVEvcdcpbi9R7ww22l9Q3g==}
     engines: {node: '>=18'}
@@ -3297,6 +3320,15 @@ snapshots:
       - tsx
       - yaml
 
+  '@angular/cdk@21.1.5(@angular/common@21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(@angular/platform-browser@21.1.4(@angular/common@21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2)))(rxjs@7.8.2)':
+    dependencies:
+      '@angular/common': 21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@angular/core': 21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2)
+      '@angular/platform-browser': 21.1.4(@angular/common@21.1.4(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@21.1.4(@angular/compiler@21.1.4)(rxjs@7.8.2))
+      parse5: 8.0.0
+      rxjs: 7.8.2
+      tslib: 2.8.1
+
   '@angular/cli@21.1.4(@types/node@20.19.33)(chokidar@5.0.0)':
     dependencies:
       '@angular-devkit/architect': 0.2101.4(chokidar@5.0.0)
@@ -3720,6 +3752,8 @@ snapshots:
     optional: true
 
   '@exodus/bytes@1.14.1': {}
+
+  '@formkit/auto-animate@0.9.0': {}
 
   '@hono/node-server@1.19.9(hono@4.11.9)':
     dependencies:
@@ -5214,6 +5248,8 @@ snapshots:
   mdn-data@2.12.2: {}
 
   media-typer@1.1.0: {}
+
+  medium-zoom@1.1.0: {}
 
   merge-descriptors@2.0.0: {}
 

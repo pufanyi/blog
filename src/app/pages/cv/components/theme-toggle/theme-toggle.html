@@ -1,0 +1,12 @@
+<button
+  appAutoAnimate
+  (click)="themeService.toggle()"
+  [attr.aria-label]="'Switch to ' + (themeService.theme() === 'light' ? 'dark' : 'light') + ' mode'"
+  [attr.title]="'Switch to ' + (themeService.theme() === 'light' ? 'dark' : 'light') + ' mode'"
+>
+  @if (themeService.theme() === 'light') {
+    <i class="ph ph-moon" style="font-size: 20px"></i>
+  } @else {
+    <i class="ph ph-sun" style="font-size: 20px"></i>
+  }
+</button>

@@ -1,0 +1,9 @@
+:host img {
+  cursor: zoom-in;
+}
+
+@media print {
+  :host img {
+    cursor: default;
+  }
+}

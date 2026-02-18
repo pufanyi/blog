@@ -1,0 +1,8 @@
+<div class="entry">
+  <div class="entry-line">
+    <span class="entry-title">{{ title() }}</span>
+    <span class="entry-date">{{ date() }}</span>
+  </div>
+  <div class="entry-detail"><ng-content select="[detail]" /></div>
+  <ul class="entry-list"><ng-content /></ul>
+</div>

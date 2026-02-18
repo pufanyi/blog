@@ -1,0 +1,46 @@
+<button
+  appAutoAnimate
+  class="toc-toggle"
+  (click)="toggle()"
+  aria-label="Table of Contents"
+  title="Table of Contents"
+>
+  @if (open()) {
+    <i class="ph ph-x" style="font-size: 20px"></i>
+  } @else {
+    <i class="ph ph-list" style="font-size: 20px"></i>
+  }
+</button>
+
+<nav
+  class="toc"
+  [class.toc-visible]="open()"
+  aria-label="Table of Contents"
+  [cdkTrapFocus]="open() && !isWide()"
+  [cdkTrapFocusAutoCapture]="open() && !isWide()"
+  (keydown.escape)="open.set(false)"
+  tabindex="-1"
+>
+  <div class="toc-title">{{ tocTitle[lang()] }}</div>
+  <ol class="toc-list">
+    @for (s of sections; track s.id) {
+      <li [class.toc-active]="scrollSpy.activeId() === s.id">
+        <button type="button" class="toc-link" (click)="navigateTo(s.id)">
+          @if (s.number !== null) {
+            <span class="toc-number">{{ s.number }}</span>
+          }
+          {{ s.title[lang()] }}
+        </button>
+      </li>
+    }
+  </ol>
+</nav>
+
+<div
+  class="toc-backdrop"
+  [class.toc-backdrop-visible]="open() && !isWide()"
+  (click)="open.set(false)"
+  tabindex="-1"
+  role="button"
+  aria-label="Close table of contents"
+></div>

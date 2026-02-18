@@ -1,0 +1,46 @@
+<app-section [number]="5" [title]="t.teaching[lang()]" id="teaching-activities">
+  @switch (lang()) {
+    @case ('zh') {
+      <app-entry title="教学讲师，南洋理工大学 SC1008 C & C++ Programming" date="2026年1月 – 至今">
+        <li>指导50名初学者学习 C/C++ 核心语法和方法</li>
+      </app-entry>
+      <app-entry title="Nanyang Programming Contest 组织者" date="2025年1月 – 至今">
+        <li>为非ICPC学生组织了5场竞赛和教程</li>
+      </app-entry>
+      <app-entry title="南洋理工大学计算与数据科学学生俱乐部" date="2024年11月 – 至今">
+        <li>管理130+成员的 Telegram 群组；分享 AI/ML 学习资源</li>
+      </app-entry>
+      <app-entry title="助教，南洋理工大学 SC1003 Introduction to Computational Thinking" date="2024年8月 – 2024年12月">
+        <li>指导20名初学者学习Python语法和数据处理</li>
+      </app-entry>
+    }
+    @case ('ja') {
+      <app-entry title="チュートリアル講師、NTU SC1008 C & C++ プログラミング" date="2026年1月 – 現在">
+        <li>50名の初学者にC/C++の基本構文と方法論を指導</li>
+      </app-entry>
+      <app-entry title="Nanyang Programming Contest 主催者" date="2025年1月 – 現在">
+        <li>非ICPCの学生向けに5回のコンテストとチュートリアルを主催</li>
+      </app-entry>
+      <app-entry title="NTU Students' Computing and Data Science Club" date="2024年11月 – 現在">
+        <li>130名以上のTelegramグループを管理、AI/ML学習リソースを共有</li>
+      </app-entry>
+      <app-entry title="ティーチングアシスタント、NTU SC1003 計算的思考入門" date="2024年8月 – 2024年12月">
+        <li>20名の初学者にPython構文とデータ操作を指導</li>
+      </app-entry>
+    }
+    @default {
+      <app-entry title="Tutorial Lecturer, NTU SC1008 C & C++ Programming" date="Jan 2026 – Present">
+        <li>Instructed a cohort of 50 beginners in core C/C++ syntax and methodologies</li>
+      </app-entry>
+      <app-entry title="Nanyang Programming Contest Organizer" date="Jan 2025 – Present">
+        <li>Organized 5 competitions and tutorials for non-ICPC students</li>
+      </app-entry>
+      <app-entry title="NTU Students' Computing and Data Science Club" date="Nov 2024 – Present">
+        <li>Managed telegram group with 130+ members; share AI/ML learning resources</li>
+      </app-entry>
+      <app-entry title="Teaching Assistant, NTU SC1003 Introduction to Computational Thinking" date="Aug 2024 – Dec 2024">
+        <li>Instructed a cohort of 20 beginners in Python syntax and data manipulation</li>
+      </app-entry>
+    }
+  }
+</app-section>

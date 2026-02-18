@@ -1,0 +1,25 @@
+.paper {
+  max-width: 900px;
+  width: 92%;
+  margin: 2.5rem auto;
+  padding: 3rem 3.5rem 4rem;
+  background: var(--paper-bg);
+  box-shadow: var(--paper-shadow);
+  border-radius: 3px;
+  overflow: visible;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .paper {
+    margin-top: 4.2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .paper {
+    width: 96%;
+    padding: 2rem 1.5rem 3rem;
+    border-radius: 0;
+  }
+}

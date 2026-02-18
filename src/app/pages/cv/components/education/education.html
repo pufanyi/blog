@@ -1,0 +1,37 @@
+<app-section [number]="1" [title]="t.education[lang()]" id="education">
+  @switch (lang()) {
+    @case ('zh') {
+      <app-entry title="南洋理工大学" date="2022 – 2026">
+        <span detail>B.Sc. in Data Science and Artificial Intelligence，新加坡</span>
+        <li>预计获一等荣誉学位，当前 CGPA：4.63 / 5.00</li>
+        <li>核心课程：强化学习、深度学习、数据结构与算法、概率与统计、密码学</li>
+      </app-entry>
+      <app-entry title="加州大学伯克利分校" date="2024年6月 – 2024年8月">
+        <span detail>Summer Session，Berkeley, CA</span>
+        <li>修读课程：计算机安全与博弈论，GPA：4.00 / 4.00</li>
+      </app-entry>
+    }
+    @case ('ja') {
+      <app-entry title="Nanyang Technological University (NTU)" date="2022 – 2026">
+        <span detail>B.Sc. in Data Science and Artificial Intelligence、シンガポール</span>
+        <li>最優等学位（Highest Distinction）取得見込み、現在のCGPA：4.63 / 5.00</li>
+        <li>主要科目：強化学習、深層学習、データ構造とアルゴリズム、確率・統計、暗号理論</li>
+      </app-entry>
+      <app-entry title="University of California, Berkeley" date="2024年6月 – 2024年8月">
+        <span detail>Summer Session、Berkeley, CA</span>
+        <li>コンピュータセキュリティおよびゲーム理論を履修、GPA：4.00 / 4.00</li>
+      </app-entry>
+    }
+    @default {
+      <app-entry title="Nanyang Technological University" date="2022 – 2026">
+        <span detail>B.Sc. in Data Science and Artificial Intelligence, Singapore</span>
+        <li>Expected Honours (Highest Distinction), Current CGPA: 4.63 / 5.00</li>
+        <li>Core courses: Reinforcement Learning, Deep Learning, Data Structures and Algorithms, Probability and Statistics, Cryptography</li>
+      </app-entry>
+      <app-entry title="University of California, Berkeley" date="Jun 2024 – Aug 2024">
+        <span detail>Summer Session, Berkeley, CA</span>
+        <li>Studied Computer Security and Game Theory, GPA: 4.00 / 4.00</li>
+      </app-entry>
+    }
+  }
+</app-section>

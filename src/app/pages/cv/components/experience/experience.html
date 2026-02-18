@@ -1,0 +1,64 @@
+<app-section [number]="3" [title]="t.experience[lang()]" id="experience">
+  @switch (lang()) {
+    @case ('zh') {
+      <app-entry title="商汤科技" date="2025年9月 – 至今">
+        <span detail>研究实习生（空间智能方向），新加坡</span>
+        <li>从事空间智能领域研究，重点关注统一多模态模型的优化工作</li>
+        <li>交付 SenseNova-SI 模型，在空间理解任务上建立了新的业界领先标准 (SOTA)</li>
+      </app-entry>
+      <app-entry title="LMMs-Lab" date="2024年1月 – 至今">
+        <span detail>核心成员，新加坡</span>
+        <li>致力于推动大型多模态模型民主化的非营利组织核心成员</li>
+        <li>主导 LMMs-Eval、LMMs-Engine 及 Video-MMMU 的开发工作</li>
+      </app-entry>
+      <app-entry title="Synvo AI" date="2025年1月 – 2025年7月">
+        <span detail>核心贡献者，新加坡</span>
+        <li>设计并实现 Synvo 文件系统，用于存储非结构化多模态数据</li>
+      </app-entry>
+      <app-entry title="MMLab&#64;NTU" date="2025年1月 – 2025年5月">
+        <span detail>研究实习生，导师：<a href="https://liuziwei7.github.io/" target="_blank" rel="noopener noreferrer">刘子纬教授</a></span>
+        <li>专注于多模态语言模型及统一多模态模型的研究</li>
+      </app-entry>
+    }
+    @case ('ja') {
+      <app-entry title="SenseTime Research" date="2025年9月 – 現在">
+        <span detail>リサーチインターン（空間知能分野）、シンガポール</span>
+        <li>空間知能の研究に従事し、特に統合マルチモーダルモデルの最適化に注力</li>
+        <li>SenseNova-SI を開発し、空間理解タスクにおいて新たな最先端性能（SOTA）を達成</li>
+      </app-entry>
+      <app-entry title="LMMs-Lab" date="2024年1月 – 現在">
+        <span detail>コアメンバー、シンガポール</span>
+        <li>大規模マルチモーダルモデルの民主化を目指す非営利団体のコアメンバー</li>
+        <li>LMMs-Eval、LMMs-Engine、Video-MMMU の開発を主導</li>
+      </app-entry>
+      <app-entry title="Synvo AI" date="2025年1月 – 2025年7月">
+        <span detail>コアコントリビューター、シンガポール</span>
+        <li>非構造化マルチモーダルデータストレージ向けの Synvo ファイルシステムを設計・実装</li>
+      </app-entry>
+      <app-entry title="MMLab&#64;NTU" date="2025年1月 – 2025年5月">
+        <span detail>リサーチインターン（指導教官：<a href="https://liuziwei7.github.io/" target="_blank" rel="noopener noreferrer">Liu Ziwei 教授</a>）</span>
+        <li>マルチモーダル言語モデルおよび統合マルチモーダルモデルの研究に従事</li>
+      </app-entry>
+    }
+    @default {
+      <app-entry title="SenseTime Research" date="Sep 2025 – Present">
+        <span detail>Research Intern (Spatial Intelligence), Singapore</span>
+        <li>Conducted research on spatial intelligence, focusing on unified multimodal model optimization</li>
+        <li>Delivered SenseNova-SI, establishing new state-of-the-art for spatial understanding</li>
+      </app-entry>
+      <app-entry title="LMMs-Lab" date="Jan 2024 – Present">
+        <span detail>Core Member, Singapore</span>
+        <li>Core member of non-profit initiative democratizing Large Multimodal Models</li>
+        <li>Spearheaded development of LMMs-Eval, LMMs-Engine, and Video-MMMU</li>
+      </app-entry>
+      <app-entry title="Synvo AI" date="Jan 2025 – Jul 2025">
+        <span detail>Core Contributor, Singapore</span>
+        <li>Architected and implemented Synvo File System for unstructured multimodal data storage</li>
+      </app-entry>
+      <app-entry title="MMLab&#64;NTU" date="Jan 2025 – May 2025">
+        <span detail>Research Intern, supervised by <a href="https://liuziwei7.github.io/" target="_blank" rel="noopener noreferrer">Prof. Liu Ziwei</a></span>
+        <li>Focused on multimodal language models and unified multimodal models</li>
+      </app-entry>
+    }
+  }
+</app-section>
