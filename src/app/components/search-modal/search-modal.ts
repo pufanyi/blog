@@ -1,4 +1,5 @@
-import { Component, inject, output, signal, ElementRef, viewChild, afterNextRender } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, inject, output, signal, ElementRef, viewChild, afterNextRender, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { SearchService, SearchResult } from '../../services/search.service';
 
@@ -8,9 +9,10 @@ import { SearchService, SearchResult } from '../../services/search.service';
   templateUrl: './search-modal.html',
   styleUrl: './search-modal.css',
 })
-export class SearchModalComponent {
+export class SearchModalComponent implements OnDestroy {
   private searchService = inject(SearchService);
   private router = inject(Router);
+  private document = inject(DOCUMENT);
 
   closed = output<void>();
 
@@ -19,11 +21,18 @@ export class SearchModalComponent {
   activeIndex = signal(0);
 
   private inputEl = viewChild<ElementRef<HTMLInputElement>>('searchInput');
+  private previousBodyOverflow = '';
+  private previousBodyOverscrollBehavior = '';
 
   constructor() {
     afterNextRender(() => {
       this.inputEl()?.nativeElement.focus();
+      this.lockBodyScroll();
     });
+  }
+
+  ngOnDestroy() {
+    this.unlockBodyScroll();
   }
 
   onInput(event: Event) {
@@ -49,20 +58,24 @@ export class SearchModalComponent {
         if (len > 0) this.goTo(this.results()[this.activeIndex()]);
         break;
       case 'Escape':
-        this.closed.emit();
+        this.close();
         break;
     }
   }
 
   goTo(result: SearchResult) {
-    this.closed.emit();
+    this.close();
     this.router.navigate(['/post', result.slug]);
   }
 
   onBackdropClick(event: MouseEvent) {
     if ((event.target as HTMLElement).classList.contains('search-backdrop')) {
-      this.closed.emit();
+      this.close();
     }
+  }
+
+  close() {
+    this.closed.emit();
   }
 
   matchLabel(field: SearchResult['matchField']): string {
@@ -71,5 +84,19 @@ export class SearchModalComponent {
       case 'description': return 'Description';
       case 'content': return 'Content';
     }
+  }
+
+  private lockBodyScroll() {
+    const body = this.document.body;
+    this.previousBodyOverflow = body.style.overflow;
+    this.previousBodyOverscrollBehavior = body.style.overscrollBehavior;
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'contain';
+  }
+
+  private unlockBodyScroll() {
+    const body = this.document.body;
+    body.style.overflow = this.previousBodyOverflow;
+    body.style.overscrollBehavior = this.previousBodyOverscrollBehavior;
   }
 }

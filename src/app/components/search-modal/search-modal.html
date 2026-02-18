@@ -1,5 +1,5 @@
 <div class="search-backdrop" (click)="onBackdropClick($event)" (keydown)="onKeydown($event)">
-  <div class="search-dialog" role="dialog" aria-label="Search posts">
+  <div class="search-dialog" role="dialog" aria-modal="true" aria-label="Search posts">
     <div class="search-input-wrap">
       <i class="ph ph-magnifying-glass search-icon"></i>
       <input
@@ -12,6 +12,9 @@
         aria-label="Search"
       />
       <kbd>ESC</kbd>
+      <button class="search-close-btn" type="button" (click)="close()" aria-label="Close search">
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
     </div>
 
     <div class="search-results">
