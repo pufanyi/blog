@@ -4,6 +4,9 @@
       <a class="mobile-topbar-btn" routerLink="/" aria-label="Home" title="Home">
         <i class="ph ph-house" aria-hidden="true"></i>
       </a>
+      <a class="mobile-topbar-btn" routerLink="/blog" aria-label="Blog" title="Blog">
+        <i class="ph ph-notebook" aria-hidden="true"></i>
+      </a>
       @if (tocItems().length) {
         <button
           class="mobile-topbar-btn"
@@ -41,10 +44,6 @@
       </button>
     </div>
   </div>
-
-  <a class="home-btn" routerLink="/" aria-label="Home" title="Home">
-    <i class="ph ph-house" aria-hidden="true" style="font-size: 20px"></i>
-  </a>
 
   @if (tocItems().length) {
     <button
