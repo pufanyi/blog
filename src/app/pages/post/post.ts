@@ -1,4 +1,12 @@
-import { Component, ViewEncapsulation, computed, inject, effect } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  ViewEncapsulation,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -7,6 +15,14 @@ import { POSTS } from '../../data/posts';
 import { PostHeaderComponent } from '../../components/post-header/post-header';
 import { FooterComponent } from '../../components/footer/footer';
 import { typesetMath, initCodeCopyButtons } from '../../utils/post-content-hooks';
+
+type TocLevel = 2 | 3;
+
+interface TocItem {
+  id: string;
+  text: string;
+  level: TocLevel;
+}
 
 @Component({
   selector: 'app-post',
@@ -22,25 +38,200 @@ import { typesetMath, initCodeCopyButtons } from '../../utils/post-content-hooks
   ],
   encapsulation: ViewEncapsulation.None,
 })
-export class PostComponent {
-  private route = inject(ActivatedRoute);
-  private sanitizer = inject(DomSanitizer);
-  private slug = toSignal(this.route.paramMap.pipe(map(p => p.get('slug'))));
+export class PostComponent implements OnDestroy {
+  private readonly route = inject(ActivatedRoute);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly slug = toSignal(this.route.paramMap.pipe(map(p => p.get('slug'))));
+  private headingObserver: IntersectionObserver | null = null;
 
-  post = computed(() => {
+  readonly tocCollapsed = signal(false);
+  readonly activeHeadingId = signal('');
+
+  readonly post = computed(() => {
     const s = this.slug();
     return POSTS.find(p => p.slug === s);
   });
 
-  safeHtml = computed(() => {
+  private readonly processedContent = computed(() => {
     const p = this.post();
-    return p ? this.sanitizer.bypassSecurityTrustHtml(p.contentHtml) : '';
+    return p ? this.buildContentWithToc(p.contentHtml) : { html: '', toc: [] as TocItem[] };
   });
 
+  readonly tocItems = computed(() => this.processedContent().toc);
+
+  readonly safeHtml = computed(() => this.sanitizer.bypassSecurityTrustHtml(this.processedContent().html));
+
   constructor() {
-    effect(() => {
+    effect(onCleanup => {
       this.safeHtml();
-      setTimeout(() => { typesetMath(); initCodeCopyButtons(); });
+
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      const timer = window.setTimeout(() => {
+        typesetMath();
+        initCodeCopyButtons();
+        this.setupHeadingObserver();
+      });
+
+      onCleanup(() => {
+        window.clearTimeout(timer);
+        this.disconnectHeadingObserver();
+      });
     });
+  }
+
+  ngOnDestroy(): void {
+    this.disconnectHeadingObserver();
+  }
+
+  toggleToc(): void {
+    this.tocCollapsed.update(value => !value);
+  }
+
+  onTocClick(event: Event, id: string): void {
+    event.preventDefault();
+    this.scrollToHeading(id, true);
+  }
+
+  private buildContentWithToc(rawHtml: string): { html: string; toc: TocItem[] } {
+    if (typeof DOMParser === 'undefined') {
+      return { html: rawHtml, toc: [] };
+    }
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(rawHtml, 'text/html');
+    const usedIds = new Map<string, number>();
+    const toc: TocItem[] = [];
+
+    for (const heading of Array.from(doc.querySelectorAll<HTMLHeadingElement>('h2, h3'))) {
+      const text = heading.textContent?.trim() ?? '';
+      if (!text) {
+        continue;
+      }
+
+      const level = Number(heading.tagName.slice(1)) as TocLevel;
+      const baseId = heading.id.trim() || this.slugify(text);
+      const id = this.makeUniqueId(baseId || 'section', usedIds);
+      heading.id = id;
+      toc.push({ id, text, level });
+    }
+
+    return { html: doc.body.innerHTML, toc };
+  }
+
+  private setupHeadingObserver(): void {
+    this.disconnectHeadingObserver();
+
+    if (typeof document === 'undefined' || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const toc = this.tocItems();
+    if (!toc.length) {
+      return;
+    }
+
+    const headings = toc
+      .map(item => document.getElementById(item.id))
+      .filter((heading): heading is HTMLElement => heading !== null);
+
+    if (!headings.length) {
+      return;
+    }
+
+    const hashId = this.readHashId();
+    this.activeHeadingId.set(hashId && headings.some(h => h.id === hashId) ? hashId : headings[0].id);
+
+    this.headingObserver = new IntersectionObserver(
+      entries => {
+        const visible = entries
+          .filter(entry => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        if (visible.length > 0) {
+          this.activeHeadingId.set((visible[0].target as HTMLElement).id);
+          return;
+        }
+
+        const nearestAbove = entries
+          .filter(entry => entry.boundingClientRect.top < 0)
+          .sort((a, b) => b.boundingClientRect.top - a.boundingClientRect.top);
+
+        if (nearestAbove.length > 0) {
+          this.activeHeadingId.set((nearestAbove[0].target as HTMLElement).id);
+        }
+      },
+      {
+        rootMargin: '-20% 0px -60% 0px',
+        threshold: [0, 1],
+      },
+    );
+
+    headings.forEach(heading => this.headingObserver?.observe(heading));
+
+    if (hashId) {
+      this.scrollToHeading(hashId, false);
+    }
+  }
+
+  private disconnectHeadingObserver(): void {
+    if (this.headingObserver) {
+      this.headingObserver.disconnect();
+      this.headingObserver = null;
+    }
+  }
+
+  private scrollToHeading(id: string, smooth: boolean): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const heading = document.getElementById(id);
+    if (!heading) {
+      return;
+    }
+
+    heading.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+    this.activeHeadingId.set(id);
+
+    if (typeof history !== 'undefined') {
+      history.replaceState(null, '', `#${encodeURIComponent(id)}`);
+    }
+  }
+
+  private readHashId(): string | null {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const { hash } = window.location;
+    if (!hash) {
+      return null;
+    }
+
+    try {
+      return decodeURIComponent(hash.slice(1));
+    } catch {
+      return null;
+    }
+  }
+
+  private slugify(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\p{L}\p{N}\s-]/gu, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  private makeUniqueId(base: string, usedIds: Map<string, number>): string {
+    const count = usedIds.get(base) ?? 0;
+    usedIds.set(base, count + 1);
+    return count === 0 ? base : `${base}-${count}`;
   }
 }

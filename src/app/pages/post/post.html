@@ -1,10 +1,47 @@
 @if (post(); as post) {
   <app-post-header [title]="post.title" [date]="post.date" />
 
-  <article class="post-body" [innerHTML]="safeHtml()"></article>
+  <div class="post-layout">
+    @if (tocItems().length) {
+      <div class="post-toc-rail">
+        <aside class="post-toc" aria-label="Article table of contents">
+          <button
+            class="toc-toggle"
+            type="button"
+            (click)="toggleToc()"
+            [attr.aria-expanded]="!tocCollapsed()"
+            aria-controls="post-toc-links"
+          >
+            <span class="toc-title">目录</span>
+            <span class="toc-toggle-icon" [class.is-collapsed]="tocCollapsed()">▾</span>
+          </button>
 
-  <div class="back-link">
-    <a routerLink="/">&larr; Back to all posts</a>
+          <div class="toc-list-wrap" [class.is-collapsed]="tocCollapsed()" id="post-toc-links">
+            <nav class="toc-nav" aria-label="Table of contents links">
+              @for (item of tocItems(); track item.id) {
+                <a
+                  class="toc-link"
+                  [class.level-3]="item.level === 3"
+                  [class.is-active]="activeHeadingId() === item.id"
+                  [href]="'#' + item.id"
+                  (click)="onTocClick($event, item.id)"
+                >
+                  {{ item.text }}
+                </a>
+              }
+            </nav>
+          </div>
+        </aside>
+      </div>
+    }
+
+    <div class="post-main">
+      <article class="post-body" [innerHTML]="safeHtml()"></article>
+
+      <div class="back-link">
+        <a routerLink="/">&larr; Back to all posts</a>
+      </div>
+    </div>
   </div>
 
   <app-footer />

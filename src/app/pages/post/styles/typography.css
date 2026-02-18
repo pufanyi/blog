@@ -98,3 +98,8 @@
 .post-body a:hover {
   text-decoration-color: var(--link-color);
 }
+
+.post-body h2,
+.post-body h3 {
+  scroll-margin-top: 1.25rem;
+}

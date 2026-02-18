@@ -6,6 +6,7 @@
   background: var(--paper-bg);
   box-shadow: var(--paper-shadow);
   border-radius: 3px;
+  overflow: visible;
   transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
