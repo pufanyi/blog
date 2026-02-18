@@ -1,3 +1,14 @@
+/* ========== Desktop nav (left side) ========== */
+.toolbar-nav {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1000;
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ========== Desktop actions (right side) ========== */
 .toolbar {
   position: fixed;
   top: 1rem;
@@ -41,6 +52,10 @@
 }
 
 @media (max-width: 768px) {
+  .toolbar-nav {
+    display: none;
+  }
+
   .toolbar {
     top: 0.68rem;
     left: 0.68rem;
@@ -105,5 +120,11 @@
     text-transform: uppercase;
     opacity: 0.6;
     user-select: none;
+  }
+}
+
+@media print {
+  .toolbar-nav {
+    display: none !important;
   }
 }

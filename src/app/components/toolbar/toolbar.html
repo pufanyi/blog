@@ -1,11 +1,14 @@
+<div class="toolbar-nav">
+  <a class="toolbar-desktop-btn" routerLink="/" aria-label="Home" title="Home">
+    <i class="ph ph-house" style="font-size: 20px"></i>
+  </a>
+  <a class="toolbar-desktop-btn" routerLink="/blog" aria-label="Blog" title="Blog">
+    <i class="ph ph-notebook" style="font-size: 20px"></i>
+  </a>
+</div>
+
 <div class="toolbar">
   <div class="toolbar-desktop">
-    <a class="toolbar-desktop-btn" routerLink="/" aria-label="Home" title="Home">
-      <i class="ph ph-house" style="font-size: 20px"></i>
-    </a>
-    <a class="toolbar-desktop-btn" routerLink="/blog" aria-label="Blog" title="Blog">
-      <i class="ph ph-notebook" style="font-size: 20px"></i>
-    </a>
     <button (click)="searchOpen.set(true)" aria-label="Search" title="Search posts (Ctrl+K)">
       <i class="ph ph-magnifying-glass" style="font-size: 20px"></i>
     </button>
