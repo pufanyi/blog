@@ -3,8 +3,14 @@ import { REDIRECTS } from './data/redirects';
 
 const redirectRoutes: Routes = REDIRECTS.map(r => ({
   path: r.from,
-  loadComponent: () =>
-    import('./pages/redirect/redirect').then(m => m.RedirectComponent),
+  children: [
+    {
+      path: '**',
+      loadComponent: () =>
+        import('./pages/redirect/redirect').then(m => m.RedirectComponent),
+      data: { redirect: r },
+    },
+  ],
 }));
 
 export const routes: Routes = [

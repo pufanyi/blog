@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, OnDestroy, signal, PLATFORM_ID } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
-import { REDIRECTS } from '../../data/redirects';
+import { Redirect } from '../../models/redirect.model';
 
 @Component({
   selector: 'app-redirect',
@@ -12,14 +12,25 @@ import { REDIRECTS } from '../../data/redirects';
 })
 export class RedirectComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
 
-  private path = computed(() => this.route.snapshot.url.map(s => s.path).join('/'));
+  redirect = computed(() => this.route.snapshot.data['redirect'] as Redirect | undefined);
 
-  redirect = computed(() => REDIRECTS.find(r => r.from === this.path()));
+  displayName = computed(() => this.redirect()?.title || this.redirect()?.from || '');
 
-  displayName = computed(() => this.redirect()?.title || this.path());
-  targetUrl = computed(() => this.redirect()?.to ?? '');
+  targetUrl = computed(() => {
+    const r = this.redirect();
+    if (!r) return '';
+    // Get the full URL path and extract the sub-path after the redirect prefix
+    const fullPath = this.router.url.replace(/^\//, '');
+    const subPath = fullPath.startsWith(r.from)
+      ? fullPath.slice(r.from.length).replace(/^\//, '')
+      : '';
+    // Append sub-path to target, ensuring proper slash handling
+    const base = r.to.endsWith('/') ? r.to : r.to + '/';
+    return subPath ? base + subPath : r.to;
+  });
 
   countdown = signal(5);
   private timerId: ReturnType<typeof setInterval> | null = null;
