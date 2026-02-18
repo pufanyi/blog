@@ -1,50 +1,4 @@
 @if (post(); as post) {
-  <div class="post-mobile-topbar" role="toolbar" aria-label="Post quick actions">
-    <div class="mobile-topbar-group">
-      <a class="mobile-topbar-btn" routerLink="/" aria-label="Home" title="Home">
-        <i class="ph ph-house" aria-hidden="true"></i>
-      </a>
-      <a class="mobile-topbar-btn" routerLink="/blog" aria-label="Blog" title="Blog">
-        <i class="ph ph-notebook" aria-hidden="true"></i>
-      </a>
-      @if (tocItems().length) {
-        <button
-          class="mobile-topbar-btn"
-          type="button"
-          (click)="toggleToc()"
-          [attr.aria-expanded]="tocOpen()"
-          aria-controls="post-toc"
-          aria-label="Toggle table of contents"
-          title="Table of Contents"
-        >
-          @if (tocOpen()) {
-            <i class="ph ph-x" aria-hidden="true"></i>
-          } @else {
-            <i class="ph ph-list" aria-hidden="true"></i>
-          }
-        </button>
-      }
-    </div>
-
-    <div class="mobile-topbar-title">Reading</div>
-
-    <div class="mobile-topbar-group">
-      <button class="mobile-topbar-btn" type="button" (click)="openMobileSearch()" aria-label="Search" title="Search">
-        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
-      </button>
-      <button class="mobile-topbar-btn" type="button" (click)="printPage()" aria-label="Print" title="Print">
-        <i class="ph ph-printer" aria-hidden="true"></i>
-      </button>
-      <button class="mobile-topbar-btn" type="button" (click)="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">
-        @if (isDark()) {
-          <i class="ph ph-sun" aria-hidden="true"></i>
-        } @else {
-          <i class="ph ph-moon" aria-hidden="true"></i>
-        }
-      </button>
-    </div>
-  </div>
-
   @if (tocItems().length) {
     <button
       class="toc-toggle"
@@ -111,23 +65,10 @@
   <article class="post-body" [innerHTML]="safeHtml()"></article>
 
   <section class="giscus-wrapper">
-    <div class="giscus"></div>
+    <app-giscus-comments />
   </section>
 
-  @if (mobileSearchOpen()) {
-    <app-search-modal (closed)="mobileSearchOpen.set(false)" />
-  }
-
-  <button
-    class="back-to-top"
-    type="button"
-    [class.is-visible]="showBackToTop()"
-    (click)="scrollToTop()"
-    aria-label="Back to top"
-    title="Back to top"
-  >
-    <i class="ph ph-arrow-line-up" aria-hidden="true" style="font-size: 20px"></i>
-  </button>
+  <app-back-to-top />
 } @else {
   <div class="not-found">
     <h1>Post not found</h1>

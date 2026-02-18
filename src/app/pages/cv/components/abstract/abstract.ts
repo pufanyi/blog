@@ -1,14 +1,10 @@
-import { Component, inject } from '@angular/core';
-import { LanguageService } from '../../../../services/language.service';
-import { SECTION_TITLES } from '../../../../constants/sections';
+import { Component } from '@angular/core';
 import { AutoAnimateDirective } from '../../../../directives/auto-animate';
+import { CvSectionBase } from '../cv-section-base';
 
 @Component({
   selector: 'app-abstract',
   imports: [AutoAnimateDirective],
   templateUrl: './abstract.html',
 })
-export class AbstractComponent {
-  protected readonly lang = inject(LanguageService).current;
-  protected readonly t = SECTION_TITLES;
-}
+export class AbstractComponent extends CvSectionBase {}

@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LanguageService } from '../../../../services/language.service';
-import { ImageLightboxComponent } from '../image-lightbox/image-lightbox';
+import { ImageLightboxComponent } from '../../../../components/image-lightbox/image-lightbox';
 import { AutoAnimateDirective } from '../../../../directives/auto-animate';
 
 @Component({

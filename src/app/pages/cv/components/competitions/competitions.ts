@@ -1,14 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { SectionComponent } from '../section/section';
-import { LanguageService } from '../../../../services/language.service';
-import { SECTION_TITLES } from '../../../../constants/sections';
+import { CvSectionBase } from '../cv-section-base';
 
 @Component({
   selector: 'app-competitions',
   imports: [SectionComponent],
   templateUrl: './competitions.html',
 })
-export class CompetitionsComponent {
-  protected readonly lang = inject(LanguageService).current;
-  protected readonly t = SECTION_TITLES;
-}
+export class CompetitionsComponent extends CvSectionBase {}

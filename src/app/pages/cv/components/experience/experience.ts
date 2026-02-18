@@ -1,15 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { SectionComponent } from '../section/section';
 import { EntryComponent } from '../entry/entry';
-import { LanguageService } from '../../../../services/language.service';
-import { SECTION_TITLES } from '../../../../constants/sections';
+import { CvSectionBase } from '../cv-section-base';
 
 @Component({
   selector: 'app-experience',
   imports: [SectionComponent, EntryComponent],
   templateUrl: './experience.html',
 })
-export class ExperienceComponent {
-  protected readonly lang = inject(LanguageService).current;
-  protected readonly t = SECTION_TITLES;
-}
+export class ExperienceComponent extends CvSectionBase {}

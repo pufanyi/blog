@@ -36,9 +36,24 @@
           <i class="ph ph-notebook" aria-hidden="true"></i>
         </a>
       }
+      @for (btn of toolbarExt.leadingButtons(); track btn.ariaLabel) {
+        <button
+          class="toolbar-mobile-btn"
+          type="button"
+          (click)="btn.action()"
+          [attr.aria-label]="btn.ariaLabel"
+          [title]="btn.title"
+        >
+          @if (btn.toggleIcon && btn.isToggled?.()) {
+            <i [class]="'ph ' + btn.toggleIcon" aria-hidden="true"></i>
+          } @else {
+            <i [class]="'ph ' + btn.icon" aria-hidden="true"></i>
+          }
+        </button>
+      }
     </div>
 
-    <div class="toolbar-mobile-title">Home</div>
+    <div class="toolbar-mobile-title">{{ toolbarExt.mobileTitle() }}</div>
 
     <div class="toolbar-mobile-group">
       <button class="toolbar-mobile-btn" type="button" (click)="searchOpen.set(true)" aria-label="Search" title="Search posts (Ctrl+K)">

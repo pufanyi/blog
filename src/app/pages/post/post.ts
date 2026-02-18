@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -13,26 +14,21 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { POSTS } from '../../data/posts';
 import { PostHeaderComponent } from '../../components/post-header/post-header';
-import { SearchModalComponent } from '../../components/search-modal/search-modal';
-import { ThemeService } from '../../services/theme.service';
+import { GiscusCommentsComponent } from '../../components/giscus-comments/giscus-comments';
+import { BackToTopComponent } from '../../components/back-to-top/back-to-top';
+import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
 import { typesetMath, initCodeCopyButtons, optimizeContentImages } from '../../utils/post-content-hooks';
+import { smoothScrollTo, SmoothScrollHandle } from '../../utils/smooth-scroll';
+import { buildContentWithToc, TocItem } from '../../utils/toc-builder';
+import { HeadingObserver } from '../../utils/heading-observer';
 
 const WIDE_QUERY = '(min-width: 1301px)';
 const HEADING_SCROLL_OFFSET_PX = 20;
-const SCROLL_DURATION_MS = 420;
-
-type TocLevel = 2 | 3;
-
-interface TocItem {
-  id: string;
-  text: string;
-  level: TocLevel;
-}
 
 @Component({
   selector: 'app-post',
   standalone: true,
-  imports: [RouterLink, PostHeaderComponent, SearchModalComponent],
+  imports: [RouterLink, PostHeaderComponent, GiscusCommentsComponent, BackToTopComponent],
   templateUrl: './post.html',
   styleUrls: [
     './styles/typography.css',
@@ -46,19 +42,17 @@ interface TocItem {
 export class PostComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
-  private readonly themeService = inject(ThemeService);
+  private readonly toolbarExt = inject(ToolbarExtensionService);
   private readonly slug = toSignal(this.route.paramMap.pipe(map(p => p.get('slug'))));
-  private headingObserver: IntersectionObserver | null = null;
-  private trackedHeadings: HTMLElement[] = [];
+  private readonly headingObserver = new HeadingObserver();
   private viewportMediaQuery: MediaQueryList | null = null;
-  private scrollAnimationFrameId: number | null = null;
+  private scrollHandle: SmoothScrollHandle | null = null;
+
+  private readonly giscus = viewChild(GiscusCommentsComponent);
 
   readonly tocOpen = signal(false);
   readonly isWide = signal(false);
-  readonly activeHeadingId = signal('');
-  readonly showBackToTop = signal(false);
-  readonly mobileSearchOpen = signal(false);
-  readonly isDark = computed(() => this.themeService.theme() === 'dark');
+  readonly activeHeadingId = this.headingObserver.activeHeadingId;
 
   readonly post = computed(() => {
     const s = this.slug();
@@ -67,7 +61,7 @@ export class PostComponent implements OnDestroy {
 
   private readonly processedContent = computed(() => {
     const p = this.post();
-    return p ? this.buildContentWithToc(p.contentHtml) : { html: '', toc: [] as TocItem[] };
+    return p ? buildContentWithToc(p.contentHtml) : { html: '', toc: [] as TocItem[] };
   });
 
   readonly tocItems = computed(() => this.processedContent().toc);
@@ -76,7 +70,7 @@ export class PostComponent implements OnDestroy {
 
   constructor() {
     this.setupViewportObserver();
-    this.setupScrollWatcher();
+    this.setupToolbarExtension();
 
     effect(onCleanup => {
       this.safeHtml();
@@ -90,26 +84,21 @@ export class PostComponent implements OnDestroy {
         initCodeCopyButtons();
         optimizeContentImages();
         this.setupHeadingObserver();
-        this.loadGiscus();
+        this.giscus()?.load();
       });
 
       onCleanup(() => {
         window.clearTimeout(timer);
-        this.disconnectHeadingObserver();
+        this.headingObserver.disconnect();
       });
-    });
-
-    effect(() => {
-      this.themeService.theme();
-      this.syncGiscusTheme();
     });
   }
 
   ngOnDestroy(): void {
-    this.disconnectHeadingObserver();
+    this.headingObserver.disconnect();
     this.teardownViewportObserver();
-    this.teardownScrollWatcher();
-    this.cancelScrollAnimation();
+    this.scrollHandle?.cancel();
+    this.toolbarExt.reset();
   }
 
   toggleToc(): void {
@@ -118,20 +107,6 @@ export class PostComponent implements OnDestroy {
 
   closeToc(): void {
     this.tocOpen.set(false);
-  }
-
-  openMobileSearch(): void {
-    this.mobileSearchOpen.set(true);
-  }
-
-  toggleTheme(): void {
-    this.themeService.toggle();
-  }
-
-  printPage(): void {
-    if (typeof window !== 'undefined') {
-      window.print();
-    }
   }
 
   onTocClick(event: Event, id: string): void {
@@ -143,92 +118,27 @@ export class PostComponent implements OnDestroy {
     }
   }
 
-  scrollToTop(): void {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    this.smoothScrollTo(0);
-  }
-
-  private buildContentWithToc(rawHtml: string): { html: string; toc: TocItem[] } {
-    if (typeof DOMParser === 'undefined') {
-      return { html: rawHtml, toc: [] };
-    }
-
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(rawHtml, 'text/html');
-    const usedIds = new Map<string, number>();
-    const toc: TocItem[] = [];
-
-    for (const heading of Array.from(doc.querySelectorAll<HTMLHeadingElement>('h2, h3'))) {
-      const text = heading.textContent?.trim() ?? '';
-      if (!text) {
-        continue;
-      }
-
-      const level = Number(heading.tagName.slice(1)) as TocLevel;
-      const baseId = heading.id.trim() || this.slugify(text);
-      const id = this.makeUniqueId(baseId || 'section', usedIds);
-      heading.id = id;
-      toc.push({ id, text, level });
-    }
-
-    return { html: doc.body.innerHTML, toc };
+  private setupToolbarExtension(): void {
+    this.toolbarExt.mobileTitle.set('Reading');
+    this.toolbarExt.leadingButtons.set([
+      {
+        icon: 'ph-list',
+        toggleIcon: 'ph-x',
+        ariaLabel: 'Toggle table of contents',
+        title: 'Table of Contents',
+        action: () => this.toggleToc(),
+        isToggled: () => this.tocOpen(),
+      },
+    ]);
   }
 
   private setupHeadingObserver(): void {
-    this.disconnectHeadingObserver();
-
-    if (typeof document === 'undefined' || typeof IntersectionObserver === 'undefined') {
-      this.trackedHeadings = [];
-      return;
-    }
-
     const toc = this.tocItems();
-    if (!toc.length) {
-      this.trackedHeadings = [];
-      return;
-    }
-
-    const headings = toc
-      .map(item => document.getElementById(item.id))
-      .filter((heading): heading is HTMLElement => heading !== null);
-
-    if (!headings.length) {
-      this.trackedHeadings = [];
-      return;
-    }
-
-    this.trackedHeadings = headings;
     const hashId = this.readHashId();
-    this.activeHeadingId.set(hashId && headings.some(h => h.id === hashId) ? hashId : headings[0].id);
-
-    this.headingObserver = new IntersectionObserver(
-      () => {
-        this.syncActiveHeading();
-      },
-      {
-        rootMargin: '-20% 0px -60% 0px',
-        threshold: [0, 1],
-      },
-    );
-
-    headings.forEach(heading => this.headingObserver?.observe(heading));
+    this.headingObserver.observe(toc, hashId);
 
     if (hashId) {
       this.scrollToHeading(hashId, false);
-      return;
-    }
-
-    this.syncActiveHeading();
-  }
-
-  private disconnectHeadingObserver(): void {
-    this.trackedHeadings = [];
-    if (this.headingObserver) {
-      this.headingObserver.disconnect();
-      this.headingObserver = null;
     }
   }
 
@@ -265,35 +175,9 @@ export class PostComponent implements OnDestroy {
     this.viewportMediaQuery = null;
   }
 
-  private setupScrollWatcher(): void {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    window.addEventListener('scroll', this.handleWindowScroll, { passive: true });
-    this.handleWindowScroll();
-  }
-
-  private teardownScrollWatcher(): void {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    window.removeEventListener('scroll', this.handleWindowScroll);
-  }
-
   private readonly handleViewportChange = (event: MediaQueryListEvent): void => {
     this.isWide.set(event.matches);
     this.tocOpen.set(event.matches);
-  };
-
-  private readonly handleWindowScroll = (): void => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    this.showBackToTop.set(window.scrollY > 320);
-    this.syncActiveHeading();
   };
 
   private scrollToHeading(id: string, smooth: boolean): void {
@@ -312,9 +196,10 @@ export class PostComponent implements OnDestroy {
     );
 
     if (smooth) {
-      this.smoothScrollTo(targetY);
+      this.scrollHandle?.cancel();
+      this.scrollHandle = smoothScrollTo(targetY);
     } else {
-      this.cancelScrollAnimation();
+      this.scrollHandle?.cancel();
       window.scrollTo(0, targetY);
     }
 
@@ -339,139 +224,5 @@ export class PostComponent implements OnDestroy {
     } catch {
       return null;
     }
-  }
-
-  private smoothScrollTo(targetY: number): void {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const startY = window.scrollY;
-    const deltaY = targetY - startY;
-
-    if (Math.abs(deltaY) < 1) {
-      window.scrollTo(0, targetY);
-      return;
-    }
-
-    this.cancelScrollAnimation();
-
-    const startTime = performance.now();
-    const easeInOutCubic = (t: number): number =>
-      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-    const tick = (now: number): void => {
-      const progress = Math.min((now - startTime) / SCROLL_DURATION_MS, 1);
-      const eased = easeInOutCubic(progress);
-      window.scrollTo(0, startY + deltaY * eased);
-
-      if (progress < 1) {
-        this.scrollAnimationFrameId = window.requestAnimationFrame(tick);
-      } else {
-        this.scrollAnimationFrameId = null;
-      }
-    };
-
-    this.scrollAnimationFrameId = window.requestAnimationFrame(tick);
-  }
-
-  private cancelScrollAnimation(): void {
-    if (this.scrollAnimationFrameId !== null && typeof window !== 'undefined') {
-      window.cancelAnimationFrame(this.scrollAnimationFrameId);
-      this.scrollAnimationFrameId = null;
-    }
-  }
-
-  private syncActiveHeading(): void {
-    if (!this.trackedHeadings.length) {
-      return;
-    }
-
-    const anchorTop = HEADING_SCROLL_OFFSET_PX + 1;
-    let activeId = this.trackedHeadings[0].id;
-
-    for (const heading of this.trackedHeadings) {
-      if (heading.getBoundingClientRect().top <= anchorTop) {
-        activeId = heading.id;
-      } else {
-        break;
-      }
-    }
-
-    this.activeHeadingId.set(activeId);
-  }
-
-  private slugify(text: string): string {
-    return text
-      .toLowerCase()
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^\p{L}\p{N}\s-]/gu, '')
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-  }
-
-  private makeUniqueId(base: string, usedIds: Map<string, number>): string {
-    const count = usedIds.get(base) ?? 0;
-    usedIds.set(base, count + 1);
-    return count === 0 ? base : `${base}-${count}`;
-  }
-
-  private loadGiscus(): void {
-    if (typeof document === 'undefined') {
-      return;
-    }
-
-    const container = document.querySelector('.giscus');
-    if (!container) {
-      return;
-    }
-
-    // Remove any existing giscus iframe (from previous navigation)
-    container.innerHTML = '';
-
-    const script = document.createElement('script');
-    script.src = 'https://giscus.app/client.js';
-    script.setAttribute('data-repo', 'pufanyi/blog');
-    script.setAttribute('data-repo-id', 'R_kgDORRRa1g');
-    script.setAttribute('data-category', 'General');
-    script.setAttribute('data-category-id', 'DIC_kwDORRRa1s4C2sEx');
-    script.setAttribute('data-mapping', 'pathname');
-    script.setAttribute('data-strict', '0');
-    script.setAttribute('data-reactions-enabled', '1');
-    script.setAttribute('data-emit-metadata', '0');
-    script.setAttribute('data-input-position', 'bottom');
-    script.setAttribute('data-theme', this.getGiscusTheme());
-    script.setAttribute('data-lang', 'en');
-    script.crossOrigin = 'anonymous';
-    script.async = true;
-    container.appendChild(script);
-  }
-
-  private getGiscusTheme(): string {
-    return this.themeService.theme() === 'dark' ? 'dark_dimmed' : 'light';
-  }
-
-  private syncGiscusTheme(): void {
-    if (typeof document === 'undefined') {
-      return;
-    }
-
-    const iframe = document.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
-    if (!iframe?.contentWindow) {
-      return;
-    }
-
-    iframe.contentWindow.postMessage(
-      {
-        giscus: {
-          setConfig: {
-            theme: this.getGiscusTheme(),
-          },
-        },
-      },
-      'https://giscus.app',
-    );
   }
 }
