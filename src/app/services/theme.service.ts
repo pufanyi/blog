@@ -18,6 +18,10 @@ export class ThemeService {
 
   constructor() {
     effect(() => {
+      if (typeof document === 'undefined' || typeof localStorage === 'undefined') {
+        return;
+      }
+
       const t = this.theme();
       document.documentElement.setAttribute('data-theme', t);
       localStorage.setItem('theme', t);

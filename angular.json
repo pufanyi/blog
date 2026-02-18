@@ -30,7 +30,9 @@
               "node_modules/charter-webfont/charter.css",
               "node_modules/@phosphor-icons/web/src/duotone/style.css",
               "src/styles.css"
-            ]
+            ],
+            "server": "src/main.server.ts",
+            "outputMode": "static"
           },
           "configurations": {
             "production": {
