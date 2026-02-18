@@ -28,7 +28,7 @@
             "styles": [
               "node_modules/modern-normalize/modern-normalize.css",
               "node_modules/charter-webfont/charter.css",
-              "node_modules/@phosphor-icons/web/src/duotone/style.css",
+              "node_modules/@phosphor-icons/web/src/regular/style.css",
               "src/styles.css"
             ],
             "server": "src/main.server.ts",

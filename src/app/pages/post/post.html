@@ -1,6 +1,6 @@
 @if (post(); as post) {
   <a class="home-btn" routerLink="/" aria-label="Back to home" title="Back to home">
-    <i class="ph-duotone ph-house" aria-hidden="true" style="font-size: 20px"></i>
+    <i class="ph-regular ph-house" aria-hidden="true" style="font-size: 20px"></i>
   </a>
 
   @if (tocItems().length) {
@@ -14,9 +14,9 @@
       title="Table of Contents"
     >
       @if (tocOpen()) {
-        <i class="ph-duotone ph-x" aria-hidden="true" style="font-size: 20px"></i>
+        <i class="ph-regular ph-x" aria-hidden="true" style="font-size: 20px"></i>
       } @else {
-        <i class="ph-duotone ph-list" aria-hidden="true" style="font-size: 20px"></i>
+        <i class="ph-regular ph-list" aria-hidden="true" style="font-size: 20px"></i>
       }
     </button>
 
@@ -70,11 +70,11 @@
     aria-label="Back to top"
     title="Back to top"
   >
-    <i class="ph-duotone ph-arrow-line-up" aria-hidden="true" style="font-size: 20px"></i>
+    <i class="ph-regular ph-arrow-line-up" aria-hidden="true" style="font-size: 20px"></i>
   </button>
 } @else {
   <div class="not-found">
     <h1>Post not found</h1>
-    <a routerLink="/"><i class="ph-duotone ph-arrow-left" aria-hidden="true"></i> Back to all posts</a>
+    <a routerLink="/"><i class="ph-regular ph-arrow-left" aria-hidden="true"></i> Back to all posts</a>
   </div>
 }
