@@ -17,8 +17,8 @@ import { FooterComponent } from '../../components/footer/footer';
 import { typesetMath, initCodeCopyButtons } from '../../utils/post-content-hooks';
 
 const WIDE_QUERY = '(min-width: 1301px)';
-const HASH_UPDATE_DELAY_MS = 320;
 const HEADING_SCROLL_OFFSET_PX = 20;
+const SCROLL_DURATION_MS = 420;
 
 type TocLevel = 2 | 3;
 
@@ -48,7 +48,7 @@ export class PostComponent implements OnDestroy {
   private readonly slug = toSignal(this.route.paramMap.pipe(map(p => p.get('slug'))));
   private headingObserver: IntersectionObserver | null = null;
   private viewportMediaQuery: MediaQueryList | null = null;
-  private hashUpdateTimer: number | null = null;
+  private scrollAnimationFrameId: number | null = null;
 
   readonly tocOpen = signal(false);
   readonly isWide = signal(false);
@@ -94,7 +94,7 @@ export class PostComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.disconnectHeadingObserver();
     this.teardownViewportObserver();
-    this.clearHashUpdateTimer();
+    this.cancelScrollAnimation();
   }
 
   toggleToc(): void {
@@ -107,14 +107,11 @@ export class PostComponent implements OnDestroy {
 
   onTocClick(event: Event, id: string): void {
     event.preventDefault();
+    this.scrollToHeading(id, true);
 
     if (!this.isWide() && typeof window !== 'undefined') {
-      this.tocOpen.set(false);
-      window.requestAnimationFrame(() => this.scrollToHeading(id, true));
-      return;
+      window.setTimeout(() => this.tocOpen.set(false), 150);
     }
-
-    this.scrollToHeading(id, true);
   }
 
   private buildContentWithToc(rawHtml: string): { html: string; toc: TocItem[] } {
@@ -253,32 +250,22 @@ export class PostComponent implements OnDestroy {
       return;
     }
 
-    const top = Math.max(
+    const targetY = Math.max(
       0,
       window.scrollY + heading.getBoundingClientRect().top - HEADING_SCROLL_OFFSET_PX,
     );
 
-    window.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
+    if (smooth) {
+      this.smoothScrollTo(targetY);
+    } else {
+      this.cancelScrollAnimation();
+      window.scrollTo(0, targetY);
+    }
+
     this.activeHeadingId.set(id);
-    this.queueHashUpdate(id, smooth);
-  }
-
-  private queueHashUpdate(id: string, smooth: boolean): void {
-    if (typeof history === 'undefined' || typeof window === 'undefined') {
-      return;
-    }
-
-    this.clearHashUpdateTimer();
-
-    if (!smooth) {
+    if (typeof history !== 'undefined') {
       history.replaceState(null, '', `#${encodeURIComponent(id)}`);
-      return;
     }
-
-    this.hashUpdateTimer = window.setTimeout(() => {
-      history.replaceState(null, '', `#${encodeURIComponent(id)}`);
-      this.hashUpdateTimer = null;
-    }, HASH_UPDATE_DELAY_MS);
   }
 
   private readHashId(): string | null {
@@ -298,10 +285,44 @@ export class PostComponent implements OnDestroy {
     }
   }
 
-  private clearHashUpdateTimer(): void {
-    if (this.hashUpdateTimer !== null && typeof window !== 'undefined') {
-      window.clearTimeout(this.hashUpdateTimer);
-      this.hashUpdateTimer = null;
+  private smoothScrollTo(targetY: number): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const startY = window.scrollY;
+    const deltaY = targetY - startY;
+
+    if (Math.abs(deltaY) < 1) {
+      window.scrollTo(0, targetY);
+      return;
+    }
+
+    this.cancelScrollAnimation();
+
+    const startTime = performance.now();
+    const easeInOutCubic = (t: number): number =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    const tick = (now: number): void => {
+      const progress = Math.min((now - startTime) / SCROLL_DURATION_MS, 1);
+      const eased = easeInOutCubic(progress);
+      window.scrollTo(0, startY + deltaY * eased);
+
+      if (progress < 1) {
+        this.scrollAnimationFrameId = window.requestAnimationFrame(tick);
+      } else {
+        this.scrollAnimationFrameId = null;
+      }
+    };
+
+    this.scrollAnimationFrameId = window.requestAnimationFrame(tick);
+  }
+
+  private cancelScrollAnimation(): void {
+    if (this.scrollAnimationFrameId !== null && typeof window !== 'undefined') {
+      window.cancelAnimationFrame(this.scrollAnimationFrameId);
+      this.scrollAnimationFrameId = null;
     }
   }
 
