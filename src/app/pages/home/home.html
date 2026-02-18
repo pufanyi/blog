@@ -9,6 +9,15 @@
 <section class="post-list">
   @for (post of posts; track post.slug) {
     <a class="post-entry" [routerLink]="['/post', post.slug]">
+      @if (post.coverImage) {
+        <img
+          [ngSrc]="post.coverImage"
+          [alt]="post.title"
+          width="720"
+          height="360"
+          [priority]="$first"
+        />
+      }
       <div class="post-row">
         <span class="post-title">{{ post.title }}</span>
         <span class="post-date">{{ post.date }}</span>

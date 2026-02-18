@@ -13,7 +13,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { POSTS } from '../../data/posts';
 import { PostHeaderComponent } from '../../components/post-header/post-header';
-import { typesetMath, initCodeCopyButtons } from '../../utils/post-content-hooks';
+import { typesetMath, initCodeCopyButtons, optimizeContentImages } from '../../utils/post-content-hooks';
 
 const WIDE_QUERY = '(min-width: 1301px)';
 const HEADING_SCROLL_OFFSET_PX = 20;
@@ -83,6 +83,7 @@ export class PostComponent implements OnDestroy {
       const timer = window.setTimeout(() => {
         typesetMath();
         initCodeCopyButtons();
+        optimizeContentImages();
         this.setupHeadingObserver();
       });
 

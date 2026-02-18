@@ -37,6 +37,14 @@
   letter-spacing: 0.02em;
 }
 
+.cover-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin-top: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
 @media (max-width: 600px) {
   .title {
     font-size: 1.6rem;

@@ -41,12 +41,21 @@ async function main() {
     langs: langs.length ? langs : ['text'],
   });
 
+  // Custom image renderer: adds loading="lazy" and decoding="async"
+  const imageRenderer = (token) => {
+    const src = token.href;
+    const alt = token.text || '';
+    const title = token.title ? ` title="${token.title}"` : '';
+    return `<img src="${src}" alt="${alt}"${title} loading="lazy" decoding="async">`;
+  };
+
   // Configure marked with math extensions + Shiki code renderer + table renderer
   marked.use({
     extensions: [mathBlock, mathInline],
     renderer: {
       code: createCodeRenderer(highlighter),
       table: tableRenderer,
+      image: imageRenderer,
     },
   });
 

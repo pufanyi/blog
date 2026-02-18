@@ -5,4 +5,14 @@
     <hr class="title-rule-bottom" />
   </div>
   <div class="date">{{ date() }}</div>
+  @if (coverImage()) {
+    <img
+      [ngSrc]="coverImage()!"
+      [alt]="title()"
+      width="720"
+      height="405"
+      priority
+      class="cover-image"
+    />
+  }
 </header>

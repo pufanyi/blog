@@ -2,6 +2,17 @@ export function typesetMath(): void {
   (window as any).MathJax?.typesetPromise?.();
 }
 
+export function optimizeContentImages(): void {
+  document.querySelectorAll<HTMLImageElement>('.post-body img').forEach(img => {
+    if (!img.hasAttribute('loading')) {
+      img.setAttribute('loading', 'lazy');
+    }
+    if (!img.hasAttribute('decoding')) {
+      img.setAttribute('decoding', 'async');
+    }
+  });
+}
+
 export function initCodeCopyButtons(): void {
   document.querySelectorAll<HTMLButtonElement>('.code-copy').forEach(btn => {
     if (btn.dataset['copyBound'] === 'true') return;

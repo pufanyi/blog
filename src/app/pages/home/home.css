@@ -83,6 +83,13 @@
   font-size: 0.95rem;
 }
 
+.post-entry img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
 @media (max-width: 600px) {
   .title {
     font-size: 1.6rem;

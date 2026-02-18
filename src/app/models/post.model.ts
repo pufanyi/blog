@@ -4,4 +4,5 @@ export interface Post {
   date: string;
   description: string;
   contentHtml: string;
+  coverImage?: string;
 }
