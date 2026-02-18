@@ -13,6 +13,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { POSTS } from '../../data/posts';
 import { PostHeaderComponent } from '../../components/post-header/post-header';
+import { ThemeService } from '../../services/theme.service';
 import { typesetMath, initCodeCopyButtons, optimizeContentImages } from '../../utils/post-content-hooks';
 
 const WIDE_QUERY = '(min-width: 1301px)';
@@ -44,6 +45,7 @@ interface TocItem {
 export class PostComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly themeService = inject(ThemeService);
   private readonly slug = toSignal(this.route.paramMap.pipe(map(p => p.get('slug'))));
   private headingObserver: IntersectionObserver | null = null;
   private trackedHeadings: HTMLElement[] = [];
@@ -92,6 +94,11 @@ export class PostComponent implements OnDestroy {
         window.clearTimeout(timer);
         this.disconnectHeadingObserver();
       });
+    });
+
+    effect(() => {
+      this.themeService.theme();
+      this.syncGiscusTheme();
     });
   }
 
@@ -418,10 +425,36 @@ export class PostComponent implements OnDestroy {
     script.setAttribute('data-reactions-enabled', '1');
     script.setAttribute('data-emit-metadata', '0');
     script.setAttribute('data-input-position', 'bottom');
-    script.setAttribute('data-theme', 'preferred_color_scheme');
+    script.setAttribute('data-theme', this.getGiscusTheme());
     script.setAttribute('data-lang', 'en');
     script.crossOrigin = 'anonymous';
     script.async = true;
     container.appendChild(script);
+  }
+
+  private getGiscusTheme(): string {
+    return this.themeService.theme() === 'dark' ? 'dark_dimmed' : 'light';
+  }
+
+  private syncGiscusTheme(): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const iframe = document.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
+    if (!iframe?.contentWindow) {
+      return;
+    }
+
+    iframe.contentWindow.postMessage(
+      {
+        giscus: {
+          setConfig: {
+            theme: this.getGiscusTheme(),
+          },
+        },
+      },
+      'https://giscus.app',
+    );
   }
 }
