@@ -1,4 +1,32 @@
 @if (post(); as post) {
+  <div class="post-mobile-topbar" role="toolbar" aria-label="Post quick actions">
+    <a class="mobile-topbar-btn" routerLink="/" aria-label="Back to home" title="Back to home">
+      <i class="ph ph-house" aria-hidden="true"></i>
+    </a>
+
+    <div class="mobile-topbar-title">Reading</div>
+
+    @if (tocItems().length) {
+      <button
+        class="mobile-topbar-btn"
+        type="button"
+        (click)="toggleToc()"
+        [attr.aria-expanded]="tocOpen()"
+        aria-controls="post-toc"
+        aria-label="Toggle table of contents"
+        title="Table of Contents"
+      >
+        @if (tocOpen()) {
+          <i class="ph ph-x" aria-hidden="true"></i>
+        } @else {
+          <i class="ph ph-list" aria-hidden="true"></i>
+        }
+      </button>
+    } @else {
+      <span class="mobile-topbar-placeholder" aria-hidden="true"></span>
+    }
+  </div>
+
   <a class="home-btn" routerLink="/" aria-label="Back to home" title="Back to home">
     <i class="ph ph-house" aria-hidden="true" style="font-size: 20px"></i>
   </a>
@@ -28,7 +56,10 @@
       (keydown.escape)="closeToc()"
       tabindex="-1"
     >
-      <div class="toc-title">Contents</div>
+      <div class="toc-title">
+        <i class="ph ph-list-numbers toc-title-icon" aria-hidden="true"></i>
+        <span>Contents</span>
+      </div>
       <div class="toc-nav">
         @for (item of tocItems(); track item.id) {
           <a
@@ -38,7 +69,14 @@
             [href]="'#' + item.id"
             (click)="onTocClick($event, item.id)"
           >
-            {{ item.text }}
+            <span class="toc-link-icon" aria-hidden="true">
+              @if (item.level === 2) {
+                <i class="ph ph-bookmark-simple"></i>
+              } @else {
+                <i class="ph ph-caret-right"></i>
+              }
+            </span>
+            <span class="toc-link-text">{{ item.text }}</span>
           </a>
         }
       </div>

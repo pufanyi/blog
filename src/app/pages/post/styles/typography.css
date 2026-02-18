@@ -134,7 +134,7 @@
 }
 
 .post-body details summary::before {
-  font-family: "Phosphor-Duotone";
+  font-family: "Phosphor";
   content: "\e13a";
   font-size: 1em;
   color: var(--text-secondary);
