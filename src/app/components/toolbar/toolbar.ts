@@ -1,5 +1,7 @@
 import { Component, inject, signal, HostListener } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, NavigationEnd, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter, map } from 'rxjs';
 import { ThemeService } from '../../services/theme.service';
 import { SearchModalComponent } from '../search-modal/search-modal';
 
@@ -13,6 +15,14 @@ import { SearchModalComponent } from '../search-modal/search-modal';
 export class ToolbarComponent {
   themeService = inject(ThemeService);
   searchOpen = signal(false);
+  private router = inject(Router);
+  showBlogLink = toSignal(
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      map(e => e.urlAfterRedirects !== '/'),
+    ),
+    { initialValue: this.router.url !== '/' },
+  );
 
   @HostListener('document:keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {

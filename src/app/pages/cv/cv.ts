@@ -7,7 +7,6 @@ import { ExperienceComponent } from './components/experience/experience';
 import { CompetitionsComponent } from './components/competitions/competitions';
 import { TeachingComponent } from './components/teaching/teaching';
 import { MiscellaneousComponent } from './components/miscellaneous/miscellaneous';
-import { CvFooterComponent } from './components/cv-footer/cv-footer';
 
 @Component({
   selector: 'app-cv-page',
@@ -21,7 +20,6 @@ import { CvFooterComponent } from './components/cv-footer/cv-footer';
     CompetitionsComponent,
     TeachingComponent,
     MiscellaneousComponent,
-    CvFooterComponent,
   ],
   templateUrl: './cv.html',
   styleUrl: './cv.css',

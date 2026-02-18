@@ -2,9 +2,11 @@
   <a class="toolbar-desktop-btn" routerLink="/" aria-label="Home" title="Home">
     <i class="ph ph-house" style="font-size: 20px"></i>
   </a>
-  <a class="toolbar-desktop-btn" routerLink="/blog" aria-label="Blog" title="Blog">
-    <i class="ph ph-notebook" style="font-size: 20px"></i>
-  </a>
+  @if (showBlogLink()) {
+    <a class="toolbar-desktop-btn" routerLink="/blog" aria-label="Blog" title="Blog">
+      <i class="ph ph-notebook" style="font-size: 20px"></i>
+    </a>
+  }
 </div>
 
 <div class="toolbar">
@@ -29,9 +31,11 @@
       <a class="toolbar-mobile-btn" routerLink="/" aria-label="Home" title="Home">
         <i class="ph ph-house" aria-hidden="true"></i>
       </a>
-      <a class="toolbar-mobile-btn" routerLink="/blog" aria-label="Blog" title="Blog">
-        <i class="ph ph-notebook" aria-hidden="true"></i>
-      </a>
+      @if (showBlogLink()) {
+        <a class="toolbar-mobile-btn" routerLink="/blog" aria-label="Blog" title="Blog">
+          <i class="ph ph-notebook" aria-hidden="true"></i>
+        </a>
+      }
     </div>
 
     <div class="toolbar-mobile-title">Home</div>

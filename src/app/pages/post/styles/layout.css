@@ -33,7 +33,7 @@
   display: flex;
   position: fixed;
   top: 1rem;
-  left: calc(1rem + 36px + 0.5rem);
+  left: calc(1rem + 36px + 0.5rem + 36px + 0.5rem);
   z-index: 1001;
   background: var(--paper-bg);
   border: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
