@@ -56,7 +56,6 @@
 }
 
 .post-toc {
-  --toc-accent: color-mix(in srgb, var(--link-color) 58%, transparent);
   font-family: var(--font-heading);
   font-size: 0.84rem;
   line-height: 1.5;
@@ -86,18 +85,9 @@
   margin-bottom: 0.72rem;
   padding: 0.1rem 0.15rem 0.5rem;
   border-bottom: 1px solid color-mix(in srgb, var(--border-color) 22%, transparent);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.toc-title-icon {
-  color: color-mix(in srgb, var(--link-color) 80%, var(--text-color));
-  font-size: 1rem;
-  line-height: 1;
 }
 
 .toc-nav {
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.22rem;
@@ -117,8 +107,7 @@
   line-height: 1.35;
   font-size: 0.84rem;
   text-decoration: none;
-  transition: transform 0.24s ease, color 0.2s ease, border-color 0.2s ease,
-    background-color 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 .toc-link-icon {
@@ -126,39 +115,24 @@
   align-items: center;
   justify-content: center;
   width: 0.95rem;
-  min-height: 1.1rem;
-  color: color-mix(in srgb, var(--text-secondary) 88%, var(--link-color));
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   line-height: 1;
 }
 
 .toc-link.level-3 {
-  margin-left: 0.7rem;
   font-size: 0.82rem;
 }
 
 .toc-link:hover {
   color: var(--text-color);
   background: color-mix(in srgb, var(--link-color) 14%, transparent);
-  border-color: color-mix(in srgb, var(--link-color) 22%, transparent);
-  transform: translateX(3px);
   text-decoration: none;
 }
 
 .toc-link.is-active {
   color: var(--text-color);
   background: color-mix(in srgb, var(--link-color) 16%, transparent);
-  border-color: color-mix(in srgb, var(--link-color) 36%, transparent);
-  box-shadow: inset 2px 0 0 0 var(--toc-accent);
-}
-
-.toc-link.is-active .toc-link-icon {
-  color: color-mix(in srgb, var(--link-color) 88%, var(--text-color));
-}
-
-.toc-link:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--link-color) 55%, transparent);
-  outline-offset: 1px;
+  border-color: color-mix(in srgb, var(--link-color) 26%, transparent);
 }
 
 .toc-backdrop {
@@ -228,23 +202,7 @@
 }
 
 .back-link {
-  margin-top: 2.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-light);
-  font-family: var(--font-heading);
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  transition: color 0.2s;
-}
-
-.back-link a {
-  color: var(--text-secondary);
-  text-decoration: none;
-}
-
-.back-link a:hover {
-  color: var(--link-color);
-  text-decoration: none;
+  display: none;
 }
 
 .back-to-top {
@@ -336,23 +294,6 @@
     font-size: 0.74rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-  }
-
-  .mobile-topbar-placeholder {
-    width: 2rem;
-    height: 2rem;
-  }
-
-  .mobile-topbar-btn:hover {
-    color: var(--text-color);
-    text-decoration: none;
-    border-color: color-mix(in srgb, var(--link-color) 24%, transparent);
-    background: color-mix(in srgb, var(--link-color) 12%, transparent);
-  }
-
-  .mobile-topbar-btn:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--link-color) 55%, transparent);
-    outline-offset: 1px;
   }
 
   .home-btn,
