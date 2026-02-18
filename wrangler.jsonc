@@ -3,6 +3,7 @@
   "name": "blog",
   "compatibility_date": "2026-02-18",
   "assets": {
-    "directory": "./dist/blog/browser"
+    "directory": "./dist/blog/browser",
+    "not_found_handling": "single-page-application"
   }
 }
