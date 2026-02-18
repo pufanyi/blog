@@ -1,0 +1,5 @@
+{
+  "title": "Linear Time (Worst Case) Nth-Element Algorithm",
+  "date": "2023-01-22",
+  "description": "一个有趣的算法，能在最坏时间复杂度 O(n) 内求出序列第 k 小。"
+}
