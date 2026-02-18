@@ -1,4 +1,8 @@
 @if (post(); as post) {
+  <a class="home-btn" routerLink="/" aria-label="Back to home" title="Back to home">
+    <i class="ph-duotone ph-house" aria-hidden="true" style="font-size: 20px"></i>
+  </a>
+
   @if (tocItems().length) {
     <button
       class="toc-toggle"

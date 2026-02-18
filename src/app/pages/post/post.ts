@@ -17,6 +17,8 @@ import { FooterComponent } from '../../components/footer/footer';
 import { typesetMath, initCodeCopyButtons } from '../../utils/post-content-hooks';
 
 const WIDE_QUERY = '(min-width: 1301px)';
+const HASH_UPDATE_DELAY_MS = 320;
+const HEADING_SCROLL_OFFSET_PX = 20;
 
 type TocLevel = 2 | 3;
 
@@ -46,6 +48,7 @@ export class PostComponent implements OnDestroy {
   private readonly slug = toSignal(this.route.paramMap.pipe(map(p => p.get('slug'))));
   private headingObserver: IntersectionObserver | null = null;
   private viewportMediaQuery: MediaQueryList | null = null;
+  private hashUpdateTimer: number | null = null;
 
   readonly tocOpen = signal(false);
   readonly isWide = signal(false);
@@ -91,6 +94,7 @@ export class PostComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.disconnectHeadingObserver();
     this.teardownViewportObserver();
+    this.clearHashUpdateTimer();
   }
 
   toggleToc(): void {
@@ -103,11 +107,14 @@ export class PostComponent implements OnDestroy {
 
   onTocClick(event: Event, id: string): void {
     event.preventDefault();
-    this.scrollToHeading(id, true);
 
     if (!this.isWide() && typeof window !== 'undefined') {
-      window.setTimeout(() => this.tocOpen.set(false), 150);
+      this.tocOpen.set(false);
+      window.requestAnimationFrame(() => this.scrollToHeading(id, true));
+      return;
     }
+
+    this.scrollToHeading(id, true);
   }
 
   private buildContentWithToc(rawHtml: string): { html: string; toc: TocItem[] } {
@@ -237,7 +244,7 @@ export class PostComponent implements OnDestroy {
   };
 
   private scrollToHeading(id: string, smooth: boolean): void {
-    if (typeof document === 'undefined') {
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
       return;
     }
 
@@ -246,12 +253,32 @@ export class PostComponent implements OnDestroy {
       return;
     }
 
-    heading.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
-    this.activeHeadingId.set(id);
+    const top = Math.max(
+      0,
+      window.scrollY + heading.getBoundingClientRect().top - HEADING_SCROLL_OFFSET_PX,
+    );
 
-    if (typeof history !== 'undefined') {
-      history.replaceState(null, '', `#${encodeURIComponent(id)}`);
+    window.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
+    this.activeHeadingId.set(id);
+    this.queueHashUpdate(id, smooth);
+  }
+
+  private queueHashUpdate(id: string, smooth: boolean): void {
+    if (typeof history === 'undefined' || typeof window === 'undefined') {
+      return;
     }
+
+    this.clearHashUpdateTimer();
+
+    if (!smooth) {
+      history.replaceState(null, '', `#${encodeURIComponent(id)}`);
+      return;
+    }
+
+    this.hashUpdateTimer = window.setTimeout(() => {
+      history.replaceState(null, '', `#${encodeURIComponent(id)}`);
+      this.hashUpdateTimer = null;
+    }, HASH_UPDATE_DELAY_MS);
   }
 
   private readHashId(): string | null {
@@ -268,6 +295,13 @@ export class PostComponent implements OnDestroy {
       return decodeURIComponent(hash.slice(1));
     } catch {
       return null;
+    }
+  }
+
+  private clearHashUpdateTimer(): void {
+    if (this.hashUpdateTimer !== null && typeof window !== 'undefined') {
+      window.clearTimeout(this.hashUpdateTimer);
+      this.hashUpdateTimer = null;
     }
   }
 
