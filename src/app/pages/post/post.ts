@@ -13,7 +13,6 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { POSTS } from '../../data/posts';
 import { PostHeaderComponent } from '../../components/post-header/post-header';
-import { FooterComponent } from '../../components/footer/footer';
 import { typesetMath, initCodeCopyButtons } from '../../utils/post-content-hooks';
 
 const WIDE_QUERY = '(min-width: 1301px)';
@@ -31,7 +30,7 @@ interface TocItem {
 @Component({
   selector: 'app-post',
   standalone: true,
-  imports: [RouterLink, PostHeaderComponent, FooterComponent],
+  imports: [RouterLink, PostHeaderComponent],
   templateUrl: './post.html',
   styleUrls: [
     './styles/typography.css',

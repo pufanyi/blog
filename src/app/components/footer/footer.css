@@ -1,9 +1,9 @@
 .footer {
   font-family: var(--font-heading);
-  margin-top: 3rem;
-  padding-top: 0.8rem;
+  margin-top: 1.5rem;
+  padding-bottom: 1.5rem;
   text-align: center;
-  font-size: 1.1rem;
+  font-size: 0.8rem;
   line-height: 1.6;
   letter-spacing: 0.01em;
   color: var(--text-secondary);
@@ -13,20 +13,16 @@
   margin: 0;
 }
 
-.source-link {
-  display: inline-flex;
-  margin-left: 0.25rem;
+.footer-icon-link {
   color: inherit;
-  vertical-align: text-bottom;
-}
-
-.source-link svg {
-  width: 1.05rem;
-  height: 1.05rem;
-  fill: currentColor;
-}
-
-.source-link:hover {
-  color: var(--link-color);
   text-decoration: none;
+}
+
+.footer-icon-link i {
+  vertical-align: -0.15em;
+  font-size: 1.05em;
+}
+
+.footer-icon-link:hover {
+  color: var(--link-color);
 }
