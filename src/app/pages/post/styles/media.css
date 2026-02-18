@@ -18,16 +18,33 @@
   overflow-x: auto;
 }
 
-/* HR separator — short fading line */
+/* HR separator — fading line with center ornament */
 .post-body hr {
   border: none;
   margin: 2.5rem auto;
   height: 1px;
-  max-width: 120px;
+  max-width: 280px;
+  position: relative;
   background: linear-gradient(
     to right,
     transparent,
-    color-mix(in srgb, var(--border-color) 40%, transparent),
+    color-mix(in srgb, var(--border-color) 50%, transparent) 20%,
+    color-mix(in srgb, var(--border-color) 50%, transparent) 80%,
     transparent
   );
+  overflow: visible;
+}
+
+.post-body hr::after {
+  content: "\2726";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--paper-bg);
+  padding: 0 0.6rem;
+  font-size: 0.7rem;
+  color: color-mix(in srgb, var(--border-color) 55%, transparent);
+  line-height: 1;
+  letter-spacing: 0.3em;
 }

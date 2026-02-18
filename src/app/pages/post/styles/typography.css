@@ -107,9 +107,9 @@
 /* Details / Summary */
 .post-body details {
   margin: 1.5rem 0;
-  border: 1px solid color-mix(in srgb, var(--border-color) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 30%, transparent);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--border-color) 3%, var(--paper-bg));
+  background: color-mix(in srgb, var(--border-color) 8%, var(--paper-bg));
   overflow: hidden;
 }
 
@@ -124,6 +124,7 @@
   align-items: center;
   gap: 0.5rem;
   color: var(--text-color);
+  background: color-mix(in srgb, var(--border-color) 6%, transparent);
   transition: background 0.15s ease;
   user-select: none;
 }
@@ -147,7 +148,7 @@
 }
 
 .post-body details summary:hover {
-  background: color-mix(in srgb, var(--border-color) 8%, transparent);
+  background: color-mix(in srgb, var(--border-color) 14%, transparent);
 }
 
 .post-body details > :not(summary) {
@@ -156,7 +157,7 @@
 
 .post-body details > :nth-child(2) {
   padding-top: 0.75rem;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 10%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
 }
 
 .post-body details > :last-child {
