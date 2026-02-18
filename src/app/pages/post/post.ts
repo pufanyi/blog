@@ -85,6 +85,7 @@ export class PostComponent implements OnDestroy {
         initCodeCopyButtons();
         optimizeContentImages();
         this.setupHeadingObserver();
+        this.loadGiscus();
       });
 
       onCleanup(() => {
@@ -391,5 +392,36 @@ export class PostComponent implements OnDestroy {
     const count = usedIds.get(base) ?? 0;
     usedIds.set(base, count + 1);
     return count === 0 ? base : `${base}-${count}`;
+  }
+
+  private loadGiscus(): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const container = document.querySelector('.giscus');
+    if (!container) {
+      return;
+    }
+
+    // Remove any existing giscus iframe (from previous navigation)
+    container.innerHTML = '';
+
+    const script = document.createElement('script');
+    script.src = 'https://giscus.app/client.js';
+    script.setAttribute('data-repo', 'pufanyi/blog');
+    script.setAttribute('data-repo-id', 'R_kgDORRRa1g');
+    script.setAttribute('data-category', 'General');
+    script.setAttribute('data-category-id', 'DIC_kwDORRRa1s4C2sEx');
+    script.setAttribute('data-mapping', 'pathname');
+    script.setAttribute('data-strict', '0');
+    script.setAttribute('data-reactions-enabled', '1');
+    script.setAttribute('data-emit-metadata', '0');
+    script.setAttribute('data-input-position', 'bottom');
+    script.setAttribute('data-theme', 'preferred_color_scheme');
+    script.setAttribute('data-lang', 'en');
+    script.crossOrigin = 'anonymous';
+    script.async = true;
+    container.appendChild(script);
   }
 }
