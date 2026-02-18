@@ -34,6 +34,7 @@
     "@phosphor-icons/web": "^2.1.2",
     "@shikijs/transformers": "^3.22.0",
     "charter-webfont": "^4.1.0",
+    "flexsearch": "^0.8.212",
     "marked": "^17.0.2",
     "modern-normalize": "^3.0.1",
     "rxjs": "~7.8.0",

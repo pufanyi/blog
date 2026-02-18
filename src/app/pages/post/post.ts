@@ -47,6 +47,7 @@ export class PostComponent implements OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly slug = toSignal(this.route.paramMap.pipe(map(p => p.get('slug'))));
   private headingObserver: IntersectionObserver | null = null;
+  private trackedHeadings: HTMLElement[] = [];
   private viewportMediaQuery: MediaQueryList | null = null;
   private scrollAnimationFrameId: number | null = null;
 
@@ -155,11 +156,13 @@ export class PostComponent implements OnDestroy {
     this.disconnectHeadingObserver();
 
     if (typeof document === 'undefined' || typeof IntersectionObserver === 'undefined') {
+      this.trackedHeadings = [];
       return;
     }
 
     const toc = this.tocItems();
     if (!toc.length) {
+      this.trackedHeadings = [];
       return;
     }
 
@@ -168,30 +171,17 @@ export class PostComponent implements OnDestroy {
       .filter((heading): heading is HTMLElement => heading !== null);
 
     if (!headings.length) {
+      this.trackedHeadings = [];
       return;
     }
 
+    this.trackedHeadings = headings;
     const hashId = this.readHashId();
     this.activeHeadingId.set(hashId && headings.some(h => h.id === hashId) ? hashId : headings[0].id);
 
     this.headingObserver = new IntersectionObserver(
-      entries => {
-        const visible = entries
-          .filter(entry => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-
-        if (visible.length > 0) {
-          this.activeHeadingId.set((visible[0].target as HTMLElement).id);
-          return;
-        }
-
-        const nearestAbove = entries
-          .filter(entry => entry.boundingClientRect.top < 0)
-          .sort((a, b) => b.boundingClientRect.top - a.boundingClientRect.top);
-
-        if (nearestAbove.length > 0) {
-          this.activeHeadingId.set((nearestAbove[0].target as HTMLElement).id);
-        }
+      () => {
+        this.syncActiveHeading();
       },
       {
         rootMargin: '-20% 0px -60% 0px',
@@ -203,10 +193,14 @@ export class PostComponent implements OnDestroy {
 
     if (hashId) {
       this.scrollToHeading(hashId, false);
+      return;
     }
+
+    this.syncActiveHeading();
   }
 
   private disconnectHeadingObserver(): void {
+    this.trackedHeadings = [];
     if (this.headingObserver) {
       this.headingObserver.disconnect();
       this.headingObserver = null;
@@ -274,6 +268,7 @@ export class PostComponent implements OnDestroy {
     }
 
     this.showBackToTop.set(window.scrollY > 320);
+    this.syncActiveHeading();
   };
 
   private scrollToHeading(id: string, smooth: boolean): void {
@@ -360,6 +355,25 @@ export class PostComponent implements OnDestroy {
       window.cancelAnimationFrame(this.scrollAnimationFrameId);
       this.scrollAnimationFrameId = null;
     }
+  }
+
+  private syncActiveHeading(): void {
+    if (!this.trackedHeadings.length) {
+      return;
+    }
+
+    const anchorTop = HEADING_SCROLL_OFFSET_PX + 1;
+    let activeId = this.trackedHeadings[0].id;
+
+    for (const heading of this.trackedHeadings) {
+      if (heading.getBoundingClientRect().top <= anchorTop) {
+        activeId = heading.id;
+      } else {
+        break;
+      }
+    }
+
+    this.activeHeadingId.set(activeId);
   }
 
   private slugify(text: string): string {

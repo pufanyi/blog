@@ -56,7 +56,7 @@ export class SearchModalComponent {
 
   goTo(result: SearchResult) {
     this.closed.emit();
-    this.router.navigate(['/post', result.post.slug]);
+    this.router.navigate(['/post', result.slug]);
   }
 
   onBackdropClick(event: MouseEvent) {

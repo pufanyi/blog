@@ -20,16 +20,16 @@
       } @else if (!query()) {
         <div class="search-empty">Type to search posts</div>
       } @else {
-        @for (result of results(); track result.post.slug; let i = $index) {
+        @for (result of results(); track result.slug; let i = $index) {
           <button
             class="search-result-item"
             [class.active]="i === activeIndex()"
             (click)="goTo(result)"
             (mouseenter)="activeIndex.set(i)"
           >
-            <div class="result-title">{{ result.post.title }}</div>
+            <div class="result-title">{{ result.title }}</div>
             <div class="result-meta">
-              <span class="result-date">{{ result.post.date }}</span>
+              <span class="result-date">{{ result.date }}</span>
               <span class="result-match-tag">{{ matchLabel(result.matchField) }}</span>
             </div>
             <div class="result-snippet">{{ result.snippet }}</div>
