@@ -1,0 +1,59 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+}
+
+.redirect-notice {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.icon {
+  font-size: 3rem;
+  color: var(--link-color);
+  margin-bottom: 1rem;
+}
+
+h1 {
+  font-size: 1.6rem;
+  color: var(--text-color);
+  margin: 0 0 1rem;
+}
+
+.message {
+  color: var(--text-color);
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+.target {
+  margin: 0 0 1rem;
+}
+
+.target a {
+  color: var(--link-color);
+  word-break: break-all;
+}
+
+.countdown {
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
+  font-size: 0.9rem;
+  margin: 0 0 1.5rem;
+}
+
+.redirect-button {
+  display: inline-block;
+  padding: 0.55rem 1.5rem;
+  background: var(--link-color);
+  color: #fff;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: opacity 0.2s ease;
+}
+
+.redirect-button:hover {
+  opacity: 0.85;
+}

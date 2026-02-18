@@ -1,5 +1,11 @@
 import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
 import { POSTS } from './data/posts';
+import { REDIRECTS } from './data/redirects';
+
+const redirectServerRoutes: ServerRoute[] = REDIRECTS.map(r => ({
+  path: r.from,
+  renderMode: RenderMode.Prerender,
+}));
 
 export const serverRoutes: ServerRoute[] = [
   {
@@ -18,6 +24,7 @@ export const serverRoutes: ServerRoute[] = [
       return POSTS.map(post => ({ slug: post.slug }));
     },
   },
+  ...redirectServerRoutes,
   {
     path: '**',
     renderMode: RenderMode.Client,

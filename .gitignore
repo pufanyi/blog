@@ -3,6 +3,7 @@
 # Compiled output
 /dist
 /src/app/data/posts.ts
+/src/app/data/redirects.ts
 /tmp
 /out-tsc
 /bazel-out

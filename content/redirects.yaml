@@ -1,0 +1,13 @@
+# Redirect configuration
+# Each entry maps a path on this site to an external URL.
+# When a user visits https://pufanyi.com/<from>/, they will see
+# a notice that the page has moved, and be redirected to <to>.
+#
+# Example:
+#   - from: sc1008
+#     to: https://projects.pufanyi.com/sc1008/
+#     title: SC1008  # optional, displayed in the redirect notice
+
+- from: sc1008
+  to: https://projects.pufanyi.com/sc1008/
+  title: SC1008
