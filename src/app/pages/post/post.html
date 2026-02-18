@@ -58,6 +58,17 @@
 
   <article class="post-body" [innerHTML]="safeHtml()"></article>
 
+  <button
+    class="back-to-top"
+    type="button"
+    [class.is-visible]="showBackToTop()"
+    (click)="scrollToTop()"
+    aria-label="Back to top"
+    title="Back to top"
+  >
+    <i class="ph-duotone ph-arrow-up" aria-hidden="true" style="font-size: 20px"></i>
+  </button>
+
   <div class="back-link">
     <a routerLink="/"><i class="ph-duotone ph-arrow-left" aria-hidden="true"></i> Back to all posts</a>
   </div>

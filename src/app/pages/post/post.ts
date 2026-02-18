@@ -53,6 +53,7 @@ export class PostComponent implements OnDestroy {
   readonly tocOpen = signal(false);
   readonly isWide = signal(false);
   readonly activeHeadingId = signal('');
+  readonly showBackToTop = signal(false);
 
   readonly post = computed(() => {
     const s = this.slug();
@@ -70,6 +71,7 @@ export class PostComponent implements OnDestroy {
 
   constructor() {
     this.setupViewportObserver();
+    this.setupScrollWatcher();
 
     effect(onCleanup => {
       this.safeHtml();
@@ -94,6 +96,7 @@ export class PostComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.disconnectHeadingObserver();
     this.teardownViewportObserver();
+    this.teardownScrollWatcher();
     this.cancelScrollAnimation();
   }
 
@@ -112,6 +115,14 @@ export class PostComponent implements OnDestroy {
     if (!this.isWide() && typeof window !== 'undefined') {
       window.setTimeout(() => this.tocOpen.set(false), 150);
     }
+  }
+
+  scrollToTop(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    this.smoothScrollTo(0);
   }
 
   private buildContentWithToc(rawHtml: string): { html: string; toc: TocItem[] } {
@@ -235,9 +246,34 @@ export class PostComponent implements OnDestroy {
     this.viewportMediaQuery = null;
   }
 
+  private setupScrollWatcher(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.addEventListener('scroll', this.handleWindowScroll, { passive: true });
+    this.handleWindowScroll();
+  }
+
+  private teardownScrollWatcher(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.removeEventListener('scroll', this.handleWindowScroll);
+  }
+
   private readonly handleViewportChange = (event: MediaQueryListEvent): void => {
     this.isWide.set(event.matches);
     this.tocOpen.set(event.matches);
+  };
+
+  private readonly handleWindowScroll = (): void => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    this.showBackToTop.set(window.scrollY > 320);
   };
 
   private scrollToHeading(id: string, smooth: boolean): void {
