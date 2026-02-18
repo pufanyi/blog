@@ -10,7 +10,8 @@
   gap: 0.5rem;
 }
 
-.toolbar-desktop button {
+.toolbar-desktop button,
+.toolbar-desktop-btn {
   background: var(--paper-bg);
   border: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
   border-radius: 50%;
@@ -24,12 +25,15 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: color 0.2s, background 0.3s ease, box-shadow 0.2s, border-color 0.2s;
   font-family: var(--font-heading);
+  text-decoration: none;
 }
 
-.toolbar-desktop button:hover {
+.toolbar-desktop button:hover,
+.toolbar-desktop-btn:hover {
   color: var(--text-color);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
+  text-decoration: none;
 }
 
 .toolbar-mobile {

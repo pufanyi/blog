@@ -1,7 +1,7 @@
 @if (post(); as post) {
   <div class="post-mobile-topbar" role="toolbar" aria-label="Post quick actions">
     <div class="mobile-topbar-group">
-      <a class="mobile-topbar-btn" routerLink="/blog" aria-label="Back to home" title="Back to home">
+      <a class="mobile-topbar-btn" routerLink="/" aria-label="Home" title="Home">
         <i class="ph ph-house" aria-hidden="true"></i>
       </a>
       @if (tocItems().length) {
@@ -42,7 +42,7 @@
     </div>
   </div>
 
-  <a class="home-btn" routerLink="/blog" aria-label="Back to home" title="Back to home">
+  <a class="home-btn" routerLink="/" aria-label="Home" title="Home">
     <i class="ph ph-house" aria-hidden="true" style="font-size: 20px"></i>
   </a>
 
