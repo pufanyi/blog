@@ -16,12 +16,22 @@ $$
 
 虽然有点抽象，但你就说打没打出来吧（
 
+2026/02/18 update: 重写了 blog，把 MathJax 升级的 MathJaX 4 了，貌似现在可以打出来了：
+
+$$
+\oiint_S
+$$
+
+```latex
+\oiint_S
+```
+
 ---
 
 ## Gauss's Law
 
 $$
-\iint_S{\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\ \;\;\large{\subset\!\supset} \vec{E}\cdot\mathrm{d}\vec{A}} = \frac{\sum q}{\varepsilon_0}
+\oiint_S {\vec{E}\cdot\mathrm{d}\vec{A}} = \frac{\sum q}{\varepsilon_0}
 $$
 
 这个 $\varepsilon_0$ 其实是真空的电容率。
@@ -31,7 +41,7 @@ $$
 他能推库仑定律，就是你考虑一个点电荷 $q$ 为中心，半径为 $r$ 的球面，表面积是 $4\pi r^2$，然后因为整个球是中心对称的，于是我们就有：
 
 $$
-\left\|\vec{E}\right\|\cdot A = \iint_S{\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\ \;\;\large{\subset\!\supset} \vec{E}\cdot\mathrm{d}\vec{A}} = \frac{q}{\varepsilon_0}
+\left\|\vec{E}\right\|\cdot A = \oiint_S \vec{E}\cdot\mathrm{d}\vec{A} = \frac{q}{\varepsilon_0}
 $$
 
 于是乎：
@@ -85,7 +95,7 @@ $$
 然后我们考虑另一个结果就是其实我们就可以直接去认为电场穿过 dielectric 的时候，电场强度会变小，这个变小的倍数就是 $1+\chi_e$，于是乎我们可以改进一下这个方程：
 
 $$
-\iint_S{\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\ \;\;\large{\subset\!\supset} \left(1+\chi_e\right)\vec{E}\cdot\mathrm{d}\vec{A}} = \frac{\sum q}{\varepsilon_0}
+\oiint_S \left(1+\chi_e\right)\vec{E}\cdot\mathrm{d}\vec{A} = \frac{\sum q}{\varepsilon_0}
 $$
 
 ---
@@ -95,7 +105,7 @@ $$
 同样很好理解，毕竟磁感线一定是个闭环：
 
 $$
-\iint_S{\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\!\ \;\;\large{\subset\!\supset}{\vec{B}\cdot\mathrm{d}\vec{A}}} = 0
+\oiint_S \vec{B}\cdot\mathrm{d}\vec{A} = 0
 $$
 
 ---

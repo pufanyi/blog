@@ -43,7 +43,4 @@
     border-color: #ccc;
   }
 
-  .post-body hr::after {
-    color: #555;
-  }
 }

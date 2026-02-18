@@ -18,19 +18,16 @@
   overflow-x: auto;
 }
 
-/* Three-dot HR separator */
+/* HR separator — short fading line */
 .post-body hr {
   border: none;
-  height: auto;
-  background: none;
-  margin: 2.5rem 0;
-  text-align: center;
-}
-
-.post-body hr::after {
-  content: '***';
-  display: block;
-  letter-spacing: 1em;
-  color: var(--text-secondary);
-  font-size: 1rem;
+  margin: 2.5rem auto;
+  height: 1px;
+  max-width: 120px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--border-color) 40%, transparent),
+    transparent
+  );
 }
