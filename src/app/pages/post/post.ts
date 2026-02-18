@@ -16,6 +16,8 @@ import { PostHeaderComponent } from '../../components/post-header/post-header';
 import { FooterComponent } from '../../components/footer/footer';
 import { typesetMath, initCodeCopyButtons } from '../../utils/post-content-hooks';
 
+const WIDE_QUERY = '(min-width: 1301px)';
+
 type TocLevel = 2 | 3;
 
 interface TocItem {
@@ -43,8 +45,10 @@ export class PostComponent implements OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly slug = toSignal(this.route.paramMap.pipe(map(p => p.get('slug'))));
   private headingObserver: IntersectionObserver | null = null;
+  private viewportMediaQuery: MediaQueryList | null = null;
 
-  readonly tocCollapsed = signal(false);
+  readonly tocOpen = signal(false);
+  readonly isWide = signal(false);
   readonly activeHeadingId = signal('');
 
   readonly post = computed(() => {
@@ -62,6 +66,8 @@ export class PostComponent implements OnDestroy {
   readonly safeHtml = computed(() => this.sanitizer.bypassSecurityTrustHtml(this.processedContent().html));
 
   constructor() {
+    this.setupViewportObserver();
+
     effect(onCleanup => {
       this.safeHtml();
 
@@ -84,15 +90,24 @@ export class PostComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.disconnectHeadingObserver();
+    this.teardownViewportObserver();
   }
 
   toggleToc(): void {
-    this.tocCollapsed.update(value => !value);
+    this.tocOpen.update(value => !value);
+  }
+
+  closeToc(): void {
+    this.tocOpen.set(false);
   }
 
   onTocClick(event: Event, id: string): void {
     event.preventDefault();
     this.scrollToHeading(id, true);
+
+    if (!this.isWide() && typeof window !== 'undefined') {
+      window.setTimeout(() => this.tocOpen.set(false), 150);
+    }
   }
 
   private buildContentWithToc(rawHtml: string): { html: string; toc: TocItem[] } {
@@ -182,6 +197,44 @@ export class PostComponent implements OnDestroy {
       this.headingObserver = null;
     }
   }
+
+  private setupViewportObserver(): void {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia(WIDE_QUERY);
+    this.viewportMediaQuery = mediaQuery;
+    this.isWide.set(mediaQuery.matches);
+    this.tocOpen.set(mediaQuery.matches);
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', this.handleViewportChange);
+      return;
+    }
+
+    mediaQuery.addListener(this.handleViewportChange);
+  }
+
+  private teardownViewportObserver(): void {
+    const mediaQuery = this.viewportMediaQuery;
+    if (!mediaQuery) {
+      return;
+    }
+
+    if (typeof mediaQuery.removeEventListener === 'function') {
+      mediaQuery.removeEventListener('change', this.handleViewportChange);
+    } else {
+      mediaQuery.removeListener(this.handleViewportChange);
+    }
+
+    this.viewportMediaQuery = null;
+  }
+
+  private readonly handleViewportChange = (event: MediaQueryListEvent): void => {
+    this.isWide.set(event.matches);
+    this.tocOpen.set(event.matches);
+  };
 
   private scrollToHeading(id: string, smooth: boolean): void {
     if (typeof document === 'undefined') {

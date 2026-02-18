@@ -1,53 +1,67 @@
 @if (post(); as post) {
+  @if (tocItems().length) {
+    <button
+      class="toc-toggle"
+      type="button"
+      (click)="toggleToc()"
+      [attr.aria-expanded]="tocOpen()"
+      aria-controls="post-toc"
+      aria-label="Toggle table of contents"
+      title="Table of Contents"
+    >
+      @if (tocOpen()) {
+        <i class="ph-duotone ph-x" aria-hidden="true" style="font-size: 20px"></i>
+      } @else {
+        <i class="ph-duotone ph-list" aria-hidden="true" style="font-size: 20px"></i>
+      }
+    </button>
+
+    <nav
+      class="post-toc"
+      [class.toc-visible]="tocOpen()"
+      id="post-toc"
+      aria-label="Table of contents"
+      (keydown.escape)="closeToc()"
+      tabindex="-1"
+    >
+      <div class="toc-title">Contents</div>
+      <div class="toc-nav">
+        @for (item of tocItems(); track item.id) {
+          <a
+            class="toc-link"
+            [class.level-3]="item.level === 3"
+            [class.is-active]="activeHeadingId() === item.id"
+            [href]="'#' + item.id"
+            (click)="onTocClick($event, item.id)"
+          >
+            {{ item.text }}
+          </a>
+        }
+      </div>
+    </nav>
+
+    <div
+      class="toc-backdrop"
+      [class.toc-backdrop-visible]="tocOpen() && !isWide()"
+      (click)="closeToc()"
+      tabindex="-1"
+      role="button"
+      aria-label="Close table of contents"
+    ></div>
+  }
+
   <app-post-header [title]="post.title" [date]="post.date" />
 
-  <div class="post-layout">
-    @if (tocItems().length) {
-      <div class="post-toc-rail">
-        <aside class="post-toc" aria-label="Article table of contents">
-          <button
-            class="toc-toggle"
-            type="button"
-            (click)="toggleToc()"
-            [attr.aria-expanded]="!tocCollapsed()"
-            aria-controls="post-toc-links"
-          >
-            <span class="toc-title">目录</span>
-            <span class="toc-toggle-icon" [class.is-collapsed]="tocCollapsed()">▾</span>
-          </button>
+  <article class="post-body" [innerHTML]="safeHtml()"></article>
 
-          <div class="toc-list-wrap" [class.is-collapsed]="tocCollapsed()" id="post-toc-links">
-            <nav class="toc-nav" aria-label="Table of contents links">
-              @for (item of tocItems(); track item.id) {
-                <a
-                  class="toc-link"
-                  [class.level-3]="item.level === 3"
-                  [class.is-active]="activeHeadingId() === item.id"
-                  [href]="'#' + item.id"
-                  (click)="onTocClick($event, item.id)"
-                >
-                  {{ item.text }}
-                </a>
-              }
-            </nav>
-          </div>
-        </aside>
-      </div>
-    }
-
-    <div class="post-main">
-      <article class="post-body" [innerHTML]="safeHtml()"></article>
-
-      <div class="back-link">
-        <a routerLink="/">&larr; Back to all posts</a>
-      </div>
-    </div>
+  <div class="back-link">
+    <a routerLink="/"><i class="ph-duotone ph-arrow-left" aria-hidden="true"></i> Back to all posts</a>
   </div>
 
   <app-footer />
 } @else {
   <div class="not-found">
     <h1>Post not found</h1>
-    <a routerLink="/">&larr; Back to all posts</a>
+    <a routerLink="/"><i class="ph-duotone ph-arrow-left" aria-hidden="true"></i> Back to all posts</a>
   </div>
 }
