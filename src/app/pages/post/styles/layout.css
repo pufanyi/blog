@@ -201,10 +201,6 @@
   }
 }
 
-.back-link {
-  display: none;
-}
-
 .back-to-top {
   position: fixed;
   right: 1.2rem;
@@ -255,14 +251,22 @@
     left: 0.68rem;
     right: 0.68rem;
     z-index: 1002;
-    display: grid;
-    grid-template-columns: 2rem 1fr 2rem;
+    display: flex;
     align-items: center;
-    padding: 0.34rem 0.5rem;
-    border: 1px solid color-mix(in srgb, var(--border-color) 22%, transparent);
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--paper-bg) 94%, var(--background));
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+    padding: 0.28rem 0.45rem;
+    gap: 0.15rem;
+    border: 1px solid color-mix(in srgb, var(--border-color) 16%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--paper-bg) 85%, var(--background));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .mobile-topbar-group {
+    display: flex;
+    align-items: center;
+    gap: 0.08rem;
   }
 
   .mobile-topbar-btn {
@@ -273,27 +277,31 @@
     height: 2rem;
     font-size: 1rem;
     line-height: 1;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    color: var(--text-color);
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
     text-decoration: none;
     background: transparent;
     cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition: color 0.2s ease, background-color 0.2s ease;
   }
 
-  .mobile-topbar-btn:last-child,
-  .mobile-topbar-placeholder {
-    justify-self: end;
+  .mobile-topbar-btn:hover,
+  .mobile-topbar-btn:active {
+    color: var(--text-color);
+    background: color-mix(in srgb, var(--text-color) 8%, transparent);
   }
 
   .mobile-topbar-title {
+    flex: 1;
     text-align: center;
     color: var(--text-secondary);
     font-family: var(--font-heading);
-    font-size: 0.74rem;
-    letter-spacing: 0.08em;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+    opacity: 0.6;
+    user-select: none;
   }
 
   .home-btn,
@@ -303,6 +311,11 @@
 
   .post-toc {
     padding-top: 4.9rem;
+  }
+
+  /* Hide global toolbar on mobile when post topbar is active */
+  body:has(.post-mobile-topbar) .toolbar {
+    display: none;
   }
 }
 
@@ -328,8 +341,7 @@
   .home-btn,
   .post-mobile-topbar,
   .toc-backdrop,
-  .back-to-top,
-  .back-link {
+  .back-to-top {
     display: none;
   }
 

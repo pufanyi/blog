@@ -13,6 +13,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { POSTS } from '../../data/posts';
 import { PostHeaderComponent } from '../../components/post-header/post-header';
+import { SearchModalComponent } from '../../components/search-modal/search-modal';
 import { ThemeService } from '../../services/theme.service';
 import { typesetMath, initCodeCopyButtons, optimizeContentImages } from '../../utils/post-content-hooks';
 
@@ -31,7 +32,7 @@ interface TocItem {
 @Component({
   selector: 'app-post',
   standalone: true,
-  imports: [RouterLink, PostHeaderComponent],
+  imports: [RouterLink, PostHeaderComponent, SearchModalComponent],
   templateUrl: './post.html',
   styleUrls: [
     './styles/typography.css',
@@ -56,6 +57,8 @@ export class PostComponent implements OnDestroy {
   readonly isWide = signal(false);
   readonly activeHeadingId = signal('');
   readonly showBackToTop = signal(false);
+  readonly mobileSearchOpen = signal(false);
+  readonly isDark = computed(() => this.themeService.theme() === 'dark');
 
   readonly post = computed(() => {
     const s = this.slug();
@@ -115,6 +118,20 @@ export class PostComponent implements OnDestroy {
 
   closeToc(): void {
     this.tocOpen.set(false);
+  }
+
+  openMobileSearch(): void {
+    this.mobileSearchOpen.set(true);
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggle();
+  }
+
+  printPage(): void {
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
   }
 
   onTocClick(event: Event, id: string): void {
