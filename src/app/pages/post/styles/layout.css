@@ -317,6 +317,11 @@
   body:has(.post-mobile-topbar) .toolbar {
     display: none;
   }
+
+  /* Keep the paper below the fixed mobile topbar */
+  body:has(.post-mobile-topbar) .paper {
+    margin-top: 4.2rem;
+  }
 }
 
 .giscus-wrapper {
