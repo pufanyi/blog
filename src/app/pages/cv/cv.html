@@ -1,45 +1,11 @@
 <div class="cv-page">
-  <!-- Mobile topbar (shown only on mobile via CSS) -->
-  <div class="mobile-topbar" role="toolbar" aria-label="Quick actions">
-    <div class="mobile-topbar-group">
-      <button class="mobile-topbar-btn" (click)="toggleToc()" aria-label="Table of Contents" title="Table of Contents">
-        <i class="ph ph-list" aria-hidden="true"></i>
-      </button>
-    </div>
-
-    <div class="mobile-topbar-title">CV</div>
-
-    <div class="mobile-topbar-group">
-      <app-language-switcher />
-      <button class="mobile-topbar-btn" (click)="print()" aria-label="Print" title="Export as PDF / Print">
-        <i class="ph ph-printer" aria-hidden="true"></i>
-      </button>
-      <button class="mobile-topbar-btn" (click)="themeService.toggle()" aria-label="Toggle theme" title="Toggle light/dark theme">
-        @if (themeService.theme() === 'light') {
-          <i class="ph ph-moon" aria-hidden="true"></i>
-        } @else {
-          <i class="ph ph-sun" aria-hidden="true"></i>
-        }
-      </button>
-    </div>
-  </div>
-
-  <!-- Desktop toolbar (hidden on mobile) -->
-  <div class="toolbar">
-    <app-language-switcher />
-    <app-print-button />
-    <app-theme-toggle />
-  </div>
-  <app-table-of-contents />
-  <div class="paper">
-    <app-header />
-    <app-abstract />
-    <app-education />
-    <app-publications />
-    <app-experience />
-    <app-competitions />
-    <app-teaching />
-    <app-miscellaneous />
-    <app-cv-footer />
-  </div>
+  <app-header />
+  <app-abstract />
+  <app-education />
+  <app-publications />
+  <app-experience />
+  <app-competitions />
+  <app-teaching />
+  <app-miscellaneous />
+  <app-cv-footer />
 </div>
