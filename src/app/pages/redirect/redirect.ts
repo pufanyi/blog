@@ -14,7 +14,7 @@ export class RedirectComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
 
-  private path = computed(() => this.route.snapshot.paramMap.get('path') ?? '');
+  private path = computed(() => this.route.snapshot.url.map(s => s.path).join('/'));
 
   redirect = computed(() => REDIRECTS.find(r => r.from === this.path()));
 
