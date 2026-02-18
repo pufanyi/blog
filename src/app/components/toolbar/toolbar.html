@@ -1,4 +1,7 @@
 <div class="toolbar">
+  <button (click)="searchOpen.set(true)" aria-label="Search" title="Search posts (Ctrl+K)">
+    <i class="ph-duotone ph-magnifying-glass" style="font-size: 20px"></i>
+  </button>
   <button (click)="print()" aria-label="Print" title="Export as PDF / Print">
     <i class="ph-duotone ph-printer" style="font-size: 20px"></i>
   </button>
@@ -10,3 +13,7 @@
     }
   </button>
 </div>
+
+@if (searchOpen()) {
+  <app-search-modal (closed)="searchOpen.set(false)" />
+}

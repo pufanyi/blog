@@ -1,0 +1,41 @@
+<div class="search-backdrop" (click)="onBackdropClick($event)" (keydown)="onKeydown($event)">
+  <div class="search-dialog" role="dialog" aria-label="Search posts">
+    <div class="search-input-wrap">
+      <i class="ph-duotone ph-magnifying-glass search-icon"></i>
+      <input
+        #searchInput
+        type="text"
+        placeholder="Search posts…"
+        [value]="query()"
+        (input)="onInput($event)"
+        (keydown)="onKeydown($event)"
+        aria-label="Search"
+      />
+      <kbd>ESC</kbd>
+    </div>
+
+    <div class="search-results">
+      @if (query() && results().length === 0) {
+        <div class="search-empty">No results for "{{ query() }}"</div>
+      } @else if (!query()) {
+        <div class="search-empty">Type to search posts</div>
+      } @else {
+        @for (result of results(); track result.post.slug; let i = $index) {
+          <button
+            class="search-result-item"
+            [class.active]="i === activeIndex()"
+            (click)="goTo(result)"
+            (mouseenter)="activeIndex.set(i)"
+          >
+            <div class="result-title">{{ result.post.title }}</div>
+            <div class="result-meta">
+              <span class="result-date">{{ result.post.date }}</span>
+              <span class="result-match-tag">{{ matchLabel(result.matchField) }}</span>
+            </div>
+            <div class="result-snippet">{{ result.snippet }}</div>
+          </button>
+        }
+      }
+    </div>
+  </div>
+</div>
