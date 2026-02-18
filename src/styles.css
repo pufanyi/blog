@@ -9,7 +9,7 @@
   --background: #f0eeeb;
   --paper-bg: #fefdfb;
   --paper-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.06);
-  --font-body: "Charter", "Noto Sans SC", Georgia, "Times New Roman", serif;
+  --font-body: "Roboto", "Noto Sans SC", sans-serif;
   --font-heading: "Space Grotesk", "Noto Sans SC", system-ui, -apple-system, sans-serif;
   --font-mono: "Google Sans Code", monospace;
   --code-header-bg: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
