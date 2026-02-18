@@ -102,9 +102,4 @@
     opacity: 0.6;
     user-select: none;
   }
-
-  /* Keep the paper below the fixed mobile toolbar */
-  body:has(.toolbar-mobile) .paper {
-    margin-top: 4.2rem;
-  }
 }
