@@ -1,10 +1,32 @@
 .footer {
   font-family: var(--font-heading);
   margin-top: 3rem;
-  padding-top: 1rem;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+  padding-top: 0.8rem;
   text-align: center;
-  font-size: 0.82rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
   letter-spacing: 0.01em;
   color: var(--text-secondary);
+}
+
+.footer-line {
+  margin: 0;
+}
+
+.source-link {
+  display: inline-flex;
+  margin-left: 0.25rem;
+  color: inherit;
+  vertical-align: text-bottom;
+}
+
+.source-link svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: currentColor;
+}
+
+.source-link:hover {
+  color: var(--link-color);
+  text-decoration: none;
 }

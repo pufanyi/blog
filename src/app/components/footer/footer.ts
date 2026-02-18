@@ -7,5 +7,6 @@ import { Component } from '@angular/core';
   styleUrl: './footer.css',
 })
 export class FooterComponent {
-  year = new Date().getFullYear();
+  readonly lastUpdated = 'February 2026';
+  readonly sourceCodeUrl = 'https://github.com/pufanyi/blog';
 }
