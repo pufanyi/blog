@@ -1,15 +1,15 @@
 <div class="toolbar">
   <button (click)="searchOpen.set(true)" aria-label="Search" title="Search posts (Ctrl+K)">
-    <i class="ph-regular ph-magnifying-glass" style="font-size: 20px"></i>
+    <i class="ph ph-magnifying-glass" style="font-size: 20px"></i>
   </button>
   <button (click)="print()" aria-label="Print" title="Export as PDF / Print">
-    <i class="ph-regular ph-printer" style="font-size: 20px"></i>
+    <i class="ph ph-printer" style="font-size: 20px"></i>
   </button>
   <button (click)="themeService.toggle()" aria-label="Toggle theme" title="Toggle light/dark theme">
     @if (themeService.theme() === 'light') {
-      <i class="ph-regular ph-moon" style="font-size: 20px"></i>
+      <i class="ph ph-moon" style="font-size: 20px"></i>
     } @else {
-      <i class="ph-regular ph-sun" style="font-size: 20px"></i>
+      <i class="ph ph-sun" style="font-size: 20px"></i>
     }
   </button>
 </div>
