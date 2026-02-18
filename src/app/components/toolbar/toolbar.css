@@ -3,11 +3,14 @@
   top: 1rem;
   right: 1rem;
   z-index: 1000;
+}
+
+.toolbar-desktop {
   display: flex;
   gap: 0.5rem;
 }
 
-.toolbar button {
+.toolbar-desktop button {
   background: var(--paper-bg);
   border: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
   border-radius: 50%;
@@ -23,8 +26,85 @@
   font-family: var(--font-heading);
 }
 
-.toolbar button:hover {
+.toolbar-desktop button:hover {
   color: var(--text-color);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
+}
+
+.toolbar-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    top: 0.68rem;
+    left: 0.68rem;
+    right: 0.68rem;
+  }
+
+  .toolbar-desktop {
+    display: none;
+  }
+
+  .toolbar-mobile {
+    z-index: 1002;
+    display: flex;
+    align-items: center;
+    padding: 0.28rem 0.45rem;
+    gap: 0.15rem;
+    border: 1px solid color-mix(in srgb, var(--border-color) 16%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--paper-bg) 85%, var(--background));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .toolbar-mobile-group {
+    display: flex;
+    align-items: center;
+    gap: 0.08rem;
+  }
+
+  .toolbar-mobile-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    font-size: 1rem;
+    line-height: 1;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    background: transparent;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .toolbar-mobile-btn:hover,
+  .toolbar-mobile-btn:active {
+    color: var(--text-color);
+    background: color-mix(in srgb, var(--text-color) 8%, transparent);
+    text-decoration: none;
+  }
+
+  .toolbar-mobile-title {
+    flex: 1;
+    text-align: center;
+    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    user-select: none;
+  }
+
+  /* Keep the paper below the fixed mobile toolbar */
+  body:has(.toolbar-mobile) .paper {
+    margin-top: 4.2rem;
+  }
 }

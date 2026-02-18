@@ -1,11 +1,12 @@
 import { Component, inject, signal, HostListener } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ThemeService } from '../../services/theme.service';
 import { SearchModalComponent } from '../search-modal/search-modal';
 
 @Component({
   selector: 'app-toolbar',
   standalone: true,
-  imports: [SearchModalComponent],
+  imports: [SearchModalComponent, RouterLink],
   templateUrl: './toolbar.html',
   styleUrl: './toolbar.css',
 })
