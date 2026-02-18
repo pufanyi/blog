@@ -33,7 +33,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/post/post').then(m => m.PostComponent),
       },
       ...redirectRoutes,
+      {
+        path: '**',
+        loadComponent: () =>
+          import('./pages/not-found/not-found').then(m => m.NotFoundComponent),
+      },
     ],
   },
-  { path: '**', redirectTo: '' },
 ];

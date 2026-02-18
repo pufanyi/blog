@@ -1,12 +1,11 @@
 import { Component, computed, inject, OnInit, OnDestroy, signal, PLATFORM_ID } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { Redirect } from '../../models/redirect.model';
 
 @Component({
   selector: 'app-redirect',
   standalone: true,
-  imports: [RouterLink],
   templateUrl: './redirect.html',
   styleUrl: './redirect.css',
 })
