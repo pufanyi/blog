@@ -37,14 +37,7 @@
             [href]="'#' + item.id"
             (click)="onTocClick($event, item.id)"
           >
-            <span class="toc-link-icon" aria-hidden="true">
-              @if (item.level === 2) {
-                <i class="ph ph-bookmark-simple"></i>
-              } @else {
-                <i class="ph ph-caret-right"></i>
-              }
-            </span>
-            <span class="toc-link-text">{{ item.text }}</span>
+            {{ item.text }}
           </a>
         }
       </div>
