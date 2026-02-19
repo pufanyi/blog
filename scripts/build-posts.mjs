@@ -1,10 +1,10 @@
-import { readdirSync, readFileSync, writeFileSync, existsSync } from 'fs';
-import { join, basename } from 'path';
-import { marked } from 'marked';
-import { createHighlighter } from 'shiki';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import yaml from 'js-yaml';
-import { mathBlock, mathInline } from './lib/math-extensions.mjs';
+import { marked } from 'marked';
+import { basename, join } from 'path';
+import { createHighlighter } from 'shiki';
 import { createCodeRenderer } from './lib/code-renderer.mjs';
+import { mathBlock, mathInline } from './lib/math-extensions.mjs';
 import { tableRenderer } from './lib/table-renderer.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -27,10 +27,10 @@ function collectLangs(posts) {
 
 async function main() {
   const configFiles = readdirSync(CONFIG_DIR)
-    .filter(f => f.endsWith('.json'))
+    .filter((f) => f.endsWith('.json'))
     .sort();
 
-  const rawPosts = configFiles.map(file => {
+  const rawPosts = configFiles.map((file) => {
     const slug = basename(file, '.json');
     const meta = JSON.parse(readFileSync(join(CONFIG_DIR, file), 'utf-8'));
     const md = readFileSync(join(POSTS_DIR, `${slug}.md`), 'utf-8');
@@ -38,7 +38,7 @@ async function main() {
   });
 
   // Create Shiki highlighter with all needed languages
-  const langs = collectLangs(rawPosts.map(p => p.md));
+  const langs = collectLangs(rawPosts.map((p) => p.md));
   const highlighter = await createHighlighter({
     themes: ['github-light', 'github-dark'],
     langs: langs.length ? langs : ['text'],
