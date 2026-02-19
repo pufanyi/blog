@@ -80,7 +80,8 @@ export class PostComponent implements OnDestroy {
       }
 
       const timer = window.setTimeout(() => {
-        typesetMath();
+        const postBody = document.querySelector<HTMLElement>('.post-body');
+        void typesetMath(postBody ?? undefined);
         initCodeCopyButtons();
         optimizeContentImages();
         this.setupHeadingObserver();

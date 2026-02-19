@@ -1,5 +1,39 @@
-export function typesetMath(): void {
-  (window as any).MathJax?.typesetPromise?.();
+type MathJaxApi = {
+  startup?: {
+    promise?: Promise<unknown>;
+  };
+  typesetPromise?: (elements?: HTMLElement[]) => Promise<unknown>;
+};
+
+async function waitForMathJax(timeoutMs = 10000): Promise<MathJaxApi | null> {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const mathJax = (window as any).MathJax as MathJaxApi | undefined;
+    if (mathJax?.typesetPromise) {
+      return mathJax;
+    }
+    await new Promise<void>(resolve => window.setTimeout(resolve, 50));
+  }
+
+  return null;
+}
+
+export async function typesetMath(container?: HTMLElement): Promise<void> {
+  const mathJax = await waitForMathJax();
+  if (!mathJax?.typesetPromise) {
+    return;
+  }
+
+  try {
+    await mathJax.startup?.promise;
+    await mathJax.typesetPromise(container ? [container] : undefined);
+  } catch (error) {
+    console.error('MathJax typeset failed', error);
+  }
 }
 
 export function optimizeContentImages(): void {
