@@ -5,7 +5,9 @@ function escapeHtml(s) {
 export const mathBlock = {
   name: 'mathBlock',
   level: 'block',
-  start(src) { return src.match(/\$\$/)?.index; },
+  start(src) {
+    return src.match(/\$\$/)?.index;
+  },
   tokenizer(src) {
     const match = src.match(/^\$\$([\s\S]+?)\$\$/);
     if (match) {
@@ -20,7 +22,9 @@ export const mathBlock = {
 export const mathInline = {
   name: 'mathInline',
   level: 'inline',
-  start(src) { return src.match(/\$/)?.index; },
+  start(src) {
+    return src.match(/\$/)?.index;
+  },
   tokenizer(src) {
     const match = src.match(/^\$([^\$\n]+?)\$/);
     if (match) {
