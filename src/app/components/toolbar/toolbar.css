@@ -51,6 +51,7 @@
   display: none;
 }
 
+
 @media (max-width: 768px) {
   .toolbar-nav {
     display: none;
@@ -109,6 +110,7 @@
     background: color-mix(in srgb, var(--text-color) 8%, transparent);
     text-decoration: none;
   }
+
 
   .toolbar-mobile-title {
     flex: 1;

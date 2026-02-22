@@ -11,6 +11,9 @@
 
 <div class="toolbar">
   <div class="toolbar-desktop">
+    <button (click)="cycleLanguage()" aria-label="Switch language" title="Switch language">
+      <i class="ph ph-translate" style="font-size: 20px"></i>
+    </button>
     <button (click)="searchOpen.set(true)" aria-label="Search" title="Search posts (Ctrl+K)">
       <i class="ph ph-magnifying-glass" style="font-size: 20px"></i>
     </button>
@@ -56,6 +59,9 @@
     <div class="toolbar-mobile-title">{{ toolbarExt.mobileTitle() }}</div>
 
     <div class="toolbar-mobile-group">
+      <button class="toolbar-mobile-btn" type="button" (click)="cycleLanguage()" aria-label="Switch language" title="Switch language">
+        <i class="ph ph-translate" aria-hidden="true"></i>
+      </button>
       <button class="toolbar-mobile-btn" type="button" (click)="searchOpen.set(true)" aria-label="Search" title="Search posts (Ctrl+K)">
         <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
       </button>
