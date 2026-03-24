@@ -4,6 +4,7 @@
 /dist
 /src/app/data/posts.ts
 /src/app/data/redirects.ts
+/src/app/data/cv.ts
 /tmp
 /out-tsc
 /bazel-out

@@ -3,6 +3,25 @@
     <span class="entry-title">{{ title() }}</span>
     <span class="entry-date">{{ date() }}</span>
   </div>
-  <div class="entry-detail"><ng-content select="[detail]" /></div>
-  <ul class="entry-list"><ng-content /></ul>
+  @if (detail() || links()?.length) {
+    <div class="entry-detail">
+      @if (detail()) {
+        <span [innerHTML]="detail()"></span>
+      }
+      @if (links()?.length) {
+        <span class="publication-links">
+          @for (link of links()!; track link.href) {
+            <a [href]="link.href" target="_blank" rel="noopener noreferrer">[{{ link.text }}]</a>
+          }
+        </span>
+      }
+    </div>
+  }
+  @if (items()?.length) {
+    <ul class="entry-list">
+      @for (item of items()!; track $index) {
+        <li [innerHTML]="item"></li>
+      }
+    </ul>
+  }
 </div>

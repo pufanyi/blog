@@ -1,28 +1,18 @@
 import { Component, ViewEncapsulation } from '@angular/core';
 import { HeaderComponent } from './components/header/header';
 import { AbstractComponent } from './components/abstract/abstract';
-import { EducationComponent } from './components/education/education';
-import { PublicationsComponent } from './components/publications/publications';
-import { ExperienceComponent } from './components/experience/experience';
-import { CompetitionsComponent } from './components/competitions/competitions';
-import { TeachingComponent } from './components/teaching/teaching';
-import { MiscellaneousComponent } from './components/miscellaneous/miscellaneous';
+import { SectionComponent } from './components/section/section';
+import { EntryComponent } from './components/entry/entry';
+import { CV_DATA } from '../../data/cv';
 
 @Component({
   selector: 'app-cv-page',
   standalone: true,
-  imports: [
-    HeaderComponent,
-    AbstractComponent,
-    EducationComponent,
-    PublicationsComponent,
-    ExperienceComponent,
-    CompetitionsComponent,
-    TeachingComponent,
-    MiscellaneousComponent,
-  ],
+  imports: [HeaderComponent, AbstractComponent, SectionComponent, EntryComponent],
   templateUrl: './cv.html',
   styleUrl: './cv.css',
   encapsulation: ViewEncapsulation.None,
 })
-export class CvPageComponent {}
+export class CvPageComponent {
+  readonly cv = CV_DATA;
+}

@@ -1,10 +1,27 @@
 <div class="cv-page">
-  <app-header />
-  <app-abstract />
-  <app-education />
-  <app-publications />
-  <app-experience />
-  <app-competitions />
-  <app-teaching />
-  <app-miscellaneous />
+  <app-header [data]="cv.header" />
+  <app-abstract [data]="cv.abstract" />
+  @for (section of cv.sections; track section.title; let i = $index) {
+    <app-section [number]="i + 1" [title]="section.title">
+      @if (section.entries) {
+        @for (entry of section.entries; track entry.title) {
+          <app-entry [title]="entry.title" [date]="entry.date"
+                     [detail]="entry.detail" [links]="entry.links" [items]="entry.items" />
+        }
+      }
+      @if (section.subsections) {
+        @for (sub of section.subsections; track sub.title; let j = $index) {
+          <h3 class="subsection-heading">{{ i + 1 }}.{{ j + 1 }} &nbsp; {{ sub.title }}</h3>
+          <ul class="itemize">
+            @for (item of sub.items; track $index) {
+              <li [innerHTML]="item"></li>
+            }
+          </ul>
+        }
+      }
+      @if (section.content) {
+        <p [innerHTML]="section.content"></p>
+      }
+    </app-section>
+  }
 </div>

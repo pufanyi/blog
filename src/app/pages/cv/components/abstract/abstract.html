@@ -1,31 +1,12 @@
 <section class="abstract" id="abstract">
   <h2 class="abstract-heading">Abstract</h2>
   <div class="abstract-content">
-    <p>
-      I am currently a final-year undergraduate student at <a href="https://www.ntu.edu.sg/" target="_blank" rel="noopener noreferrer">Nanyang Technological University</a>,
-      specializing in <a href="https://www.ntu.edu.sg/education/undergraduate-programme/bachelor-of-science-in-data-science-artificial-intelligence" target="_blank" rel="noopener noreferrer">Data Science and Artificial Intelligence</a>.
-    </p>
-    <p>
-      I am currently doing research at <a href="https://www.sensetime.com/en" target="_blank" rel="noopener noreferrer">SenseTime</a> and <a href="https://www.mmlab-ntu.com/" target="_blank" rel="noopener noreferrer">MMLab&#64;NTU</a>.
-      I am fortunate to be supervised by <a href="https://liuziwei7.github.io/" target="_blank" rel="noopener noreferrer">Prof. Ziwei Liu</a>,
-      I am also grateful for the extensive help I have received from <a href="https://brianboli.com/" target="_blank" rel="noopener noreferrer">Bo Li</a>,
-      <a href="https://caizhongang.com/" target="_blank" rel="noopener noreferrer">Zhongang Cai</a> and <a href="https://scholar.google.com/citations?user=jZH2IPYAAAAJ&hl=en" target="_blank" rel="noopener noreferrer">Lei Yang</a>.
-      My research interests currently lie in <em>multi-modality (unified) models</em> and <em>spatial intelligence</em>.
-    </p>
-    <p>
-      During my time at <a href="http://www.sxyz.net/" target="_blank" rel="noopener noreferrer">Shaoxing No.1 High School</a>,
-      I participated in the <a href="https://www.noi.cn/" target="_blank" rel="noopener noreferrer">Olympiad in Informatics</a>.
-      Additionally, I competed in the <a href="https://icpc.global/" target="_blank" rel="noopener noreferrer">ICPC</a> competition,
-      where I earned a <a href="assets/pdf/awards/Kunming.pdf" target="_blank" rel="noopener noreferrer">gold medal</a> in the 2022 Kunming Asia Regional Contest
-      and a <a href="assets/pdf/awards/Nanjing.pdf" target="_blank" rel="noopener noreferrer">silver medal</a> in the 2022 Nanjing Asia Regional Contest.
-      I am a contributor to the <a href="https://ntu-icpc.github.io/npc/" target="_blank" rel="noopener noreferrer">Nanyang Programming Contest</a>.
-    </p>
-    <p>
-      I like to play chess, my Lichess ID is <a href="https://lichess.org/@/pufanyi" target="_blank" rel="noopener noreferrer">&#64;pufanyi</a>, my current rating is 2086 (rapid).
-    </p>
+    @for (para of data().paragraphs; track $index) {
+      <p [innerHTML]="para"></p>
+    }
   </div>
   <div class="keywords">
     <span class="keywords-label">Keywords: </span>
-    Spatial Intelligence · Unified Multimodal Models · Deep Learning
+    {{ data().keywords.join(' · ') }}
   </div>
 </section>

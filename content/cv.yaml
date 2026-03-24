@@ -1,0 +1,229 @@
+header:
+  name: "Fanyi Pu (濮凡轶)"
+  photo: me.avif
+  affiliation:
+    - College of Computing and Data Science
+    - "Nanyang Technological University, Singapore"
+  contact:
+    - icon: ph-phone
+      text: "+65 8398-1454"
+      href: "tel:+6583981454"
+    - icon: ph-envelope
+      text: FPU001@e.ntu.edu.sg
+      href: "mailto:FPU001@e.ntu.edu.sg"
+  links:
+    - icon: ph-globe
+      href: "https://pufanyi.com"
+      label: Homepage
+    - icon: ph-github-logo
+      href: "https://github.com/pufanyi"
+      label: GitHub
+    - icon: ph-graduation-cap
+      href: "https://scholar.google.com/citations?user=58tv6skAAAAJ"
+      label: Google Scholar
+    - icon: ph-linkedin-logo
+      href: "https://linkedin.com/in/pufanyi"
+      label: LinkedIn
+    - icon: ph-x-logo
+      href: "https://x.com/pufanyi"
+      label: X (Twitter)
+    - icon: ph-notebook
+      href: /blog
+      label: Blog
+      internal: true
+
+abstract:
+  paragraphs:
+    - >-
+      I am currently a final-year undergraduate student at
+      <a href="https://www.ntu.edu.sg/" target="_blank">Nanyang Technological University</a>,
+      specializing in
+      <a href="https://www.ntu.edu.sg/education/undergraduate-programme/bachelor-of-science-in-data-science-artificial-intelligence" target="_blank">Data Science and Artificial Intelligence</a>.
+    - >-
+      I am currently doing research at
+      <a href="https://www.sensetime.com/en" target="_blank">SenseTime</a> and
+      <a href="https://www.mmlab-ntu.com/" target="_blank">MMLab@NTU</a>.
+      I am fortunate to be supervised by
+      <a href="https://liuziwei7.github.io/" target="_blank">Prof. Ziwei Liu</a>,
+      I am also grateful for the extensive help I have received from
+      <a href="https://brianboli.com/" target="_blank">Bo Li</a>,
+      <a href="https://caizhongang.com/" target="_blank">Zhongang Cai</a> and
+      <a href="https://scholar.google.com/citations?user=jZH2IPYAAAAJ&hl=en" target="_blank">Lei Yang</a>.
+      My research interests currently lie in <em>multi-modality (unified) models</em> and <em>spatial intelligence</em>.
+    - >-
+      During my time at
+      <a href="http://www.sxyz.net/" target="_blank">Shaoxing No.1 High School</a>,
+      I participated in the
+      <a href="https://www.noi.cn/" target="_blank">Olympiad in Informatics</a>.
+      Additionally, I competed in the
+      <a href="https://icpc.global/" target="_blank">ICPC</a> competition,
+      where I earned a
+      <a href="assets/pdf/awards/Kunming.pdf" target="_blank">gold medal</a>
+      in the 2022 Kunming Asia Regional Contest and a
+      <a href="assets/pdf/awards/Nanjing.pdf" target="_blank">silver medal</a>
+      in the 2022 Nanjing Asia Regional Contest.
+      I am a contributor to the
+      <a href="https://ntu-icpc.github.io/npc/" target="_blank">Nanyang Programming Contest</a>.
+    - >-
+      I like to play chess, my Lichess ID is
+      <a href="https://lichess.org/@/pufanyi" target="_blank">@pufanyi</a>,
+      my current rating is 2086 (rapid).
+  keywords:
+    - Spatial Intelligence
+    - Unified Multimodal Models
+    - Deep Learning
+
+sections:
+  - title: Education
+    entries:
+      - title: University of Wisconsin-Madison
+        date: "2026 - Present"
+        detail: "Ph.D. in Computer Science, Madison, WI"
+        # items:
+        #   - "Expected Honours (Highest Distinction), Current CGPA: 4.63 / 5.00"
+        #   - "Core courses: Reinforcement Learning, Deep Learning, Data Structures and Algorithms, Probability and Statistics, Cryptography"
+      - title: Nanyang Technological University
+        date: "2022 – 2026"
+        detail: "B.Sc. in Data Science and Artificial Intelligence, Singapore"
+        items:
+          - "Expected Honours (Highest Distinction), Current CGPA: 4.63 / 5.00"
+          - "Core courses: Reinforcement Learning, Deep Learning, Data Structures and Algorithms, Probability and Statistics, Cryptography"
+      - title: "University of California, Berkeley"
+        date: Jun 2024 – Aug 2024
+        detail: "Summer Session, Berkeley, CA"
+        items:
+          - "Studied Computer Security and Game Theory, GPA: 4.00 / 4.00"
+
+  - title: Publications & Research Projects
+    entries:
+      - title: "SenseNova-SI: Scaling Spatial Intelligence with Multimodal Foundation Models"
+        date: Sep 2025 – Present
+        detail: "CVPR 2026, Co-first author"
+        links:
+          - text: Paper
+            href: "#"
+          - text: Project Page
+            href: "#"
+        items:
+          - A foundation model designed to scale spatial intelligence, achieved state-of-the-art on key spatial benchmarks
+          - Executed full-stack training pipeline for Qwen-based variants with LMMs-Engine on 100+ GPUs
+
+      - title: "LMMs-Eval: Reality Check on the Evaluation of Large Multimodal Models"
+        date: Jan 2024 – Present
+        detail: "NAACL 2025 Findings, Co-first author"
+        links:
+          - text: Paper
+            href: "https://arxiv.org/abs/2407.12772"
+          - text: Project Page
+            href: "https://lmms-lab.github.io/lmms-eval-blog/lmms-eval-0.1/"
+        items:
+          - "<strong>3.3K GitHub stars</strong> multimodal evaluation framework"
+          - Developed low-cost automatic generation pipeline for Multi-modal LiveBench
+
+      - title: "Video-MMMU: Evaluating Knowledge Acquisition from Multi-Discipline Professional Videos"
+        date: Sep 2024 – Feb 2025
+        detail: "Preprint, Third Author"
+        links:
+          - text: Paper
+            href: "https://arxiv.org/abs/2410.13764"
+          - text: Project Page
+            href: "https://video-mmmu.github.io/"
+        items:
+          - Built evaluation set with 300 expert-level videos and 900 human-annotated questions
+          - >-
+            Cited by
+            <a href="https://deepmind.google/models/gemini/pro/" target="_blank">Gemini 3 Pro</a> (Google) and
+            <a href="https://openai.com/index/introducing-gpt-5/" target="_blank">GPT-5</a> (OpenAI)
+
+      - title: "Otter & MIMIC-IT: Multi-Modal In-Context Instruction Tuning"
+        date: Jun 2023 – Dec 2023
+        detail: "IEEE TPAMI, Co-first author"
+        links:
+          - text: Paper
+            href: "https://arxiv.org/abs/2306.05425"
+          - text: Project Page
+            href: "https://github.com/Luodian/Otter"
+        items:
+          - "Early experiment on vision-language-agent (VLA) model with <strong>3.3K GitHub stars</strong>"
+          - Generated 2.8M multimodal instruction tuning data using pure language models
+
+      - title: "LMMs-Engine: A Simple, Unified Multimodal Models Training Engine"
+        date: Aug 2025 – Present
+        detail: "Research Project, Core Developer"
+        items:
+          - Lean and flexible training framework for rapid research prototyping and large-scale production
+
+      - title: "VLoRP: Memory-Efficient LLM Training by Low-Rank Projection of Gradients"
+        date: Aug 2024 – Jan 2025
+        detail: "Preprint, Fourth author"
+        links:
+          - text: Paper
+            href: "#"
+        items:
+          - Implemented training framework with DeepSpeed integration; reproduced baselines (LoRA, GaLore, MeZO)
+
+  - title: Experience
+    entries:
+      - title: SenseTime Research
+        date: Sep 2025 – Present
+        detail: "Research Intern (Spatial Intelligence), Singapore"
+        items:
+          - "Conducted research on spatial intelligence, focusing on unified multimodal model optimization"
+          - "Delivered SenseNova-SI, establishing new state-of-the-art for spatial understanding"
+
+      - title: LMMs-Lab
+        date: Jan 2024 – Present
+        detail: "Core Member, Singapore"
+        items:
+          - Core member of non-profit initiative democratizing Large Multimodal Models
+          - "Spearheaded development of LMMs-Eval, LMMs-Engine, and Video-MMMU"
+
+      - title: Synvo AI
+        date: Jan 2025 – Jul 2025
+        detail: "Core Contributor, Singapore"
+        items:
+          - Architected and implemented Synvo File System for unstructured multimodal data storage
+
+      - title: MMLab@NTU
+        date: Jan 2025 – May 2025
+        detail: 'Research Intern, supervised by <a href="https://liuziwei7.github.io/" target="_blank">Prof. Liu Ziwei</a>'
+        items:
+          - Focused on multimodal language models and unified multimodal models
+
+  - title: Competitions
+    subsections:
+      - title: ICPC (International Collegiate Programming Contest)
+        items:
+          - "<strong>Ranked 22nd</strong>, ICPC Asia Pacific Championship, 2024"
+          - "<strong>Ranked 13th</strong>, ICPC Asia Jakarta Regional, 2023"
+          - "<strong>Ranked 6th</strong>, ICPC Asia Manila Regional, 2022"
+          - "<strong>Gold Medal</strong>, ICPC Asia Kunming Regional, 2021"
+          - "<strong>Silver Medal</strong>, ICPC Asia Nanjing Regional, 2021"
+      - title: Simon Marais Mathematics Competition
+        items:
+          - "<strong>Best-in-University Prize</strong>, Nanyang Technological University, Dec 2022"
+
+  - title: Teaching & Activities
+    entries:
+      - title: "Tutorial Lecturer, NTU SC1008 C & C++ Programming"
+        date: Jan 2026 – Present
+        items:
+          - Instructed a cohort of 50 beginners in core C/C++ syntax and methodologies
+      - title: Nanyang Programming Contest Organizer
+        date: Jan 2025 – Present
+        items:
+          - Organized 5 competitions and tutorials for non-ICPC students
+      - title: "NTU Students' Computing and Data Science Club"
+        date: Nov 2024 – Present
+        items:
+          - Managed telegram group with 130+ members; share AI/ML learning resources
+      - title: "Teaching Assistant, NTU SC1003 Introduction to Computational Thinking"
+        date: Aug 2024 – Dec 2024
+        items:
+          - Instructed a cohort of 20 beginners in Python syntax and data manipulation
+
+  - title: Miscellaneous
+    content: >-
+      <strong>Hobbies:</strong> Physics, Chess
+      (<a href="https://lichess.org/@/pufanyi" target="_blank">Lichess</a> rating: 2084),
+      Calligraphy, Table tennis
