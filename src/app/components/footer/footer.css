@@ -26,3 +26,9 @@
 .footer-icon-link:hover {
   color: var(--link-color);
 }
+
+@media print {
+  .footer {
+    display: none;
+  }
+}

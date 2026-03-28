@@ -82,10 +82,20 @@ a:hover {
     --paper-shadow: none;
   }
 
+  @page {
+    size: A4;
+    margin: 20mm 18mm 20mm 18mm;
+  }
+
+  @page :first {
+    margin-top: 24mm;
+  }
+
   body {
     background: white;
     color: black;
-    font-size: 11pt;
+    font-size: 10.5pt;
+    line-height: 1.5;
   }
 
   .toolbar {
@@ -101,11 +111,6 @@ a:hover {
     border-radius: 0;
   }
 
-  @page {
-    margin: 2cm 2.5cm;
-    size: A4;
-  }
-
   a {
     color: #222;
     text-decoration: underline;
@@ -113,5 +118,16 @@ a:hover {
 
   * {
     transition: none !important;
+  }
+
+  /* Prevent orphaned headings and widows */
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  p {
+    orphans: 3;
+    widows: 3;
   }
 }
