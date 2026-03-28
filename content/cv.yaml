@@ -41,7 +41,6 @@ abstract:
       <a href="https://www.ntu.edu.sg/education/undergraduate-programme/bachelor-of-science-in-data-science-artificial-intelligence" target="_blank">Data Science and Artificial Intelligence</a>.
     - >-
       I am currently doing research at
-      <a href="https://www.sensetime.com/en" target="_blank">SenseTime</a> and
       <a href="https://www.mmlab-ntu.com/" target="_blank">MMLab@NTU</a>.
       I am fortunate to be supervised by
       <a href="https://liuziwei7.github.io/" target="_blank">Prof. Ziwei Liu</a>,
@@ -164,13 +163,6 @@ sections:
 
   - title: Experience
     entries:
-      - title: SenseTime Research
-        date: Sep 2025 – Present
-        detail: "Research Intern (Spatial Intelligence), Singapore"
-        items:
-          - "Conducted research on spatial intelligence, focusing on unified multimodal model optimization"
-          - "Delivered SenseNova-SI, establishing new state-of-the-art for spatial understanding"
-
       - title: LMMs-Lab
         date: Jan 2024 – Present
         detail: "Core Member, Singapore"
