@@ -20,6 +20,31 @@
   justify-self: end;
 }
 
+.landing-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.landing-photo {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #1e2a42;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.landing-header .landing-name {
+  margin-bottom: 0.5rem;
+}
+
+.landing-header .landing-affiliation {
+  margin-bottom: 0;
+}
+
 .landing-name {
   font-family: var(--font-heading);
   font-weight: 700;
@@ -270,6 +295,17 @@
 @media (max-width: 480px) {
   .landing {
     padding: 1.5rem 1rem;
+  }
+
+  .landing-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .landing-photo {
+    width: 100px;
+    height: 100px;
   }
 
   .landing-name-first {
