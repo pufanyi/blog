@@ -1,0 +1,78 @@
+<div class="landing">
+  <div class="landing-left">
+    <h1 class="landing-name">
+      <span class="landing-name-first">FANYI</span>
+      <span class="landing-name-last">PU</span>
+    </h1>
+    <p class="landing-affiliation">NTU Singapore | UW-Madison</p>
+    <p class="landing-tagline">How do you build systems that see and understand the world?</p>
+
+    <div class="landing-card">
+      <p class="landing-card-label">Explore My Work:</p>
+      <a routerLink="/cv" class="landing-btn">&rarr; Curriculum Vitae</a>
+      <a routerLink="/blog" class="landing-btn">&rarr; Read Blog</a>
+    </div>
+
+    <div class="landing-socials">
+      <a href="https://github.com/pufanyi" target="_blank" rel="noopener" aria-label="GitHub">
+        <i class="ph ph-github-logo"></i>
+      </a>
+      <a href="https://scholar.google.com/citations?user=58tv6skAAAAJ" target="_blank" rel="noopener" aria-label="Google Scholar">
+        <i class="ph ph-graduation-cap"></i>
+      </a>
+      <a href="https://linkedin.com/in/pufanyi" target="_blank" rel="noopener" aria-label="LinkedIn">
+        <i class="ph ph-linkedin-logo"></i>
+      </a>
+      <a href="https://x.com/pufanyi" target="_blank" rel="noopener" aria-label="X">
+        <i class="ph ph-x-logo"></i>
+      </a>
+      <a href="mailto:FPU001@e.ntu.edu.sg" aria-label="Email">
+        <i class="ph ph-envelope"></i>
+      </a>
+    </div>
+  </div>
+
+  <div class="landing-right">
+    <div class="terminal">
+      <div class="terminal-chrome">
+        <div class="terminal-dots">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <span class="terminal-title">visitor&#64;fanyi:~</span>
+        <span class="terminal-mode">Interactive</span>
+      </div>
+      <div class="terminal-body" #termBody (click)="focus()">
+        @for (line of lines(); track $index) {
+          @switch (line.type) {
+            @case ('system') {
+              <div class="tl tl-system">{{ line.text }}</div>
+            }
+            @case ('command') {
+              <div class="tl tl-cmd"><span class="prompt">&gt;</span> <strong>{{ line.text }}</strong></div>
+            }
+            @case ('output') {
+              <pre class="tl tl-out">{{ line.text }}</pre>
+            }
+            @case ('blank') {
+              <div class="tl">&nbsp;</div>
+            }
+          }
+        }
+        <div class="tl tl-input">
+          <span class="prompt">&gt;</span>
+          <input
+            #termInput
+            type="text"
+            class="term-field"
+            (keydown)="onKey($event)"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="Type a command..."
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

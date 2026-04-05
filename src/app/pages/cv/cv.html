@@ -1,27 +1,125 @@
-<div class="cv-page">
-  <app-header [data]="cv.header" />
-  <app-abstract [data]="cv.abstract" />
-  @for (section of cv.sections; track section.title; let i = $index) {
-    <app-section [number]="i + 1" [title]="section.title">
-      @if (section.entries) {
-        @for (entry of section.entries; track entry.title) {
-          <app-entry [title]="entry.title" [date]="entry.date"
-                     [detail]="entry.detail" [links]="entry.links" [items]="entry.items" />
-        }
-      }
-      @if (section.subsections) {
-        @for (sub of section.subsections; track sub.title; let j = $index) {
-          <h3 class="subsection-heading">{{ i + 1 }}.{{ j + 1 }} &nbsp; {{ sub.title }}</h3>
-          <ul class="itemize">
-            @for (item of sub.items; track $index) {
-              <li [innerHTML]="item"></li>
-            }
-          </ul>
-        }
-      }
-      @if (section.content) {
-        <p [innerHTML]="section.content"></p>
-      }
-    </app-section>
-  }
+<div class="landing">
+  <!-- Top navigation -->
+  <nav class="landing-nav">
+    <a routerLink="/blog" class="landing-nav-link">
+      <i class="ph ph-notebook"></i>
+      Blog
+    </a>
+  </nav>
+
+  <main class="landing-main">
+    <!-- Left Column: Hero -->
+    <section class="landing-hero">
+      <h1 class="landing-name">FANYI PU</h1>
+      <p class="landing-name-cn">濮凡轶</p>
+      <p class="landing-subtitle">Nanyang Technological University | Singapore</p>
+
+      <p class="landing-tagline">Building spatial intelligence with multimodal models</p>
+
+      <div class="landing-card">
+        <p class="landing-card-title">Explore:</p>
+        <a routerLink="/blog" class="landing-cta">
+          → Read My Blog
+        </a>
+        <div class="landing-card-socials">
+          @for (link of socialLinks; track link.href) {
+            <a [href]="link.href" target="_blank" rel="noopener noreferrer" class="landing-social-btn">
+              <i [class]="'ph ' + link.icon"></i>
+              {{ link.label }}
+            </a>
+          }
+        </div>
+      </div>
+
+      <p class="landing-about">
+        Currently doing research at <strong>MMLab&#64;NTU</strong>, supervised
+        by <strong>Prof. Ziwei Liu</strong>. Publications at <strong>CVPR</strong>,
+        <strong>NAACL</strong>, and <strong>IEEE TPAMI</strong>, with open-source
+        projects totaling <strong>6.6K+ GitHub stars</strong>. Starting Fall 2026
+        as a Ph.D. student at <strong>UW-Madison</strong>.
+      </p>
+
+      <div class="landing-profile">
+        <img src="me.avif" alt="Fanyi Pu" class="landing-photo" width="80" height="80" />
+        <div>
+          <p class="landing-profile-name">Fanyi Pu</p>
+          <p class="landing-profile-role">NTU CCDS, Singapore</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Terminal -->
+    <section class="landing-terminal-section">
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <span class="terminal-title">visitor&#64;fanyi:~</span>
+          <span class="terminal-badge">
+            <i class="ph ph-terminal-window"></i> Static Mode
+          </span>
+        </div>
+
+        <div class="terminal-body">
+          <p class="term-welcome">Welcome to Fanyi's page. Type 'about' to learn more, or 'help' for options.</p>
+
+          <div class="term-block">
+            <p class="term-cmd"><span class="term-prompt">&gt;</span> <strong>about</strong></p>
+            <div class="term-output">
+              <p>Fanyi Pu (濮凡轶)</p>
+              <p>Final-year Undergraduate Student</p>
+              <p>Nanyang Technological University, Singapore</p>
+              <p>B.Sc. in Data Science and Artificial Intelligence</p>
+              <p class="term-gap"></p>
+              <p>Research at MMLab&#64;NTU, supervised by Prof. Ziwei Liu</p>
+              <p>Interests: Spatial Intelligence, Unified Multimodal Models</p>
+              <p class="term-gap"></p>
+              <p>Starting Fall 2026: Ph.D. in CS at UW-Madison</p>
+            </div>
+          </div>
+
+          <div class="term-block">
+            <p class="term-cmd"><span class="term-prompt">&gt;</span> <strong>publications</strong></p>
+            <div class="term-output">
+              <p>- SenseNova-SI: Scaling Spatial Intelligence with Multimodal Foundation Models</p>
+              <p class="term-sub">CVPR 2026, Co-first Author</p>
+              <p>- LMMs-Eval: Reality Check on the Evaluation of Large Multimodal Models</p>
+              <p class="term-sub">NAACL 2025 Findings, Co-first Author | 3.3K GitHub Stars</p>
+              <p>- Video-MMMU: Evaluating Knowledge Acquisition from Professional Videos</p>
+              <p class="term-sub">Cited by Gemini 3 Pro (Google) and GPT-5 (OpenAI)</p>
+              <p>- Otter &amp; MIMIC-IT: Multi-Modal In-Context Instruction Tuning</p>
+              <p class="term-sub">IEEE TPAMI, Co-first Author | 3.3K GitHub Stars</p>
+            </div>
+          </div>
+
+          <div class="term-block">
+            <p class="term-cmd"><span class="term-prompt">&gt;</span> <strong>achievements</strong></p>
+            <div class="term-output">
+              <p>- Ranked 22nd, ICPC Asia Pacific Championship, 2024</p>
+              <p>- Ranked 13th, ICPC Asia Jakarta Regional, 2023</p>
+              <p>- Gold Medal, ICPC Asia Kunming Regional, 2021</p>
+              <p>- Silver Medal, ICPC Asia Nanjing Regional, 2021</p>
+              <p>- Best-in-University, Simon Marais Mathematics Competition, 2022</p>
+              <p>- Lichess Rating: 2084 (Rapid)</p>
+            </div>
+          </div>
+
+          <div class="term-block">
+            <p class="term-cmd"><span class="term-prompt">&gt;</span> <strong>education</strong></p>
+            <div class="term-output">
+              <p>- University of Wisconsin-Madison</p>
+              <p class="term-sub">Ph.D. in Computer Science, 2026 - Present</p>
+              <p>- Nanyang Technological University</p>
+              <p class="term-sub">B.Sc. in DSAI, 2022 - 2026 | CGPA: 4.63/5.00</p>
+              <p>- University of California, Berkeley</p>
+              <p class="term-sub">Summer Session, 2024 | GPA: 4.00/4.00</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>

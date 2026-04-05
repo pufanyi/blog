@@ -21,9 +21,9 @@ export class ToolbarComponent {
   showBlogLink = toSignal(
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-      map(e => e.urlAfterRedirects !== '/'),
+      map(e => e.urlAfterRedirects !== '/blog'),
     ),
-    { initialValue: this.router.url !== '/' },
+    { initialValue: this.router.url !== '/blog' },
   );
 
   @HostListener('document:keydown', ['$event'])

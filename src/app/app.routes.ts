@@ -16,12 +16,17 @@ const redirectRoutes: Routes = REDIRECTS.map(r => ({
 export const routes: Routes = [
   {
     path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./pages/landing/landing').then(m => m.LandingComponent),
+  },
+  {
+    path: '',
     loadComponent: () =>
       import('./components/blog-shell/blog-shell').then(m => m.BlogShellComponent),
     children: [
       {
-        path: '',
-        pathMatch: 'full',
+        path: 'cv',
         loadComponent: () => import('./pages/cv/cv').then(m => m.CvPageComponent),
       },
       {

@@ -15,6 +15,10 @@
   --code-header-bg: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
 }
 
+body.landing-active {
+  background: #0b1022;
+}
+
 [data-theme="dark"] {
   --background: #161819;
   --paper-bg: #1e2024;
