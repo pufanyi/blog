@@ -211,7 +211,7 @@
   color: #e0e6f0;
 }
 
-.view-toggle:focus-within .view-toggle-rail {
+.view-toggle-input:focus-visible + .view-toggle-rail {
   border-color: #6db3f2;
   box-shadow: 0 0 0 2px rgba(109, 179, 242, 0.22);
 }
