@@ -148,9 +148,10 @@
 /* ===== View Toggle ===== */
 .view-toggle {
   position: relative;
-  width: 280px;
-  height: 42px;
-  margin-bottom: 1rem;
+  flex: 0 0 auto;
+  width: 172px;
+  height: 30px;
+  margin-left: auto;
   font-family: var(--font-mono);
 }
 
@@ -172,21 +173,20 @@
   grid-template-columns: 1fr 1fr;
   align-items: center;
   overflow: hidden;
-  padding: 4px;
+  padding: 3px;
   border: 1px solid #1a2238;
-  border-radius: 8px;
-  background: #0d1320;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  background: #111a2c;
 }
 
 .view-toggle-thumb {
   position: absolute;
-  top: 4px;
-  left: 4px;
-  width: calc(50% - 4px);
-  height: calc(100% - 8px);
+  top: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  height: calc(100% - 6px);
   border: 1px solid #2554a0;
-  border-radius: 6px;
+  border-radius: 4px;
   background: #1a3a6e;
   transition: transform 0.2s ease;
 }
@@ -199,7 +199,7 @@
   position: relative;
   z-index: 1;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.66rem;
   font-weight: 600;
   color: #667890;
   transition: color 0.2s ease;
@@ -213,7 +213,7 @@
 
 .view-toggle:focus-within .view-toggle-rail {
   border-color: #6db3f2;
-  box-shadow: 0 0 0 3px rgba(109, 179, 242, 0.22);
+  box-shadow: 0 0 0 2px rgba(109, 179, 242, 0.22);
 }
 
 .terminal {
@@ -248,19 +248,13 @@
 
 .terminal-title {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 0.85rem;
   color: #667890;
-}
-
-.terminal-mode {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  padding: 0.25rem 0.65rem;
-  border-radius: 4px;
-  background: #1a2238;
-  color: #4ade80;
-  border: 1px solid #243048;
 }
 
 .terminal-body {
@@ -345,10 +339,7 @@
   gap: 1.35rem;
   min-height: 430px;
   padding: 1.5rem;
-  border: 1px solid #1a2238;
-  border-radius: 8px;
-  background: rgba(15, 22, 40, 0.94);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: #0f1628;
 }
 
 .direct-kicker {
@@ -457,10 +448,6 @@
     max-width: 100%;
   }
 
-  .view-toggle {
-    width: min(100%, 280px);
-  }
-
   .landing-name-first {
     font-size: 3.5rem;
   }
@@ -503,7 +490,7 @@
   }
 
   .view-toggle {
-    width: 100%;
+    width: 142px;
   }
 
   .direct-profile {
