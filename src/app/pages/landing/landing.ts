@@ -17,6 +17,8 @@ interface TermLine {
   text: string;
 }
 
+type ViewMode = 'interactive' | 'direct';
+
 @Component({
   selector: 'app-landing',
   standalone: true,
@@ -29,6 +31,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
 
   lines = signal<TermLine[]>([]);
+  viewMode = signal<ViewMode>('interactive');
 
   private readonly cmds: Record<string, () => TermLine[]> = {
     help: () => [
@@ -47,7 +50,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     ],
     about: () => [
       { type: 'output', text: '  Fanyi Pu (\u6FEE\u51E1\u8F76)' },
-      { type: 'output', text: '  Ph.D. Student in Computer Science' },
+      { type: 'output', text: '  Incoming Ph.D. Student in CS @ UW-Madison' },
       { type: 'blank', text: '' },
       { type: 'output', text: '  Previously: B.Sc. in Data Science & AI @ NTU Singapore' },
       { type: 'output', text: '  Research @ MMLab@NTU, supervised by Prof. Ziwei Liu' },
@@ -55,7 +58,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       { type: 'output', text: '  My research focuses on multi-modality (unified) models' },
       { type: 'output', text: '  and spatial intelligence.' },
       { type: 'blank', text: '' },
-      { type: 'output', text: '  ICPC Gold Medalist | Lichess Rapid 2086 | Chess Enthusiast' },
+      { type: 'output', text: '  ICPC Gold Medalist | Chess Enthusiast' },
     ],
     research: () => [
       { type: 'output', text: '  Research Interests:' },
@@ -122,7 +125,6 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       { type: 'output', text: '  Scholar:   scholar.google.com/citations?user=58tv6skAAAAJ' },
       { type: 'output', text: '  LinkedIn:  linkedin.com/in/pufanyi' },
       { type: 'output', text: '  X:         x.com/pufanyi' },
-      { type: 'output', text: '  Lichess:   lichess.org/@/pufanyi' },
     ],
   };
 
@@ -195,6 +197,14 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   focus() {
     this.termInput?.nativeElement.focus();
+  }
+
+  setViewModeFromRange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.viewMode.set(input.value === '0' ? 'interactive' : 'direct');
+    if (input.value === '0') {
+      setTimeout(() => this.scrollBottom(), 0);
+    }
   }
 
   private scrollBottom() {

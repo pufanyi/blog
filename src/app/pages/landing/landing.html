@@ -31,46 +31,121 @@
   </div>
 
   <div class="landing-right">
-    <div class="terminal">
-      <div class="terminal-chrome">
-        <div class="terminal-dots">
-          <span class="dot red"></span>
-          <span class="dot yellow"></span>
-          <span class="dot green"></span>
-        </div>
-        <span class="terminal-title">visitor&#64;fanyi:~</span>
-        <span class="terminal-mode">Interactive</span>
-      </div>
-      <div class="terminal-body" #termBody (click)="focus()">
-        @for (line of lines(); track $index) {
-          @switch (line.type) {
-            @case ('system') {
-              <div class="tl tl-system">{{ line.text }}</div>
-            }
-            @case ('command') {
-              <div class="tl tl-cmd"><span class="prompt">&gt;</span> <strong>{{ line.text }}</strong></div>
-            }
-            @case ('output') {
-              <pre class="tl tl-out">{{ line.text }}</pre>
-            }
-            @case ('blank') {
-              <div class="tl">&nbsp;</div>
-            }
-          }
-        }
-        <div class="tl tl-input">
-          <span class="prompt">&gt;</span>
-          <input
-            #termInput
-            type="text"
-            class="term-field"
-            (keydown)="onKey($event)"
-            spellcheck="false"
-            autocomplete="off"
-            placeholder="Type a command..."
-          />
-        </div>
+    <div class="view-toggle" [class.is-direct]="viewMode() === 'direct'">
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="1"
+        class="view-toggle-input"
+        [value]="viewMode() === 'interactive' ? 0 : 1"
+        [attr.aria-valuetext]="viewMode() === 'interactive' ? 'Interactive' : 'Direct'"
+        aria-label="Homepage view mode"
+        (input)="setViewModeFromRange($event)"
+      />
+      <div class="view-toggle-rail" aria-hidden="true">
+        <span class="view-toggle-thumb"></span>
+        <span class="view-toggle-label view-toggle-label-interactive">Interactive</span>
+        <span class="view-toggle-label view-toggle-label-direct">Direct</span>
       </div>
     </div>
+
+    @if (viewMode() === 'interactive') {
+      <div class="terminal">
+        <div class="terminal-chrome">
+          <div class="terminal-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <span class="terminal-title">visitor&#64;fanyi:~</span>
+          <span class="terminal-mode">Interactive</span>
+        </div>
+        <div class="terminal-body" #termBody (click)="focus()">
+          @for (line of lines(); track $index) {
+            @switch (line.type) {
+              @case ('system') {
+                <div class="tl tl-system">{{ line.text }}</div>
+              }
+              @case ('command') {
+                <div class="tl tl-cmd"><span class="prompt">&gt;</span> <strong>{{ line.text }}</strong></div>
+              }
+              @case ('output') {
+                <pre class="tl tl-out">{{ line.text }}</pre>
+              }
+              @case ('blank') {
+                <div class="tl">&nbsp;</div>
+              }
+            }
+          }
+          <div class="tl tl-input">
+            <span class="prompt">&gt;</span>
+            <input
+              #termInput
+              type="text"
+              class="term-field"
+              (keydown)="onKey($event)"
+              spellcheck="false"
+              autocomplete="off"
+              placeholder="Type a command..."
+            />
+          </div>
+        </div>
+      </div>
+    } @else {
+      <section class="direct-profile" aria-label="Profile summary">
+        <div class="direct-intro">
+          <span class="direct-kicker">About</span>
+          <h2>Fanyi Pu</h2>
+          <p>
+            Incoming Ph.D. student in Computer Science at UW-Madison. Previously, B.Sc.
+            in Data Science &amp; AI at NTU Singapore.
+          </p>
+          <p>
+            My research focuses on multi-modality unified models and spatial intelligence.
+          </p>
+        </div>
+
+        <div class="direct-focus">
+          <span class="direct-kicker">Focus</span>
+          <ul>
+            <li>Spatial Intelligence</li>
+            <li>Unified Multimodal Models</li>
+            <li>Large-scale Model Evaluation</li>
+          </ul>
+        </div>
+
+        <div class="direct-links" aria-label="Links">
+          <a href="mailto:FPU001@e.ntu.edu.sg">
+            <i class="ph ph-envelope" aria-hidden="true"></i>
+            <span>Email</span>
+          </a>
+          <a href="https://github.com/pufanyi" target="_blank" rel="noopener">
+            <i class="ph ph-github-logo" aria-hidden="true"></i>
+            <span>GitHub</span>
+          </a>
+          <a href="https://scholar.google.com/citations?user=58tv6skAAAAJ" target="_blank" rel="noopener">
+            <i class="ph ph-graduation-cap" aria-hidden="true"></i>
+            <span>Scholar</span>
+          </a>
+          <a href="https://linkedin.com/in/pufanyi" target="_blank" rel="noopener">
+            <i class="ph ph-linkedin-logo" aria-hidden="true"></i>
+            <span>LinkedIn</span>
+          </a>
+          <a href="https://x.com/pufanyi" target="_blank" rel="noopener">
+            <i class="ph ph-x-logo" aria-hidden="true"></i>
+            <span>X</span>
+          </a>
+          <a href="/blog">
+            <i class="ph ph-notebook" aria-hidden="true"></i>
+            <span>Blog</span>
+          </a>
+          <a href="/cv">
+            <i class="ph ph-file-text" aria-hidden="true"></i>
+            <span>CV</span>
+          </a>
+        </div>
+      </section>
+    }
   </div>
 </div>
