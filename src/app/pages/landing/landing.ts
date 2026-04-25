@@ -10,7 +10,7 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 interface TermLine {
   type: 'system' | 'command' | 'output' | 'blank';
@@ -20,7 +20,6 @@ interface TermLine {
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [RouterLink],
   templateUrl: './landing.html',
   styleUrl: './landing.css',
 })
@@ -49,7 +48,6 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     about: () => [
       { type: 'output', text: '  Fanyi Pu (\u6FEE\u51E1\u8F76)' },
       { type: 'output', text: '  Ph.D. Student in Computer Science' },
-      { type: 'output', text: '  University of Wisconsin-Madison' },
       { type: 'blank', text: '' },
       { type: 'output', text: '  Previously: B.Sc. in Data Science & AI @ NTU Singapore' },
       { type: 'output', text: '  Research @ MMLab@NTU, supervised by Prof. Ziwei Liu' },
@@ -87,9 +85,6 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       { type: 'output', text: '               Co-first author | \u2605 3.3K GitHub stars' },
     ],
     education: () => [
-      { type: 'output', text: '  University of Wisconsin-Madison       2026 - Present' },
-      { type: 'output', text: '  \u2514\u2500 Ph.D. in Computer Science' },
-      { type: 'blank', text: '' },
       { type: 'output', text: '  Nanyang Technological University      2022 - 2026' },
       { type: 'output', text: '  \u2514\u2500 B.Sc. in Data Science & AI' },
       { type: 'output', text: '     CGPA: 4.63 / 5.00 (Highest Distinction)' },
