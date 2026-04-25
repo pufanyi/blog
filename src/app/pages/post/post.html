@@ -57,6 +57,20 @@
 
   <article class="post-body" [innerHTML]="safeHtml()"></article>
 
+  <section class="lesson-nav">
+    @if (nextPost(); as nextPost) {
+      <a class="next-lesson-btn" [routerLink]="['/blog', nextPost.slug]">
+        下一课：{{ nextPost.title }}
+        <i class="ph ph-arrow-right" aria-hidden="true"></i>
+      </a>
+    } @else {
+      <a class="next-lesson-btn" routerLink="/blog">
+        已是最后一课，返回课程列表
+        <i class="ph ph-list" aria-hidden="true"></i>
+      </a>
+    }
+  </section>
+
   <section class="giscus-wrapper">
     <app-giscus-comments />
   </section>

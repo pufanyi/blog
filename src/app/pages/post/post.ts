@@ -59,6 +59,20 @@ export class PostComponent implements OnDestroy {
     return POSTS.find(p => p.slug === s);
   });
 
+  readonly nextPost = computed(() => {
+    const current = this.post();
+    if (!current) {
+      return null;
+    }
+
+    const currentIndex = POSTS.findIndex(p => p.slug === current.slug);
+    if (currentIndex < 0 || currentIndex >= POSTS.length - 1) {
+      return null;
+    }
+
+    return POSTS[currentIndex + 1];
+  });
+
   private readonly processedContent = computed(() => {
     const p = this.post();
     return p ? buildContentWithToc(p.contentHtml) : { html: '', toc: [] as TocItem[] };
