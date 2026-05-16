@@ -17,8 +17,6 @@ interface TermLine {
   text: string;
 }
 
-type ViewMode = 'interactive' | 'direct';
-
 @Component({
   selector: 'app-landing',
   standalone: true,
@@ -31,7 +29,6 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
 
   lines = signal<TermLine[]>([]);
-  viewMode = signal<ViewMode>('interactive');
 
   private readonly cmds: Record<string, () => TermLine[]> = {
     help: () => [
@@ -49,7 +46,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       { type: 'output', text: '  clear          Clear terminal' },
     ],
     about: () => [
-      { type: 'output', text: '  Fanyi Pu (\u6FEE\u51E1\u8F76)' },
+      { type: 'output', text: '  Fanyi Pu (濮凡轶)' },
       { type: 'output', text: '  Incoming Ph.D. Student in CS @ UW-Madison' },
       { type: 'blank', text: '' },
       { type: 'output', text: '  Previously: B.Sc. in Data Science & AI @ NTU Singapore' },
@@ -63,10 +60,10 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     research: () => [
       { type: 'output', text: '  Research Interests:' },
       { type: 'blank', text: '' },
-      { type: 'output', text: '  \u2022 Spatial Intelligence' },
-      { type: 'output', text: '  \u2022 Unified Multimodal Models' },
-      { type: 'output', text: '  \u2022 Deep Learning' },
-      { type: 'output', text: '  \u2022 Large-scale Model Evaluation' },
+      { type: 'output', text: '  • Spatial Intelligence' },
+      { type: 'output', text: '  • Unified Multimodal Models' },
+      { type: 'output', text: '  • Deep Learning' },
+      { type: 'output', text: '  • Large-scale Model Evaluation' },
     ],
     publications: () => [
       { type: 'output', text: '  Selected Publications:' },
@@ -77,7 +74,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       { type: 'blank', text: '' },
       { type: 'output', text: '  [NAACL 2025] LMMs-Eval: Reality Check on the Evaluation' },
       { type: 'output', text: '               of Large Multimodal Models' },
-      { type: 'output', text: '               Co-first author | \u2605 3.3K GitHub stars' },
+      { type: 'output', text: '               Co-first author | ★ 3.3K GitHub stars' },
       { type: 'blank', text: '' },
       { type: 'output', text: '  [Preprint]   Video-MMMU: Evaluating Knowledge Acquisition' },
       { type: 'output', text: '               from Multi-Discipline Professional Videos' },
@@ -85,37 +82,37 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       { type: 'blank', text: '' },
       { type: 'output', text: '  [IEEE TPAMI] Otter & MIMIC-IT: Multi-Modal In-Context' },
       { type: 'output', text: '               Instruction Tuning' },
-      { type: 'output', text: '               Co-first author | \u2605 3.3K GitHub stars' },
+      { type: 'output', text: '               Co-first author | ★ 3.3K GitHub stars' },
     ],
     education: () => [
       { type: 'output', text: '  Nanyang Technological University      2022 - 2026' },
-      { type: 'output', text: '  \u2514\u2500 B.Sc. in Data Science & AI' },
+      { type: 'output', text: '  └─ B.Sc. in Data Science & AI' },
       { type: 'output', text: '     CGPA: 4.63 / 5.00 (Highest Distinction)' },
       { type: 'blank', text: '' },
       { type: 'output', text: '  UC Berkeley (Summer Session)          Jun - Aug 2024' },
-      { type: 'output', text: '  \u2514\u2500 Computer Security & Game Theory, GPA: 4.00' },
+      { type: 'output', text: '  └─ Computer Security & Game Theory, GPA: 4.00' },
     ],
     experience: () => [
       { type: 'output', text: '  LMMs-Lab                Jan 2024 - Present' },
-      { type: 'output', text: '  \u2514\u2500 Core Member, Singapore' },
+      { type: 'output', text: '  └─ Core Member, Singapore' },
       { type: 'blank', text: '' },
       { type: 'output', text: '  Synvo AI                Jan 2025 - Jul 2025' },
-      { type: 'output', text: '  \u2514\u2500 Core Contributor, Singapore' },
+      { type: 'output', text: '  └─ Core Contributor, Singapore' },
       { type: 'blank', text: '' },
       { type: 'output', text: '  MMLab@NTU               Jan 2025 - May 2025' },
-      { type: 'output', text: '  \u2514\u2500 Research Intern' },
+      { type: 'output', text: '  └─ Research Intern' },
     ],
     competitions: () => [
       { type: 'output', text: '  ICPC (International Collegiate Programming Contest):' },
       { type: 'blank', text: '' },
-      { type: 'output', text: '  \u2022 Ranked 22nd  Asia Pacific Championship, 2024' },
-      { type: 'output', text: '  \u2022 Ranked 13th  Asia Jakarta Regional, 2023' },
-      { type: 'output', text: '  \u2022 Ranked 6th   Asia Manila Regional, 2022' },
-      { type: 'output', text: '  \u2022 Gold Medal   Asia Kunming Regional, 2021' },
-      { type: 'output', text: '  \u2022 Silver Medal Asia Nanjing Regional, 2021' },
+      { type: 'output', text: '  • Ranked 22nd  Asia Pacific Championship, 2024' },
+      { type: 'output', text: '  • Ranked 13th  Asia Jakarta Regional, 2023' },
+      { type: 'output', text: '  • Ranked 6th   Asia Manila Regional, 2022' },
+      { type: 'output', text: '  • Gold Medal   Asia Kunming Regional, 2021' },
+      { type: 'output', text: '  • Silver Medal Asia Nanjing Regional, 2021' },
       { type: 'blank', text: '' },
       { type: 'output', text: '  Simon Marais Mathematics Competition:' },
-      { type: 'output', text: '  \u2022 Best-in-University Prize, NTU, 2022' },
+      { type: 'output', text: '  • Best-in-University Prize, NTU, 2022' },
     ],
     links: () => [
       { type: 'output', text: '  Contact & Social:' },
@@ -130,10 +127,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(private router: Router) {
     this.lines.set([
-      { type: 'system', text: "Welcome to Fanyi's homepage. Type 'help' for available commands." },
-      { type: 'blank', text: '' },
-      { type: 'command', text: 'about' },
-      ...this.cmds['about'](),
+      { type: 'system', text: "Try 'help' to explore. Or just keep scrolling." },
       { type: 'blank', text: '' },
     ]);
   }
@@ -141,10 +135,6 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       document.body.classList.add('landing-active');
-      // Interactive terminal needs typing — impractical on phones/touch devices.
-      if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
-        this.viewMode.set('direct');
-      }
     }
   }
 
@@ -201,14 +191,6 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   focus() {
     this.termInput?.nativeElement.focus();
-  }
-
-  setViewModeFromRange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.viewMode.set(input.value === '0' ? 'interactive' : 'direct');
-    if (input.value === '0') {
-      setTimeout(() => this.scrollBottom(), 0);
-    }
   }
 
   private scrollBottom() {

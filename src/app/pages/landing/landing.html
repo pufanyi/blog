@@ -1,158 +1,159 @@
 <div class="landing">
   <div class="landing-bg" aria-hidden="true"></div>
 
-  <section class="landing-left" aria-label="Identity">
-    <div class="landing-header">
-      <div class="landing-photo-wrap">
-        <img src="me.avif" alt="Fanyi Pu" class="landing-photo" width="140" height="140" />
+  <section class="bento-grid" aria-label="Profile">
+    <article class="bento-card bento-hero">
+      <div class="hero-portrait">
+        <img src="me.avif" alt="Fanyi Pu" class="hero-photo" width="128" height="128" />
       </div>
-      <div class="landing-id">
-        <h1 class="landing-name">
-          <span class="landing-name-first">FANYI</span>
-          <span class="landing-name-last">PU</span>
+      <div class="hero-id">
+        <h1 class="hero-name">
+          <span class="hero-name-first">FANYI</span>
+          <span class="hero-name-last">PU</span>
         </h1>
-        <span class="landing-rule" aria-hidden="true"></span>
-        <p class="landing-affiliation">
+        <p class="hero-subtitle">
           <i class="ph ph-graduation-cap" aria-hidden="true"></i>
-          NTU Singapore
+          Incoming Ph.D. @ UW-Madison
         </p>
       </div>
-    </div>
+      <p class="hero-intro">
+        Multimodal AI researcher working on spatial intelligence and unified
+        models. Previously B.Sc. in Data Science &amp; AI at NTU Singapore,
+        research at MMLab&#64;NTU with Prof. Ziwei Liu.
+      </p>
+    </article>
 
-    <nav class="landing-socials" aria-label="Social links">
-      <a href="https://github.com/pufanyi" target="_blank" rel="noopener" aria-label="GitHub">
-        <i class="ph ph-github-logo"></i>
-      </a>
-      <a href="https://scholar.google.com/citations?user=58tv6skAAAAJ" target="_blank" rel="noopener" aria-label="Google Scholar">
-        <i class="ph ph-graduation-cap"></i>
-      </a>
-      <a href="https://linkedin.com/in/pufanyi" target="_blank" rel="noopener" aria-label="LinkedIn">
-        <i class="ph ph-linkedin-logo"></i>
-      </a>
-      <a href="https://x.com/pufanyi" target="_blank" rel="noopener" aria-label="X">
-        <i class="ph ph-x-logo"></i>
-      </a>
-      <a href="mailto:FPU001@e.ntu.edu.sg" aria-label="Email">
-        <i class="ph ph-envelope"></i>
-      </a>
-    </nav>
-  </section>
-
-  <section class="landing-right" aria-label="Profile">
-    <div class="terminal">
-      <div class="terminal-chrome">
+    <article class="bento-card bento-terminal">
+      <header class="terminal-chrome">
         <div class="terminal-dots" aria-hidden="true">
           <span class="dot red"></span>
           <span class="dot yellow"></span>
           <span class="dot green"></span>
         </div>
         <span class="terminal-title">visitor&#64;fanyi:~</span>
-        <div class="view-toggle" [class.is-direct]="viewMode() === 'direct'">
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="1"
-            class="view-toggle-input"
-            [value]="viewMode() === 'interactive' ? 0 : 1"
-            [attr.aria-valuetext]="viewMode() === 'interactive' ? 'Interactive' : 'Direct'"
-            aria-label="Homepage view mode"
-            (input)="setViewModeFromRange($event)"
-          />
-          <div class="view-toggle-rail" aria-hidden="true">
-            <span class="view-toggle-thumb"></span>
-            <span class="view-toggle-label view-toggle-label-interactive">Interactive</span>
-            <span class="view-toggle-label view-toggle-label-direct">Direct</span>
-          </div>
-        </div>
-      </div>
-
-      @if (viewMode() === 'interactive') {
-        <div class="terminal-body" #termBody (click)="focus()">
-          @for (line of lines(); track $index) {
-            @switch (line.type) {
-              @case ('system') {
-                <div class="tl tl-system">{{ line.text }}</div>
-              }
-              @case ('command') {
-                <div class="tl tl-cmd"><span class="prompt">&gt;</span> <strong>{{ line.text }}</strong></div>
-              }
-              @case ('output') {
-                <pre class="tl tl-out">{{ line.text }}</pre>
-              }
-              @case ('blank') {
-                <div class="tl">&nbsp;</div>
-              }
+      </header>
+      <div class="terminal-body" #termBody (click)="focus()">
+        @for (line of lines(); track $index) {
+          @switch (line.type) {
+            @case ('system') {
+              <div class="tl tl-system">{{ line.text }}</div>
+            }
+            @case ('command') {
+              <div class="tl tl-cmd"><span class="prompt">&gt;</span> <strong>{{ line.text }}</strong></div>
+            }
+            @case ('output') {
+              <pre class="tl tl-out">{{ line.text }}</pre>
+            }
+            @case ('blank') {
+              <div class="tl">&nbsp;</div>
             }
           }
-          <div class="tl tl-input">
-            <span class="prompt">&gt;</span>
-            <input
-              #termInput
-              type="text"
-              class="term-field"
-              (keydown)="onKey($event)"
-              spellcheck="false"
-              autocomplete="off"
-              placeholder="Type a command..."
-            />
-          </div>
+        }
+        <div class="tl tl-input">
+          <span class="prompt">&gt;</span>
+          <input
+            #termInput
+            type="text"
+            class="term-field"
+            (keydown)="onKey($event)"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="Type a command..."
+          />
         </div>
-      } @else {
-        <section class="direct-profile" aria-label="Profile summary">
-          <div class="direct-intro">
-            <span class="direct-kicker">About</span>
-            <h2>Fanyi Pu</h2>
-            <p>
-              Incoming Ph.D. student in Computer Science at UW-Madison. Previously, B.Sc.
-              in Data Science &amp; AI at NTU Singapore.
-            </p>
-            <p>
-              My research focuses on multi-modality unified models and spatial intelligence.
-            </p>
-          </div>
+      </div>
+    </article>
 
-          <div class="direct-focus">
-            <span class="direct-kicker">Focus</span>
-            <ul>
-              <li>Spatial Intelligence</li>
-              <li>Unified Multimodal Models</li>
-              <li>Large-scale Model Evaluation</li>
-            </ul>
+    <article class="bento-card bento-work">
+      <span class="bento-kicker">Selected Work</span>
+      <ul class="work-list">
+        <li class="work-item">
+          <span class="work-venue">CVPR 2026</span>
+          <div class="work-body">
+            <h3 class="work-title">SenseNova-SI</h3>
+            <p class="work-desc">Scaling Spatial Intelligence with Multimodal Foundation Models</p>
+            <p class="work-meta">Co-first author</p>
           </div>
+        </li>
+        <li class="work-item">
+          <span class="work-venue">NAACL 2025</span>
+          <div class="work-body">
+            <h3 class="work-title">LMMs-Eval</h3>
+            <p class="work-desc">Reality Check on the Evaluation of Large Multimodal Models</p>
+            <p class="work-meta">Co-first author · &#9733; 3.3k</p>
+          </div>
+        </li>
+        <li class="work-item">
+          <span class="work-venue">Preprint</span>
+          <div class="work-body">
+            <h3 class="work-title">Video-MMMU</h3>
+            <p class="work-desc">Evaluating Knowledge Acquisition from Multi-Discipline Professional Videos</p>
+            <p class="work-meta">Cited by Gemini 3 Pro &amp; GPT-5</p>
+          </div>
+        </li>
+      </ul>
+    </article>
 
-          <div class="direct-links" aria-label="Links">
-            <a href="mailto:FPU001@e.ntu.edu.sg">
-              <i class="ph ph-envelope" aria-hidden="true"></i>
-              <span>Email</span>
-            </a>
-            <a href="https://github.com/pufanyi" target="_blank" rel="noopener">
-              <i class="ph ph-github-logo" aria-hidden="true"></i>
-              <span>GitHub</span>
-            </a>
-            <a href="https://scholar.google.com/citations?user=58tv6skAAAAJ" target="_blank" rel="noopener">
-              <i class="ph ph-graduation-cap" aria-hidden="true"></i>
-              <span>Scholar</span>
-            </a>
-            <a href="https://linkedin.com/in/pufanyi" target="_blank" rel="noopener">
-              <i class="ph ph-linkedin-logo" aria-hidden="true"></i>
-              <span>LinkedIn</span>
-            </a>
-            <a href="https://x.com/pufanyi" target="_blank" rel="noopener">
-              <i class="ph ph-x-logo" aria-hidden="true"></i>
-              <span>X</span>
-            </a>
-            <a href="/blog">
-              <i class="ph ph-notebook" aria-hidden="true"></i>
-              <span>Blog</span>
-            </a>
-            <a href="/cv">
-              <i class="ph ph-file-text" aria-hidden="true"></i>
-              <span>CV</span>
-            </a>
-          </div>
-        </section>
-      }
-    </div>
+    <article class="bento-card bento-focus">
+      <span class="bento-kicker">Focus</span>
+      <ul class="focus-list">
+        <li>Spatial Intelligence</li>
+        <li>Unified Multimodal Models</li>
+        <li>Deep Learning</li>
+        <li>Large-scale Evaluation</li>
+      </ul>
+    </article>
+
+    <article class="bento-card bento-highlights">
+      <span class="bento-kicker">Highlights</span>
+      <ul class="highlights-list">
+        <li>
+          <span class="highlight-tag">ICPC</span>
+          <span>Gold Medalist &middot; Asia Pacific 22nd</span>
+        </li>
+        <li>
+          <span class="highlight-tag">GitHub</span>
+          <span>&#9733; 3.3k across LMMs-Eval &amp; Otter</span>
+        </li>
+        <li>
+          <span class="highlight-tag">Cited by</span>
+          <span>Gemini 3 Pro &amp; GPT-5</span>
+        </li>
+      </ul>
+    </article>
+
+    <article class="bento-card bento-connect">
+      <span class="bento-kicker">Connect</span>
+      <nav class="connect-grid" aria-label="Profile links">
+        <a href="mailto:FPU001&#64;e.ntu.edu.sg">
+          <i class="ph ph-envelope" aria-hidden="true"></i>
+          <span>Email</span>
+        </a>
+        <a href="https://github.com/pufanyi" target="_blank" rel="noopener">
+          <i class="ph ph-github-logo" aria-hidden="true"></i>
+          <span>GitHub</span>
+        </a>
+        <a href="https://scholar.google.com/citations?user=58tv6skAAAAJ" target="_blank" rel="noopener">
+          <i class="ph ph-graduation-cap" aria-hidden="true"></i>
+          <span>Scholar</span>
+        </a>
+        <a href="https://linkedin.com/in/pufanyi" target="_blank" rel="noopener">
+          <i class="ph ph-linkedin-logo" aria-hidden="true"></i>
+          <span>LinkedIn</span>
+        </a>
+        <a href="https://x.com/pufanyi" target="_blank" rel="noopener">
+          <i class="ph ph-x-logo" aria-hidden="true"></i>
+          <span>X</span>
+        </a>
+        <a href="/blog">
+          <i class="ph ph-notebook" aria-hidden="true"></i>
+          <span>Blog</span>
+        </a>
+        <a href="/cv" class="connect-cta">
+          <i class="ph ph-file-text" aria-hidden="true"></i>
+          <span>CV</span>
+        </a>
+      </nav>
+    </article>
   </section>
 </div>
