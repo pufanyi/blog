@@ -1,17 +1,25 @@
 <div class="landing">
-  <div class="landing-left">
+  <div class="landing-bg" aria-hidden="true"></div>
+
+  <section class="landing-left" aria-label="Identity">
     <div class="landing-header">
-      <img src="me.avif" alt="Fanyi Pu" class="landing-photo" width="140" height="140" />
-      <div>
+      <div class="landing-photo-wrap">
+        <img src="me.avif" alt="Fanyi Pu" class="landing-photo" width="140" height="140" />
+      </div>
+      <div class="landing-id">
         <h1 class="landing-name">
           <span class="landing-name-first">FANYI</span>
           <span class="landing-name-last">PU</span>
         </h1>
-        <p class="landing-affiliation">NTU Singapore</p>
+        <span class="landing-rule" aria-hidden="true"></span>
+        <p class="landing-affiliation">
+          <i class="ph ph-graduation-cap" aria-hidden="true"></i>
+          NTU Singapore
+        </p>
       </div>
     </div>
 
-    <div class="landing-socials">
+    <nav class="landing-socials" aria-label="Social links">
       <a href="https://github.com/pufanyi" target="_blank" rel="noopener" aria-label="GitHub">
         <i class="ph ph-github-logo"></i>
       </a>
@@ -27,13 +35,13 @@
       <a href="mailto:FPU001@e.ntu.edu.sg" aria-label="Email">
         <i class="ph ph-envelope"></i>
       </a>
-    </div>
-  </div>
+    </nav>
+  </section>
 
-  <div class="landing-right">
+  <section class="landing-right" aria-label="Profile">
     <div class="terminal">
       <div class="terminal-chrome">
-        <div class="terminal-dots">
+        <div class="terminal-dots" aria-hidden="true">
           <span class="dot red"></span>
           <span class="dot yellow"></span>
           <span class="dot green"></span>
@@ -146,5 +154,5 @@
         </section>
       }
     </div>
-  </div>
+  </section>
 </div>
