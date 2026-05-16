@@ -141,6 +141,10 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       document.body.classList.add('landing-active');
+      // Interactive terminal needs typing — impractical on phones/touch devices.
+      if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+        this.viewMode.set('direct');
+      }
     }
   }
 
