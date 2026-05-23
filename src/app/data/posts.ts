@@ -3,6 +3,13 @@ import { Post } from '../models/post.model';
 
 export const POSTS: Post[] = [
   {
+    "slug": "theoretical-minimum-classical-mechanics",
+    "title": "The Theoretical Minimum: Classical Mechanics",
+    "date": "2026-05-23",
+    "description": "The Theoretical Minimum: Classical Mechanics 阅读笔记",
+    "contentHtml": "<h2>The Principle of Least Action</h2>\n<p>定义 \\(T\\) 为动能，\\(V\\) 为势能</p>\n<div class=\"math-display\">\\[\\mathcal{A} = \\int_{t_0}^{t_1}(T-V)\\]</div>\n"
+  },
+  {
     "slug": "2021-zhejiang-gaokao",
     "title": "2021 Zhejiang Gao Kao",
     "date": "2024-06-06",
