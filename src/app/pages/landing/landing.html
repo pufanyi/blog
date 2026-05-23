@@ -1,14 +1,17 @@
 <div class="landing">
   <div class="landing-bg" aria-hidden="true"></div>
-  <button class="landing-theme-toggle" type="button" (click)="themeService.toggle()"
-    [attr.aria-label]="themeService.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
-    [title]="themeService.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'">
-    @if (themeService.theme() === 'light') {
-    <i class="ph ph-moon" aria-hidden="true"></i>
-    } @else {
-    <i class="ph ph-sun" aria-hidden="true"></i>
-    }
-  </button>
+  <div class="landing-theme-bar">
+    <span class="landing-theme-title">FANYI PU</span>
+    <button class="landing-theme-toggle" type="button" (click)="themeService.toggle()"
+      [attr.aria-label]="themeService.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
+      [title]="themeService.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'">
+      @if (themeService.theme() === 'light') {
+      <i class="ph ph-moon" aria-hidden="true"></i>
+      } @else {
+      <i class="ph ph-sun" aria-hidden="true"></i>
+      }
+    </button>
+  </div>
 
   <section class="bento-grid" aria-label="Profile">
     <div class="bento-column bento-column-main">

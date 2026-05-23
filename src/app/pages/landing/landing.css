@@ -39,11 +39,18 @@
     linear-gradient(315deg, color-mix(in srgb, var(--accent-warm) 9%, transparent), transparent 46%);
 }
 
-.landing-theme-toggle {
+.landing-theme-bar {
   position: fixed;
   top: 1rem;
   right: 1rem;
-  z-index: 10;
+  z-index: 1000;
+}
+
+.landing-theme-title {
+  display: none;
+}
+
+.landing-theme-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -383,11 +390,62 @@
     overflow: auto;
   }
 
+  .landing-theme-bar {
+    top: calc(env(safe-area-inset-top) + 0.68rem);
+    left: 0.68rem;
+    right: 0.68rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.3rem 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--border-soft) 58%, transparent);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--bg-elev) 82%, var(--bg-base));
+    box-shadow:
+      0 2px 12px var(--shadow-color),
+      0 0 0 0.5px color-mix(in srgb, var(--border-soft) 42%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .landing-theme-title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: block;
+    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-align: center;
+    text-transform: uppercase;
+    opacity: 0.5;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .landing-theme-toggle {
+    position: relative;
+    z-index: 1;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .landing-theme-toggle:hover {
+    background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  }
+
   .bento-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
     width: min(100%, 720px);
-    padding: clamp(2rem, 7vh, 4rem) clamp(1rem, 4vw, 2rem);
+    padding: calc(env(safe-area-inset-top) + clamp(4.4rem, 9vh, 5.4rem)) clamp(1rem, 4vw, 2rem)
+      clamp(2rem, 7vh, 4rem);
   }
 
   .bento-column {
@@ -424,7 +482,7 @@
     grid-template-columns: 1fr;
     gap: 0.85rem;
     width: min(100%, 460px);
-    padding: 1.5rem 1rem 2rem;
+    padding: calc(env(safe-area-inset-top) + 4.6rem) 1rem 2rem;
   }
 
   .bento-card {
