@@ -68,13 +68,20 @@
 
 .bento-grid {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
   align-items: start;
-  gap: 1.1rem;
-  max-width: 1280px;
+  gap: 1rem;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: clamp(2rem, 5vw, 3.75rem) clamp(1.25rem, 4vw, 3rem);
+  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2rem);
   animation: rise 0.55s ease-out both;
+}
+
+.bento-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
 }
 
 .bento-card {
@@ -510,20 +517,20 @@
 
 /* ── Responsive ─────────────────────────── */
 @media (max-width: 1024px) {
-  .bento-hero,
-  .bento-terminal,
-  .bento-work {
-    grid-column: span 12;
+  .bento-grid {
+    grid-template-columns: 1fr;
   }
 
-  .bento-focus,
-  .bento-highlights {
-    grid-column: span 6;
+  .bento-column {
+    display: contents;
   }
 
-  .bento-connect {
-    grid-column: span 12;
-  }
+  .bento-hero { order: 1; }
+  .bento-terminal { order: 2; }
+  .bento-work { order: 3; }
+  .bento-focus { order: 4; }
+  .bento-highlights { order: 5; }
+  .bento-connect { order: 6; }
 }
 
 @media (max-width: 640px) {
