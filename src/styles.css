@@ -31,13 +31,18 @@
   --link-color: var(--ctp-blue);
   --link-hover-color: var(--ctp-mauve);
   --border-color: var(--ctp-surface2);
+  --on-accent: var(--ctp-base);
+  --shadow-color: color-mix(in srgb, var(--ctp-overlay0) 22%, transparent);
+  --shadow-color-strong: color-mix(in srgb, var(--ctp-overlay1) 34%, transparent);
+  --backdrop-bg: color-mix(in srgb, var(--ctp-text) 42%, transparent);
+  --backdrop-bg-strong: color-mix(in srgb, var(--ctp-text) 50%, transparent);
   --border-light: color-mix(in srgb, var(--border-color) 15%, transparent);
   --accent-bg: color-mix(in srgb, var(--link-color) 8%, transparent);
   --background: var(--ctp-mantle);
   --paper-bg: var(--ctp-base);
   --paper-shadow:
-    0 1px 3px color-mix(in srgb, var(--ctp-crust) 45%, transparent),
-    0 10px 28px color-mix(in srgb, var(--ctp-overlay0) 16%, transparent);
+    0 1px 3px color-mix(in srgb, var(--ctp-overlay0) 14%, transparent),
+    0 10px 28px var(--shadow-color);
   --font-body: "Roboto", sans-serif;
   --font-heading: "Space Grotesk", system-ui, -apple-system, sans-serif;
   --font-mono: "Google Sans Code", monospace;
@@ -81,11 +86,16 @@ body.landing-active {
   --link-color: var(--ctp-blue);
   --link-hover-color: var(--ctp-lavender);
   --border-color: var(--ctp-surface2);
+  --on-accent: var(--ctp-crust);
+  --shadow-color: color-mix(in srgb, var(--ctp-crust) 46%, transparent);
+  --shadow-color-strong: color-mix(in srgb, var(--ctp-crust) 64%, transparent);
+  --backdrop-bg: color-mix(in srgb, var(--ctp-crust) 62%, transparent);
+  --backdrop-bg-strong: color-mix(in srgb, var(--ctp-crust) 72%, transparent);
   --background: var(--ctp-crust);
   --paper-bg: var(--ctp-base);
   --paper-shadow:
-    0 1px 4px color-mix(in srgb, #000 30%, transparent),
-    0 12px 32px color-mix(in srgb, #000 34%, transparent);
+    0 1px 4px color-mix(in srgb, var(--ctp-crust) 44%, transparent),
+    0 12px 32px var(--shadow-color-strong);
 }
 
 ::selection { background: color-mix(in srgb, var(--ctp-blue) 28%, transparent); color: var(--ctp-text); }
@@ -134,12 +144,12 @@ a:hover {
 
 @media print {
   :root {
-    --text-color: #222;
-    --text-secondary: #555;
-    --link-color: #222;
-    --border-color: #000;
-    --background: #fff;
-    --paper-bg: #fff;
+    --text-color: var(--ctp-text);
+    --text-secondary: var(--ctp-subtext0);
+    --link-color: var(--ctp-blue);
+    --border-color: var(--ctp-surface2);
+    --background: var(--ctp-base);
+    --paper-bg: var(--ctp-base);
     --paper-shadow: none;
   }
 
@@ -153,8 +163,8 @@ a:hover {
   }
 
   body {
-    background: white;
-    color: black;
+    background: var(--background);
+    color: var(--text-color);
     font-size: 10.5pt;
     line-height: 1.5;
   }
@@ -173,7 +183,7 @@ a:hover {
   }
 
   a {
-    color: #222;
+    color: var(--link-color);
     text-decoration: underline;
   }
 

@@ -5,7 +5,7 @@
   border-radius: 12px;
   overflow: hidden;
   background: var(--paper-bg);
-  box-shadow: 0 8px 22px color-mix(in srgb, #000 10%, transparent);
+  box-shadow: 0 8px 22px var(--shadow-color);
 }
 
 .post-body .code-header {
@@ -70,13 +70,9 @@
 }
 
 .post-body .code-copy.is-copied {
-  color: #166534;
-  border-color: color-mix(in srgb, #16a34a 45%, transparent);
-  background: color-mix(in srgb, #16a34a 18%, transparent);
-}
-
-[data-theme='dark'] .post-body .code-copy.is-copied {
-  color: #86efac;
+  color: var(--ctp-green);
+  border-color: color-mix(in srgb, var(--ctp-green) 45%, transparent);
+  background: color-mix(in srgb, var(--ctp-green) 18%, transparent);
 }
 
 .post-body .code-block pre.shiki {
@@ -122,11 +118,11 @@
 
 /* @shikijs/transformers — diff lines */
 .post-body .code-block pre.shiki .diff.add {
-  background: color-mix(in srgb, #22c55e 12%, transparent);
+  background: color-mix(in srgb, var(--ctp-green) 12%, transparent);
 }
 
 .post-body .code-block pre.shiki .diff.remove {
-  background: color-mix(in srgb, #ef4444 12%, transparent);
+  background: color-mix(in srgb, var(--ctp-red) 12%, transparent);
 }
 
 .post-body .code-block pre.shiki .highlighted {

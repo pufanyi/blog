@@ -23,7 +23,7 @@ export class ImageLightboxComponent implements OnDestroy {
     afterNextRender(() => {
       this.zoom = mediumZoom(this.img().nativeElement, {
         margin: 24,
-        background: 'rgba(0, 0, 0, 0.85)',
+        background: 'color-mix(in srgb, var(--ctp-crust) 86%, transparent)',
       });
     });
   }

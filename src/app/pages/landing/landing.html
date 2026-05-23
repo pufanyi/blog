@@ -1,16 +1,12 @@
 <div class="landing">
   <div class="landing-bg" aria-hidden="true"></div>
-  <button
-    class="landing-theme-toggle"
-    type="button"
-    (click)="themeService.toggle()"
+  <button class="landing-theme-toggle" type="button" (click)="themeService.toggle()"
     [attr.aria-label]="themeService.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
-    [title]="themeService.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
-  >
+    [title]="themeService.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'">
     @if (themeService.theme() === 'light') {
-      <i class="ph ph-moon" aria-hidden="true"></i>
+    <i class="ph ph-moon" aria-hidden="true"></i>
     } @else {
-      <i class="ph ph-sun" aria-hidden="true"></i>
+    <i class="ph ph-sun" aria-hidden="true"></i>
     }
   </button>
 
@@ -35,6 +31,36 @@
           models. Previously B.Sc. in Data Science &amp; AI at NTU Singapore,
           research at MMLab&#64;NTU with Prof. Ziwei Liu.
         </p>
+        <nav class="hero-links" aria-label="Profile links">
+          <a href="mailto:FPU001&#64;e.ntu.edu.sg">
+            <i class="ph ph-envelope" aria-hidden="true"></i>
+            <span>Email</span>
+          </a>
+          <a href="https://github.com/pufanyi" target="_blank" rel="noopener">
+            <i class="ph ph-github-logo" aria-hidden="true"></i>
+            <span>GitHub</span>
+          </a>
+          <a href="https://scholar.google.com/citations?user=58tv6skAAAAJ" target="_blank" rel="noopener">
+            <i class="ph ph-graduation-cap" aria-hidden="true"></i>
+            <span>Scholar</span>
+          </a>
+          <a href="https://linkedin.com/in/pufanyi" target="_blank" rel="noopener">
+            <i class="ph ph-linkedin-logo" aria-hidden="true"></i>
+            <span>LinkedIn</span>
+          </a>
+          <a href="https://x.com/pufanyi" target="_blank" rel="noopener">
+            <i class="ph ph-x-logo" aria-hidden="true"></i>
+            <span>X</span>
+          </a>
+          <a href="/blog">
+            <i class="ph ph-notebook" aria-hidden="true"></i>
+            <span>Blog</span>
+          </a>
+          <a href="/cv" class="hero-link-primary">
+            <i class="ph ph-file-text" aria-hidden="true"></i>
+            <span>CV</span>
+          </a>
+        </nav>
       </article>
 
       <article class="bento-card bento-work">
@@ -67,23 +93,6 @@
         </ul>
       </article>
 
-      <article class="bento-card bento-highlights">
-        <span class="bento-kicker">Highlights</span>
-        <ul class="highlights-list">
-          <li>
-            <span class="highlight-tag">ICPC</span>
-            <span>Gold Medalist &middot; Asia Pacific 22nd</span>
-          </li>
-          <li>
-            <span class="highlight-tag">GitHub</span>
-            <span>&#9733; 3.3k across LMMs-Eval &amp; Otter</span>
-          </li>
-          <li>
-            <span class="highlight-tag">Cited by</span>
-            <span>Gemini 3 Pro &amp; GPT-5</span>
-          </li>
-        </ul>
-      </article>
     </div>
 
     <div class="bento-column bento-column-side">
@@ -98,32 +107,25 @@
         </header>
         <div class="terminal-body" #termBody (click)="focus()">
           @for (line of lines(); track $index) {
-            @switch (line.type) {
-              @case ('system') {
-                <div class="tl tl-system">{{ line.text }}</div>
-              }
-              @case ('command') {
-                <div class="tl tl-cmd"><span class="prompt">&gt;</span> <strong>{{ line.text }}</strong></div>
-              }
-              @case ('output') {
-                <pre class="tl tl-out">{{ line.text }}</pre>
-              }
-              @case ('blank') {
-                <div class="tl">&nbsp;</div>
-              }
-            }
+          @switch (line.type) {
+          @case ('system') {
+          <div class="tl tl-system">{{ line.text }}</div>
+          }
+          @case ('command') {
+          <div class="tl tl-cmd"><span class="prompt">&gt;</span> <strong>{{ line.text }}</strong></div>
+          }
+          @case ('output') {
+          <pre class="tl tl-out">{{ line.text }}</pre>
+          }
+          @case ('blank') {
+          <div class="tl">&nbsp;</div>
+          }
+          }
           }
           <div class="tl tl-input">
             <span class="prompt">&gt;</span>
-            <input
-              #termInput
-              type="text"
-              class="term-field"
-              (keydown)="onKey($event)"
-              spellcheck="false"
-              autocomplete="off"
-              placeholder="Type a command..."
-            />
+            <input #termInput type="text" class="term-field" (keydown)="onKey($event)" spellcheck="false"
+              autocomplete="off" placeholder="Type a command..." />
           </div>
         </div>
       </article>
@@ -131,46 +133,13 @@
       <article class="bento-card bento-focus">
         <span class="bento-kicker">Focus</span>
         <ul class="focus-list">
+          <li>Video Generation</li>
           <li>Spatial Intelligence</li>
           <li>Unified Multimodal Models</li>
           <li>Deep Learning</li>
-          <li>Large-scale Evaluation</li>
         </ul>
       </article>
 
-      <article class="bento-card bento-connect">
-        <span class="bento-kicker">Connect</span>
-        <nav class="connect-grid" aria-label="Profile links">
-          <a href="mailto:FPU001&#64;e.ntu.edu.sg">
-            <i class="ph ph-envelope" aria-hidden="true"></i>
-            <span>Email</span>
-          </a>
-          <a href="https://github.com/pufanyi" target="_blank" rel="noopener">
-            <i class="ph ph-github-logo" aria-hidden="true"></i>
-            <span>GitHub</span>
-          </a>
-          <a href="https://scholar.google.com/citations?user=58tv6skAAAAJ" target="_blank" rel="noopener">
-            <i class="ph ph-graduation-cap" aria-hidden="true"></i>
-            <span>Scholar</span>
-          </a>
-          <a href="https://linkedin.com/in/pufanyi" target="_blank" rel="noopener">
-            <i class="ph ph-linkedin-logo" aria-hidden="true"></i>
-            <span>LinkedIn</span>
-          </a>
-          <a href="https://x.com/pufanyi" target="_blank" rel="noopener">
-            <i class="ph ph-x-logo" aria-hidden="true"></i>
-            <span>X</span>
-          </a>
-          <a href="/blog">
-            <i class="ph ph-notebook" aria-hidden="true"></i>
-            <span>Blog</span>
-          </a>
-          <a href="/cv" class="connect-cta">
-            <i class="ph ph-file-text" aria-hidden="true"></i>
-            <span>CV</span>
-          </a>
-        </nav>
-      </article>
     </div>
   </section>
 </div>

@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0, 0, 0, 0.42);
+  background: var(--backdrop-bg);
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -18,7 +18,7 @@
   background: var(--paper-bg);
   border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
   border-radius: 14px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 16px 48px var(--shadow-color-strong);
   overflow: hidden;
   animation: dialog-in 0.2s ease;
 }
@@ -206,7 +206,7 @@
   .search-backdrop {
     align-items: flex-end;
     padding: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--backdrop-bg-strong);
   }
 
   .search-dialog {
