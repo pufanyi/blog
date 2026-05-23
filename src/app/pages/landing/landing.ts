@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { ThemeService } from '../../services/theme.service';
 
 interface TermLine {
   type: 'system' | 'command' | 'output' | 'blank';
@@ -27,6 +28,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('termBody') termBody!: ElementRef<HTMLDivElement>;
   @ViewChild('termInput') termInput!: ElementRef<HTMLInputElement>;
   private platformId = inject(PLATFORM_ID);
+  readonly themeService = inject(ThemeService);
 
   lines = signal<TermLine[]>([]);
 

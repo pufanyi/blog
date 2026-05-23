@@ -5,7 +5,7 @@ export function createCodeRenderer(highlighter) {
     const language = lang && highlighter.getLoadedLanguages().includes(lang) ? lang : 'text';
     const html = highlighter.codeToHtml(text, {
       lang: language,
-      themes: { light: 'github-light', dark: 'github-dark' },
+      themes: { light: 'catppuccin-latte', dark: 'catppuccin-mocha' },
       transformers: [transformerNotationDiff(), transformerNotationHighlight()],
     });
     const langLabel = language !== 'text' ? language : 'code';

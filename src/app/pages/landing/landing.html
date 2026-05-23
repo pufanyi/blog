@@ -1,5 +1,18 @@
 <div class="landing">
   <div class="landing-bg" aria-hidden="true"></div>
+  <button
+    class="landing-theme-toggle"
+    type="button"
+    (click)="themeService.toggle()"
+    [attr.aria-label]="themeService.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
+    [title]="themeService.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'"
+  >
+    @if (themeService.theme() === 'light') {
+      <i class="ph ph-moon" aria-hidden="true"></i>
+    } @else {
+      <i class="ph ph-sun" aria-hidden="true"></i>
+    }
+  </button>
 
   <section class="bento-grid" aria-label="Profile">
     <article class="bento-card bento-hero">

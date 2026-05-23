@@ -55,7 +55,7 @@ export class GiscusCommentsComponent implements OnDestroy {
   }
 
   private getThemeValue(): string {
-    return this.themeService.theme() === 'dark' ? 'dark_dimmed' : 'light';
+    return this.themeService.theme() === 'dark' ? 'catppuccin_mocha' : 'catppuccin_latte';
   }
 
   private syncTheme(theme: 'light' | 'dark'): void {
@@ -72,7 +72,7 @@ export class GiscusCommentsComponent implements OnDestroy {
       {
         giscus: {
           setConfig: {
-            theme: theme === 'dark' ? 'dark_dimmed' : 'light',
+            theme: theme === 'dark' ? 'catppuccin_mocha' : 'catppuccin_latte',
           },
         },
       },

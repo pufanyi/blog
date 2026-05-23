@@ -42,7 +42,7 @@ async function main() {
   // Create Shiki highlighter with all needed languages
   const langs = collectLangs(rawPosts.map((p) => p.md));
   const highlighter = await createHighlighter({
-    themes: ['github-light', 'github-dark'],
+    themes: ['catppuccin-latte', 'catppuccin-mocha'],
     langs: langs.length ? langs : ['text'],
   });
 
