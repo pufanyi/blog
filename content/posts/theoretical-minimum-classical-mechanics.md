@@ -10,7 +10,7 @@ $$
 L = T - V = L(x, \dot{x}, t)
 $$
 
-书里面写的是 $L(x, \dot{x})$，感觉像是假设势能场是不变的。
+书里面写的是 $L(x, \dot{x})$，感觉像是假设势能场是不变的。加上 $t$ 的话 $V$ 就可以写成 $V(x, t)$ 了。
 
 The action of a trajectory is written
 
