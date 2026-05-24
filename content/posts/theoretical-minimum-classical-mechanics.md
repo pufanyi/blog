@@ -1,5 +1,7 @@
 ## The Principle of Least Action
 
+读这一章的时候参考了 [The Feynman Lectures on Physics](https://www.feynmanlectures.caltech.edu/II_19.html)。
+
 定义 $T$ 为动能，$V$ 为势能
 
 Lagrangian
@@ -27,5 +29,10 @@ $$
 具体证明的话，*The Theoretical Minimum* 和 *The Feynman Lectures on Physics* 里的证明不太一样。
 
 <details>
-<summary>*The Theoretical Minimum* 的证明</summary>
+<summary>The Theoretical Minimum 的证明</summary>
+他是把积分看成求和
+
+$$
+\mathcal{A} = \int_{t_0}^{t_1}
+$$
 </details>
