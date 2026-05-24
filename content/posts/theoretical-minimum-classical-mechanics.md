@@ -86,6 +86,6 @@ $$
 </details>
 
 <details>
-<summary>The Feynman lectures on Physics 的证明</summary>
+<summary>Bishop Deep Learning 的证明</summary>
 
 </details>
