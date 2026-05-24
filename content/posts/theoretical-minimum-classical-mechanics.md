@@ -88,4 +88,10 @@ $$
 <details>
 <summary>Bishop Deep Learning 的证明</summary>
 
+Bishop 书里详细定义了 $\delta F$，对于泛函 $F[y]$，我们定义 $\frac{\delta F}{\delta y(x)}$：
+
+$$
+F[y(x)+\epsilon \eta(x)]=F[y(x)]+\epsilon\int\frac{\delta F}{\delta y(x)}\eta(x)\mathrm{d}x+\mathcal{O}(\epsilon^2)
+$$
+
 </details>
