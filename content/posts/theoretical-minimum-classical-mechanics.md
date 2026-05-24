@@ -50,7 +50,7 @@ $$
 其中
 
 $$
-\frac{\partial}{\partial x_n}L\left(x_n, \frac{x_{n+1}-x_n}{\Delta t}\right)
+\frac{\partial}{\partial x_n}L\left(x_n, \frac{x_{n+1}-x_n}{\Delta t}, t\right)
 =
 \left.\frac{\partial L}{\partial x}\right|_{n}-\frac{1}{\Delta t}\cdot\left.\frac{\partial L}{\partial\dot{x}}\right|_{n}
 $$
