@@ -30,6 +30,7 @@ $$
 
 <details>
 <summary>The Theoretical Minimum 的证明</summary>
+
 他是把积分看成求和
 
 $$
