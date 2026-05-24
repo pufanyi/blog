@@ -26,7 +26,7 @@ $$
 \frac{\mathrm{d}}{\mathrm{d}t}\frac{\partial L}{\partial \dot{x}} - \frac{\partial L}{\partial x}=0
 $$
 
-具体证明的话，*The Theoretical Minimum* 和 *The Feynman Lectures on Physics* 里的证明不太一样。TM 是把 $L$ 看成 $t$ 上的黎曼和，然后对每一小段进行求导。FL 里的就是标准的去加 $\eta(t)$ 一阶泰勒然后一阶导等于 $0$ 酱紫。
+具体证明的话，*The Theoretical Minimum* 和 *The Feynman Lectures on Physics* 里的证明不太一样。TM 是把 $L$ 看成 $t$ 上的黎曼和，然后对每一小段进行求导。FL 那本书的证明挺标准化的，我们不如再标准化一点，去复习一下 Bishop 那本 [Deep Learning](https://www.bishopbook.com/) 里的证明。
 
 <details>
 <summary>The Theoretical Minimum 的证明</summary>
@@ -82,5 +82,10 @@ $$
 $$
 \frac{\partial L}{\partial x}-\frac{\mathrm{d}}{\mathrm{d}t}\frac{\partial L}{\partial \dot{x}}=0
 $$
+
+</details>
+
+<details>
+<summary>The Feynman lectures on Physics 的证明</summary>
 
 </details>
