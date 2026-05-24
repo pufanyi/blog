@@ -88,10 +88,57 @@ $$
 <details>
 <summary>Bishop Deep Learning 的证明</summary>
 
-Bishop 书里详细定义了 $\delta F$，对于泛函 $F[y]$，我们定义 $\frac{\delta F}{\delta y(x)}$：
+Bishop 书里详细定义了 $\delta F$，对于 funcional $F(y(x))$，我们定义 $\frac{\delta F}{\delta y(x)}$：
 
 $$
-F[y(x)+\epsilon \eta(x)]=F[y(x)]+\epsilon\int\frac{\delta F}{\delta y(x)}\eta(x)\mathrm{d}x+\mathcal{O}(\epsilon^2)
+F(y(x)+\epsilon \eta(x))=F(y(x))+\epsilon\int_l^r\frac{\delta F}{\delta y(x)}\eta(x)\mathrm{d}x+\mathcal{O}(\epsilon^2)
+$$
+
+其中 $\eta(l)=\eta(r)=0$。
+
+那我们假设
+
+$$
+F(y(x)) = \int_l^r G(y(x), y'(x), x)\mathrm{d}x
+$$
+
+我们有
+
+$$
+\begin{aligned}
+F(y(x) + \epsilon \eta(x))
+&=\int_l^r G(y(x) + \epsilon\eta(x), y'(x)+\epsilon\eta'(x), x)\mathrm{d}x\\
+&=\int_l^r \left(G(y(x), y'(x),x)+\frac{\partial G}{\partial y}\cdot \epsilon\eta(x)+\frac{\partial G}{\partial y'}\cdot\epsilon\eta'(x)+\mathcal{O}(\epsilon^2)\right)\mathrm{d}x\\
+&=F(y(x))+\epsilon\int_l^r\left(\frac{\partial G}{\partial y}\eta(x)+\frac{\partial G}{\partial y'}\eta'(x)\right)\mathrm{d}x+\mathcal{O}(\epsilon^2)
+\end{aligned}
+$$
+
+我们之后想让 $\frac{\delta F}{\delta y(x)}=0$ 然后去解，所以我们希望把 $\eta(x)$ 消掉，我们考虑对 $\frac{\partial G}{\partial y'}\eta'$ 做分步积分：
+
+$$
+\int_l^r\frac{\partial G}{\partial y'}\eta'(x)\mathrm{d}x
+=\int_l^r\frac{\partial G}{\partial y'}\mathrm{d}\eta
+=\left.\left(\eta\frac{\partial G}{\partial y'}\right)\right|_l^r-\int_l^r\frac{\mathrm{d}}{\mathrm{d}x}\left(\frac{\partial G}{\partial y'}\right)
+$$
+
+考虑到 $\eta(l)=\eta(r)=0$，我们有
+
+$$
+\int_l^r\frac{\partial G}{\partial y'}\eta'(x)\mathrm{d}x
+=-\int_l^r\eta(x)\frac{\mathrm{d}}{\mathrm{d}x}\left(\frac{\partial G}{\partial y'}\right)\mathrm{d}x
+$$
+
+所以
+
+$$
+F(y(x) + \epsilon \eta(x))
+=F(y(x))+\epsilon\int_l^r\left(\frac{\partial G}{\partial y}-\frac{\mathrm{d}}{\mathrm{d}x}\left(\frac{\partial G}{\partial y'}\right)\right)\eta(x)\mathrm{d}x+\mathcal{O}(\epsilon^2)
+$$
+
+所以我们就能推出 Euler-Lagrange 方程：
+
+$$
+\frac{\partial G}{\partial y}-\frac{\mathrm{d}}{\mathrm{d}x}\left(\frac{\partial G}{\partial y'}\right)=0
 $$
 
 </details>
