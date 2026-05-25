@@ -1,7 +1,5 @@
 ## The Principle of Least Action
 
-读这一章的时候参考了 [The Feynman Lectures on Physics](https://www.feynmanlectures.caltech.edu/II_19.html)。
-
 定义 $T$ 为动能，$V$ 为势能
 
 Lagrangian
@@ -26,7 +24,7 @@ $$
 \frac{\mathrm{d}}{\mathrm{d}t}\frac{\partial L}{\partial \dot{x}} - \frac{\partial L}{\partial x}=0
 $$
 
-具体证明的话，*The Theoretical Minimum* 和 *The Feynman Lectures on Physics* 里的证明不太一样。TM 是把 $L$ 看成 $t$ 上的黎曼和，然后对每一小段进行求导。FL 那本书的证明挺标准化的，我们不如再标准化一点，去复习一下 Bishop 那本 [Deep Learning](https://www.bishopbook.com/) 里的证明。
+具体证明的话，*The Theoretical Minimum* 和 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 里的证明不太一样。TM 是把 $L$ 看成 $t$ 上的黎曼和，然后对每一小段进行求导。FL 那本书的证明挺标准化的，我们不如再标准化一点，去复习一下 Bishop 那本 [Deep Learning](https://www.bishopbook.com/) 里的证明。
 
 <details>
 <summary>The Theoretical Minimum 的证明</summary>
