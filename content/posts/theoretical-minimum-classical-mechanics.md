@@ -5,15 +5,15 @@
 Lagrangian
 
 $$
-L = T - V = L(x, \dot{x}, t)
+\mathcal{L} = T - V = \mathcal{L}(x, \dot{x}, t)
 $$
 
-书里面写的是 $L(x, \dot{x})$，感觉像是假设势能场是不变的。加上 $t$ 的话 $V$ 就可以写成 $V(x, t)$ 了。
+书里面写的是 $\mathcal{L}(x, \dot{x})$，感觉像是假设势能场是不变的。加上 $t$ 的话 $V$ 就可以写成 $V(x, t)$ 了。
 
 The action of a trajectory is written
 
 $$
-\mathcal{A} = \int_{t_0}^{t_1}L(x, \dot{x}, t)\mathrm{d}t
+\mathcal{A} = \int_{t_0}^{t_1}\mathcal{L}(x, \dot{x}, t)\mathrm{d}t
 $$
 
 这里的 Least Action 其实不是 least，是 stationary，也就是 $\delta \mathcal{A}=0$。
@@ -21,10 +21,10 @@ $$
 然后根据 Euler-Lagrange equation
 
 $$
-\frac{\mathrm{d}}{\mathrm{d}t}\frac{\partial L}{\partial \dot{x}} - \frac{\partial L}{\partial x}=0
+\frac{\mathrm{d}}{\mathrm{d}t}\frac{\partial \mathcal{L}}{\partial \dot{x}} - \frac{\partial \mathcal{L}}{\partial x}=0
 $$
 
-具体证明的话，*The Theoretical Minimum* 和 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 里的证明不太一样。TM 是把 $L$ 看成 $t$ 上的黎曼和，然后对每一小段进行求导。FL 那本书的证明挺标准化的，我们不如再标准化一点，去复习一下 Bishop 那本 [Deep Learning](https://www.bishopbook.com/) 里的证明。
+具体证明的话，*The Theoretical Minimum* 和 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 里的证明不太一样。TM 是把 $\mathcal{L}$ 看成 $t$ 上的黎曼和，然后对每一小段进行求导。FL 那本书的证明挺标准化的，我们不如再标准化一点，去复习一下 Bishop 那本 [Deep Learning](https://www.bishopbook.com/) 里的证明。
 
 <details>
 <summary>The Theoretical Minimum 的证明</summary>
@@ -33,32 +33,32 @@ $$
 
 $$
 \begin{aligned}
-\mathcal{A} &= \int_{t_0}^{t_1}L(x, \dot{x}, t)\mathrm{d}t\\
-&=\sum_{n}L(x_n, \dot{x}_n, t)\Delta t\\
-&=\sum_{n}L\left(x_n, \frac{x_{n+1}-x_n}{\Delta t}, t\right)\Delta t
+\mathcal{A} &= \int_{t_0}^{t_1}\mathcal{L}(x, \dot{x}, t)\mathrm{d}t\\
+&=\sum_{n}\mathcal{L}(x_n, \dot{x}_n, t)\Delta t\\
+&=\sum_{n}\mathcal{L}\left(x_n, \frac{x_{n+1}-x_n}{\Delta t}, t\right)\Delta t
 \end{aligned}
 $$
 
 酱紫
 
 $$
-\frac{\partial \mathcal{A}}{\partial x_n} = \left(\frac{\partial}{\partial x_n}L\left(x_n, \frac{x_{n+1}-x_n}{\Delta t}, t\right)+\frac{\partial}{\partial x_n}L\left(x_{n-1}, \frac{x_n-x_{n-1}}{\Delta t}, t\right)\right)\Delta t
+\frac{\partial \mathcal{A}}{\partial x_n} = \left(\frac{\partial}{\partial x_n}\mathcal{L}\left(x_n, \frac{x_{n+1}-x_n}{\Delta t}, t\right)+\frac{\partial}{\partial x_n}\mathcal{L}\left(x_{n-1}, \frac{x_n-x_{n-1}}{\Delta t}, t\right)\right)\Delta t
 $$
 
 其中
 
 $$
-\frac{\partial}{\partial x_n}L\left(x_n, \frac{x_{n+1}-x_n}{\Delta t}, t\right)
+\frac{\partial}{\partial x_n}\mathcal{L}\left(x_n, \frac{x_{n+1}-x_n}{\Delta t}, t\right)
 =
-\left.\frac{\partial L}{\partial x}\right|_{n}-\frac{1}{\Delta t}\cdot\left.\frac{\partial L}{\partial\dot{x}}\right|_{n}
+\left.\frac{\partial \mathcal{L}}{\partial x}\right|_{n}-\frac{1}{\Delta t}\cdot\left.\frac{\partial \mathcal{L}}{\partial\dot{x}}\right|_{n}
 $$
 
 然后
 
 $$
-\frac{\partial}{\partial x_n}L\left(x_{n-1}, \frac{x_n-x_{n-1}}{\Delta t}, t\right)
+\frac{\partial}{\partial x_n}\mathcal{L}\left(x_{n-1}, \frac{x_n-x_{n-1}}{\Delta t}, t\right)
 =
-\frac{1}{\Delta t}\cdot\left.\frac{\partial L}{\partial \dot{x}}\right|_{n-1}
+\frac{1}{\Delta t}\cdot\left.\frac{\partial \mathcal{L}}{\partial \dot{x}}\right|_{n-1}
 $$
 
 所以说
@@ -66,19 +66,19 @@ $$
 $$
 \frac{\partial \mathcal{A}}{\partial x_n}
 =
-\Delta t \left.\frac{\partial L}{\partial x}\right|_{n}-\left(\left.\frac{\partial L}{\partial\dot{x}}\right|_{n}-\left.\frac{\partial L}{\partial \dot{x}}\right|_{n-1}\right)
+\Delta t \left.\frac{\partial \mathcal{L}}{\partial x}\right|_{n}-\left(\left.\frac{\partial \mathcal{L}}{\partial\dot{x}}\right|_{n}-\left.\frac{\partial \mathcal{L}}{\partial \dot{x}}\right|_{n-1}\right)
 $$
 
 考虑到 $\mathcal{A}$ 要 stationary，也就是 $\frac{\partial\mathcal{A}}{\partial x_n}=0$：
 
 $$
-\left.\frac{\partial L}{\partial x}\right|_{n}-\frac{1}{\Delta t}\left(\left.\frac{\partial L}{\partial\dot{x}}\right|_{n}-\left.\frac{\partial L}{\partial \dot{x}}\right|_{n-1}\right)=0
+\left.\frac{\partial \mathcal{L}}{\partial x}\right|_{n}-\frac{1}{\Delta t}\left(\left.\frac{\partial \mathcal{L}}{\partial\dot{x}}\right|_{n}-\left.\frac{\partial \mathcal{L}}{\partial \dot{x}}\right|_{n-1}\right)=0
 $$
 
 也就是
 
 $$
-\frac{\partial L}{\partial x}-\frac{\mathrm{d}}{\mathrm{d}t}\frac{\partial L}{\partial \dot{x}}=0
+\frac{\partial \mathcal{L}}{\partial x}-\frac{\mathrm{d}}{\mathrm{d}t}\frac{\partial \mathcal{L}}{\partial \dot{x}}=0
 $$
 
 </details>
@@ -144,5 +144,25 @@ $$
 如果有多个物体的话，我们可以把他们的集合看成整体
 
 $$
-L(\{x\}, \dot{\{x\}}, t) = \sum_{i}\left(\frac{1}{2}m_i \dot{x}_i^2\right)-V(\{x\}, t)
+\mathcal{L}(\{x\}, \dot{\{x\}}, t) = \sum_{i}\left(\frac{1}{2}m_i \dot{x}_i^2\right)-V(\{x\}, t)
+$$
+
+Generalized momentum conjugate / Conjugate momentum:
+
+$$
+p = \frac{\partial \mathcal{L}}{\partial \dot{q}}
+$$
+
+其中 $q$ 可以是任意坐标系统
+
+这边他似乎没说明白为啥定义是 $\frac{\partial \mathcal{L}}{\partial{\dot{q}}}$ 而不是 $\frac{\partial{T}}{\partial{\dot{q}}}$。看了 [The Feynman Lectures on Physics](https://www.feynmanlectures.caltech.edu/II_19.html) 大概明白了，他其实很长一段时间没提 Lagrangian，只是说物理规律可以被编码于一个标量
+
+$$
+\mathcal{A} = \int \mathcal{L}\mathrm{d}t
+$$
+
+而 $\mathcal{L}$ 不一定是 $T-V$，这只是牛顿力学中的定义。我就是说其实是先有 $\mathcal{A}$，然后再去定义 $\mathcal{L}$，然后再去定义牛顿力学中的量比如说 $p$。比如说带电粒子在电磁场中的运动：
+
+$$
+\mathcal{L} = -m_0 c^2 \sqrt{1 - v^2/c^2} - q(\phi - \boldsymbol{v} \cdot \boldsymbol{A}).
 $$
