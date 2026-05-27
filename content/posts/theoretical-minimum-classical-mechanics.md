@@ -184,3 +184,26 @@ $$
 $$
 
 也就是说 $p_i$ 一直不变。
+
+举个粒子，比如说一维坐标下有两个粒子在 $x_1, x_2$，我们有：
+
+$$
+\mathcal{L} = \frac{m}{2}\left(\dot{x}_1^2+\dot{x}_2^2\right)-V(x_1-x_2)
+$$
+
+如果我们取
+
+$$
+\begin{cases}
+x_+=\frac{1}{2}(x_1+x_2)\\
+x_-=\frac{1}{2}(x_1-x_2)
+\end{cases}
+$$
+
+我们就有
+
+$$
+\mathcal{L} = m\left(\dot{x}_{+}^2+\dot{x}_{-}^2\right)-V(x_{-})
+$$
+
+这时候我们就说 $x_{+}$ 是 cyclic coordinate，而 $p_{+}=2m\dot{x}_{+}=m\dot{x}_1+m\dot{x}_2$ 是不变的。
