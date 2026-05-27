@@ -12,6 +12,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { ThemeService } from '../../services/theme.service';
+import { AutoAnimateDirective } from '../../directives/auto-animate';
 
 interface TermLine {
   type: 'system' | 'command' | 'output' | 'blank';
@@ -21,6 +22,7 @@ interface TermLine {
 @Component({
   selector: 'app-landing',
   standalone: true,
+  imports: [AutoAnimateDirective],
   templateUrl: './landing.html',
   styleUrl: './landing.css',
 })

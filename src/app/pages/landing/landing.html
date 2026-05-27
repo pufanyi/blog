@@ -84,7 +84,13 @@
           </div>
           <span class="terminal-title">visitor&#64;fanyi:~</span>
         </header>
-        <div class="terminal-body" #termBody (click)="focus()">
+        <div
+          class="terminal-body"
+          #termBody
+          appAutoAnimate
+          [appAutoAnimateOptions]="{ duration: 140, easing: 'ease-out' }"
+          (click)="focus()"
+        >
           @for (line of lines(); track $index) {
           @switch (line.type) {
           @case ('system') {

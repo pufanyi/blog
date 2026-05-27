@@ -2,10 +2,12 @@ import { DOCUMENT } from '@angular/common';
 import { Component, inject, output, signal, ElementRef, viewChild, afterNextRender, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { SearchService, SearchResult } from '../../services/search.service';
+import { AutoAnimateDirective } from '../../directives/auto-animate';
 
 @Component({
   selector: 'app-search-modal',
   standalone: true,
+  imports: [AutoAnimateDirective],
   templateUrl: './search-modal.html',
   styleUrl: './search-modal.css',
 })

@@ -96,6 +96,7 @@
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding: 0.5rem;
+  position: relative;
 }
 
 .search-empty {
@@ -119,6 +120,7 @@
   font-family: var(--font-body);
   transition: background-color 0.14s ease, border-color 0.14s ease;
   touch-action: manipulation;
+  transform-origin: top center;
 }
 
 .search-result-item:hover,

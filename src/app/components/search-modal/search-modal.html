@@ -17,7 +17,7 @@
       </button>
     </div>
 
-    <div class="search-results">
+    <div class="search-results" appAutoAnimate [appAutoAnimateOptions]="{ duration: 150, easing: 'ease-out' }">
       @if (query() && results().length === 0) {
         <div class="search-empty">No results for "{{ query() }}"</div>
       } @else if (!query()) {

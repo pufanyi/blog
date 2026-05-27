@@ -4,9 +4,10 @@
     <h1 class="title">Fanyi's Blog</h1>
     <hr class="title-rule-bottom" />
   </div>
+  <p class="title-subtitle">{{ posts.length }} notes, derivations, and contest scraps</p>
 </div>
 
-<section class="post-list">
+<section class="post-list" appAutoAnimate [appAutoAnimateOptions]="{ duration: 180, easing: 'ease-out' }">
   @for (post of posts; track post.slug) {
     <a class="post-entry" [routerLink]="['/blog', post.slug]">
       @if (post.coverImage) {
@@ -19,8 +20,11 @@
         />
       }
       <div class="post-row">
-        <span class="post-title">{{ post.title }}</span>
-        <span class="post-date">{{ post.date }}</span>
+        <span class="post-title">
+          <i class="ph ph-file-text" aria-hidden="true"></i>
+          <span>{{ post.title }}</span>
+        </span>
+        <time class="post-date" [attr.datetime]="post.date">{{ post.date }}</time>
       </div>
       <div class="post-description">{{ post.description }}</div>
     </a>

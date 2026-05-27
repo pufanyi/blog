@@ -21,6 +21,7 @@ import { typesetMath, initCodeCopyButtons, optimizeContentImages } from '../../u
 import { smoothScrollTo, SmoothScrollHandle } from '../../utils/smooth-scroll';
 import { buildContentWithToc, TocItem } from '../../utils/toc-builder';
 import { HeadingObserver } from '../../utils/heading-observer';
+import { AutoAnimateDirective } from '../../directives/auto-animate';
 
 const WIDE_QUERY = '(min-width: 1301px)';
 const HEADING_SCROLL_OFFSET_PX = 20;
@@ -28,7 +29,13 @@ const HEADING_SCROLL_OFFSET_PX = 20;
 @Component({
   selector: 'app-post',
   standalone: true,
-  imports: [RouterLink, PostHeaderComponent, GiscusCommentsComponent, BackToTopComponent],
+  imports: [
+    RouterLink,
+    PostHeaderComponent,
+    GiscusCommentsComponent,
+    BackToTopComponent,
+    AutoAnimateDirective,
+  ],
   templateUrl: './post.html',
   styleUrls: [
     './styles/typography.css',

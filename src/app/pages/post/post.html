@@ -28,7 +28,7 @@
         <i class="ph ph-list-numbers toc-title-icon" aria-hidden="true"></i>
         <span>Contents</span>
       </div>
-      <div class="toc-nav">
+      <div class="toc-nav" appAutoAnimate [appAutoAnimateOptions]="{ duration: 150, easing: 'ease-out' }">
         @for (item of tocItems(); track item.id) {
           <a
             class="toc-link"
