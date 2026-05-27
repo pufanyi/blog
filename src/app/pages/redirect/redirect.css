@@ -38,7 +38,7 @@ h1 {
 }
 
 .countdown {
-  color: color-mix(in srgb, var(--text-color) 65%, transparent);
+  color: color-mix(in srgb, var(--text-color) 65%, var(--ctp-transparent));
   font-size: 0.9rem;
   margin: 0 0 1.5rem;
 }

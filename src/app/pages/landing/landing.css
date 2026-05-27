@@ -4,10 +4,10 @@
   --bg-base: var(--background);
   --bg-elev: var(--paper-bg);
   --bg-card: color-mix(in srgb, var(--paper-bg) 88%, var(--ctp-mantle));
-  --bg-inset: color-mix(in srgb, var(--ctp-surface0) 58%, transparent);
+  --bg-inset: color-mix(in srgb, var(--ctp-surface0) 58%, var(--ctp-transparent));
   --border-soft: var(--ctp-surface1);
   --border-strong: var(--ctp-surface2);
-  --border-accent: color-mix(in srgb, var(--ctp-blue) 40%, transparent);
+  --border-accent: color-mix(in srgb, var(--ctp-blue) 40%, var(--ctp-transparent));
   --text-primary: var(--text-color);
   --text-muted: var(--ctp-overlay2);
   --accent: var(--ctp-blue);
@@ -15,7 +15,7 @@
   --accent-warm: var(--ctp-mauve);
   --accent-green: var(--ctp-green);
   --radius-card: 18px;
-  --shadow-card: 0 10px 32px color-mix(in srgb, var(--ctp-overlay0) 20%, transparent);
+  --shadow-card: 0 10px 32px color-mix(in srgb, var(--ctp-overlay0) 20%, var(--ctp-transparent));
 }
 
 :host *,
@@ -42,8 +42,8 @@
   z-index: -1;
   pointer-events: none;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%),
-    linear-gradient(315deg, color-mix(in srgb, var(--accent-warm) 9%, transparent), transparent 46%);
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--ctp-transparent)), var(--ctp-transparent) 42%),
+    linear-gradient(315deg, color-mix(in srgb, var(--accent-warm) 9%, var(--ctp-transparent)), var(--ctp-transparent) 46%);
 }
 
 .landing-theme-bar {
@@ -63,11 +63,11 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid color-mix(in srgb, var(--border-strong) 65%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 65%, var(--ctp-transparent));
   border-radius: 50%;
   color: var(--text-secondary);
-  background: color-mix(in srgb, var(--bg-elev) 84%, transparent);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--ctp-overlay0) 16%, transparent);
+  background: color-mix(in srgb, var(--bg-elev) 84%, var(--ctp-transparent));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--ctp-overlay0) 16%, var(--ctp-transparent));
   cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
@@ -162,8 +162,8 @@
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), var(--accent-warm));
   box-shadow:
-    0 14px 36px color-mix(in srgb, var(--ctp-overlay0) 28%, transparent),
-    0 0 32px color-mix(in srgb, var(--accent) 18%, transparent);
+    0 14px 36px color-mix(in srgb, var(--ctp-overlay0) 28%, var(--ctp-transparent)),
+    0 0 32px color-mix(in srgb, var(--accent) 18%, var(--ctp-transparent));
 }
 
 .hero-photo {
@@ -201,7 +201,7 @@
   background: linear-gradient(120deg, var(--text-primary) 0%, var(--accent-strong) 60%, var(--accent-warm) 100%);
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
+  color: var(--ctp-transparent);
 }
 
 .hero-subtitle {
@@ -255,7 +255,7 @@
 
 .hero-links a:hover {
   border-color: var(--border-accent);
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--ctp-transparent));
   text-decoration: none;
   transform: translateY(-1px);
 }
@@ -274,10 +274,10 @@
 .hero-link-primary {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--accent) 18%, transparent),
-    color-mix(in srgb, var(--accent-warm) 14%, transparent)
+    color-mix(in srgb, var(--accent) 18%, var(--ctp-transparent)),
+    color-mix(in srgb, var(--accent-warm) 14%, var(--ctp-transparent))
   );
-  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--ctp-transparent));
 }
 
 /* ── Terminal ───────────────────────────── */
@@ -330,7 +330,7 @@
   font-size: 0.82rem;
   line-height: 1.65;
   scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
+  scrollbar-color: var(--border-strong) var(--ctp-transparent);
 }
 
 .terminal-body::-webkit-scrollbar {
@@ -383,7 +383,7 @@
 .term-field {
   flex: 1;
   min-width: 0;
-  background: transparent;
+  background: var(--ctp-transparent);
   border: none;
   outline: none;
   color: var(--text-primary);
@@ -413,12 +413,12 @@
     justify-content: flex-end;
     width: var(--panel-width);
     padding: 0.3rem 0.4rem;
-    border: 1px solid color-mix(in srgb, var(--border-soft) 58%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-soft) 58%, var(--ctp-transparent));
     border-radius: 14px;
     background: color-mix(in srgb, var(--bg-elev) 82%, var(--bg-base));
     box-shadow:
       0 2px 12px var(--shadow-color),
-      0 0 0 0.5px color-mix(in srgb, var(--border-soft) 42%, transparent);
+      0 0 0 0.5px color-mix(in srgb, var(--border-soft) 42%, var(--ctp-transparent));
     transform: translateX(-50%);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
@@ -448,12 +448,12 @@
     height: 2rem;
     border: none;
     border-radius: 8px;
-    background: transparent;
+    background: var(--ctp-transparent);
     box-shadow: none;
   }
 
   .landing-theme-toggle:hover {
-    background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+    background: color-mix(in srgb, var(--text-primary) 7%, var(--ctp-transparent));
   }
 
   .bento-grid {

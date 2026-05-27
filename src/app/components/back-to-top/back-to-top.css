@@ -6,7 +6,7 @@
   display: inline-flex;
   width: 42px;
   height: 42px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 25%, var(--ctp-transparent));
   border-radius: 50%;
   background: var(--paper-bg);
   color: var(--text-color);
@@ -31,7 +31,7 @@
 }
 
 .back-to-top:hover {
-  border-color: color-mix(in srgb, var(--border-color) 45%, transparent);
+  border-color: color-mix(in srgb, var(--border-color) 45%, var(--ctp-transparent));
 }
 
 @media (max-width: 600px) {

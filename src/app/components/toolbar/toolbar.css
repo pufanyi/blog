@@ -24,7 +24,7 @@
 .toolbar-desktop button,
 .toolbar-desktop-btn {
   background: var(--paper-bg);
-  border: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 25%, var(--ctp-transparent));
   border-radius: 50%;
   width: 36px;
   height: 36px;
@@ -43,7 +43,7 @@
 .toolbar-desktop-btn:hover {
   color: var(--text-color);
   box-shadow: 0 2px 6px var(--shadow-color);
-  border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
+  border-color: color-mix(in srgb, var(--border-color) 40%, var(--ctp-transparent));
   text-decoration: none;
 }
 
@@ -76,14 +76,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.3rem 0.4rem;
-    border: 1px solid color-mix(in srgb, var(--border-color) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-color) 14%, var(--ctp-transparent));
     border-radius: 14px;
     background: color-mix(in srgb, var(--paper-bg) 82%, var(--background));
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     box-shadow:
       0 2px 12px var(--shadow-color),
-      0 0 0 0.5px color-mix(in srgb, var(--border-color) 18%, transparent);
+      0 0 0 0.5px color-mix(in srgb, var(--border-color) 18%, var(--ctp-transparent));
   }
 
   .toolbar-mobile-group {
@@ -106,7 +106,7 @@
     border-radius: 8px;
     color: var(--text-secondary);
     text-decoration: none;
-    background: transparent;
+    background: var(--ctp-transparent);
     cursor: pointer;
     transition: color 0.2s ease, background-color 0.2s ease;
   }
@@ -114,7 +114,7 @@
   .toolbar-mobile-btn:hover,
   .toolbar-mobile-btn:active {
     color: var(--text-color);
-    background: color-mix(in srgb, var(--text-color) 7%, transparent);
+    background: color-mix(in srgb, var(--text-color) 7%, var(--ctp-transparent));
     text-decoration: none;
   }
 

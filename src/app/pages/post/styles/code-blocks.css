@@ -1,7 +1,7 @@
 /* Code block container */
 .post-body .code-block {
   margin: 1.75rem 0;
-  border: 1px solid color-mix(in srgb, var(--border-color) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 18%, var(--ctp-transparent));
   border-radius: 12px;
   overflow: hidden;
   background: var(--paper-bg);
@@ -19,7 +19,7 @@
     color-mix(in srgb, var(--border-color) 7%, var(--paper-bg)),
     color-mix(in srgb, var(--border-color) 4%, var(--paper-bg))
   );
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 16%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 16%, var(--ctp-transparent));
 }
 
 .post-body .code-lang {
@@ -38,8 +38,8 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--link-color) 45%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--link-color) 35%, transparent);
+  background: color-mix(in srgb, var(--link-color) 45%, var(--ctp-transparent));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--link-color) 35%, var(--ctp-transparent));
 }
 
 .post-body .code-copy {
@@ -51,7 +51,7 @@
   letter-spacing: 0.01em;
   color: var(--text-secondary);
   background: color-mix(in srgb, var(--paper-bg) 82%, var(--border-color) 18%);
-  border: 1px solid color-mix(in srgb, var(--border-color) 24%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 24%, var(--ctp-transparent));
   border-radius: 999px;
   padding: 0.2rem 0.7rem;
   cursor: pointer;
@@ -60,7 +60,7 @@
 
 .post-body .code-copy:hover {
   color: var(--text-color);
-  border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
+  border-color: color-mix(in srgb, var(--border-color) 40%, var(--ctp-transparent));
   background: color-mix(in srgb, var(--border-color) 12%, var(--paper-bg));
   transform: translateY(-1px);
 }
@@ -71,8 +71,8 @@
 
 .post-body .code-copy.is-copied {
   color: var(--ctp-green);
-  border-color: color-mix(in srgb, var(--ctp-green) 45%, transparent);
-  background: color-mix(in srgb, var(--ctp-green) 18%, transparent);
+  border-color: color-mix(in srgb, var(--ctp-green) 45%, var(--ctp-transparent));
+  background: color-mix(in srgb, var(--ctp-green) 18%, var(--ctp-transparent));
 }
 
 .post-body .code-block pre.shiki {
@@ -91,11 +91,11 @@
 }
 
 .post-body .code-block pre.shiki::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--ctp-transparent);
 }
 
 .post-body .code-block pre.shiki::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--border-color) 25%, transparent);
+  background: color-mix(in srgb, var(--border-color) 25%, var(--ctp-transparent));
   border-radius: 3px;
 }
 
@@ -118,15 +118,15 @@
 
 /* @shikijs/transformers — diff lines */
 .post-body .code-block pre.shiki .diff.add {
-  background: color-mix(in srgb, var(--ctp-green) 12%, transparent);
+  background: color-mix(in srgb, var(--ctp-green) 12%, var(--ctp-transparent));
 }
 
 .post-body .code-block pre.shiki .diff.remove {
-  background: color-mix(in srgb, var(--ctp-red) 12%, transparent);
+  background: color-mix(in srgb, var(--ctp-red) 12%, var(--ctp-transparent));
 }
 
 .post-body .code-block pre.shiki .highlighted {
-  background: color-mix(in srgb, var(--link-color) 10%, transparent);
+  background: color-mix(in srgb, var(--link-color) 10%, var(--ctp-transparent));
 }
 
 /* Fallback for non-Shiki pre blocks */
@@ -134,7 +134,7 @@
   margin: 1.75rem 0;
   padding: 1.1rem 1.2rem;
   background: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
-  border: 1px solid color-mix(in srgb, var(--border-color) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 18%, var(--ctp-transparent));
   border-radius: 10px;
   overflow-x: auto;
   line-height: 1.6;

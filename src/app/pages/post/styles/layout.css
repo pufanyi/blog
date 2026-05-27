@@ -5,7 +5,7 @@
   left: calc(1rem + 36px + 0.5rem + 36px + 0.5rem);
   z-index: 1001;
   background: var(--paper-bg);
-  border: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 25%, var(--ctp-transparent));
   border-radius: 50%;
   width: 36px;
   height: 36px;
@@ -21,7 +21,7 @@
 
 .toc-toggle:hover {
   opacity: 0.8;
-  border-color: color-mix(in srgb, var(--border-color) 45%, transparent);
+  border-color: color-mix(in srgb, var(--border-color) 45%, var(--ctp-transparent));
 }
 
 .post-toc {
@@ -53,7 +53,7 @@
   font-size: 0.78rem;
   margin-bottom: 0.72rem;
   padding: 0.1rem 0.15rem 0.5rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 22%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 22%, var(--ctp-transparent));
 }
 
 .toc-nav {
@@ -67,7 +67,7 @@
   cursor: pointer;
   color: var(--text-secondary);
   border-radius: 7px;
-  border: 1px solid transparent;
+  border: 1px solid var(--ctp-transparent);
   padding: 0.38rem 0.48rem;
   margin-left: 0.38rem;
   line-height: 1.35;
@@ -82,14 +82,14 @@
 
 .toc-link:hover {
   color: var(--text-color);
-  background: color-mix(in srgb, var(--link-color) 14%, transparent);
+  background: color-mix(in srgb, var(--link-color) 14%, var(--ctp-transparent));
   text-decoration: none;
 }
 
 .toc-link.is-active {
   color: var(--text-color);
-  background: color-mix(in srgb, var(--link-color) 16%, transparent);
-  border-color: color-mix(in srgb, var(--link-color) 26%, transparent);
+  background: color-mix(in srgb, var(--link-color) 16%, var(--ctp-transparent));
+  border-color: color-mix(in srgb, var(--link-color) 26%, var(--ctp-transparent));
 }
 
 .toc-backdrop {
@@ -125,7 +125,7 @@
     z-index: 100;
     transform: translateY(-10px);
     background: color-mix(in srgb, var(--paper-bg) 90%, var(--background));
-    border: 1px solid color-mix(in srgb, var(--border-color) 24%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-color) 24%, var(--ctp-transparent));
     border-radius: 12px;
     padding: 0.74rem 0.68rem;
     box-shadow: 0 8px 22px var(--shadow-color);
@@ -150,7 +150,7 @@
     z-index: 1000;
     overflow-y: auto;
     transform: translateX(-100%);
-    border-right: 1px solid color-mix(in srgb, var(--border-color) 24%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--border-color) 24%, var(--ctp-transparent));
   }
 
   .post-toc.toc-visible {

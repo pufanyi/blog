@@ -27,10 +27,10 @@
   position: relative;
   background: linear-gradient(
     to right,
-    transparent,
-    color-mix(in srgb, var(--border-color) 50%, transparent) 20%,
-    color-mix(in srgb, var(--border-color) 50%, transparent) 80%,
-    transparent
+    var(--ctp-transparent),
+    color-mix(in srgb, var(--border-color) 50%, var(--ctp-transparent)) 20%,
+    color-mix(in srgb, var(--border-color) 50%, var(--ctp-transparent)) 80%,
+    var(--ctp-transparent)
   );
   overflow: visible;
 }
@@ -44,7 +44,7 @@
   background: var(--paper-bg);
   padding: 0 0.6rem;
   font-size: 0.7rem;
-  color: color-mix(in srgb, var(--border-color) 55%, transparent);
+  color: color-mix(in srgb, var(--border-color) 55%, var(--ctp-transparent));
   line-height: 1;
   letter-spacing: 0.3em;
 }

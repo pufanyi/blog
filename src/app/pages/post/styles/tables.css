@@ -9,11 +9,11 @@
 }
 
 .post-body .table-wrapper::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--ctp-transparent);
 }
 
 .post-body .table-wrapper::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--border-color) 25%, transparent);
+  background: color-mix(in srgb, var(--border-color) 25%, var(--ctp-transparent));
   border-radius: 3px;
 }
 
@@ -38,7 +38,7 @@
 }
 
 .post-body tbody tr {
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 15%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 15%, var(--ctp-transparent));
 }
 
 .post-body tbody tr:last-child {
