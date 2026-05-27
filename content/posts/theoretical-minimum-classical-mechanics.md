@@ -150,12 +150,12 @@ $$
 Generalized momentum conjugate / Conjugate momentum:
 
 $$
-p = \frac{\partial \mathcal{L}}{\partial \dot{q}}
+p_i = \frac{\partial \mathcal{L}}{\partial \dot{q_i}}
 $$
 
-其中 $q$ 可以是任意坐标系统
+其中 $q_i$ 可以是任意坐标系统。这里我们通常把 $x$ 当成普通的笛卡尔坐标，然后 $q_i$ 当成是任意坐标。
 
-这边他似乎没说明白为啥定义是 $\frac{\partial \mathcal{L}}{\partial{\dot{q}}}$ 而不是 $\frac{\partial{T}}{\partial{\dot{q}}}$。看了 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 大概明白了，他其实很长一段时间没提 Lagrangian，只是说物理规律可以被编码于一个标量
+这边他似乎没说明白为啥定义是 $\frac{\partial \mathcal{L}}{\partial{\dot{q_i}}}$ 而不是 $\frac{\partial{T}}{\partial{\dot{q_i}}}$。看了 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 大概明白了，他其实很长一段时间没提 Lagrangian，只是说物理规律可以被编码于一个标量
 
 $$
 \mathcal{A} = \int \mathcal{L}\mathrm{d}t
@@ -170,3 +170,17 @@ $$
 引用一下他的这段话：
 
 > I would like to emphasize that in the general case, for instance in the relativistic formula, the action integrand no longer has the form of the kinetic energy minus the potential energy. That’s only true in the nonrelativistic approximation. For example, the term $m_0c^2\sqrt{1-\frac{v^2}{c^2}}$ is not what we have called the kinetic energy. The question of what the action should be for any particular case must be determined by some kind of trial and error. It is just the same problem as determining what are the laws of motion in the first place. You just have to fiddle around with the equations that you know and see if you can get them into the form of the principle of least action.
+
+有时候 $q_i$ 不出现在 $\mathcal{L}$ 中，只有 $\dot{q_i}$，我们就说 $q_i$ 是 cyclic coordinates。也就是说
+
+$$
+\frac{\partial \mathcal{L}}{\partial q_i} = 0
+$$
+
+这时候
+
+$$
+\dot{p_i} = \frac{\mathrm{d}}{\mathrm{d}t}\left(\frac{\partial \mathcal{L}}{\partial\dot{q}_i}\right)=\frac{\partial \mathcal{L}}{\partial q_i} = 0
+$$
+
+也就是说 $p_i$ 一直不变。
