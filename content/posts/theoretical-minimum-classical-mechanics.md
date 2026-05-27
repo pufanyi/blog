@@ -24,7 +24,7 @@ $$
 \frac{\mathrm{d}}{\mathrm{d}t}\frac{\partial \mathcal{L}}{\partial \dot{x}} - \frac{\partial \mathcal{L}}{\partial x}=0
 $$
 
-具体证明的话，*The Theoretical Minimum* 和 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 里的证明不太一样。TM 是把 $\mathcal{L}$ 看成 $t$ 上的黎曼和，然后对每一小段进行求导。FL 那本书的证明挺标准化的，我们不如再标准化一点，去复习一下 Bishop 那本 [Deep Learning](https://www.bishopbook.com/) 里的证明。
+具体证明的话，*The Theoretical Minimum* 和 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 里的证明不太一样。TM 是把 $\mathcal{L}$ 看成 $t$ 上的黎曼和，然后对每一小段进行求导。FL 那本书的证明挺标准化的，我们不如再标准化一点，去复习一下 Bishop 那本 [*Deep Learning*](https://www.bishopbook.com/) 里的证明。
 
 <details>
 <summary>The Theoretical Minimum 的证明</summary>
@@ -155,7 +155,7 @@ $$
 
 其中 $q$ 可以是任意坐标系统
 
-这边他似乎没说明白为啥定义是 $\frac{\partial \mathcal{L}}{\partial{\dot{q}}}$ 而不是 $\frac{\partial{T}}{\partial{\dot{q}}}$。看了 [The Feynman Lectures on Physics](https://www.feynmanlectures.caltech.edu/II_19.html) 大概明白了，他其实很长一段时间没提 Lagrangian，只是说物理规律可以被编码于一个标量
+这边他似乎没说明白为啥定义是 $\frac{\partial \mathcal{L}}{\partial{\dot{q}}}$ 而不是 $\frac{\partial{T}}{\partial{\dot{q}}}$。看了 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 大概明白了，他其实很长一段时间没提 Lagrangian，只是说物理规律可以被编码于一个标量
 
 $$
 \mathcal{A} = \int \mathcal{L}\mathrm{d}t
