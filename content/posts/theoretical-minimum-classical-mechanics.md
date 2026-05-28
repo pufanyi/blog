@@ -207,3 +207,5 @@ $$
 $$
 
 这时候我们就说 $x_{+}$ 是 cyclic coordinate，而 $p_{+}=2m\dot{x}_{+}=m\dot{x}_1+m\dot{x}_2$ 是不变的。
+
+## Symmetries and Conservation Laws
