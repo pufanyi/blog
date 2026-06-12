@@ -86,7 +86,7 @@ $$
 <details>
 <summary>Bishop Deep Learning 的证明</summary>
 
-Bishop 书里详细定义了 $\delta F$，对于 funcional $F(y(x))$，我们定义 $\frac{\delta F}{\delta y(x)}$：
+Bishop 书里详细定义了 $\delta F$，对于 functional $F(y(x))$，我们定义 $\frac{\delta F}{\delta y(x)}$：
 
 $$
 F(y(x)+\epsilon \eta(x))=F(y(x))+\epsilon\int_l^r\frac{\delta F}{\delta y(x)}\eta(x)\mathrm{d}x+\mathcal{O}(\epsilon^2)
@@ -111,12 +111,12 @@ F(y(x) + \epsilon \eta(x))
 \end{aligned}
 $$
 
-我们之后想让 $\frac{\delta F}{\delta y(x)}=0$ 然后去解，所以我们希望把 $\eta(x)$ 消掉，我们考虑对 $\frac{\partial G}{\partial y'}\eta'$ 做分步积分：
+我们之后想让 $\frac{\delta F}{\delta y(x)}=0$ 然后去解，所以我们希望把 $\eta(x)$ 消掉，我们考虑对 $\frac{\partial G}{\partial y'}\eta'$ 做分部积分：
 
 $$
 \int_l^r\frac{\partial G}{\partial y'}\eta'(x)\mathrm{d}x
 =\int_l^r\frac{\partial G}{\partial y'}\mathrm{d}\eta
-=\left.\left(\eta\frac{\partial G}{\partial y'}\right)\right|_l^r-\int_l^r\frac{\mathrm{d}}{\mathrm{d}x}\left(\frac{\partial G}{\partial y'}\right)
+=\left.\left(\eta\frac{\partial G}{\partial y'}\right)\right|_l^r-\int_l^r\eta(x)\frac{\mathrm{d}}{\mathrm{d}x}\left(\frac{\partial G}{\partial y'}\right)\mathrm{d}x
 $$
 
 考虑到 $\eta(l)=\eta(r)=0$，我们有
@@ -150,12 +150,12 @@ $$
 Generalized momentum conjugate / Conjugate momentum:
 
 $$
-p_i = \frac{\partial \mathcal{L}}{\partial \dot{q_i}}
+p_i = \frac{\partial \mathcal{L}}{\partial \dot{q}_i}
 $$
 
 其中 $q_i$ 可以是任意坐标系统。这里我们通常把 $x$ 当成普通的笛卡尔坐标，然后 $q_i$ 当成是任意坐标。
 
-这边他似乎没说明白为啥定义是 $\frac{\partial \mathcal{L}}{\partial{\dot{q_i}}}$ 而不是 $\frac{\partial{T}}{\partial{\dot{q_i}}}$。看了 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 大概明白了，他其实很长一段时间没提 Lagrangian，只是说物理规律可以被编码于一个标量
+这边他似乎没说明白为啥定义是 $\frac{\partial \mathcal{L}}{\partial{\dot{q}_i}}$ 而不是 $\frac{\partial{T}}{\partial{\dot{q}_i}}$。看了 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 大概明白了，他其实很长一段时间没提 Lagrangian，只是说物理规律可以被编码于一个标量
 
 $$
 \mathcal{A} = \int \mathcal{L}\mathrm{d}t
@@ -171,7 +171,7 @@ $$
 
 > I would like to emphasize that in the general case, for instance in the relativistic formula, the action integrand no longer has the form of the kinetic energy minus the potential energy. That’s only true in the nonrelativistic approximation. For example, the term $m_0c^2\sqrt{1-\frac{v^2}{c^2}}$ is not what we have called the kinetic energy. The question of what the action should be for any particular case must be determined by some kind of trial and error. It is just the same problem as determining what are the laws of motion in the first place. You just have to fiddle around with the equations that you know and see if you can get them into the form of the principle of least action.
 
-有时候 $q_i$ 不出现在 $\mathcal{L}$ 中，只有 $\dot{q_i}$，我们就说 $q_i$ 是 cyclic coordinates。也就是说
+有时候 $q_i$ 不出现在 $\mathcal{L}$ 中，只有 $\dot{q}_i$，我们就说 $q_i$ 是 cyclic coordinate。也就是说
 
 $$
 \frac{\partial \mathcal{L}}{\partial q_i} = 0
@@ -180,12 +180,12 @@ $$
 这时候
 
 $$
-\dot{p_i} = \frac{\mathrm{d}}{\mathrm{d}t}\left(\frac{\partial \mathcal{L}}{\partial\dot{q}_i}\right)=\frac{\partial \mathcal{L}}{\partial q_i} = 0
+\dot{p}_i = \frac{\mathrm{d}}{\mathrm{d}t}\left(\frac{\partial \mathcal{L}}{\partial\dot{q}_i}\right)=\frac{\partial \mathcal{L}}{\partial q_i} = 0
 $$
 
 也就是说 $p_i$ 一直不变。
 
-举个粒子，比如说一维坐标下有两个粒子在 $x_1, x_2$，我们有：
+举个例子，比如说一维坐标下有两个粒子在 $x_1, x_2$，我们有：
 
 $$
 \mathcal{L} = \frac{m}{2}\left(\dot{x}_1^2+\dot{x}_2^2\right)-V(x_1-x_2)
@@ -210,7 +210,7 @@ $$
 
 ## Symmetries and Conservation Laws
 
-对称性大概的意思是指，做了某个变换之后，做了某个变换之后，系统的某个重要的东西没变。
+对称性大概的意思是指，做了某个变换之后，系统的某个重要的东西没变。
 
 关于变换，有时候我们可以做 infinitesimal steps，比如把 $x$ 移动到 $x+\delta$。这时候我们说这个 transformation 是 continuous 的。后续为了方便，我们记变换
 
