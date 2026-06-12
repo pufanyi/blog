@@ -212,6 +212,20 @@ $$
 
 对称性大概的意思是指，做了某个变换之后，做了某个变换之后，系统的某个重要的东西没变。
 
+关于变换，有时候我们可以做 infinitesimal steps，比如把 $x$ 移动到 $x+\delta$。这时候我们说这个 transformation 是 continuous 的。后续为了方便，我们记变换
+
+$$
+\delta q_i = f_i(q)\delta
+$$
+
+其实 $f_i$ 就类似于变换的导数嘛。比如对于平移变换，就是 $\delta q_i = \delta$。
+
+那么
+
+$$
+\delta\dot{q}_i = \frac{\mathrm{d}}{\mathrm{d}t}(\delta q_i)
+$$
+
 ---
 
 ## 草稿
