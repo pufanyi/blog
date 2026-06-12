@@ -288,4 +288,18 @@ $$
 \mathcal{Q} = \sum_i p_i f_i(q) = p_r \cdot 0 +p_\theta\cdot 1 = p_\theta
 $$
 
+守恒。
+
+对于普通二维平面内的粒子
+
+$$
+\mathcal{L} = \frac{1}{2}m\left(\dot{r}^2+r^2\dot{\theta}^2\right)-V(r)
+$$
+
+所以
+
+$$
+p_\theta = \frac{\partial \mathcal{L}}{\partial \dot{\theta}} = mr^2\dot{\theta}
+$$
+
 也就是角动量守恒。
