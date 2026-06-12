@@ -221,5 +221,17 @@ $$
 所以
 
 $$
-\delta\mathcal{L} = \sum_{i}\left(p_i\delta\dot{q}_i+\dot{p}_i\delta q_i\right) = \sum_{i}\frac{\mathrm{d}}{\mathrm{d}t}\left(p_i\delta q_i\right)
+\delta\mathcal{L} = \sum_{i}\left(p_i\delta\dot{q}_i+\dot{p}_i\delta q_i\right) = \sum_{i}\frac{\mathrm{d}}{\mathrm{d}t}\left(p_i\delta q_i\right) = \frac{\mathrm{d}}{\mathrm{d}t}\sum_i p_i\delta q_i
+$$
+
+$$
+\delta q_i = f_i(q)\delta
+$$
+
+$$
+\frac{\mathrm{d}}{\mathrm{d}t}\sum_i p_i f_i(q) = 0
+$$
+
+$$
+\mathcal{Q} = \sum_i p_i f_i(q)
 $$
