@@ -303,3 +303,5 @@ p_\theta = \frac{\partial \mathcal{L}}{\partial \dot{\theta}} = mr^2\dot{\theta}
 $$
 
 所以其实就是角动量守恒。
+
+## Hamiltonian Mechanics and Time-Translation Invariance
