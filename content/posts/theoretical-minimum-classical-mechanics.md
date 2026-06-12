@@ -209,3 +209,17 @@ $$
 这时候我们就说 $x_{+}$ 是 cyclic coordinate，而 $p_{+}=2m\dot{x}_{+}=m\dot{x}_1+m\dot{x}_2$ 是不变的。
 
 ## Symmetries and Conservation Laws
+
+对称性大概的意思是指，做了某个变换之后，做了某个变换之后，系统的某个重要的东西没变。
+
+$$
+\delta \mathcal{L} = \sum_{i}\left(\frac{\partial \mathcal{L}}{\partial\dot{q}_i}\delta\dot{q}_i+\frac{\partial\mathcal{L}}{\partial q_i}\delta q_i\right)
+$$
+
+考虑到 $\frac{\partial \mathcal{L}}{\partial \dot{q}_i}=p_i, \frac{\partial\mathcal{L}}{\partial q_i} = \dot{p}_i$
+
+所以
+
+$$
+\delta\mathcal{L} = \sum_{i}\left(p_i\delta\dot{q}_i+\dot{p}_i\delta q_i\right) = \sum_{i}\frac{\mathrm{d}}{\mathrm{d}t}\left(p_i\delta q_i\right)
+$$
