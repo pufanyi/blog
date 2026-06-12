@@ -223,14 +223,12 @@ $$
 那么
 
 $$
-\delta\dot{q}_i = \frac{\mathrm{d}}{\mathrm{d}t}(\delta q_i)
+\delta\dot{q}_i
+=\frac{\mathrm{d}}{\mathrm{d}t}(q_i+\delta q_i) - \frac{\mathrm{d}}{\mathrm{d}t}q_i
+= \frac{\mathrm{d}}{\mathrm{d}t}(\delta q_i)
 $$
 
----
-
-## 草稿
-
-无穷小变换 $\delta$
+我们讨论 $\mathcal{L}$ 与时间无关的情况，也就是 $\mathcal{L}(q, \dot{q})$，这时候我们考虑
 
 $$
 \delta \mathcal{L} = \sum_{i}\left(\frac{\partial \mathcal{L}}{\partial\dot{q}_i}\delta\dot{q}_i+\frac{\partial\mathcal{L}}{\partial q_i}\delta q_i\right)
@@ -244,16 +242,16 @@ $$
 \delta\mathcal{L} = \sum_{i}\left(p_i\delta\dot{q}_i+\dot{p}_i\delta q_i\right) = \sum_{i}\frac{\mathrm{d}}{\mathrm{d}t}\left(p_i\delta q_i\right) = \frac{\mathrm{d}}{\mathrm{d}t}\sum_i p_i\delta q_i
 $$
 
-我们假设
-
-$$
-\delta q_i = f_i(q)\delta
-$$
+如果 $\mathcal{L}$ 守恒，也就是 $\delta \mathcal{L}=0$，那么
 
 $$
 \frac{\mathrm{d}}{\mathrm{d}t}\sum_i p_i f_i(q) = 0
 $$
 
+也就是
+
 $$
 \mathcal{Q} = \sum_i p_i f_i(q)
 $$
+
+守恒。
