@@ -302,4 +302,4 @@ $$
 p_\theta = \frac{\partial \mathcal{L}}{\partial \dot{\theta}} = mr^2\dot{\theta}
 $$
 
-也就是角动量守恒。
+所以其实就是角动量守恒。
