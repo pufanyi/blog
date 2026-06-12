@@ -212,6 +212,12 @@ $$
 
 对称性大概的意思是指，做了某个变换之后，做了某个变换之后，系统的某个重要的东西没变。
 
+---
+
+## 草稿
+
+无穷小变换 $\delta$
+
 $$
 \delta \mathcal{L} = \sum_{i}\left(\frac{\partial \mathcal{L}}{\partial\dot{q}_i}\delta\dot{q}_i+\frac{\partial\mathcal{L}}{\partial q_i}\delta q_i\right)
 $$
@@ -223,6 +229,8 @@ $$
 $$
 \delta\mathcal{L} = \sum_{i}\left(p_i\delta\dot{q}_i+\dot{p}_i\delta q_i\right) = \sum_{i}\frac{\mathrm{d}}{\mathrm{d}t}\left(p_i\delta q_i\right) = \frac{\mathrm{d}}{\mathrm{d}t}\sum_i p_i\delta q_i
 $$
+
+我们假设
 
 $$
 \delta q_i = f_i(q)\delta
