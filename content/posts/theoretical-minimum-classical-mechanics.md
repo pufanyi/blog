@@ -242,7 +242,7 @@ $$
 \delta\mathcal{L} = \sum_{i}\left(p_i\delta\dot{q}_i+\dot{p}_i\delta q_i\right) = \sum_{i}\frac{\mathrm{d}}{\mathrm{d}t}\left(p_i\delta q_i\right) = \frac{\mathrm{d}}{\mathrm{d}t}\sum_i p_i\delta q_i
 $$
 
-如果 $\mathcal{L}$ 守恒，也就是 $\delta \mathcal{L}=0$，那么
+如果变换关于 $\mathcal{L}$ 对称，也就是 $\delta \mathcal{L}=0$，那么
 
 $$
 \frac{\mathrm{d}}{\mathrm{d}t}\sum_i p_i f_i(q) = 0
@@ -255,3 +255,37 @@ $$
 $$
 
 守恒。
+
+如果坐标是普通的平面，这时候 $\delta q_i=\delta$ 也就是 $f_i = 1$，那么
+
+$$
+\mathcal{Q} = \sum_{i} p_i
+$$
+
+其实就是动量守恒。
+
+如果是极坐标 $(r, \theta)$，我们有对于旋转变换
+
+$$
+\begin{cases}
+\delta r = 0\\
+\delta \theta = \delta
+\end{cases}
+$$
+
+也就是
+
+$$
+\begin{cases}
+f_r = 0\\
+f_\theta = 1
+\end{cases}
+$$
+
+那么
+
+$$
+\mathcal{Q} = \sum_i p_i f_i(q) = p_r \cdot 0 +p_\theta\cdot 1 = p_\theta
+$$
+
+也就是角动量守恒。
