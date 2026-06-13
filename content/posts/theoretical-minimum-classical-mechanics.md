@@ -1,6 +1,6 @@
 ## The Principle of Least Action
 
-在 Lagrangian mechanics 中，我们尝试用一个函数 $L(q,
+在 Lagrangian mechanics 中，我们尝试用一个函数 $\mathcal{L}(q,
 \dot{q},t)$ 来描述系统的动力学。这个函数我们叫 Lagrangian。对于很多非相对论、保守力系统，并且势能不依赖速度时，常见的 Lagrangian 是
 
 $$
@@ -31,10 +31,10 @@ Lagrangian 不是唯一的。给 Lagrangian 加一个 total time derivative $\fr
 
 $$
 \begin{aligned}
-\mathcal{A}' &= \int_{t_0}^{t_1} L'\mathrm{d}t\\
-&= \int_{t_0}^{t_1}\left(L+\frac{\mathrm{d}}{\mathrm{d}t}F(x, t)\right)\mathrm{d}t\\
+\mathcal{A}' &= \int_{t_0}^{t_1} \mathcal{L}'\mathrm{d}t\\
+&= \int_{t_0}^{t_1}\left(\mathcal{L}+\frac{\mathrm{d}}{\mathrm{d}t}F(x, t)\right)\mathrm{d}t\\
 &= \int_{t_0}^{t_1}\mathcal{L}\mathrm{d}t+F(x_1, t_1) - F(x_0, t_0)\\
-&=A+F(x_1, t_1) - F(x_0, t_0)
+&=\mathcal{A}+F(x_1, t_1) - F(x_0, t_0)
 \end{aligned}
 $$
 
