@@ -32,6 +32,8 @@ Project guidance for agents working in this repository.
   referenced from Markdown with relative image paths. The generator rewrites
   those paths to `/posts/<slug>/...`, and Angular copies non-Markdown files
   from `content/posts` into the published `/posts` asset path.
+- When adding or touching image assets, manually convert any non-AVIF images to
+  AVIF and reference the converted files instead.
 - The `prebuild`, `prestart`, and `pretest` hooks run `pnpm generate:data`, so
   post metadata and generated content are refreshed before `pnpm build`,
   `pnpm start`, or `pnpm test`.

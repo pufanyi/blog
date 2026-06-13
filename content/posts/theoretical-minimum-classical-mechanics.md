@@ -1,6 +1,37 @@
 ## The Principle of Least Action
 
-![](theoretical-minimum-classical-mechanics/pla.png)
+<figure class="section-summary section-summary-action">
+  <div class="section-summary-art" aria-hidden="true">
+    <svg viewBox="0 0 960 360" role="img">
+      <rect class="visual-frame" x="28" y="28" width="904" height="304" rx="18" />
+      <g class="visual-grid">
+        <path d="M92 260H850" />
+        <path d="M116 78V280" />
+        <path d="M116 112H850" />
+        <path d="M116 180H850" />
+      </g>
+      <g class="visual-paths">
+        <path class="visual-line visual-muted" d="M120 238 C240 100 350 242 470 152 S690 86 842 174" />
+        <path class="visual-line visual-muted" d="M120 236 C262 198 346 80 498 184 S704 266 842 122" />
+        <path class="visual-line visual-accent" d="M120 236 C248 190 350 146 476 160 S704 166 842 126" />
+      </g>
+      <g class="visual-points">
+        <circle cx="120" cy="236" r="8" />
+        <circle cx="842" cy="126" r="8" />
+      </g>
+      <g class="visual-callout">
+        <rect x="536" y="62" width="286" height="94" rx="14" />
+        <text x="562" y="103">A[x(t)] = integral L dt</text>
+        <text x="562" y="130">stationary path: delta A = 0</text>
+      </g>
+      <text class="visual-label" x="94" y="72">all possible trajectories</text>
+      <text class="visual-title" x="94" y="312">Least action picks a path by optimizing the whole trajectory.</text>
+    </svg>
+  </div>
+  <figcaption>
+    Treat action as a score for an entire path: fix the endpoints, vary the path, and solve the stationary condition.
+  </figcaption>
+</figure>
 
 在 Lagrangian mechanics 中，我们尝试用一个函数 $\mathcal{L}(q, \dot{q}, t)$ 来描述系统的动力学。这个函数我们叫 Lagrangian。对于很多非相对论、保守力系统，并且势能不依赖速度时，常见的 Lagrangian 是
 
@@ -213,6 +244,41 @@ $$
 
 ## Symmetries and Conservation Laws
 
+<figure class="section-summary section-summary-symmetry">
+  <div class="section-summary-art" aria-hidden="true">
+    <svg viewBox="0 0 960 360" role="img">
+      <rect class="visual-frame" x="28" y="28" width="904" height="304" rx="18" />
+      <g class="visual-panel-group">
+        <rect class="visual-panel" x="92" y="84" width="230" height="172" rx="16" />
+        <rect class="visual-panel" x="638" y="84" width="230" height="172" rx="16" />
+      </g>
+      <g class="visual-orbit">
+        <circle cx="207" cy="170" r="48" />
+        <circle cx="753" cy="170" r="48" />
+        <circle class="visual-dot" cx="255" cy="170" r="8" />
+        <circle class="visual-dot" cx="787" cy="136" r="8" />
+        <path class="visual-line visual-accent" d="M753 170 L787 136" />
+      </g>
+      <path class="visual-arrow" d="M372 170H588" />
+      <path class="visual-arrow-head" d="M588 170l-18-12v24z" />
+      <g class="visual-callout">
+        <rect x="360" y="72" width="240" height="72" rx="14" />
+        <text x="386" y="116">delta q_i = f_i(q) delta</text>
+      </g>
+      <g class="visual-conserved">
+        <rect x="282" y="246" width="396" height="58" rx="14" />
+        <text x="372" y="283">Q = sum p_i f_i(q)</text>
+        <path d="M314 270v-10a18 18 0 0 1 36 0v10" />
+        <rect x="306" y="270" width="52" height="34" rx="8" />
+      </g>
+      <text class="visual-label" x="94" y="72">same physics after a continuous transformation</text>
+    </svg>
+  </div>
+  <figcaption>
+    A continuous symmetry turns an allowed motion into an equivalent one; the corresponding Noether quantity stays fixed.
+  </figcaption>
+</figure>
+
 对称性大概的意思是指，做了某个变换之后，系统的某个重要的东西没变。
 
 关于变换，有时候我们可以做 infinitesimal steps，比如把 $x$ 移动到 $x+\delta$。这时候我们说这个 transformation 是 continuous 的。后续为了方便，我们记变换
@@ -314,6 +380,42 @@ $$
 所以其实就是角动量守恒。
 
 ## Hamiltonian Mechanics and Time-Translation Invariance
+
+<figure class="section-summary section-summary-hamiltonian">
+  <div class="section-summary-art" aria-hidden="true">
+    <svg viewBox="0 0 960 360" role="img">
+      <rect class="visual-frame" x="28" y="28" width="904" height="304" rx="18" />
+      <g class="visual-timeline">
+        <path class="visual-line visual-muted" d="M126 260H824" />
+        <path d="M176 245v30M318 245v30M460 245v30M602 245v30M744 245v30" />
+        <text x="151" y="304">t</text>
+        <text x="718" y="304">t + delta</text>
+      </g>
+      <g class="visual-clock">
+        <circle cx="218" cy="138" r="58" />
+        <path class="visual-line visual-accent" d="M218 138V102M218 138l34 22" />
+        <path class="visual-arrow" d="M298 138h168" />
+        <path class="visual-arrow-head" d="M466 138l-18-12v24z" />
+      </g>
+      <g class="visual-callout">
+        <rect x="514" y="78" width="270" height="126" rx="16" />
+        <text x="544" y="120">H = sum p_i qdot_i - L</text>
+        <text x="544" y="154">if partial L / partial t = 0</text>
+        <text x="544" y="182">then H is conserved</text>
+      </g>
+      <g class="visual-energy">
+        <rect class="visual-panel" x="328" y="226" width="304" height="52" rx="12" />
+        <rect class="visual-accent-fill" x="328" y="226" width="148" height="52" rx="12" />
+        <text x="382" y="259">T</text>
+        <text x="544" y="259">V</text>
+      </g>
+      <text class="visual-label" x="94" y="72">time-translation invariance</text>
+    </svg>
+  </div>
+  <figcaption>
+    When the Lagrangian has no explicit time dependence, the Legendre-transformed quantity is conserved; in Newtonian mechanics it becomes energy.
+  </figcaption>
+</figure>
 
 我们现在来看看在时间上变换会是什么样的结果：
 
