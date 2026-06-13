@@ -1,6 +1,6 @@
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import yaml from 'js-yaml';
-import { marked } from 'marked';
+import { Marked } from 'marked';
 import { basename, join } from 'path';
 import { createHighlighter } from 'shiki';
 import { createCodeRenderer } from './lib/code-renderer.mjs';
@@ -10,11 +10,13 @@ import { tableRenderer } from './lib/table-renderer.mjs';
 const ROOT = new URL('..', import.meta.url).pathname;
 const CONFIG_DIR = join(ROOT, 'content/config');
 const POSTS_DIR = join(ROOT, 'content/posts');
-const OUTPUT = join(ROOT, 'src/app/data/posts.ts');
+const DATA_DIR = join(ROOT, 'src/app/data');
+const OUTPUT = join(DATA_DIR, 'posts.ts');
 const REDIRECTS_INPUT = join(ROOT, 'content/redirects.yaml');
-const REDIRECTS_OUTPUT = join(ROOT, 'src/app/data/redirects.ts');
+const REDIRECTS_OUTPUT = join(DATA_DIR, 'redirects.ts');
 const CV_INPUT = join(ROOT, 'content/cv.yaml');
-const CV_OUTPUT = join(ROOT, 'src/app/data/cv.ts');
+const CV_OUTPUT = join(DATA_DIR, 'cv.ts');
+const POST_ASSET_BASE = '/posts';
 
 // Collect languages used across all posts for Shiki
 function collectLangs(posts) {
@@ -27,7 +29,47 @@ function collectLangs(posts) {
   return [...langs];
 }
 
+function isRootedOrRemoteHref(href) {
+  return /^(?:[a-z][a-z\d+.-]*:|\/\/|#|\/)/i.test(href);
+}
+
+function normalizePostImageHref(href, slug) {
+  if (isRootedOrRemoteHref(href)) {
+    return href;
+  }
+
+  const localHref = href.replace(/^\.\//, '');
+  if (localHref.startsWith(`${slug}/`)) {
+    return `${POST_ASSET_BASE}/${localHref}`;
+  }
+
+  return `${POST_ASSET_BASE}/${slug}/${localHref}`;
+}
+
+function renderMarkdown(md, slug, highlighter) {
+  // Custom image renderer: publishes post-local assets from content/posts/<slug>.
+  const imageRenderer = (token) => {
+    const src = normalizePostImageHref(token.href, slug);
+    const alt = token.text || '';
+    const title = token.title ? ` title="${token.title}"` : '';
+    return `<img src="${src}" alt="${alt}"${title} loading="lazy" decoding="async">`;
+  };
+
+  const renderer = new Marked({
+    extensions: [mathBlock, mathInline],
+    renderer: {
+      code: createCodeRenderer(highlighter),
+      table: tableRenderer,
+      image: imageRenderer,
+    },
+  });
+
+  return renderer.parse(md, { async: false });
+}
+
 async function main() {
+  mkdirSync(DATA_DIR, { recursive: true });
+
   const configFiles = readdirSync(CONFIG_DIR)
     .filter((f) => f.endsWith('.json'))
     .sort();
@@ -46,26 +88,8 @@ async function main() {
     langs: langs.length ? langs : ['text'],
   });
 
-  // Custom image renderer: adds loading="lazy" and decoding="async"
-  const imageRenderer = (token) => {
-    const src = token.href;
-    const alt = token.text || '';
-    const title = token.title ? ` title="${token.title}"` : '';
-    return `<img src="${src}" alt="${alt}"${title} loading="lazy" decoding="async">`;
-  };
-
-  // Configure marked with math extensions + Shiki code renderer + table renderer
-  marked.use({
-    extensions: [mathBlock, mathInline],
-    renderer: {
-      code: createCodeRenderer(highlighter),
-      table: tableRenderer,
-      image: imageRenderer,
-    },
-  });
-
   const posts = rawPosts.map(({ slug, meta, md }) => {
-    const contentHtml = marked.parse(md, { async: false });
+    const contentHtml = renderMarkdown(md, slug, highlighter);
     return { slug, ...meta, contentHtml };
   });
 

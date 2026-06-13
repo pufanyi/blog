@@ -23,6 +23,14 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "content/posts",
+                "output": "posts",
+                "ignore": [
+                  "**/*.md"
+                ]
               }
             ],
             "styles": [

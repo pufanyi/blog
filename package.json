@@ -3,11 +3,13 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "prebuild": "node scripts/build-posts.mjs",
-    "prestart": "node scripts/build-posts.mjs",
+    "generate:data": "node scripts/build-posts.mjs",
+    "prebuild": "pnpm generate:data",
+    "prestart": "pnpm generate:data",
+    "pretest": "pnpm generate:data",
     "start": "ng serve",
     "build": "ng build",
-    "watch": "node scripts/build-posts.mjs && ng build --watch --configuration development",
+    "watch": "pnpm generate:data && ng build --watch --configuration development",
     "test": "ng test",
     "biome:check": "biome check .",
     "biome:write": "biome check --write ."
