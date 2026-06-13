@@ -1,6 +1,7 @@
 ## The Principle of Least Action
 
-任何一个系统的运动过程可以用一个函数 $\mathcal{L}(x, \dot{x}, t)$ 来描述，我们叫 Lagrangian。在牛顿力学中，如果 $T$ 为动能，$V$ 为势能，Lagrangian
+在 Lagrangian mechanics 中，我们尝试用一个函数 $L(q,
+\dot{q},t)$ 来描述系统的动力学。这个函数我们叫 Lagrangian。在牛顿力学中，如果 $T$ 为动能，$V$ 为势能，Lagrangian
 
 $$
 \mathcal{L}(x, \dot{x}, t) = T - V
@@ -14,9 +15,9 @@ $$
 \mathcal{A} = \int_{t_0}^{t_1}\mathcal{L}(x, \dot{x}, t)\mathrm{d}t
 $$
 
-The Principle of Least Action 讲的是，物体的运动轨迹一定满足 $\delta\mathcal{A}=0$。所以这里的 Least Action 其实不是 least，是 stationary。
+The Principle of Least Action 讲的是，物体运动轨迹的真实路径是在起点和终点固定的所有可能路径中，使 action stationary 的路径，也就是 $\delta\mathcal{A}=0$。所以这里的 Least Action 其实不是 least，是 stationary。
 
-需要注意的是，因为 *The Theoretical Minimum* 的讲述顺序，很容易把 $\mathcal{L}=T-V$ 刻在脑子里。但事实上 $\mathcal{L}$ 可以是任意一个函数。这里觉得 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 里头讲的更清楚一点，他里面举的例子是带电粒子在电磁场中的运动：
+需要注意的是，因为 *The Theoretical Minimum* 的讲述顺序，很容易把 $\mathcal{L}=T-V$ 刻在脑子里。但事实上 $\mathcal{L}$ 不一定是 $T-V$，只要它能够给出正确的运动方程，就可以作为这个系统的 Lagrangian。这里觉得 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 里头讲的更清楚一点，他里面举的例子是带电粒子在电磁场中的运动：
 
 $$
 \mathcal{L} = -m_0 c^2 \sqrt{1 - v^2/c^2} - q(\phi - \boldsymbol{v} \cdot \boldsymbol{A}).
@@ -24,9 +25,22 @@ $$
 
 引用一下他的这段话：
 
-> I would like to emphasize that in the general case, for instance in the relativistic formula, the action integrand no longer has the form of the kinetic energy minus the potential energy. That’s only true in the nonrelativistic approximation. For example, the term $m_0c^2\sqrt{1-\frac{v^2}{c^2}}$ is not what we have called the kinetic energy. The question of what the action should be for any particular case must be determined by some kind of trial and error. It is just the same problem as determining what are the laws of motion in the first place. You just have to fiddle around with the equations that you know and see if you can get them into the form of the principle of least action. -->
+> I would like to emphasize that in the general case, for instance in the relativistic formula, the action integrand no longer has the form of the kinetic energy minus the potential energy. That’s only true in the nonrelativistic approximation. For example, the term $m_0c^2\sqrt{1-\frac{v^2}{c^2}}$ is not what we have called the kinetic energy. The question of what the action should be for any particular case must be determined by some kind of trial and error. It is just the same problem as determining what are the laws of motion in the first place. You just have to fiddle around with the equations that you know and see if you can get them into the form of the principle of least action.
 
-根据 Euler-Lagrange equation，我们有
+Lagrangian 不是唯一的。给 Lagrangian 加一个 total time derivative $\frac{\mathrm{d}}{\mathrm{d}t}F(x, t)$ 不会影响结果，因为
+
+$$
+\begin{aligned}
+\mathcal{A}' &= \int_{t_0}^{t_1} L'\mathrm{d}t\\
+&= \int_{t_0}^{t_1}\left(L+\frac{\mathrm{d}}{\mathrm{d}t}F(x, t)\right)\mathrm{d}t\\
+&= \int_{t_0}^{t_1}\mathcal{L}\mathrm{d}t+F(x_1, t_1) - F(x_0, t_0)\\
+&=A+F(x_1, t_1) - F(x_0, t_0)
+\end{aligned}
+$$
+
+也就是 $\mathcal{A}$ 加了个常数。
+
+我们尝试解 $\delta\mathcal{A} = 0$。根据 Euler-Lagrange equation，我们有
 
 $$
 \frac{\mathrm{d}}{\mathrm{d}t}\frac{\partial \mathcal{L}}{\partial \dot{x}} - \frac{\partial \mathcal{L}}{\partial x}=0
@@ -119,7 +133,7 @@ F(y(x) + \epsilon \eta(x))
 \end{aligned}
 $$
 
-我们之后想让 $\frac{\delta F}{\delta y(x)}=0$ 然后去解，所以我们希望把 $\eta(x)$ 消掉，我们考虑对 $\frac{\partial G}{\partial y'}\eta'$ 做分部积分：
+我们之后想让 $\frac{\delta F}{\delta y(x)}=0$ 然后去解，所以我们希望把 $\eta'(x)$ 消掉，只留下 $\eta$。我们考虑对 $\frac{\partial G}{\partial y'}\eta'$ 做分部积分：
 
 $$
 \int_l^r\frac{\partial G}{\partial y'}\eta'(x)\mathrm{d}x
@@ -163,11 +177,7 @@ $$
 
 其中 $q_i$ 可以是任意坐标系统。这里我们通常把 $x$ 当成普通的笛卡尔坐标，然后 $q_i$ 当成是任意坐标。
 
-有时候 $q_i$ 不出现在 $\mathcal{L}$ 中，只有 $\dot{q}_i$，我们就说 $q_i$ 是 cyclic coordinate。也就是说
-
-$$
-\frac{\partial \mathcal{L}}{\partial q_i} = 0
-$$
+有时候 $q_i$ 不出现在 $\mathcal{L}$ 中，也就是 $\frac{\partial \mathcal{L}}{\partial q_i}=0$，我们就说 $q_i$ 是 cyclic coordinate。此时 $\mathcal{L}$ 可以依赖 $\dot{q}_i$，也可以依赖其他坐标和速度。
 
 这时候
 
@@ -220,13 +230,19 @@ $$
 = \frac{\mathrm{d}}{\mathrm{d}t}(\delta q_i)
 $$
 
-我们讨论 $\mathcal{L}$ 与时间无关的情况，也就是 $\mathcal{L}(q, \dot{q})$，这时候我们考虑
+我们考虑在空间上作变换，我们有：
+
+$$
+\delta \mathcal{L} = \sum_{i}\left(\frac{\partial \mathcal{L}}{\partial\dot{q}_i}\delta\dot{q}_i+\frac{\partial\mathcal{L}}{\partial q_i}\delta q_i\right)+\frac{\partial \mathcal{L}}{\partial t}\delta t
+$$
+
+因为是在空间上作变换，$\delta t = 0$，所以我们可以只看前面的项：
 
 $$
 \delta \mathcal{L} = \sum_{i}\left(\frac{\partial \mathcal{L}}{\partial\dot{q}_i}\delta\dot{q}_i+\frac{\partial\mathcal{L}}{\partial q_i}\delta q_i\right)
 $$
 
-考虑到 $\frac{\partial \mathcal{L}}{\partial \dot{q}_i}=p_i, \frac{\partial\mathcal{L}}{\partial q_i} = \dot{p}_i$
+考虑到在真实运动轨迹上，$\frac{\partial \mathcal{L}}{\partial \dot{q}_i}=p_i, \frac{\partial\mathcal{L}}{\partial q_i} = \dot{p}_i$
 
 所以
 
@@ -248,7 +264,7 @@ $$
 
 守恒。
 
-如果坐标是普通的平面，这时候 $\delta q_i=\delta$ 也就是 $f_i = 1$，那么
+如果坐标一维的，这时候 $\delta q_i=\delta$ 也就是 $f_i = 1$，那么
 
 $$
 \mathcal{Q} = \sum_{i} p_i
@@ -298,7 +314,7 @@ $$
 
 ## Hamiltonian Mechanics and Time-Translation Invariance
 
-我们之前考虑的是 $\mathcal{L}$ 关于时间不变的情况，通过一些对称性来得到某些量的守恒。我们现在引入 $t$，看看当 $\mathcal{L}$ 关于时间变换对称时，会发生什么：
+我们现在来看看在时间上变换会是什么样的结果：
 
 $$
 \begin{aligned}
