@@ -46,8 +46,9 @@ Project guidance for agents working in this repository.
   from `content/posts` into the published `/posts` asset path.
 - Add an AI summary image button beside a Markdown heading by appending
   `<ai-img>relative-image.avif</ai-img>` to that heading. The generator rewrites
-  the tag to an `AI Summary` button plus an initially hidden inline figure, and
-  normalizes relative paths the same way as post-local images.
+  the tag to an `AI Summary` button plus a hidden zoom source; clicking the
+  button should open the image directly with `medium-zoom`, not expand an inline
+  figure. Relative paths are normalized the same way as post-local images.
 - Prefer mature UI/image tooling already in the project for interactions. For
   example, AI summary figures use `medium-zoom` for image inspection instead of
   ad-hoc navigation or custom zoom overlays.

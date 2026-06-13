@@ -87,14 +87,52 @@ export function initAiSummaryFigures(container?: HTMLElement): () => void {
       return;
     }
 
-    const handleClick = () => {
-      const shouldOpen = button.getAttribute('aria-expanded') !== 'true';
-      button.setAttribute('aria-expanded', String(shouldOpen));
-      figure.hidden = !shouldOpen;
+    const resetFigure = () => {
+      button.setAttribute('aria-expanded', 'false');
+      figure.classList.remove('ai-summary-figure--zoom-source');
+      figure.hidden = true;
+    };
 
-      if (shouldOpen) {
-        figure.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const findImage = () => figure.querySelector<HTMLImageElement>('app-image-lightbox img, img');
+
+    const handleClick = () => {
+      if (button.getAttribute('aria-expanded') === 'true') {
+        return;
       }
+
+      const image = findImage();
+      if (!image) {
+        return;
+      }
+
+      button.setAttribute('aria-expanded', 'true');
+      figure.hidden = false;
+      figure.classList.add('ai-summary-figure--zoom-source');
+
+      const handleClosed = () => resetFigure();
+      image.addEventListener('medium-zoom:closed', handleClosed, { once: true });
+
+      window.requestAnimationFrame(() => {
+        const currentImage = findImage();
+        if (!currentImage) {
+          image.removeEventListener('medium-zoom:closed', handleClosed);
+          resetFigure();
+          return;
+        }
+
+        currentImage.dispatchEvent(new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        }));
+
+        window.setTimeout(() => {
+          if (!document.body.classList.contains('medium-zoom--opened')) {
+            currentImage.removeEventListener('medium-zoom:closed', handleClosed);
+            resetFigure();
+          }
+        }, 250);
+      });
     };
 
     button.dataset['aiSummaryBound'] = 'true';
@@ -102,6 +140,7 @@ export function initAiSummaryFigures(container?: HTMLElement): () => void {
     cleanups.push(() => {
       button.removeEventListener('click', handleClick);
       delete button.dataset['aiSummaryBound'];
+      resetFigure();
     });
   });
 

@@ -102,20 +102,42 @@ export class PostComponent implements OnDestroy {
       let cleanupAiSummaryFigures: (() => void) | null = null;
       let cleanupContentImageZoom: (() => void) | null = null;
       let cleanupContentImages: (() => void) | null = null;
-      const timer = window.setTimeout(() => {
-        const postBody = document.querySelector<HTMLElement>('.post-body');
-        void typesetMath(postBody ?? undefined);
-        initCodeCopyButtons();
-        optimizeContentImages();
-        cleanupAiSummaryFigures = initAiSummaryFigures(postBody ?? undefined);
-        cleanupContentImages = postBody ? this.hydrateContentImages(postBody) : null;
-        cleanupContentImageZoom = initContentImageZoom(postBody ?? undefined);
-        this.setupHeadingObserver();
-        this.giscus()?.load();
-      });
+      let setupTimer: number | null = null;
+      let isDisposed = false;
+
+      const runPostHooks = (attempt = 0) => {
+        setupTimer = window.setTimeout(() => {
+          setupTimer = null;
+          if (isDisposed) {
+            return;
+          }
+
+          const postBody = document.querySelector<HTMLElement>('.post-body');
+          if (!postBody || postBody.childElementCount === 0) {
+            if (attempt < 20) {
+              runPostHooks(attempt + 1);
+            }
+            return;
+          }
+
+          void typesetMath(postBody);
+          initCodeCopyButtons();
+          optimizeContentImages();
+          cleanupContentImages = this.hydrateContentImages(postBody);
+          cleanupAiSummaryFigures = initAiSummaryFigures(postBody);
+          cleanupContentImageZoom = initContentImageZoom(postBody);
+          this.setupHeadingObserver();
+          this.giscus()?.load();
+        }, attempt === 0 ? 0 : 25);
+      };
+
+      runPostHooks();
 
       onCleanup(() => {
-        window.clearTimeout(timer);
+        isDisposed = true;
+        if (setupTimer !== null) {
+          window.clearTimeout(setupTimer);
+        }
         cleanupAiSummaryFigures?.();
         cleanupContentImageZoom?.();
         cleanupContentImages?.();

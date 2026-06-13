@@ -149,6 +149,14 @@
   display: none;
 }
 
+.post-body .ai-summary-figure--zoom-source {
+  height: 0;
+  margin: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .post-body .ai-summary-image {
   cursor: zoom-in;
 }
