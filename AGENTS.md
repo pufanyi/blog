@@ -25,6 +25,11 @@ Project guidance for agents working in this repository.
 - Run formatting and lint checks with `pnpm biome:check`.
 - Apply automatic Biome fixes with `pnpm biome:write`.
 
+## Design
+
+- All color choices should follow the Catppuccin style and use existing
+  Catppuccin CSS variables when possible.
+
 ## Content
 
 - Blog posts live under `content/posts`.
