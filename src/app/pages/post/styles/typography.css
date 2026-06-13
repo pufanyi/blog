@@ -1,75 +1,41 @@
 .post-body {
-  max-width: 760px;
-  margin: 0 auto;
-  counter-reset: post-section;
-  text-align: left;
-  line-height: 1.78;
+  text-align: justify;
+  line-height: 1.7;
   hyphens: auto;
-  font-size: 1.02rem;
 }
 
 .post-body h2 {
-  counter-increment: post-section;
   font-family: var(--font-heading);
-  font-size: clamp(1.28rem, 1.15rem + 0.45vw, 1.56rem);
-  font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1.24;
-  margin: 3.2rem 0 1rem;
-  padding-bottom: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 2.5rem 0 1rem;
+  padding-bottom: 0.5rem;
   text-align: left;
   position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 0.72rem;
-}
-
-.post-body h2:first-child {
-  margin-top: 0;
-}
-
-.post-body h2::before {
-  content: counter(post-section, decimal-leading-zero);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 8px;
-  color: var(--on-accent);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--ctp-blue) 82%, var(--ctp-teal)),
-    color-mix(in srgb, var(--ctp-teal) 72%, var(--ctp-green))
-  );
-  font-size: 0.82rem;
-  font-weight: 700;
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--ctp-blue) 14%, var(--ctp-transparent));
 }
 
 .post-body h2::after {
   content: '';
-  height: 1px;
-  min-width: 2.4rem;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--border-color) 54%, var(--ctp-transparent)),
-    var(--ctp-transparent)
-  );
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: color-mix(in srgb, var(--border-color) 40%, var(--ctp-transparent));
 }
 
 .post-body h3 {
   font-family: var(--font-heading);
-  font-size: 1.12rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  letter-spacing: 0;
-  margin: 2rem 0 0.75rem;
+  letter-spacing: -0.01em;
+  margin: 1.75rem 0 0.75rem;
   text-align: left;
 }
 
 .post-body p {
-  margin: 1rem 0;
+  margin-bottom: 1rem;
 }
 
 .post-body ul,
@@ -91,13 +57,13 @@
 }
 
 .post-body blockquote {
-  border-left: 3px solid color-mix(in srgb, var(--ctp-teal) 68%, var(--border-color));
-  margin: 1.65rem 0;
-  padding: 0.85rem 1.1rem;
+  border-left: 2.5px solid color-mix(in srgb, var(--border-color) 40%, var(--ctp-transparent));
+  margin: 1.5rem 0;
+  padding: 0.75rem 1.25rem;
   color: var(--text-secondary);
-  font-style: normal;
-  background: color-mix(in srgb, var(--ctp-teal) 7%, var(--paper-bg));
-  border-radius: 0 6px 6px 0;
+  font-style: italic;
+  background: var(--accent-bg);
+  border-radius: 0 4px 4px 0;
 }
 
 .post-body blockquote p:last-child {
@@ -140,10 +106,10 @@
 
 /* Details / Summary */
 .post-body details {
-  margin: 1.6rem 0;
-  border: 1px solid color-mix(in srgb, var(--border-color) 24%, var(--ctp-transparent));
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
+  margin: 1.5rem 0;
+  border: 1px solid color-mix(in srgb, var(--border-color) 30%, var(--ctp-transparent));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--border-color) 8%, var(--paper-bg));
   overflow: hidden;
 }
 

@@ -1,67 +1,48 @@
 .title-block {
   text-align: center;
-  max-width: 760px;
-  margin: 0 auto 2.6rem;
+  margin-bottom: 2.5rem;
 }
 
 .title-wrapper {
-  margin-bottom: 0.95rem;
+  margin-bottom: 1rem;
 }
 
 .title-rule-top {
   border: none;
-  width: min(320px, 58%);
-  height: 3px;
-  margin: 0 auto 0.95rem;
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    var(--ctp-transparent),
-    color-mix(in srgb, var(--ctp-teal) 64%, var(--border-color)),
-    color-mix(in srgb, var(--ctp-blue) 58%, var(--border-color)),
-    color-mix(in srgb, var(--ctp-peach) 54%, var(--border-color)),
-    var(--ctp-transparent)
-  );
+  height: 2.5px;
+  background: var(--border-color);
+  margin-bottom: 0.75rem;
 }
 
 .title-rule-bottom {
   border: none;
   height: 1px;
-  width: 100%;
-  background: linear-gradient(90deg, var(--ctp-transparent), var(--border-color), var(--ctp-transparent));
-  margin: 0.95rem auto 0;
+  background: var(--border-color);
+  margin-top: 0.75rem;
 }
 
 .title {
   font-family: var(--font-heading);
-  font-size: clamp(1.72rem, 1.45rem + 1vw, 2.25rem);
-  font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1.18;
+  font-size: 2rem;
+  font-weight: bold;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
   color: var(--text-color);
 }
 
 .date {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: color-mix(in srgb, var(--text-secondary) 88%, var(--text-color));
+  color: var(--text-secondary);
   font-family: var(--font-heading);
-  font-size: 0.78rem;
-  letter-spacing: 0;
-  padding: 0.22rem 0.56rem;
-  border: 1px solid color-mix(in srgb, var(--border-color) 20%, var(--ctp-transparent));
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--background) 34%, var(--paper-bg));
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
 }
 
 .cover-image {
   max-width: 100%;
   height: auto;
-  border-radius: 8px;
-  margin-top: 1.6rem;
-  border: 1px solid color-mix(in srgb, var(--border-color) 16%, var(--ctp-transparent));
-  box-shadow: 0 10px 28px var(--shadow-color);
+  border-radius: 4px;
+  margin-top: 1.5rem;
+  box-shadow: 0 1px 4px var(--shadow-color);
 }
 
 @media (max-width: 600px) {

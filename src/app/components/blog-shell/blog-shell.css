@@ -1,12 +1,11 @@
 .paper {
-  max-width: 940px;
-  width: min(92%, 940px);
-  margin: 2.75rem auto;
-  padding: 3.2rem clamp(2.2rem, 4vw, 4rem) 4.2rem;
+  max-width: 900px;
+  width: 92%;
+  margin: 2.5rem auto;
+  padding: 3rem 3.5rem 4rem;
   background: var(--paper-bg);
   box-shadow: var(--paper-shadow);
-  border: 1px solid color-mix(in srgb, var(--border-color) 12%, var(--ctp-transparent));
-  border-radius: 8px;
+  border-radius: 3px;
   overflow: visible;
   transition: background 0.3s ease, box-shadow 0.3s ease;
 }
@@ -20,9 +19,7 @@
 @media (max-width: 600px) {
   .paper {
     width: 96%;
-    padding: 2rem 1.3rem 3rem;
+    padding: 2rem 1.5rem 3rem;
     border-radius: 0;
-    border-left: none;
-    border-right: none;
   }
 }
