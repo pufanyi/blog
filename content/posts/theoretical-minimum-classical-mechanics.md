@@ -1,13 +1,13 @@
 ## The Principle of Least Action
 
 在 Lagrangian mechanics 中，我们尝试用一个函数 $L(q,
-\dot{q},t)$ 来描述系统的动力学。这个函数我们叫 Lagrangian。在牛顿力学中，如果 $T$ 为动能，$V$ 为势能，Lagrangian
+\dot{q},t)$ 来描述系统的动力学。这个函数我们叫 Lagrangian。对于很多非相对论、保守力系统，并且势能不依赖速度时，常见的 Lagrangian 是
 
 $$
 \mathcal{L}(x, \dot{x}, t) = T - V
 $$
 
-书里面写的是 $\mathcal{L}(x, \dot{x})$，表示 Lagrangian 没有显含时间，比如说势能场和时间无关这种。
+其中 $T$ 是动能，$V$ 是势能。书里面写的是 $\mathcal{L}(x, \dot{x})$，表示 Lagrangian 没有显含时间，比如说势能场和时间无关这种。
 
 The action of a trajectory is written
 
@@ -155,7 +155,7 @@ F(y(x) + \epsilon \eta(x))
 =F(y(x))+\epsilon\int_l^r\left(\frac{\partial G}{\partial y}-\frac{\mathrm{d}}{\mathrm{d}x}\left(\frac{\partial G}{\partial y'}\right)\right)\eta(x)\mathrm{d}x+\mathcal{O}(\epsilon^2)
 $$
 
-所以我们就能推出 Euler-Lagrange 方程：
+考虑到 $\eta$ 任意，那么 $\eta$ 前面的系数必须处处为零。所以我们就能推出 Euler-Lagrange 方程：
 
 $$
 \frac{\partial G}{\partial y}-\frac{\mathrm{d}}{\mathrm{d}x}\left(\frac{\partial G}{\partial y'}\right)=0
