@@ -1,14 +1,12 @@
 ## The Principle of Least Action
 
-定义 $T$ 为动能，$V$ 为势能
-
-Lagrangian
+任何一个系统的运动过程可以用一个函数 $\mathcal{L}(x, \dot{x}, t)$ 来描述，我们叫 Lagrangian。在牛顿力学中，如果 $T$ 为动能，$V$ 为势能，Lagrangian
 
 $$
-\mathcal{L} = T - V = \mathcal{L}(x, \dot{x}, t)
+\mathcal{L}(x, \dot{x}, t) = T - V
 $$
 
-书里面写的是 $\mathcal{L}(x, \dot{x})$，感觉像是假设势能场是不变的。加上 $t$ 的话 $V$ 就可以写成 $V(x, t)$ 了。
+书里面写的是 $\mathcal{L}(x, \dot{x})$，表示 Lagrangian 没有显含时间，比如说势能场和时间无关这种。
 
 The action of a trajectory is written
 
@@ -16,9 +14,19 @@ $$
 \mathcal{A} = \int_{t_0}^{t_1}\mathcal{L}(x, \dot{x}, t)\mathrm{d}t
 $$
 
-这里的 Least Action 其实不是 least，是 stationary，也就是 $\delta \mathcal{A}=0$。
+The Principle of Least Action 讲的是，物体的运动轨迹一定满足 $\delta\mathcal{A}=0$。所以这里的 Least Action 其实不是 least，是 stationary。
 
-然后根据 Euler-Lagrange equation
+需要注意的是，因为 *The Theoretical Minimum* 的讲述顺序，很容易把 $\mathcal{L}=T-V$ 刻在脑子里。但事实上 $\mathcal{L}$ 可以是任意一个函数。这里觉得 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 里头讲的更清楚一点，他里面举的例子是带电粒子在电磁场中的运动：
+
+$$
+\mathcal{L} = -m_0 c^2 \sqrt{1 - v^2/c^2} - q(\phi - \boldsymbol{v} \cdot \boldsymbol{A}).
+$$
+
+引用一下他的这段话：
+
+> I would like to emphasize that in the general case, for instance in the relativistic formula, the action integrand no longer has the form of the kinetic energy minus the potential energy. That’s only true in the nonrelativistic approximation. For example, the term $m_0c^2\sqrt{1-\frac{v^2}{c^2}}$ is not what we have called the kinetic energy. The question of what the action should be for any particular case must be determined by some kind of trial and error. It is just the same problem as determining what are the laws of motion in the first place. You just have to fiddle around with the equations that you know and see if you can get them into the form of the principle of least action. -->
+
+根据 Euler-Lagrange equation，我们有
 
 $$
 \frac{\mathrm{d}}{\mathrm{d}t}\frac{\partial \mathcal{L}}{\partial \dot{x}} - \frac{\partial \mathcal{L}}{\partial x}=0
@@ -155,22 +163,6 @@ $$
 
 其中 $q_i$ 可以是任意坐标系统。这里我们通常把 $x$ 当成普通的笛卡尔坐标，然后 $q_i$ 当成是任意坐标。
 
-这边他似乎没说明白为啥定义是 $\frac{\partial \mathcal{L}}{\partial{\dot{q}_i}}$ 而不是 $\frac{\partial{T}}{\partial{\dot{q}_i}}$。看了 [*The Feynman Lectures on Physics*](https://www.feynmanlectures.caltech.edu/II_19.html) 大概明白了，他其实很长一段时间没提 Lagrangian，只是说物理规律可以被编码于一个标量
-
-$$
-\mathcal{A} = \int \mathcal{L}\mathrm{d}t
-$$
-
-而 $\mathcal{L}$ 不一定是 $T-V$，这只是牛顿力学中的定义。我就是说其实是先有 $\mathcal{A}$，然后再去定义 $\mathcal{L}$，然后再去定义牛顿力学中的量比如说 $p$。比如说带电粒子在电磁场中的运动：
-
-$$
-\mathcal{L} = -m_0 c^2 \sqrt{1 - v^2/c^2} - q(\phi - \boldsymbol{v} \cdot \boldsymbol{A}).
-$$
-
-引用一下他的这段话：
-
-> I would like to emphasize that in the general case, for instance in the relativistic formula, the action integrand no longer has the form of the kinetic energy minus the potential energy. That’s only true in the nonrelativistic approximation. For example, the term $m_0c^2\sqrt{1-\frac{v^2}{c^2}}$ is not what we have called the kinetic energy. The question of what the action should be for any particular case must be determined by some kind of trial and error. It is just the same problem as determining what are the laws of motion in the first place. You just have to fiddle around with the equations that you know and see if you can get them into the form of the principle of least action.
-
 有时候 $q_i$ 不出现在 $\mathcal{L}$ 中，只有 $\dot{q}_i$，我们就说 $q_i$ 是 cyclic coordinate。也就是说
 
 $$
@@ -203,7 +195,7 @@ $$
 我们就有
 
 $$
-\mathcal{L} = m\left(\dot{x}_{+}^2+\dot{x}_{-}^2\right)-V(x_{-})
+\mathcal{L} = m\left(\dot{x}_{+}^2+\dot{x}_{-}^2\right)-V(2x_{-})
 $$
 
 这时候我们就说 $x_{+}$ 是 cyclic coordinate，而 $p_{+}=2m\dot{x}_{+}=m\dot{x}_1+m\dot{x}_2$ 是不变的。
