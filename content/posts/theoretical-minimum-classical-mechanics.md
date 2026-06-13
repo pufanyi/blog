@@ -305,3 +305,43 @@ $$
 所以其实就是角动量守恒。
 
 ## Hamiltonian Mechanics and Time-Translation Invariance
+
+我们之前考虑的是 $\mathcal{L}$ 关于时间不变的情况，通过一些对称性来得到某些量的守恒。我们现在引入 $t$，看看当 $\mathcal{L}$ 关于时间变换对称时，会发生什么：
+
+$$
+\begin{aligned}
+\frac{\mathrm{d}\mathcal{L}}{\mathrm{d}t} &= \sum_{i}\left(\frac{\partial\mathcal{L}}{\partial q_i}\dot{q}_i+\frac{\partial \mathcal{L}}{\partial \dot{q}_i}\ddot{q}_i\right)+\frac{\partial\mathcal{L}}{\partial t}\\
+&= \sum_{i}\left(\dot{p}_i\dot{q}_i + p_i\ddot{q}_i\right)+\frac{\partial\mathcal{L}}{\partial t}\\
+&= \frac{\mathrm{d}}{\mathrm{d}t}\sum_{i}p_i\dot{q}_i+\frac{\partial\mathcal{L}}{\partial t}
+\end{aligned}
+$$
+
+所以说我们有
+
+$$
+\frac{\mathrm{d}}{\mathrm{d}t}\left(\sum_{i}p_i\dot{q}_i-\mathcal{L}\right) = -\frac{\partial\mathcal{L}}{\partial t}
+$$
+
+也就是说，当 $\mathcal{L}$ 关于时间对称时：
+
+$$
+\mathcal{H} = \sum_{i}p_i\dot{q}_i - \mathcal{L}
+$$
+
+守恒。
+
+这个 $\mathcal{H}$ 我们叫他 Hamiltonian。
+
+对于牛顿力学里的
+
+$$
+\mathcal{L} = T - V = \frac{1}{2}m\dot{x}^2-V
+$$
+
+我们有
+
+$$
+\mathcal{H} = (m\dot{x})\dot{x} - \frac{1}{2}m\dot{x}^2+V=\frac{1}{2}m\dot{x}^2+V = T+V
+$$
+
+其实也就是能量。
