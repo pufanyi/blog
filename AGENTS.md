@@ -29,6 +29,13 @@ Project guidance for agents working in this repository.
 
 - All color choices should follow the Catppuccin style and use existing
   Catppuccin CSS variables when possible.
+- All Angular-authored images should use `app-image-lightbox`, which wraps
+  `NgOptimizedImage` and `medium-zoom`. Do not add bare template `<img>` tags
+  unless there is a concrete framework limitation.
+- Markdown-generated post images are emitted as plain HTML first, then hydrated
+  by the post page into `app-image-lightbox` instances. Keep generated image
+  HTML dimensioned with `width`/`height` whenever possible so `NgOptimizedImage`
+  can run correctly after hydration.
 
 ## Content
 
@@ -37,6 +44,15 @@ Project guidance for agents working in this repository.
   referenced from Markdown with relative image paths. The generator rewrites
   those paths to `/posts/<slug>/...`, and Angular copies non-Markdown files
   from `content/posts` into the published `/posts` asset path.
+- Add an AI summary image button beside a Markdown heading by appending
+  `<ai-img>relative-image.avif</ai-img>` to that heading. The generator rewrites
+  the tag to an `AI Summary` button plus an initially hidden inline figure, and
+  normalizes relative paths the same way as post-local images.
+- Prefer mature UI/image tooling already in the project for interactions. For
+  example, AI summary figures use `medium-zoom` for image inspection instead of
+  ad-hoc navigation or custom zoom overlays.
+- If an AI summary image dimension cannot be inferred automatically during data
+  generation, add explicit `width` and `height` attributes to the `<ai-img>` tag.
 - When adding or touching image assets, manually convert any non-AVIF images to
   AVIF and reference the converted files instead.
 - The `prebuild`, `prestart`, and `pretest` hooks run `pnpm generate:data`, so

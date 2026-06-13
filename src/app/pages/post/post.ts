@@ -1,8 +1,12 @@
 import {
+  ApplicationRef,
   Component,
+  ComponentRef,
+  EnvironmentInjector,
   OnDestroy,
   ViewEncapsulation,
   computed,
+  createComponent,
   effect,
   inject,
   signal,
@@ -17,7 +21,14 @@ import { PostHeaderComponent } from '../../components/post-header/post-header';
 import { GiscusCommentsComponent } from '../../components/giscus-comments/giscus-comments';
 import { BackToTopComponent } from '../../components/back-to-top/back-to-top';
 import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
-import { typesetMath, initCodeCopyButtons, optimizeContentImages } from '../../utils/post-content-hooks';
+import { ImageLightboxComponent } from '../../components/image-lightbox/image-lightbox';
+import {
+  typesetMath,
+  initAiSummaryFigures,
+  initCodeCopyButtons,
+  initContentImageZoom,
+  optimizeContentImages,
+} from '../../utils/post-content-hooks';
 import { smoothScrollTo, SmoothScrollHandle } from '../../utils/smooth-scroll';
 import { buildContentWithToc, TocItem } from '../../utils/toc-builder';
 import { HeadingObserver } from '../../utils/heading-observer';
@@ -50,6 +61,8 @@ export class PostComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly toolbarExt = inject(ToolbarExtensionService);
+  private readonly appRef = inject(ApplicationRef);
+  private readonly environmentInjector = inject(EnvironmentInjector);
   private readonly slug = toSignal(this.route.paramMap.pipe(map(p => p.get('slug'))));
   private readonly headingObserver = new HeadingObserver();
   private viewportMediaQuery: MediaQueryList | null = null;
@@ -86,17 +99,26 @@ export class PostComponent implements OnDestroy {
         return;
       }
 
+      let cleanupAiSummaryFigures: (() => void) | null = null;
+      let cleanupContentImageZoom: (() => void) | null = null;
+      let cleanupContentImages: (() => void) | null = null;
       const timer = window.setTimeout(() => {
         const postBody = document.querySelector<HTMLElement>('.post-body');
         void typesetMath(postBody ?? undefined);
         initCodeCopyButtons();
         optimizeContentImages();
+        cleanupAiSummaryFigures = initAiSummaryFigures(postBody ?? undefined);
+        cleanupContentImages = postBody ? this.hydrateContentImages(postBody) : null;
+        cleanupContentImageZoom = initContentImageZoom(postBody ?? undefined);
         this.setupHeadingObserver();
         this.giscus()?.load();
       });
 
       onCleanup(() => {
         window.clearTimeout(timer);
+        cleanupAiSummaryFigures?.();
+        cleanupContentImageZoom?.();
+        cleanupContentImages?.();
         this.headingObserver.disconnect();
       });
     });
@@ -232,5 +254,45 @@ export class PostComponent implements OnDestroy {
     } catch {
       return null;
     }
+  }
+
+  private hydrateContentImages(container: HTMLElement): () => void {
+    const refs: Array<ComponentRef<ImageLightboxComponent>> = [];
+
+    for (const image of Array.from(container.querySelectorAll<HTMLImageElement>('img'))) {
+      const src = image.getAttribute('src');
+      const width = image.getAttribute('width');
+      const height = image.getAttribute('height');
+
+      if (!src || !width || !height) {
+        continue;
+      }
+
+      const host = document.createElement('app-image-lightbox');
+      const ref = createComponent(ImageLightboxComponent, {
+        environmentInjector: this.environmentInjector,
+        hostElement: host,
+      });
+
+      ref.setInput('src', src);
+      ref.setInput('alt', image.getAttribute('alt') ?? '');
+      ref.setInput('width', width);
+      ref.setInput('height', height);
+      ref.setInput('imgClass', image.className);
+      ref.setInput('loading', image.getAttribute('loading') === 'eager' ? 'eager' : 'lazy');
+      ref.setInput('sizes', image.getAttribute('sizes') ?? undefined);
+
+      image.replaceWith(host);
+      this.appRef.attachView(ref.hostView);
+      ref.changeDetectorRef.detectChanges();
+      refs.push(ref);
+    }
+
+    return () => {
+      for (const ref of refs) {
+        this.appRef.detachView(ref.hostView);
+        ref.destroy();
+      }
+    };
   }
 }

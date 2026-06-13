@@ -41,6 +41,14 @@ a:hover {
   text-decoration-thickness: 1.5px;
 }
 
+.medium-zoom-overlay {
+  z-index: 2000;
+}
+
+.medium-zoom-image--opened {
+  z-index: 2001;
+}
+
 /* Shiki dark mode: swap to --shiki-dark colors */
 [data-theme="dark"] .shiki,
 [data-theme="dark"] .shiki span {

@@ -11,12 +11,15 @@
   @for (post of posts; track post.slug) {
     <a class="post-entry" [routerLink]="['/blog', post.slug]">
       @if (post.coverImage) {
-        <img
-          [ngSrc]="post.coverImage"
+        <app-image-lightbox
+          [src]="post.coverImage"
           [alt]="post.title"
           width="720"
           height="360"
           [priority]="$first"
+          loading="lazy"
+          imgClass="post-entry-image"
+          preventAncestorNavigation
         />
       }
       <div class="post-row">

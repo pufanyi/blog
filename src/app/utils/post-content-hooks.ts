@@ -1,8 +1,15 @@
+import mediumZoom from 'medium-zoom';
+
 type MathJaxApi = {
   startup?: {
     promise?: Promise<unknown>;
   };
   typesetPromise?: (elements?: HTMLElement[]) => Promise<unknown>;
+};
+
+const IMAGE_ZOOM_OPTIONS = {
+  margin: 24,
+  background: 'color-mix(in srgb, var(--ctp-crust) 86%, var(--ctp-transparent))',
 };
 
 async function waitForMathJax(timeoutMs = 10000): Promise<MathJaxApi | null> {
@@ -45,6 +52,64 @@ export function optimizeContentImages(): void {
       img.setAttribute('decoding', 'async');
     }
   });
+}
+
+export function initContentImageZoom(container?: HTMLElement): () => void {
+  if (typeof document === 'undefined') {
+    return () => {};
+  }
+
+  const root = container ?? document;
+  const images = Array.from(root.querySelectorAll<HTMLImageElement>('.post-body img'))
+    .filter(img => !img.closest('app-image-lightbox'));
+  const zoom = images.length ? mediumZoom(images, IMAGE_ZOOM_OPTIONS) : null;
+
+  return () => zoom?.detach();
+}
+
+export function initAiSummaryFigures(container?: HTMLElement): () => void {
+  if (typeof document === 'undefined') {
+    return () => {};
+  }
+
+  const root = container ?? document;
+  const cleanups: Array<() => void> = [];
+
+  root.querySelectorAll<HTMLButtonElement>('.ai-summary-button').forEach(button => {
+    if (button.dataset['aiSummaryBound'] === 'true') {
+      return;
+    }
+
+    const targetId = button.getAttribute('aria-controls');
+    const figure = targetId ? document.getElementById(targetId) : null;
+
+    if (!(figure instanceof HTMLElement)) {
+      return;
+    }
+
+    const handleClick = () => {
+      const shouldOpen = button.getAttribute('aria-expanded') !== 'true';
+      button.setAttribute('aria-expanded', String(shouldOpen));
+      figure.hidden = !shouldOpen;
+
+      if (shouldOpen) {
+        figure.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    };
+
+    button.dataset['aiSummaryBound'] = 'true';
+    button.addEventListener('click', handleClick);
+    cleanups.push(() => {
+      button.removeEventListener('click', handleClick);
+      delete button.dataset['aiSummaryBound'];
+    });
+  });
+
+  return () => {
+    for (const cleanup of cleanups) {
+      cleanup();
+    }
+  };
 }
 
 export function initCodeCopyButtons(): void {

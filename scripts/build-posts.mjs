@@ -1,5 +1,7 @@
+import { execFileSync } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import yaml from 'js-yaml';
+import { JSDOM } from 'jsdom';
 import { Marked } from 'marked';
 import { basename, join } from 'path';
 import { createHighlighter } from 'shiki';
@@ -17,6 +19,8 @@ const REDIRECTS_OUTPUT = join(DATA_DIR, 'redirects.ts');
 const CV_INPUT = join(ROOT, 'content/cv.yaml');
 const CV_OUTPUT = join(DATA_DIR, 'cv.ts');
 const POST_ASSET_BASE = '/posts';
+const DEFAULT_AI_IMAGE_LABEL = 'AI Summary';
+const imageDimensions = new Map();
 
 // Collect languages used across all posts for Shiki
 function collectLangs(posts) {
@@ -46,13 +50,138 @@ function normalizePostImageHref(href, slug) {
   return `${POST_ASSET_BASE}/${slug}/${localHref}`;
 }
 
+function resolvePostAssetPath(href, slug) {
+  if (isRootedOrRemoteHref(href)) {
+    return null;
+  }
+
+  const localHref = href.replace(/^\.\//, '');
+  if (localHref.startsWith(`${slug}/`)) {
+    return join(POSTS_DIR, localHref);
+  }
+
+  return join(POSTS_DIR, slug, localHref);
+}
+
+function getImageDimensions(href, slug) {
+  const file = resolvePostAssetPath(href, slug);
+  if (!file || !existsSync(file)) {
+    return null;
+  }
+
+  if (imageDimensions.has(file)) {
+    return imageDimensions.get(file);
+  }
+
+  try {
+    const output = execFileSync('magick', ['identify', '-format', '%w %h', file], {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    const [width, height] = output.split(/\s+/).map(Number);
+    const dimensions = Number.isFinite(width) && Number.isFinite(height) ? { width, height } : null;
+    imageDimensions.set(file, dimensions);
+    return dimensions;
+  } catch {
+    imageDimensions.set(file, null);
+    return null;
+  }
+}
+
+function escapeAttribute(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+function insertAfter(referenceNode, newNode) {
+  referenceNode.parentNode?.insertBefore(newNode, referenceNode.nextSibling);
+}
+
+function renderAiImageFigures(html, slug) {
+  const dom = new JSDOM(`<body>${html}</body>`);
+  const { document } = dom.window;
+  let aiImageCount = 0;
+
+  for (const node of Array.from(document.querySelectorAll('ai-img'))) {
+    const rawHref = node.getAttribute('src') || node.textContent || '';
+    const href = rawHref.trim();
+
+    if (!href) {
+      node.remove();
+      continue;
+    }
+
+    const label = node.getAttribute('label')?.trim() || DEFAULT_AI_IMAGE_LABEL;
+    const src = normalizePostImageHref(href, slug);
+    const targetId = `ai-summary-${slug}-${aiImageCount}`;
+    aiImageCount += 1;
+
+    const button = document.createElement('button');
+    button.className = 'ai-summary-button';
+    button.type = 'button';
+    button.title = node.getAttribute('title')?.trim() || `Show ${label}`;
+    button.setAttribute('aria-label', `${label}: ${href}`);
+    button.setAttribute('aria-controls', targetId);
+    button.setAttribute('aria-expanded', 'false');
+
+    const icon = document.createElement('i');
+    icon.className = 'ph ph-magic-wand';
+    icon.setAttribute('aria-hidden', 'true');
+
+    const text = document.createElement('span');
+    text.textContent = label;
+
+    button.append(icon, text);
+
+    const figure = document.createElement('figure');
+    figure.className = 'ai-summary-figure';
+    figure.id = targetId;
+    figure.hidden = true;
+
+    const image = document.createElement('img');
+    image.className = 'ai-summary-image';
+    image.src = src;
+    image.alt = node.getAttribute('alt')?.trim() || label;
+    const dimensions = getImageDimensions(href, slug);
+    const width = node.getAttribute('width')?.trim() || dimensions?.width;
+    const height = node.getAttribute('height')?.trim() || dimensions?.height;
+    if (width && height) {
+      image.setAttribute('width', String(width));
+      image.setAttribute('height', String(height));
+    }
+    image.setAttribute('loading', 'lazy');
+    image.setAttribute('decoding', 'async');
+    image.setAttribute('data-zoom-src', src);
+
+    figure.append(image);
+
+    const target = node.closest('h1,h2,h3,h4,h5,h6') || node.parentElement;
+    node.replaceWith(button);
+
+    if (target) {
+      insertAfter(target, figure);
+    } else {
+      button.after(figure);
+    }
+  }
+
+  return document.body.innerHTML;
+}
+
 function renderMarkdown(md, slug, highlighter) {
   // Custom image renderer: publishes post-local assets from content/posts/<slug>.
   const imageRenderer = (token) => {
     const src = normalizePostImageHref(token.href, slug);
     const alt = token.text || '';
-    const title = token.title ? ` title="${token.title}"` : '';
-    return `<img src="${src}" alt="${alt}"${title} loading="lazy" decoding="async">`;
+    const title = token.title ? ` title="${escapeAttribute(token.title)}"` : '';
+    const dimensions = getImageDimensions(token.href, slug);
+    const sizeAttrs = dimensions
+      ? ` width="${dimensions.width}" height="${dimensions.height}"`
+      : '';
+    return `<img src="${escapeAttribute(src)}" alt="${escapeAttribute(alt)}"${title}${sizeAttrs} loading="lazy" decoding="async" data-zoom-src="${escapeAttribute(src)}">`;
   };
 
   const renderer = new Marked({
@@ -64,7 +193,8 @@ function renderMarkdown(md, slug, highlighter) {
     },
   });
 
-  return renderer.parse(md, { async: false });
+  const html = renderer.parse(md, { async: false });
+  return renderAiImageFigures(html, slug);
 }
 
 async function main() {

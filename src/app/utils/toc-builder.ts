@@ -23,6 +23,12 @@ export function makeUniqueId(base: string, usedIds: Map<string, number>): string
   return count === 0 ? base : `${base}-${count}`;
 }
 
+function getHeadingText(heading: HTMLHeadingElement): string {
+  const clone = heading.cloneNode(true) as HTMLHeadingElement;
+  clone.querySelectorAll('.ai-summary-button, .ai-summary-link, ai-img').forEach(element => element.remove());
+  return clone.textContent?.trim() ?? '';
+}
+
 export function buildContentWithToc(rawHtml: string): { html: string; toc: TocItem[] } {
   if (typeof DOMParser === 'undefined') {
     return { html: rawHtml, toc: [] };
@@ -34,7 +40,7 @@ export function buildContentWithToc(rawHtml: string): { html: string; toc: TocIt
   const toc: TocItem[] = [];
 
   for (const heading of Array.from(doc.querySelectorAll<HTMLHeadingElement>('h2, h3'))) {
-    const text = heading.textContent?.trim() ?? '';
+    const text = getHeadingText(heading);
     if (!text) {
       continue;
     }

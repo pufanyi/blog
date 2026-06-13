@@ -8,7 +8,7 @@
   font-family: var(--font-heading);
   font-size: 1.3rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   margin: 2.5rem 0 1rem;
   padding-bottom: 0.5rem;
   text-align: left;
@@ -29,7 +29,7 @@
   font-family: var(--font-heading);
   font-size: 1.1rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   margin: 1.75rem 0 0.75rem;
   text-align: left;
 }
@@ -97,6 +97,60 @@
 
 .post-body a:hover {
   text-decoration-color: var(--link-color);
+}
+
+.post-body .ai-summary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 100%;
+  margin-left: 0.45rem;
+  padding: 0.18rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--ctp-sapphire) 32%, var(--ctp-transparent));
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--ctp-sapphire) 10%, var(--ctp-transparent));
+  color: var(--ctp-sapphire);
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.15;
+  appearance: none;
+  text-decoration: none;
+  text-decoration-color: var(--ctp-transparent);
+  vertical-align: 0.14em;
+  white-space: nowrap;
+}
+
+.post-body .ai-summary-button:hover,
+.post-body .ai-summary-button[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--ctp-sapphire) 16%, var(--ctp-transparent));
+  color: var(--link-hover-color);
+  text-decoration: none;
+  text-decoration-color: var(--ctp-transparent);
+}
+
+.post-body .ai-summary-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ctp-sapphire) 58%, var(--ctp-transparent));
+  outline-offset: 2px;
+}
+
+.post-body .ai-summary-button i {
+  font-size: 0.95em;
+  line-height: 1;
+}
+
+.post-body .ai-summary-figure {
+  margin: 1rem 0 1.5rem;
+  text-align: center;
+}
+
+.post-body .ai-summary-figure[hidden] {
+  display: none;
+}
+
+.post-body .ai-summary-image {
+  cursor: zoom-in;
 }
 
 .post-body h2,

@@ -1,10 +1,10 @@
-import { NgOptimizedImage } from '@angular/common';
 import { Component, input } from '@angular/core';
+import { ImageLightboxComponent } from '../image-lightbox/image-lightbox';
 
 @Component({
   selector: 'app-post-header',
   standalone: true,
-  imports: [NgOptimizedImage],
+  imports: [ImageLightboxComponent],
   templateUrl: './post-header.html',
   styleUrl: './post-header.css',
 })

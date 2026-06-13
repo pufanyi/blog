@@ -166,12 +166,10 @@
     0 0 32px color-mix(in srgb, var(--accent) 18%, var(--ctp-transparent));
 }
 
-.hero-photo {
+.hero-portrait app-image-lightbox {
+  display: block;
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
 }
 
 .hero-id {

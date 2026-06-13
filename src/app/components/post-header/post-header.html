@@ -6,13 +6,13 @@
   </div>
   <div class="date">{{ date() }}</div>
   @if (coverImage()) {
-    <img
-      [ngSrc]="coverImage()!"
+    <app-image-lightbox
+      [src]="coverImage()!"
       [alt]="title()"
       width="720"
       height="405"
       priority
-      class="cover-image"
+      imgClass="cover-image"
     />
   }
 </header>

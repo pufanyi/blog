@@ -157,11 +157,9 @@
   line-height: 1.55;
 }
 
-.post-entry img {
+.post-entry app-image-lightbox {
+  display: block;
   max-width: 100%;
-  height: auto;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
 }
 
 @media (max-width: 600px) {

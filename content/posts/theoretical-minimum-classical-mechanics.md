@@ -1,4 +1,4 @@
-## The Principle of Least Action
+## The Principle of Least Action <ai-img width="1448" height="1086">pla.avif</ai-img>
 
 在 Lagrangian mechanics 中，我们尝试用一个函数 $\mathcal{L}(q, \dot{q}, t)$ 来描述系统的动力学。这个函数我们叫 Lagrangian。对于很多非相对论、保守力系统，并且势能不依赖速度时，常见的 Lagrangian 是
 
