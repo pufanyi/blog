@@ -3,6 +3,7 @@
     <aside class="post-toc-sidebar">
       <app-post-toc
         [items]="tocItems()"
+        [postPath]="postPath()"
         [activeHeadingId]="activeHeadingId()"
         [progress]="readingProgress()"
         (sectionSelected)="onTocNavigate($event)"
@@ -47,6 +48,7 @@
 
         <app-post-toc
           [items]="tocItems()"
+          [postPath]="postPath()"
           [activeHeadingId]="activeHeadingId()"
           [progress]="readingProgress()"
           (sectionSelected)="onTocNavigate($event)"

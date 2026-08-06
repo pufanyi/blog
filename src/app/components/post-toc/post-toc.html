@@ -30,7 +30,7 @@
             [class.is-active]="activeHeadingId() === item.id"
             [attr.aria-current]="activeHeadingId() === item.id ? 'location' : null"
             [attr.data-toc-id]="item.id"
-            [href]="fragmentFor(item.id)"
+            [href]="hrefFor(item.id)"
             (click)="selectSection($event, item.id)"
           >
             {{ item.text }}
@@ -45,7 +45,7 @@
                     [class.is-active]="activeHeadingId() === child.id"
                     [attr.aria-current]="activeHeadingId() === child.id ? 'location' : null"
                     [attr.data-toc-id]="child.id"
-                    [href]="fragmentFor(child.id)"
+                    [href]="hrefFor(child.id)"
                     (click)="selectSection($event, child.id)"
                   >
                     {{ child.text }}

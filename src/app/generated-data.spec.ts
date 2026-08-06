@@ -28,7 +28,11 @@ describe('generated content data', () => {
 
       for (const heading of Array.from(document.querySelectorAll('h2, h3'))) {
         expect(heading.getAttribute('tabindex'), post.slug).toBe('-1');
-        expect(heading.querySelector('.heading-permalink'), post.slug).not.toBeNull();
+        const permalink = heading.querySelector<HTMLAnchorElement>('.heading-permalink');
+        expect(permalink, post.slug).not.toBeNull();
+        expect(permalink?.getAttribute('href'), post.slug).toBe(
+          `/blog/${encodeURIComponent(post.slug)}#${encodeURIComponent(heading.id)}`,
+        );
       }
     }
   });

@@ -12,6 +12,7 @@ describe('PostTocComponent', () => {
       children: [{ id: 'details', text: 'Details', level: 3, children: [] }],
     },
   ];
+  const postPath = '/blog/example-post';
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({ imports: [PostTocComponent] }).compileComponents();
@@ -20,6 +21,7 @@ describe('PostTocComponent', () => {
   it('renders a nested navigation list with an encoded fragment', () => {
     const fixture = TestBed.createComponent(PostTocComponent);
     fixture.componentRef.setInput('items', items);
+    fixture.componentRef.setInput('postPath', postPath);
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
@@ -27,13 +29,14 @@ describe('PostTocComponent', () => {
     expect(element.querySelectorAll('.toc-list > .toc-item')).toHaveLength(1);
     expect(element.querySelectorAll('.toc-sublist > .toc-subitem')).toHaveLength(1);
     expect(element.querySelector<HTMLAnchorElement>('.toc-link')?.getAttribute('href')).toBe(
-      '#%E7%AC%AC%E4%B8%80%E7%AB%A0',
+      '/blog/example-post#%E7%AC%AC%E4%B8%80%E7%AB%A0',
     );
   });
 
   it('marks only the active location and exposes reading progress', () => {
     const fixture = TestBed.createComponent(PostTocComponent);
     fixture.componentRef.setInput('items', items);
+    fixture.componentRef.setInput('postPath', postPath);
     fixture.componentRef.setInput('activeHeadingId', 'details');
     fixture.componentRef.setInput('progress', 0.426);
     fixture.detectChanges();

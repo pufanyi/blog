@@ -39,12 +39,12 @@ function allocateId(base, usedIds, reservedIds, preserveBase) {
   return candidate;
 }
 
-function appendPermalink(document, heading, id, text) {
+function appendPermalink(document, heading, id, text, postPath) {
   heading.querySelector('.heading-permalink')?.remove();
 
   const permalink = document.createElement('a');
   permalink.className = 'heading-permalink';
-  permalink.setAttribute('href', `#${encodeURIComponent(id)}`);
+  permalink.setAttribute('href', `${postPath}#${encodeURIComponent(id)}`);
   permalink.setAttribute('aria-label', `Link to section: ${text}`);
   permalink.setAttribute('title', 'Link to this section');
 
@@ -60,7 +60,11 @@ function appendPermalink(document, heading, id, text) {
  * two-level table of contents. Doing this before Angular renders keeps SSR and
  * the hydrated browser DOM identical.
  */
-export function buildTableOfContents(document) {
+export function buildTableOfContents(document, postPath) {
+  if (!postPath?.startsWith('/') || postPath.includes('#')) {
+    throw new TypeError('postPath must be an absolute path without a fragment');
+  }
+
   const headings = Array.from(document.querySelectorAll(TOC_HEADING_SELECTOR));
   const headingSet = new Set(headings);
   const reservedIds = new Set(
@@ -93,7 +97,7 @@ export function buildTableOfContents(document) {
     if (!heading.hasAttribute('tabindex')) {
       heading.setAttribute('tabindex', '-1');
     }
-    appendPermalink(document, heading, id, text);
+    appendPermalink(document, heading, id, text, postPath);
 
     if (level === 2) {
       toc.push(item);
@@ -109,9 +113,9 @@ export function buildTableOfContents(document) {
   return toc;
 }
 
-export function renderTableOfContents(html) {
+export function renderTableOfContents(html, postPath) {
   const dom = new JSDOM(`<body>${html}</body>`);
   const { document } = dom.window;
-  const toc = buildTableOfContents(document);
+  const toc = buildTableOfContents(document, postPath);
   return { html: document.body.innerHTML, toc };
 }

@@ -84,6 +84,10 @@ export class PostComponent implements OnDestroy {
   });
 
   readonly tocItems = computed(() => this.post()?.toc ?? []);
+  readonly postPath = computed(() => {
+    const post = this.post();
+    return post ? `/blog/${encodeURIComponent(post.slug)}` : '/blog';
+  });
 
   readonly safeHtml = computed(() =>
     this.sanitizer.bypassSecurityTrustHtml(this.post()?.contentHtml ?? ''),

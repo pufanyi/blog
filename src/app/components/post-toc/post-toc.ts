@@ -19,6 +19,7 @@ import type { PostTocItem } from '../../models/post.model';
 })
 export class PostTocComponent {
   readonly items = input.required<readonly PostTocItem[]>();
+  readonly postPath = input.required<string>();
   readonly activeHeadingId = input('');
   readonly progress = input(0);
   readonly sectionSelected = output<string>();
@@ -67,8 +68,8 @@ export class PostTocComponent {
     });
   }
 
-  fragmentFor(id: string): string {
-    return `#${encodeURIComponent(id)}`;
+  hrefFor(id: string): string {
+    return `${this.postPath()}#${encodeURIComponent(id)}`;
   }
 
   containsActiveItem(item: PostTocItem): boolean {

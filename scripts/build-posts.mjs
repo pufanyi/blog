@@ -169,7 +169,8 @@ function renderAiImageFigures(html, slug) {
     }
   }
 
-  const toc = buildTableOfContents(document);
+  const postPath = `/blog/${encodeURIComponent(slug)}`;
+  const toc = buildTableOfContents(document, postPath);
   return { html: document.body.innerHTML, toc };
 }
 
