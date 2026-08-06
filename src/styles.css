@@ -61,11 +61,11 @@ a:hover {
 @media print {
   @page {
     size: A4;
-    margin: 12mm;
+    margin: 10mm;
   }
 
   body {
-    background: var(--background);
+    background: #fff !important;
     color: var(--text-color);
     font-size: 10.5pt;
     line-height: 1.5;
@@ -80,6 +80,7 @@ a:hover {
     width: 100%;
     margin: 0;
     padding: 0;
+    background: #fff !important;
     box-shadow: none;
     border-radius: 0;
   }
