@@ -1,9 +1,10 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
 import { AutoAnimateDirective } from '../../../../directives/auto-animate';
 
 @Component({
   selector: 'app-section',
   imports: [AutoAnimateDirective],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './section.html',
 })
 export class SectionComponent {

@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, OnDestroy, signal, PLATFORM_ID } from '@angular/core';
+import { Component, computed, inject, OnInit, OnDestroy, signal, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { Redirect } from '../../models/redirect.model';
@@ -7,6 +7,7 @@ import { Redirect } from '../../models/redirect.model';
   selector: 'app-redirect',
   standalone: true,
   templateUrl: './redirect.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './redirect.css',
 })
 export class RedirectComponent implements OnInit, OnDestroy {

@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { ImageLightboxComponent } from '../image-lightbox/image-lightbox';
 
 @Component({
@@ -6,6 +6,7 @@ import { ImageLightboxComponent } from '../image-lightbox/image-lightbox';
   standalone: true,
   imports: [ImageLightboxComponent],
   templateUrl: './post-header.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './post-header.css',
 })
 export class PostHeaderComponent {

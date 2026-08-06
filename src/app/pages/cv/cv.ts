@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { HeaderComponent } from './components/header/header';
 import { AbstractComponent } from './components/abstract/abstract';
 import { SectionComponent } from './components/section/section';
@@ -11,6 +11,7 @@ import { CV_DATA } from '../../data/cv';
   imports: [HeaderComponent, AbstractComponent, SectionComponent, EntryComponent],
   templateUrl: './cv.html',
   styleUrl: './cv.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   encapsulation: ViewEncapsulation.None,
 })
 export class CvPageComponent {

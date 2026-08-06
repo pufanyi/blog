@@ -1,8 +1,9 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { CvAbstract } from '../../../../models/cv.model';
 
 @Component({
   selector: 'app-abstract',
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './abstract.html',
 })
 export class AbstractComponent {

@@ -8,6 +8,7 @@ import {
   signal,
   inject,
   PLATFORM_ID,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
@@ -25,6 +26,7 @@ interface TermLine {
   standalone: true,
   imports: [AutoAnimateDirective, ImageLightboxComponent],
   templateUrl: './landing.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './landing.css',
 })
 export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {

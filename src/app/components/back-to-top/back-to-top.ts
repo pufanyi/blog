@@ -1,4 +1,4 @@
-import { Component, OnDestroy, signal } from '@angular/core';
+import { Component, OnDestroy, signal, ChangeDetectionStrategy } from '@angular/core';
 import { smoothScrollTo, SmoothScrollHandle } from '../../utils/smooth-scroll';
 
 @Component({
@@ -16,6 +16,7 @@ import { smoothScrollTo, SmoothScrollHandle } from '../../utils/smooth-scroll';
       <i class="ph ph-arrow-line-up" aria-hidden="true" style="font-size: 20px"></i>
     </button>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './back-to-top.css',
 })
 export class BackToTopComponent implements OnDestroy {

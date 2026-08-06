@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToolbarComponent } from '../toolbar/toolbar';
 import { FooterComponent } from '../footer/footer';
@@ -8,6 +8,7 @@ import { FooterComponent } from '../footer/footer';
   standalone: true,
   imports: [RouterOutlet, ToolbarComponent, FooterComponent],
   templateUrl: './blog-shell.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './blog-shell.css',
 })
 export class BlogShellComponent {}

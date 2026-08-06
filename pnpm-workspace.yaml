@@ -1,0 +1,24 @@
+overrides:
+  '@modelcontextprotocol/sdk': 1.30.0
+  '@hono/node-server@': 2.1.0
+  'rollup@': 4.62.4
+
+minimumReleaseAgeExclude:
+  - '@angular/cdk@22.1.1'
+  - electron-to-chromium@1.5.402
+  - node-releases@2.0.53
+  - postcss@8.5.26
+  - readdirp@5.1.1
+
+peerDependencyRules:
+  allowedVersions:
+    listr2: 10.2.2
+
+update:
+  githubActions: true
+
+allowBuilds:
+  '@parcel/watcher@2.6.0': true
+  esbuild@0.28.1: true
+  lmdb@3.5.6: true
+  msgpackr-extract@3.0.4: true

@@ -1,9 +1,10 @@
-import { Component, OnDestroy, effect, inject } from '@angular/core';
+import { Component, OnDestroy, effect, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-giscus-comments',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: '<div class="giscus"></div>',
 })
 export class GiscusCommentsComponent implements OnDestroy {

@@ -11,6 +11,7 @@ import {
   inject,
   signal,
   viewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -55,6 +56,7 @@ const HEADING_SCROLL_OFFSET_PX = 20;
     './styles/media.css',
     './styles/layout.css',
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   encapsulation: ViewEncapsulation.None,
 })
 export class PostComponent implements OnDestroy {

@@ -1,8 +1,9 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { CvPublicationLink } from '../../../../models/cv.model';
 
 @Component({
   selector: 'app-entry',
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './entry.html',
 })
 export class EntryComponent {

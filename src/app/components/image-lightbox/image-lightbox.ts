@@ -7,6 +7,7 @@ import {
   booleanAttribute,
   input,
   viewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import mediumZoom, { Zoom } from 'medium-zoom';
 
@@ -14,6 +15,7 @@ import mediumZoom, { Zoom } from 'medium-zoom';
   selector: 'app-image-lightbox',
   imports: [NgOptimizedImage],
   templateUrl: './image-lightbox.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './image-lightbox.css',
 })
 export class ImageLightboxComponent implements OnDestroy {

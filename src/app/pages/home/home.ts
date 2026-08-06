@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ImageLightboxComponent } from '../../components/image-lightbox/image-lightbox';
 import { POSTS } from '../../data/posts';
@@ -9,6 +9,7 @@ import { AutoAnimateDirective } from '../../directives/auto-animate';
   standalone: true,
   imports: [RouterLink, ImageLightboxComponent, AutoAnimateDirective],
   templateUrl: './home.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './home.css',
 })
 export class HomeComponent {

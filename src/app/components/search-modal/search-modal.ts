@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, inject, output, signal, ElementRef, viewChild, afterNextRender, OnDestroy } from '@angular/core';
+import { Component, inject, output, signal, ElementRef, viewChild, afterNextRender, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { SearchService, SearchResult } from '../../services/search.service';
 import { AutoAnimateDirective } from '../../directives/auto-animate';
@@ -9,6 +9,7 @@ import { AutoAnimateDirective } from '../../directives/auto-animate';
   standalone: true,
   imports: [AutoAnimateDirective],
   templateUrl: './search-modal.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './search-modal.css',
 })
 export class SearchModalComponent implements OnDestroy {

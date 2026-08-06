@@ -1,4 +1,4 @@
-import { Component, inject, signal, HostListener } from '@angular/core';
+import { Component, inject, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { Router, NavigationEnd, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
@@ -11,6 +11,7 @@ import { SearchModalComponent } from '../search-modal/search-modal';
   standalone: true,
   imports: [SearchModalComponent, RouterLink],
   templateUrl: './toolbar.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './toolbar.css',
 })
 export class ToolbarComponent {
