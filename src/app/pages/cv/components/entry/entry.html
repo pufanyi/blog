@@ -3,17 +3,24 @@
     <span class="entry-title">{{ title() }}</span>
     <span class="entry-date">{{ date() }}</span>
   </div>
-  @if (detail() || links()?.length) {
+  @if (detail() || location() || links()?.length) {
     <div class="entry-detail">
-      @if (detail()) {
-        <span [innerHTML]="detail()"></span>
-      }
-      @if (links()?.length) {
-        <span class="publication-links">
-          @for (link of links()!; track link.href) {
-            <a [href]="link.href" target="_blank" rel="noopener noreferrer">[{{ link.text }}]</a>
+      @if (detail() || links()?.length) {
+        <span class="entry-detail-main">
+          @if (detail()) {
+            <span [innerHTML]="detail()"></span>
+          }
+          @if (links()?.length) {
+            <span class="publication-links">
+              @for (link of links()!; track link.href) {
+                <a [href]="link.href" target="_blank" rel="noopener noreferrer">[{{ link.text }}]</a>
+              }
+            </span>
           }
         </span>
+      }
+      @if (location()) {
+        <span class="entry-location">{{ location() }}</span>
       }
     </div>
   }

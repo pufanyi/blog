@@ -39,32 +39,21 @@ abstract:
       <a href="https://www.wisc.edu/" target="_blank">University of Wisconsin–Madison</a>,
       starting in September 2026. I received my B.Sc. in Data Science and Artificial Intelligence
       from <a href="https://www.ntu.edu.sg/" target="_blank">Nanyang Technological University</a>
-      with Honours (Highest Distinction).
-    - >-
-      My research interests lie in <em>multimodal models</em> and <em>video generation</em>.
-      My work has received more than 1,800 citations on
-      <a href="https://scholar.google.com/citations?user=58tv6skAAAAJ" target="_blank">Google Scholar</a>.
-    - >-
-      I am a core member of <a href="https://www.lmms-lab.com/" target="_blank">LMMs-Lab</a>,
-      where I help develop LMMs-Eval, LMMs-Engine, and Video-MMMU. I have also conducted research at
-      <a href="https://www.sensetime.com/" target="_blank">SenseTime Research</a> and
-      <a href="https://www.mmlab-ntu.com/" target="_blank">MMLab@NTU</a>, and contributed to
-      <a href="https://synvo.ai/" target="_blank">Synvo AI</a>.
-  keywords:
-    - Multimodal Models
-    - Video Generation
-    - Spatial Intelligence
+      with Honours (Highest Distinction). My research interests lie in
+      <em>multimodal models</em> and <em>video generation</em>.
 
 sections:
   - title: Education
     entries:
       - title: University of Wisconsin–Madison
         date: Sep 2026 – Present
-        detail: "Ph.D. in Computer Science (Incoming), Madison, WI"
+        detail: "Ph.D. in Computer Science (Incoming)"
+        location: "Madison, WI"
 
       - title: Nanyang Technological University
         date: Aug 2022 – Jul 2026
-        detail: "Bachelor of Science in Data Science and Artificial Intelligence, Singapore"
+        detail: "Bachelor of Science in Data Science and Artificial Intelligence"
+        location: Singapore
         items:
           - "Honours (Highest Distinction), CGPA: 4.67 / 5.00"
           - "Research interests: Multimodal and Video Generation. 1,800+ Google Scholar citations"
@@ -75,7 +64,8 @@ sections:
 
       - title: University of California, Berkeley
         date: Jun 2024 – Aug 2024
-        detail: "Summer Session, Berkeley, CA"
+        detail: Summer Session
+        location: "Berkeley, CA"
         items:
           - "Studied Computer Security and Game Theory, GPA: 4.00 / 4.00"
 
@@ -185,7 +175,8 @@ sections:
     entries:
       - title: LMMs-Lab
         date: Jan 2024 – Present
-        detail: "Core Member, Singapore"
+        detail: Core Member
+        location: Singapore
         items:
           - >-
             Core member of a non-profit initiative dedicated to democratizing Large Multimodal Models (LMMs);
@@ -196,13 +187,15 @@ sections:
 
       - title: SenseTime Research
         date: Jul 2025 – Jun 2026
-        detail: "Research Intern (Spatial Intelligence and Video Generation), Singapore"
+        detail: Research Intern (Spatial Intelligence and Video Generation)
+        location: Singapore
         items:
           - Conducted research on SenseNova-SI and video reasoning, with a focus on spatial intelligence and video generation
 
       - title: Synvo AI
         date: Jan 2025 – Jul 2025
-        detail: "Core Contributor, Singapore"
+        detail: Core Contributor
+        location: Singapore
         items:
           - Architected and implemented the Synvo File System, the company's inaugural product, serving as the storage backbone for unstructured multimodal data
           - >-
@@ -211,7 +204,8 @@ sections:
 
       - title: MMLab@NTU
         date: Jan 2025 – May 2025
-        detail: "Research Intern (Multimodal Models), Singapore"
+        detail: Research Intern (Multimodal Models)
+        location: Singapore
         items:
           - >-
             Supervised by <a href="https://liuziwei7.github.io/" target="_blank">Prof. Liu Ziwei</a>;
@@ -221,7 +215,8 @@ sections:
     entries:
       - title: The International Collegiate Programming Contest (ICPC)
         date: 2021 – 2024
-        detail: "Nanyang Technological University / Dalian University of Technology, Singapore / China"
+        detail: Nanyang Technological University / Dalian University of Technology
+        location: Singapore / China
         items:
           - "<strong>Ranked 22nd</strong> in the 2024 ICPC Asia Pacific Championship"
           - "<strong>Ranked 13th</strong> in the 2023 ICPC Asia Jakarta Regional Contest"
@@ -231,7 +226,8 @@ sections:
 
       - title: Simon Marais Mathematics Competition
         date: Dec 2022
-        detail: "Nanyang Technological University, Singapore"
+        detail: Nanyang Technological University
+        location: Singapore
         items:
           - Received the Best-in-University Prize at Nanyang Technological University
           - Solved problems in number theory, game theory, and calculus
@@ -240,27 +236,31 @@ sections:
     entries:
       - title: Tutorial Lecturer
         date: Jan 2026 – Jun 2026
-        detail: "NTU SC1008 C & C++ Programming, Singapore"
+        detail: NTU SC1008 C & C++ Programming
+        location: Singapore
         items:
           - Instructed a cohort of 50 beginners in core C/C++ syntax and methodologies
 
       - title: Nanyang Programming Contest
         date: Jan 2025 – Jun 2026
-        detail: "Nanyang Technological University, Singapore"
+        detail: Nanyang Technological University
+        location: Singapore
         items:
           - Organized five competitions and tutorials for non-ICPC students
           - Designed activities to help students strengthen algorithmic problem-solving skills for technical interviews
 
       - title: "NTU Students' Computing and Data Science Club"
         date: Nov 2024 – Jun 2026
-        detail: "Nanyang Technological University, Singapore"
+        detail: Nanyang Technological University
+        location: Singapore
         items:
           - Managed a Telegram group with 130+ members
           - Answered AI/ML questions and shared resources on deep learning research
 
       - title: Teaching Assistant
         date: Aug 2024 – Dec 2024
-        detail: "NTU SC1003 Introduction of Computational Thinking, Singapore"
+        detail: NTU SC1003 Introduction of Computational Thinking
+        location: Singapore
         items:
           - Instructed a cohort of 20 beginners in core Python syntax and data manipulation methodologies
 

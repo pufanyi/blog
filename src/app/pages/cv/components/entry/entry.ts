@@ -10,6 +10,7 @@ export class EntryComponent {
   readonly title = input.required<string>();
   readonly date = input.required<string>();
   readonly detail = input<string>();
+  readonly location = input<string>();
   readonly links = input<CvPublicationLink[]>();
   readonly items = input<string[]>();
 }

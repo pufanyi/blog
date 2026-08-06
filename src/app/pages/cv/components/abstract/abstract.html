@@ -5,8 +5,10 @@
       <p [innerHTML]="para"></p>
     }
   </div>
-  <div class="keywords">
-    <span class="keywords-label">Keywords: </span>
-    {{ data().keywords.join(' · ') }}
-  </div>
+  @if (data().keywords?.length) {
+    <div class="keywords">
+      <span class="keywords-label">Keywords: </span>
+      {{ data().keywords?.join(' · ') }}
+    </div>
+  }
 </section>

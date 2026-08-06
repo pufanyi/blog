@@ -6,7 +6,8 @@
       @if (section.entries) {
         @for (entry of section.entries; track entry.title) {
           <app-entry [title]="entry.title" [date]="entry.date"
-                     [detail]="entry.detail" [links]="entry.links" [items]="entry.items" />
+                     [detail]="entry.detail" [location]="entry.location"
+                     [links]="entry.links" [items]="entry.items" />
         }
       }
       @if (section.subsections) {

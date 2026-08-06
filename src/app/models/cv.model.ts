@@ -21,7 +21,7 @@ export interface CvHeader {
 
 export interface CvAbstract {
   paragraphs: string[];
-  keywords: string[];
+  keywords?: string[];
 }
 
 export interface CvPublicationLink {
@@ -33,6 +33,7 @@ export interface CvEntry {
   title: string;
   date: string;
   detail?: string;
+  location?: string;
   links?: CvPublicationLink[];
   items?: string[];
 }

@@ -148,11 +148,10 @@
 }
 
 .cv-page .entry-line {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  gap: 1rem;
-  flex-wrap: wrap;
+  column-gap: 1rem;
 }
 
 .cv-page .entry-title {
@@ -162,17 +161,29 @@
 .cv-page .entry-date {
   color: var(--text-secondary);
   font-size: 0.9rem;
+  justify-self: end;
+  text-align: right;
   white-space: nowrap;
 }
 
 .cv-page .entry-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 1rem;
   color: var(--text-secondary);
   font-style: italic;
   margin-top: 0.2rem;
 }
 
-.cv-page .entry-detail:empty {
-  display: none;
+.cv-page .entry-detail-main {
+  min-width: 0;
+}
+
+.cv-page .entry-location {
+  justify-self: end;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .cv-page .entry-list {
@@ -225,9 +236,16 @@
     text-align: left;
   }
 
-  .cv-page .entry-line {
-    flex-direction: column;
-    gap: 0.2rem;
+  .cv-page .entry-line,
+  .cv-page .entry-detail {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0.2rem;
+  }
+
+  .cv-page .entry-date,
+  .cv-page .entry-location {
+    justify-self: start;
+    text-align: left;
   }
 
   .cv-page .links {
