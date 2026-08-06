@@ -8,6 +8,7 @@ import { createHighlighter } from 'shiki';
 import { createCodeRenderer } from './lib/code-renderer.mjs';
 import { mathBlock, mathInline } from './lib/math-extensions.mjs';
 import { tableRenderer } from './lib/table-renderer.mjs';
+import { buildTableOfContents } from './lib/toc-renderer.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const CONFIG_DIR = join(ROOT, 'content/config');
@@ -168,7 +169,8 @@ function renderAiImageFigures(html, slug) {
     }
   }
 
-  return document.body.innerHTML;
+  const toc = buildTableOfContents(document);
+  return { html: document.body.innerHTML, toc };
 }
 
 function renderMarkdown(md, slug, highlighter) {
@@ -219,8 +221,8 @@ async function main() {
   });
 
   const posts = rawPosts.map(({ slug, meta, md }) => {
-    const contentHtml = renderMarkdown(md, slug, highlighter);
-    return { slug, ...meta, contentHtml };
+    const rendered = renderMarkdown(md, slug, highlighter);
+    return { slug, ...meta, contentHtml: rendered.html, toc: rendered.toc };
   });
 
   posts.sort((a, b) => b.date.localeCompare(a.date));

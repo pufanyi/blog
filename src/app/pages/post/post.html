@@ -1,11 +1,20 @@
 @if (post(); as post) {
   @if (tocItems().length) {
+    <aside class="post-toc-sidebar">
+      <app-post-toc
+        [items]="tocItems()"
+        [activeHeadingId]="activeHeadingId()"
+        [progress]="readingProgress()"
+        (sectionSelected)="onTocNavigate($event)"
+      />
+    </aside>
+
     <button
       class="toc-toggle"
       type="button"
       (click)="toggleToc()"
       [attr.aria-expanded]="tocOpen()"
-      aria-controls="post-toc"
+      aria-controls="post-toc-dialog"
       aria-label="Toggle table of contents"
       title="Table of Contents"
     >
@@ -16,46 +25,39 @@
       }
     </button>
 
-    <nav
-      class="post-toc"
-      [class.toc-visible]="tocOpen()"
-      id="post-toc"
+    <dialog
+      class="post-toc-dialog"
+      id="post-toc-dialog"
+      #tocDialog
       aria-label="Table of contents"
-      (keydown.escape)="closeToc()"
-      tabindex="-1"
+      (click)="onTocDialogClick($event)"
+      (close)="onTocDialogClose()"
     >
-      <div class="toc-title">
-        <i class="ph ph-list-numbers toc-title-icon" aria-hidden="true"></i>
-        <span>Contents</span>
-      </div>
-      <div class="toc-nav" appAutoAnimate [appAutoAnimateOptions]="{ duration: 150, easing: 'ease-out' }">
-        @for (item of tocItems(); track item.id) {
-          <a
-            class="toc-link"
-            [class.level-3]="item.level === 3"
-            [class.is-active]="activeHeadingId() === item.id"
-            [href]="'#' + item.id"
-            (click)="onTocClick($event, item.id)"
-          >
-            {{ item.text }}
-          </a>
-        }
-      </div>
-    </nav>
+      <div class="toc-drawer">
+        <button
+          class="toc-drawer-close"
+          type="button"
+          autofocus
+          aria-label="Close table of contents"
+          title="Close table of contents"
+          (click)="closeToc()"
+        >
+          <i class="ph ph-x" aria-hidden="true"></i>
+        </button>
 
-    <div
-      class="toc-backdrop"
-      [class.toc-backdrop-visible]="tocOpen() && !isWide()"
-      (click)="closeToc()"
-      tabindex="-1"
-      role="button"
-      aria-label="Close table of contents"
-    ></div>
+        <app-post-toc
+          [items]="tocItems()"
+          [activeHeadingId]="activeHeadingId()"
+          [progress]="readingProgress()"
+          (sectionSelected)="onTocNavigate($event)"
+        />
+      </div>
+    </dialog>
   }
 
   <app-post-header [title]="post.title" [date]="post.date" [coverImage]="post.coverImage" />
 
-  <article class="post-body" [innerHTML]="safeHtml()"></article>
+  <article class="post-body" #postBody [innerHTML]="safeHtml()"></article>
 
   <section class="giscus-wrapper">
     <app-giscus-comments />

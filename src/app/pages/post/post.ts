@@ -1,7 +1,9 @@
 import {
   ApplicationRef,
+  ChangeDetectionStrategy,
   Component,
   ComponentRef,
+  ElementRef,
   EnvironmentInjector,
   OnDestroy,
   ViewEncapsulation,
@@ -10,8 +12,8 @@ import {
   effect,
   inject,
   signal,
+  untracked,
   viewChild,
-  ChangeDetectionStrategy
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -21,6 +23,7 @@ import { POSTS } from '../../data/posts';
 import { PostHeaderComponent } from '../../components/post-header/post-header';
 import { GiscusCommentsComponent } from '../../components/giscus-comments/giscus-comments';
 import { BackToTopComponent } from '../../components/back-to-top/back-to-top';
+import { PostTocComponent } from '../../components/post-toc/post-toc';
 import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
 import { ImageLightboxComponent } from '../../components/image-lightbox/image-lightbox';
 import {
@@ -30,13 +33,9 @@ import {
   initContentImageZoom,
   optimizeContentImages,
 } from '../../utils/post-content-hooks';
-import { smoothScrollTo, SmoothScrollHandle } from '../../utils/smooth-scroll';
-import { buildContentWithToc, TocItem } from '../../utils/toc-builder';
-import { HeadingObserver } from '../../utils/heading-observer';
-import { AutoAnimateDirective } from '../../directives/auto-animate';
+import { HeadingScrollSpy } from '../../utils/heading-scroll-spy';
 
-const WIDE_QUERY = '(min-width: 1301px)';
-const HEADING_SCROLL_OFFSET_PX = 20;
+const WIDE_QUERY = '(min-width: 1480px)';
 
 @Component({
   selector: 'app-post',
@@ -46,7 +45,7 @@ const HEADING_SCROLL_OFFSET_PX = 20;
     PostHeaderComponent,
     GiscusCommentsComponent,
     BackToTopComponent,
-    AutoAnimateDirective,
+    PostTocComponent,
   ],
   templateUrl: './post.html',
   styleUrls: [
@@ -66,33 +65,38 @@ export class PostComponent implements OnDestroy {
   private readonly appRef = inject(ApplicationRef);
   private readonly environmentInjector = inject(EnvironmentInjector);
   private readonly slug = toSignal(this.route.paramMap.pipe(map(p => p.get('slug'))));
-  private readonly headingObserver = new HeadingObserver();
+  private readonly headingScrollSpy = new HeadingScrollSpy();
   private viewportMediaQuery: MediaQueryList | null = null;
-  private scrollHandle: SmoothScrollHandle | null = null;
+  private tocTrigger: HTMLElement | null = null;
+  private restoreTocTrigger = true;
 
   private readonly giscus = viewChild(GiscusCommentsComponent);
+  private readonly postBody = viewChild<ElementRef<HTMLElement>>('postBody');
+  private readonly tocDialog = viewChild<ElementRef<HTMLDialogElement>>('tocDialog');
 
   readonly tocOpen = signal(false);
-  readonly isWide = signal(false);
-  readonly activeHeadingId = this.headingObserver.activeHeadingId;
+  readonly activeHeadingId = this.headingScrollSpy.activeHeadingId;
+  readonly readingProgress = this.headingScrollSpy.readingProgress;
 
   readonly post = computed(() => {
     const s = this.slug();
     return POSTS.find(p => p.slug === s);
   });
 
-  private readonly processedContent = computed(() => {
-    const p = this.post();
-    return p ? buildContentWithToc(p.contentHtml) : { html: '', toc: [] as TocItem[] };
-  });
+  readonly tocItems = computed(() => this.post()?.toc ?? []);
 
-  readonly tocItems = computed(() => this.processedContent().toc);
-
-  readonly safeHtml = computed(() => this.sanitizer.bypassSecurityTrustHtml(this.processedContent().html));
+  readonly safeHtml = computed(() =>
+    this.sanitizer.bypassSecurityTrustHtml(this.post()?.contentHtml ?? ''),
+  );
 
   constructor() {
     this.setupViewportObserver();
     this.setupToolbarExtension();
+
+    effect(() => {
+      this.slug();
+      untracked(() => this.closeToc(false));
+    });
 
     effect(onCleanup => {
       this.safeHtml();
@@ -114,7 +118,7 @@ export class PostComponent implements OnDestroy {
             return;
           }
 
-          const postBody = document.querySelector<HTMLElement>('.post-body');
+          const postBody = this.postBody()?.nativeElement;
           if (!postBody || postBody.childElementCount === 0) {
             if (attempt < 20) {
               runPostHooks(attempt + 1);
@@ -122,13 +126,13 @@ export class PostComponent implements OnDestroy {
             return;
           }
 
-          void typesetMath(postBody);
+          void typesetMath(postBody).finally(() => this.headingScrollSpy.refresh());
           initCodeCopyButtons();
           optimizeContentImages();
           cleanupContentImages = this.hydrateContentImages(postBody);
           cleanupAiSummaryFigures = initAiSummaryFigures(postBody);
           cleanupContentImageZoom = initContentImageZoom(postBody);
-          this.setupHeadingObserver();
+          this.setupHeadingScrollSpy(postBody);
           this.giscus()?.load();
         }, attempt === 0 ? 0 : 25);
       };
@@ -143,57 +147,118 @@ export class PostComponent implements OnDestroy {
         cleanupAiSummaryFigures?.();
         cleanupContentImageZoom?.();
         cleanupContentImages?.();
-        this.headingObserver.disconnect();
+        this.headingScrollSpy.disconnect();
       });
     });
   }
 
   ngOnDestroy(): void {
-    this.headingObserver.disconnect();
+    this.headingScrollSpy.disconnect();
     this.teardownViewportObserver();
-    this.scrollHandle?.cancel();
+    this.closeToc(false);
     this.toolbarExt.reset();
   }
 
   toggleToc(): void {
-    this.tocOpen.update(value => !value);
+    const dialog = this.tocDialog()?.nativeElement;
+    if (!dialog || this.viewportMediaQuery?.matches) {
+      return;
+    }
+
+    if (dialog.open) {
+      this.closeToc();
+      return;
+    }
+
+    this.tocTrigger =
+      typeof document !== 'undefined' && document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    this.restoreTocTrigger = true;
+
+    if (typeof dialog.showModal === 'function') {
+      dialog.showModal();
+    } else {
+      dialog.setAttribute('open', '');
+    }
+    this.tocOpen.set(true);
   }
 
-  closeToc(): void {
+  closeToc(restoreTrigger = true): void {
+    this.restoreTocTrigger = restoreTrigger;
+    const dialog = this.tocDialog()?.nativeElement;
+    if (dialog?.open) {
+      if (typeof dialog.close === 'function') {
+        dialog.close();
+      } else {
+        dialog.removeAttribute('open');
+        this.onTocDialogClose();
+      }
+      return;
+    }
+
     this.tocOpen.set(false);
+    if (!restoreTrigger) {
+      this.tocTrigger = null;
+      this.restoreTocTrigger = true;
+    }
   }
 
-  onTocClick(event: Event, id: string): void {
-    event.preventDefault();
-    this.scrollToHeading(id, true);
+  onTocNavigate(id: string): void {
+    this.headingScrollSpy.activate(id);
+    this.closeToc(false);
 
-    if (!this.isWide() && typeof window !== 'undefined') {
-      window.setTimeout(() => this.tocOpen.set(false), 150);
+    if (typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => {
+        const heading = Array.from(
+          this.postBody()?.nativeElement.querySelectorAll<HTMLElement>('h2[id], h3[id]') ?? [],
+        ).find(candidate => candidate.id === id);
+        heading?.focus({ preventScroll: true });
+      });
+    }
+  }
+
+  onTocDialogClose(): void {
+    this.tocOpen.set(false);
+    const trigger = this.restoreTocTrigger ? this.tocTrigger : null;
+    this.tocTrigger = null;
+    this.restoreTocTrigger = true;
+
+    if (trigger?.isConnected) {
+      queueMicrotask(() => trigger.focus({ preventScroll: true }));
+    }
+  }
+
+  onTocDialogClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.closeToc();
     }
   }
 
   private setupToolbarExtension(): void {
     this.toolbarExt.mobileTitle.set('Reading');
-    this.toolbarExt.leadingButtons.set([
-      {
-        icon: 'ph-list',
-        toggleIcon: 'ph-x',
-        ariaLabel: 'Toggle table of contents',
-        title: 'Table of Contents',
-        action: () => this.toggleToc(),
-        isToggled: () => this.tocOpen(),
-      },
-    ]);
+    effect(() => {
+      this.toolbarExt.leadingButtons.set(
+        this.tocItems().length
+          ? [
+              {
+                icon: 'ph-list',
+                toggleIcon: 'ph-x',
+                ariaLabel: 'Toggle table of contents',
+                title: 'Table of Contents',
+                action: () => this.toggleToc(),
+                isToggled: () => this.tocOpen(),
+                ariaControls: 'post-toc-dialog',
+                isExpanded: () => this.tocOpen(),
+              },
+            ]
+          : [],
+      );
+    });
   }
 
-  private setupHeadingObserver(): void {
-    const toc = this.tocItems();
-    const hashId = this.readHashId();
-    this.headingObserver.observe(toc, hashId);
-
-    if (hashId) {
-      this.scrollToHeading(hashId, false);
-    }
+  private setupHeadingScrollSpy(postBody: HTMLElement): void {
+    this.headingScrollSpy.observe(postBody, this.tocItems(), this.readHashId());
   }
 
   private setupViewportObserver(): void {
@@ -203,8 +268,6 @@ export class PostComponent implements OnDestroy {
 
     const mediaQuery = window.matchMedia(WIDE_QUERY);
     this.viewportMediaQuery = mediaQuery;
-    this.isWide.set(mediaQuery.matches);
-    this.tocOpen.set(mediaQuery.matches);
 
     if (typeof mediaQuery.addEventListener === 'function') {
       mediaQuery.addEventListener('change', this.handleViewportChange);
@@ -230,38 +293,10 @@ export class PostComponent implements OnDestroy {
   }
 
   private readonly handleViewportChange = (event: MediaQueryListEvent): void => {
-    this.isWide.set(event.matches);
-    this.tocOpen.set(event.matches);
+    if (event.matches) {
+      this.closeToc(false);
+    }
   };
-
-  private scrollToHeading(id: string, smooth: boolean): void {
-    if (typeof document === 'undefined' || typeof window === 'undefined') {
-      return;
-    }
-
-    const heading = document.getElementById(id);
-    if (!heading) {
-      return;
-    }
-
-    const targetY = Math.max(
-      0,
-      window.scrollY + heading.getBoundingClientRect().top - HEADING_SCROLL_OFFSET_PX,
-    );
-
-    if (smooth) {
-      this.scrollHandle?.cancel();
-      this.scrollHandle = smoothScrollTo(targetY);
-    } else {
-      this.scrollHandle?.cancel();
-      window.scrollTo(0, targetY);
-    }
-
-    this.activeHeadingId.set(id);
-    if (typeof history !== 'undefined') {
-      history.replaceState(null, '', `#${encodeURIComponent(id)}`);
-    }
-  }
 
   private readHashId(): string | null {
     if (typeof window === 'undefined') {

@@ -1,0 +1,61 @@
+<nav class="toc" aria-label="On this page">
+  <header class="toc-header">
+    <span class="toc-title">
+      <i class="ph ph-list-numbers" aria-hidden="true"></i>
+      On this page
+    </span>
+    <span class="toc-percentage" aria-hidden="true">{{ progressPercent() }}%</span>
+  </header>
+
+  <div
+    class="toc-progress"
+    role="progressbar"
+    aria-label="Article reading progress"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    [attr.aria-valuenow]="progressPercent()"
+  >
+    <span
+      class="toc-progress-value"
+      [style.transform]="'scaleX(' + normalizedProgress() + ')'"
+    ></span>
+  </div>
+
+  <div class="toc-scroll" #scrollViewport>
+    <ol class="toc-list">
+      @for (item of items(); track item.id) {
+        <li class="toc-item" [class.contains-active]="containsActiveItem(item)">
+          <a
+            class="toc-link"
+            [class.is-active]="activeHeadingId() === item.id"
+            [attr.aria-current]="activeHeadingId() === item.id ? 'location' : null"
+            [attr.data-toc-id]="item.id"
+            [href]="fragmentFor(item.id)"
+            (click)="selectSection($event, item.id)"
+          >
+            {{ item.text }}
+          </a>
+
+          @if (item.children.length) {
+            <ol class="toc-sublist">
+              @for (child of item.children; track child.id) {
+                <li class="toc-subitem">
+                  <a
+                    class="toc-link toc-sublink"
+                    [class.is-active]="activeHeadingId() === child.id"
+                    [attr.aria-current]="activeHeadingId() === child.id ? 'location' : null"
+                    [attr.data-toc-id]="child.id"
+                    [href]="fragmentFor(child.id)"
+                    (click)="selectSection($event, child.id)"
+                  >
+                    {{ child.text }}
+                  </a>
+                </li>
+              }
+            </ol>
+          }
+        </li>
+      }
+    </ol>
+  </div>
+</nav>

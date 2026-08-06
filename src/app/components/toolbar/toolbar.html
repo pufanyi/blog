@@ -42,6 +42,8 @@
           type="button"
           (click)="btn.action()"
           [attr.aria-label]="btn.ariaLabel"
+          [attr.aria-controls]="btn.ariaControls ?? null"
+          [attr.aria-expanded]="btn.isExpanded ? btn.isExpanded() : null"
           [title]="btn.title"
         >
           @if (btn.toggleIcon && btn.isToggled?.()) {

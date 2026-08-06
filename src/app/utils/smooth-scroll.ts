@@ -11,8 +11,9 @@ export function smoothScrollTo(targetY: number, durationMs = DEFAULT_DURATION_MS
 
   const startY = window.scrollY;
   const deltaY = targetY - startY;
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-  if (Math.abs(deltaY) < 1) {
+  if (Math.abs(deltaY) < 1 || reduceMotion || durationMs <= 0) {
     window.scrollTo(0, targetY);
     return { cancel() {} };
   }

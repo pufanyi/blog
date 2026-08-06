@@ -7,6 +7,8 @@ export interface ToolbarExtraButton {
   action: () => void;
   toggleIcon?: string;
   isToggled?: () => boolean;
+  ariaControls?: string;
+  isExpanded?: () => boolean;
 }
 
 @Injectable({ providedIn: 'root' })
