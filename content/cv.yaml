@@ -84,6 +84,9 @@ sections:
       - title: "LMMs-Engine: A Simple, Unified Multimodal Models Training Engine"
         date: Aug 2025 – Present
         detail: "Research Project, Core Developer"
+        links:
+          - text: GitHub
+            href: "https://github.com/EvolvingLMMs-Lab/lmms-engine"
         items:
           - A lean and flexible training framework designed for both rapid research prototyping and large-scale production
           - Optimized the Bagel training pipeline by integrating FSDP2 and Liger Kernel for efficient distributed training
@@ -107,6 +110,11 @@ sections:
       - title: "Mage-Flow: An Efficient Native-Resolution Foundation Model for Image Generation and Editing"
         date: Jan 2026 – Apr 2026
         detail: "Technical Report (Microsoft Research), Contributor"
+        links:
+          - text: Paper
+            href: "https://arxiv.org/abs/2607.19064"
+          - text: Project Page
+            href: "https://microsoft.github.io/Mage/flow/"
         items:
           - An efficient native-resolution foundation model for high-quality image generation and editing
           - >-
@@ -117,6 +125,11 @@ sections:
       - title: Demystifying Video Reasoning
         date: Jan 2026 – Mar 2026
         detail: "ECCV 2026, Third Author"
+        links:
+          - text: Paper
+            href: "https://arxiv.org/abs/2603.16870"
+          - text: Project Page
+            href: "https://www.wruisi.com/demystifying_video_reasoning/"
         items:
           - Revisited video reasoning and proposed Chain-of-Step, in which models reason through diffusion steps
           - Curated a large collection of examples to validate this hypothesis and systematically analyzed models' reasoning behaviors
@@ -124,6 +137,11 @@ sections:
       - title: "SenseNova-SI: Scaling Spatial Intelligence with Multimodal Foundation Models"
         date: Sep 2025 – Jan 2026
         detail: "CVPR 2026, Co-first author"
+        links:
+          - text: Paper
+            href: "https://openaccess.thecvf.com/content/CVPR2026/papers/Cai_Scaling_Spatial_Intelligence_with_Multimodal_Foundation_Models_CVPR_2026_paper.pdf"
+          - text: GitHub
+            href: "https://github.com/OpenSenseNova/SenseNova-SI"
         items:
           - Developed a foundation model for scaling spatial intelligence, achieving state-of-the-art performance on key spatial benchmarks
           - >-
