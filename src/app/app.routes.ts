@@ -15,10 +15,9 @@ const redirectRoutes: Routes = REDIRECTS.map(r => ({
 
 export const routes: Routes = [
   {
-    path: '',
+    path: 'cv',
     pathMatch: 'full',
-    loadComponent: () =>
-      import('./pages/landing/landing').then(m => m.LandingComponent),
+    redirectTo: '',
   },
   {
     path: '',
@@ -26,7 +25,8 @@ export const routes: Routes = [
       import('./components/blog-shell/blog-shell').then(m => m.BlogShellComponent),
     children: [
       {
-        path: 'cv',
+        path: '',
+        pathMatch: 'full',
         loadComponent: () => import('./pages/cv/cv').then(m => m.CvPageComponent),
       },
       {

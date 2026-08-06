@@ -1,9 +1,5 @@
 @import './styles/catppuccin.css';
 
-body.landing-active {
-  background: var(--background);
-}
-
 ::selection { background: color-mix(in srgb, var(--ctp-blue) 28%, var(--ctp-transparent)); color: var(--ctp-text); }
 
 * { margin: 0; padding: 0; }
