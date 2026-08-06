@@ -8,6 +8,6 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   styleUrl: './footer.css',
 })
 export class FooterComponent {
-  readonly lastUpdated = 'February 2026';
+  readonly lastUpdated = 'August 2026';
   readonly sourceCodeUrl = 'https://github.com/pufanyi/blog';
 }
