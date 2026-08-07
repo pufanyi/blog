@@ -1,68 +1,135 @@
-/* ========== Desktop nav (left side) ========== */
-.toolbar-nav {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 1000;
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* ========== Desktop actions (right side) ========== */
 .toolbar {
   position: fixed;
   top: 1rem;
-  right: 1rem;
+  left: 50%;
   z-index: 1000;
+  width: min(44rem, calc(100vw - 2rem));
+  transform: translateX(-50%);
 }
 
 .toolbar-desktop {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  min-height: 3.25rem;
+  padding: 0.38rem;
+  border: 1px solid color-mix(in srgb, var(--border-color) 24%, var(--ctp-transparent));
+  border-radius: 1.15rem;
+  background: var(--paper-bg);
+  background: color-mix(in srgb, var(--paper-bg) 78%, var(--ctp-transparent));
+  box-shadow:
+    0 14px 36px color-mix(in srgb, var(--shadow-color-strong) 44%, var(--ctp-transparent)),
+    inset 0 1px 0 color-mix(in srgb, var(--ctp-text) 7%, var(--ctp-transparent));
+  backdrop-filter: saturate(160%) blur(24px);
+  -webkit-backdrop-filter: saturate(160%) blur(24px);
 }
 
-.toolbar-desktop button,
-.toolbar-desktop-btn {
-  background: var(--paper-bg);
-  border: 1px solid color-mix(in srgb, var(--border-color) 25%, var(--ctp-transparent));
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
+.toolbar-brand,
+.toolbar-links,
+.toolbar-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  box-shadow: 0 1px 3px var(--shadow-color);
-  transition: color 0.2s, background 0.3s ease, box-shadow 0.2s, border-color 0.2s;
-  font-family: var(--font-heading);
+}
+
+.toolbar-brand {
+  gap: 0.58rem;
+  padding-right: 0.75rem;
+  color: var(--text-color);
   text-decoration: none;
 }
 
-.toolbar-desktop button:hover,
-.toolbar-desktop-btn:hover {
+.toolbar-brand:hover {
   color: var(--text-color);
-  box-shadow: 0 2px 6px var(--shadow-color);
-  border-color: color-mix(in srgb, var(--border-color) 40%, var(--ctp-transparent));
   text-decoration: none;
+}
+
+.toolbar-monogram {
+  display: grid;
+  width: 2.15rem;
+  height: 2.15rem;
+  place-items: center;
+  border-radius: 0.72rem;
+  color: var(--on-accent);
+  background: var(--link-color);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.toolbar-brand-name {
+  font-size: 0.9rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.toolbar-links {
+  gap: 0.1rem;
+  padding-left: 0.65rem;
+  border-left: 1px solid color-mix(in srgb, var(--border-color) 24%, var(--ctp-transparent));
+}
+
+.toolbar-link {
+  padding: 0.48rem 0.72rem;
+  border-radius: 0.7rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 550;
+  text-decoration: none;
+  transition: color 180ms ease, background-color 180ms ease;
+}
+
+.toolbar-link:hover,
+.toolbar-link.is-active {
+  color: var(--text-color);
+  background: color-mix(in srgb, var(--text-color) 7%, var(--ctp-transparent));
+  text-decoration: none;
+}
+
+.toolbar-actions {
+  gap: 0.1rem;
+  margin-left: auto;
+}
+
+.toolbar-actions button,
+.toolbar-mobile-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  color: var(--text-secondary);
+  background: var(--ctp-transparent);
+  cursor: pointer;
+  transition: color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.toolbar-actions button {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.72rem;
+  font-size: 1.05rem;
+}
+
+.toolbar-actions button:hover,
+.toolbar-mobile-btn:hover,
+.toolbar-mobile-btn:active {
+  color: var(--text-color);
+  background: color-mix(in srgb, var(--text-color) 7%, var(--ctp-transparent));
+}
+
+.toolbar-actions button:active {
+  transform: scale(0.94);
 }
 
 .toolbar-mobile {
   display: none;
 }
 
-
 @media (max-width: 768px) {
-  .toolbar-nav {
-    display: none;
-  }
-
   .toolbar {
-    position: fixed;
     top: 0.68rem;
     left: 0.68rem;
     right: 0.68rem;
-    z-index: 1000;
+    width: auto;
+    transform: none;
   }
 
   .toolbar-desktop {
@@ -70,20 +137,20 @@
   }
 
   .toolbar-mobile {
-    z-index: 1002;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0.3rem 0.4rem;
-    border: 1px solid color-mix(in srgb, var(--border-color) 14%, var(--ctp-transparent));
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--paper-bg) 82%, var(--background));
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid color-mix(in srgb, var(--border-color) 18%, var(--ctp-transparent));
+    border-radius: 1rem;
+    background: var(--paper-bg);
+    background: color-mix(in srgb, var(--paper-bg) 82%, var(--ctp-transparent));
     box-shadow:
-      0 2px 12px var(--shadow-color),
-      0 0 0 0.5px color-mix(in srgb, var(--border-color) 18%, var(--ctp-transparent));
+      0 10px 28px color-mix(in srgb, var(--shadow-color-strong) 38%, var(--ctp-transparent)),
+      inset 0 1px 0 color-mix(in srgb, var(--ctp-text) 6%, var(--ctp-transparent));
+    backdrop-filter: saturate(160%) blur(22px);
+    -webkit-backdrop-filter: saturate(160%) blur(22px);
   }
 
   .toolbar-mobile-group {
@@ -95,48 +162,49 @@
   }
 
   .toolbar-mobile-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     width: 2rem;
     height: 2rem;
+    border-radius: 0.62rem;
     font-size: 0.95rem;
     line-height: 1;
-    border: none;
-    border-radius: 8px;
-    color: var(--text-secondary);
-    text-decoration: none;
-    background: var(--ctp-transparent);
-    cursor: pointer;
-    transition: color 0.2s ease, background-color 0.2s ease;
-  }
-
-  .toolbar-mobile-btn:hover,
-  .toolbar-mobile-btn:active {
-    color: var(--text-color);
-    background: color-mix(in srgb, var(--text-color) 7%, var(--ctp-transparent));
     text-decoration: none;
   }
 
   .toolbar-mobile-title {
     position: absolute;
-    left: 0;
     right: 0;
-    text-align: center;
-    pointer-events: none;
+    left: 0;
     color: var(--text-secondary);
-    font-family: var(--font-heading);
     font-size: 0.65rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.12em;
+    text-align: center;
     text-transform: uppercase;
-    opacity: 0.5;
+    pointer-events: none;
+    opacity: 0.55;
     user-select: none;
   }
 }
 
+@media (prefers-reduced-transparency: reduce) {
+  .toolbar-desktop,
+  .toolbar-mobile {
+    background: var(--paper-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toolbar-link,
+  .toolbar-actions button,
+  .toolbar-mobile-btn {
+    transition: none;
+  }
+}
+
 @media print {
-  .toolbar-nav {
+  .toolbar {
     display: none !important;
   }
 }

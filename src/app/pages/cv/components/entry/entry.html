@@ -13,7 +13,10 @@
           @if (links()?.length) {
             <span class="publication-links">
               @for (link of links()!; track link.href) {
-                <a [href]="link.href" target="_blank" rel="noopener noreferrer">[{{ link.text }}]</a>
+                <a [href]="link.href" target="_blank" rel="noopener noreferrer">
+                  <span>{{ link.text }}</span>
+                  <i class="ph ph-arrow-up-right" aria-hidden="true"></i>
+                </a>
               }
             </span>
           }

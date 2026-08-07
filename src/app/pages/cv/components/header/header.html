@@ -1,17 +1,15 @@
 <header class="title-block">
   <div class="title-wrapper">
+    <span class="title-kicker">Research profile</span>
     <hr class="title-rule-top" />
     <h1 class="title">{{ data().name }}</h1>
     <hr class="title-rule-bottom" />
   </div>
 
-  <app-image-lightbox [src]="data().photo" [alt]="data().name" imgClass="author-photo" width="100" height="100" />
+  <app-image-lightbox [src]="data().photo" [alt]="data().name" imgClass="author-photo" width="180" height="180" />
   <div class="affiliation">
-    @for (line of data().affiliation; track $index; let last = $last) {
-      {{ line }}
-      @if (!last) {
-        <br />
-      }
+    @for (line of data().affiliation; track $index) {
+      <span class="affiliation-line">{{ line }}</span>
     }
   </div>
   <div class="contact-info">
@@ -29,11 +27,11 @@
   <div class="links">
     @for (link of data().links; track link.href) {
       @if (link.internal) {
-        <a [routerLink]="link.href" class="icon-link" [attr.aria-label]="link.label">
+        <a [routerLink]="link.href" class="icon-link" [attr.aria-label]="link.label" [title]="link.label">
           <i [class]="'ph ' + link.icon"></i>
         </a>
       } @else {
-        <a [href]="link.href" target="_blank" rel="noopener noreferrer" class="icon-link" [attr.aria-label]="link.label">
+        <a [href]="link.href" target="_blank" rel="noopener noreferrer" class="icon-link" [attr.aria-label]="link.label" [title]="link.label">
           <i [class]="'ph ' + link.icon"></i>
         </a>
       }

@@ -1,41 +1,47 @@
-<div class="toolbar-nav">
-  <a class="toolbar-desktop-btn" routerLink="/" aria-label="Home" title="Home">
-    <i class="ph ph-house" style="font-size: 20px"></i>
-  </a>
-  @if (showBlogLink()) {
-    <a class="toolbar-desktop-btn" routerLink="/blog" aria-label="Blog" title="Blog">
-      <i class="ph ph-notebook" style="font-size: 20px"></i>
-    </a>
-  }
-</div>
-
 <div class="toolbar">
-  <div class="toolbar-desktop">
-    <button (click)="searchOpen.set(true)" aria-label="Search" title="Search posts (Ctrl+K)">
-      <i class="ph ph-magnifying-glass" style="font-size: 20px"></i>
-    </button>
-    <button (click)="print()" aria-label="Print" title="Export as PDF / Print">
-      <i class="ph ph-printer" style="font-size: 20px"></i>
-    </button>
-    <button (click)="themeService.toggle()" aria-label="Toggle theme" title="Toggle light/dark theme">
-      @if (themeService.theme() === 'light') {
-        <i class="ph ph-moon" style="font-size: 20px"></i>
-      } @else {
-        <i class="ph ph-sun" style="font-size: 20px"></i>
-      }
-    </button>
-  </div>
+  <nav class="toolbar-desktop" aria-label="Primary navigation">
+    <a class="toolbar-brand" routerLink="/" aria-label="Fanyi Pu profile">
+      <span class="toolbar-monogram" aria-hidden="true">FP</span>
+      <span class="toolbar-brand-name">Fanyi Pu</span>
+    </a>
+
+    <div class="toolbar-links">
+      <a
+        class="toolbar-link"
+        routerLink="/"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        Profile
+      </a>
+      <a class="toolbar-link" routerLink="/blog" routerLinkActive="is-active">Blog</a>
+    </div>
+
+    <div class="toolbar-actions">
+      <button type="button" (click)="searchOpen.set(true)" aria-label="Search" title="Search posts (Ctrl+K)">
+        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+      </button>
+      <button type="button" (click)="print()" aria-label="Print" title="Export as PDF / Print">
+        <i class="ph ph-printer" aria-hidden="true"></i>
+      </button>
+      <button type="button" (click)="themeService.toggle()" aria-label="Toggle theme" title="Toggle light/dark theme">
+        @if (themeService.theme() === 'light') {
+          <i class="ph ph-moon" aria-hidden="true"></i>
+        } @else {
+          <i class="ph ph-sun" aria-hidden="true"></i>
+        }
+      </button>
+    </div>
+  </nav>
 
   <div class="toolbar-mobile" role="toolbar" aria-label="Quick actions">
     <div class="toolbar-mobile-group">
       <a class="toolbar-mobile-btn" routerLink="/" aria-label="Home" title="Home">
         <i class="ph ph-house" aria-hidden="true"></i>
       </a>
-      @if (showBlogLink()) {
-        <a class="toolbar-mobile-btn" routerLink="/blog" aria-label="Blog" title="Blog">
-          <i class="ph ph-notebook" aria-hidden="true"></i>
-        </a>
-      }
+      <a class="toolbar-mobile-btn" routerLink="/blog" aria-label="Blog" title="Blog">
+        <i class="ph ph-notebook" aria-hidden="true"></i>
+      </a>
       @for (btn of toolbarExt.leadingButtons(); track btn.ariaLabel) {
         <button
           class="toolbar-mobile-btn"

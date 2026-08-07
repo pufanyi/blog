@@ -45,7 +45,6 @@
     "@formkit/auto-animate": "^0.10.0",
     "@phosphor-icons/web": "^2.1.2",
     "@shikijs/transformers": "^4.4.2",
-    "charter-webfont": "^4.1.0",
     "flexsearch": "^0.8.212",
     "marked": "^18.0.9",
     "medium-zoom": "^1.1.0",

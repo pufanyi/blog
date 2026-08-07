@@ -1,4 +1,7 @@
 <section class="section" [id]="sectionId()" appAutoAnimate>
-  <h2 class="section-heading">{{ number() }} &nbsp; {{ title() }}</h2>
+  <h2 class="section-heading">
+    <span class="section-number" aria-hidden="true">{{ number() }}</span>
+    <span>{{ title() }}</span>
+  </h2>
   <ng-content />
 </section>

@@ -49,9 +49,6 @@ importers:
       '@shikijs/transformers':
         specifier: ^4.4.2
         version: 4.4.2
-      charter-webfont:
-        specifier: ^4.1.0
-        version: 4.1.0
       flexsearch:
         specifier: ^0.8.212
         version: 0.8.212
@@ -1681,9 +1678,6 @@ packages:
 
   chardet@2.2.0:
     resolution: {integrity: sha512-rddelWYNPRrXq6PtNEN2S3f6t9ILzvqaN5pVgi4kqt9jHQaXIial9PznB5iSPVlQSLNaaH22ItWz3EJtQ10+OA==}
-
-  charter-webfont@4.1.0:
-    resolution: {integrity: sha512-nYu9iCmmhHTHm3UxQagborgPJZ6VjlFD6BKP6AqkqRrVC5YbRkFv8up2Ccg3exsaRA0jbIt18+ge4BkYMRugzA==}
 
   chokidar@5.0.0:
     resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
@@ -4238,8 +4232,6 @@ snapshots:
   character-entities-legacy@3.0.0: {}
 
   chardet@2.2.0: {}
-
-  charter-webfont@4.1.0: {}
 
   chokidar@5.0.0:
     dependencies:
