@@ -26,6 +26,8 @@ describe('ProfilePageComponent', () => {
       'Curriculum Vitae',
     );
     expect(element.querySelector('.icon-link[href="https://pufanyi.com"]')).toBeNull();
+    const iconLinks = Array.from(element.querySelectorAll<HTMLAnchorElement>('.icon-link'));
+    expect(iconLinks.every(link => link.dataset['tooltip'] === link.ariaLabel)).toBe(true);
   });
 
   it('keeps the website link on the full CV page', () => {

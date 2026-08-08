@@ -29,11 +29,23 @@
   <div class="links">
     @for (link of data().links; track link.href) {
       @if (link.internal) {
-        <a [routerLink]="link.href" class="icon-link" [attr.aria-label]="link.label">
+        <a
+          [routerLink]="link.href"
+          class="icon-link"
+          [attr.aria-label]="link.label"
+          [attr.data-tooltip]="link.label"
+        >
           <i [class]="'ph ' + link.icon"></i>
         </a>
       } @else {
-        <a [href]="link.href" target="_blank" rel="noopener noreferrer" class="icon-link" [attr.aria-label]="link.label">
+        <a
+          [href]="link.href"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="icon-link"
+          [attr.aria-label]="link.label"
+          [attr.data-tooltip]="link.label"
+        >
           <i [class]="'ph ' + link.icon"></i>
         </a>
       }

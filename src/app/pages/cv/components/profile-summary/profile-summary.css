@@ -58,10 +58,73 @@
 }
 
 .profile-summary .icon-link {
+  position: relative;
   display: inline-flex;
   color: var(--text-color);
   font-size: 24px;
   transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.profile-summary .icon-link::before,
+.profile-summary .icon-link::after {
+  position: absolute;
+  left: 50%;
+  z-index: 10;
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+}
+
+.profile-summary .icon-link::before {
+  bottom: calc(100% + 0.18rem);
+  width: 0;
+  height: 0;
+  border: 0.32rem solid var(--ctp-transparent);
+  border-top-color: var(--text-color);
+  content: "";
+  transform: translate(-50%, -0.12rem);
+}
+
+.profile-summary .icon-link::after {
+  bottom: calc(100% + 0.78rem);
+  padding: 0.32rem 0.5rem;
+  border-radius: 4px;
+  color: var(--paper-bg);
+  background: var(--text-color);
+  box-shadow: 0 4px 12px var(--shadow-color);
+  content: attr(data-tooltip);
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  transform: translate(-50%, 0.2rem);
+  white-space: nowrap;
+}
+
+.profile-summary .icon-link:hover::before,
+.profile-summary .icon-link:hover::after,
+.profile-summary .icon-link:focus-visible::before,
+.profile-summary .icon-link:focus-visible::after {
+  visibility: visible;
+  opacity: 1;
+}
+
+.profile-summary .icon-link:hover::before,
+.profile-summary .icon-link:focus-visible::before {
+  transform: translate(-50%, 0);
+}
+
+.profile-summary .icon-link:hover::after,
+.profile-summary .icon-link:focus-visible::after {
+  transform: translate(-50%, 0);
+}
+
+.profile-summary .icon-link:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--link-color);
+  outline-offset: 4px;
 }
 
 .profile-summary .icon-link:hover {
@@ -125,6 +188,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .profile-summary .icon-link {
+    transition: none;
+  }
+
+  .profile-summary .icon-link::before,
+  .profile-summary .icon-link::after {
     transition: none;
   }
 
