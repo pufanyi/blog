@@ -1,6 +1,9 @@
-@import './styles/catppuccin.css';
+@import './styles/morandi.css';
 
-::selection { background: color-mix(in srgb, var(--ctp-blue) 28%, var(--ctp-transparent)); color: var(--ctp-text); }
+::selection {
+  color: var(--text-color);
+  background: var(--selection-bg);
+}
 
 * { margin: 0; padding: 0; }
 

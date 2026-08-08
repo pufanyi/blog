@@ -9,7 +9,7 @@ type MathJaxApi = {
 
 const IMAGE_ZOOM_OPTIONS = {
   margin: 24,
-  background: 'color-mix(in srgb, var(--ctp-crust) 86%, var(--ctp-transparent))',
+  background: 'color-mix(in srgb, var(--background-deep) 86%, transparent)',
 };
 
 async function waitForMathJax(timeoutMs = 10000): Promise<MathJaxApi | null> {

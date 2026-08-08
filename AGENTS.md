@@ -27,8 +27,8 @@ Project guidance for agents working in this repository.
 
 ## Design
 
-- All color choices should follow the Catppuccin style and use existing
-  Catppuccin CSS variables when possible.
+- All color choices should follow the muted Morandi theme and use the semantic
+  color variables from `src/styles/morandi.css`.
 - All Angular-authored images should use `app-image-lightbox`, which wraps
   `NgOptimizedImage` and `medium-zoom`. Do not add bare template `<img>` tags
   unless there is a concrete framework limitation.

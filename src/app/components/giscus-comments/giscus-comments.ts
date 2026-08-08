@@ -1,6 +1,11 @@
 import { Component, OnDestroy, effect, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ThemeService } from '../../services/theme.service';
 
+const GISCUS_THEMES = {
+  light: 'https://pufanyi.com/giscus-morandi-light.css',
+  dark: 'https://pufanyi.com/giscus-morandi-dark.css',
+} as const;
+
 @Component({
   selector: 'app-giscus-comments',
   standalone: true,
@@ -56,7 +61,7 @@ export class GiscusCommentsComponent implements OnDestroy {
   }
 
   private getThemeValue(): string {
-    return this.themeService.theme() === 'dark' ? 'catppuccin_mocha' : 'catppuccin_latte';
+    return GISCUS_THEMES[this.themeService.theme()];
   }
 
   private syncTheme(theme: 'light' | 'dark'): void {
@@ -73,7 +78,7 @@ export class GiscusCommentsComponent implements OnDestroy {
       {
         giscus: {
           setConfig: {
-            theme: theme === 'dark' ? 'catppuccin_mocha' : 'catppuccin_latte',
+            theme: GISCUS_THEMES[theme],
           },
         },
       },

@@ -18,11 +18,11 @@
   margin-bottom: 1.35rem;
   background: linear-gradient(
     90deg,
-    var(--ctp-transparent),
-    color-mix(in srgb, var(--ctp-yellow) 58%, var(--border-color)),
-    color-mix(in srgb, var(--ctp-peach) 52%, var(--border-color)),
-    color-mix(in srgb, var(--ctp-mauve) 46%, var(--border-color)),
-    var(--ctp-transparent)
+    transparent,
+    color-mix(in srgb, var(--accent-ochre) 58%, var(--border-color)),
+    color-mix(in srgb, var(--accent-clay) 52%, var(--border-color)),
+    color-mix(in srgb, var(--accent-mauve) 46%, var(--border-color)),
+    transparent
   );
 }
 
@@ -40,7 +40,7 @@
 }
 
 .eyebrow i {
-  color: var(--ctp-yellow);
+  color: var(--accent-ochre);
   font-size: 1rem;
 }
 
@@ -66,9 +66,9 @@ h1 {
 .introduction {
   margin-bottom: 2.25rem;
   padding: 0.85rem 1rem;
-  border-left: 3px solid color-mix(in srgb, var(--ctp-yellow) 72%, var(--border-color));
+  border-left: 3px solid color-mix(in srgb, var(--accent-ochre) 72%, var(--border-color));
   border-radius: 0 7px 7px 0;
-  background: color-mix(in srgb, var(--ctp-yellow) 5%, var(--paper-bg));
+  background: color-mix(in srgb, var(--accent-ochre) 5%, var(--paper-bg));
   font-size: 1.05rem;
 }
 
@@ -90,7 +90,7 @@ h2 {
 }
 
 h2 i {
-  color: var(--ctp-blue);
+  color: var(--accent-blue);
   font-size: 1.2rem;
 }
 
@@ -107,13 +107,13 @@ h2 i {
 }
 
 .tribute-list li {
-  --item-accent: var(--ctp-blue);
+  --item-accent: var(--accent-blue);
   position: relative;
   padding: 0.82rem 0.95rem 0.84rem 1.15rem;
-  border: 1px solid color-mix(in srgb, var(--border-color) 18%, var(--ctp-transparent));
+  border: 1px solid color-mix(in srgb, var(--border-color) 18%, transparent);
   border-radius: 7px;
   background: color-mix(in srgb, var(--item-accent) 3.5%, var(--paper-bg));
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--border-color) 10%, var(--ctp-transparent));
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--border-color) 10%, transparent);
   overflow: hidden;
 }
 
@@ -121,40 +121,40 @@ h2 i {
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: color-mix(in srgb, var(--item-accent) 70%, var(--ctp-transparent));
+  background: color-mix(in srgb, var(--item-accent) 70%, transparent);
   content: "";
 }
 
 .tribute-list li:nth-child(4n + 2) {
-  --item-accent: var(--ctp-teal);
+  --item-accent: var(--accent-teal);
 }
 
 .tribute-list li:nth-child(4n + 3) {
-  --item-accent: var(--ctp-peach);
+  --item-accent: var(--accent-clay);
 }
 
 .tribute-list li:nth-child(4n + 4) {
-  --item-accent: var(--ctp-mauve);
+  --item-accent: var(--accent-mauve);
 }
 
 .teacher-list li {
-  --item-accent: var(--ctp-green);
+  --item-accent: var(--accent-sage);
 }
 
 .teacher-list li:nth-child(3n + 2) {
-  --item-accent: var(--ctp-sapphire);
+  --item-accent: var(--accent-slate);
 }
 
 .teacher-list li:nth-child(3n + 3) {
-  --item-accent: var(--ctp-lavender);
+  --item-accent: var(--accent-lavender);
 }
 
 .closing-note {
   margin-top: 2.4rem;
   padding: 1rem 1.1rem;
-  border: 1px solid color-mix(in srgb, var(--ctp-mauve) 20%, var(--ctp-transparent));
+  border: 1px solid color-mix(in srgb, var(--accent-mauve) 20%, transparent);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--ctp-mauve) 5%, var(--paper-bg));
+  background: color-mix(in srgb, var(--accent-mauve) 5%, var(--paper-bg));
 }
 
 @media (max-width: 600px) {

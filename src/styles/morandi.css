@@ -1,0 +1,156 @@
+:root {
+  color-scheme: light;
+
+  /* Muted Morandi accents, darkened enough for readable text and syntax. */
+  --accent-rose: #875f5a;
+  --accent-blush: #8a6069;
+  --accent-pink: #806174;
+  --accent-mauve: #765f70;
+  --accent-red: #8a5656;
+  --accent-maroon: #805562;
+  --accent-clay: #835e52;
+  --accent-ochre: #75613e;
+  --accent-sage: #5d725f;
+  --accent-teal: #526f6b;
+  --accent-sky: #586f77;
+  --accent-slate: #566f7a;
+  --accent-blue: #536b80;
+  --accent-lavender: #69627c;
+
+  /* Warm paper and neutral structure. */
+  --text-color: #454a47;
+  --text-secondary: #656b66;
+  --syntax-muted: #686d68;
+  --overlay-color: #858981;
+  --overlay-strong: #737870;
+  --surface-strong: #b4aea5;
+  --surface: #c9c3ba;
+  --surface-soft: #ddd8cf;
+  --paper-bg: #f4f1eb;
+  --background: #e7e2d9;
+  --background-deep: #d9d3c9;
+
+  --link-color: var(--accent-blue);
+  --link-hover-color: var(--accent-mauve);
+  --border-color: var(--surface-strong);
+  --on-accent: var(--paper-bg);
+  --shadow-color: color-mix(in srgb, var(--overlay-color) 20%, transparent);
+  --shadow-color-strong: color-mix(in srgb, var(--overlay-strong) 32%, transparent);
+  --backdrop-bg: color-mix(in srgb, var(--text-color) 42%, transparent);
+  --backdrop-bg-strong: color-mix(in srgb, var(--text-color) 52%, transparent);
+  --border-light: color-mix(in srgb, var(--border-color) 15%, transparent);
+  --accent-bg: color-mix(in srgb, var(--link-color) 8%, transparent);
+  --selection-bg: color-mix(in srgb, var(--accent-blue) 26%, transparent);
+  --paper-shadow:
+    0 1px 3px color-mix(in srgb, var(--overlay-color) 13%, transparent),
+    0 12px 30px var(--shadow-color);
+  --code-header-bg: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
+
+  /* Shiki emits Catppuccin source colors which are remapped to these tokens. */
+  --syntax-rose: var(--accent-rose);
+  --syntax-blush: var(--accent-blush);
+  --syntax-pink: var(--accent-pink);
+  --syntax-mauve: var(--accent-mauve);
+  --syntax-red: var(--accent-red);
+  --syntax-maroon: var(--accent-maroon);
+  --syntax-clay: var(--accent-clay);
+  --syntax-ochre: var(--accent-ochre);
+  --syntax-sage: var(--accent-sage);
+  --syntax-teal: var(--accent-teal);
+  --syntax-sky: var(--accent-sky);
+  --syntax-slate: var(--accent-slate);
+  --syntax-blue: var(--accent-blue);
+  --syntax-lavender: var(--accent-lavender);
+  --syntax-text: var(--text-color);
+  --syntax-subtle: var(--text-secondary);
+  --syntax-surface: var(--surface-strong);
+  --syntax-background: var(--paper-bg);
+
+  --font-body: "Roboto", sans-serif;
+  --font-heading: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  --font-mono: "Google Sans Code", monospace;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --accent-rose: #c4a199;
+  --accent-blush: #c49aa3;
+  --accent-pink: #b99aaa;
+  --accent-mauve: #b7a1af;
+  --accent-red: #c18d8d;
+  --accent-maroon: #b98d99;
+  --accent-clay: #c49b8b;
+  --accent-ochre: #c0aa7a;
+  --accent-sage: #98ad98;
+  --accent-teal: #91ada7;
+  --accent-sky: #94abb1;
+  --accent-slate: #92aab2;
+  --accent-blue: #9aaebc;
+  --accent-lavender: #aba5bc;
+
+  --text-color: #d9d3c9;
+  --text-secondary: #b4aea4;
+  --syntax-muted: #a7a9a2;
+  --overlay-color: #858981;
+  --overlay-strong: #9b9d94;
+  --surface-strong: #626760;
+  --surface: #4c524d;
+  --surface-soft: #3a403c;
+  --paper-bg: #2c312e;
+  --background: #202421;
+  --background-deep: #191d1b;
+
+  --link-color: var(--accent-blue);
+  --link-hover-color: var(--accent-lavender);
+  --border-color: var(--surface-strong);
+  --on-accent: var(--background);
+  --shadow-color: color-mix(in srgb, var(--background-deep) 52%, transparent);
+  --shadow-color-strong: color-mix(in srgb, var(--background-deep) 70%, transparent);
+  --backdrop-bg: color-mix(in srgb, var(--background-deep) 64%, transparent);
+  --backdrop-bg-strong: color-mix(in srgb, var(--background-deep) 76%, transparent);
+  --selection-bg: color-mix(in srgb, var(--accent-blue) 30%, transparent);
+  --paper-shadow:
+    0 1px 4px color-mix(in srgb, var(--background-deep) 48%, transparent),
+    0 14px 34px var(--shadow-color-strong);
+}
+
+@media print {
+  :root {
+    color-scheme: light;
+
+    --accent-rose: #875f5a;
+    --accent-blush: #8a6069;
+    --accent-pink: #806174;
+    --accent-mauve: #765f70;
+    --accent-red: #8a5656;
+    --accent-maroon: #805562;
+    --accent-clay: #835e52;
+    --accent-ochre: #75613e;
+    --accent-sage: #5d725f;
+    --accent-teal: #526f6b;
+    --accent-sky: #586f77;
+    --accent-slate: #566f7a;
+    --accent-blue: #536b80;
+    --accent-lavender: #69627c;
+
+    --text-color: #303532;
+    --text-secondary: #555b56;
+    --syntax-muted: #555b56;
+    --overlay-color: #777b76;
+    --overlay-strong: #626762;
+    --surface-strong: #a9aaa6;
+    --surface: #c5c6c2;
+    --surface-soft: #e5e5e2;
+    --paper-bg: #fff;
+    --background: #fff;
+    --background-deep: #fff;
+    --link-color: var(--accent-blue);
+    --link-hover-color: var(--accent-mauve);
+    --border-color: var(--surface-strong);
+    --on-accent: #fff;
+    --shadow-color: transparent;
+    --shadow-color-strong: transparent;
+    --paper-shadow: none;
+  }
+}

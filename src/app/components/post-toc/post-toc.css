@@ -31,7 +31,7 @@
 }
 
 .toc-title i {
-  color: var(--ctp-blue);
+  color: var(--accent-blue);
   font-size: 1rem;
 }
 
@@ -47,7 +47,7 @@
   margin: 0 0.2rem 0.75rem;
   overflow: hidden;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--ctp-surface2) 48%, var(--ctp-transparent));
+  background: color-mix(in srgb, var(--surface-strong) 48%, transparent);
 }
 
 .toc-progress-value {
@@ -55,7 +55,7 @@
   width: 100%;
   height: 100%;
   border-radius: inherit;
-  background: var(--ctp-blue);
+  background: var(--accent-blue);
   transform-origin: left;
   transition: transform 120ms linear;
 }
@@ -65,8 +65,8 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: color-mix(in srgb, var(--ctp-overlay0) 55%, var(--ctp-transparent))
-    var(--ctp-transparent);
+  scrollbar-color: color-mix(in srgb, var(--overlay-color) 55%, transparent)
+    transparent;
   scrollbar-width: thin;
 }
 
@@ -88,7 +88,7 @@
   inset-block: 0.3rem;
   inset-inline-start: 0.16rem;
   width: 1px;
-  background: color-mix(in srgb, var(--ctp-surface2) 62%, var(--ctp-transparent));
+  background: color-mix(in srgb, var(--surface-strong) 62%, transparent);
 }
 
 .toc-item,
@@ -121,30 +121,30 @@
   width: 3px;
   height: 1.1rem;
   border-radius: 999px;
-  background: var(--ctp-transparent);
+  background: transparent;
   transform: translateY(-50%);
   transition: background-color 160ms ease, box-shadow 160ms ease;
 }
 
 .toc-link:hover {
   color: var(--text-color);
-  background: color-mix(in srgb, var(--ctp-blue) 11%, var(--ctp-transparent));
+  background: color-mix(in srgb, var(--accent-blue) 11%, transparent);
   text-decoration: none;
 }
 
 .toc-link:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--ctp-blue) 58%, var(--ctp-transparent));
+  outline: 2px solid color-mix(in srgb, var(--accent-blue) 58%, transparent);
   outline-offset: 1px;
 }
 
 .toc-link.is-active {
-  color: var(--ctp-blue);
-  background: color-mix(in srgb, var(--ctp-blue) 13%, var(--ctp-transparent));
+  color: var(--accent-blue);
+  background: color-mix(in srgb, var(--accent-blue) 13%, transparent);
 }
 
 .toc-link.is-active::before {
-  background: var(--ctp-blue);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--ctp-blue) 42%, var(--ctp-transparent));
+  background: var(--accent-blue);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-blue) 42%, transparent);
 }
 
 .toc-item.contains-active > .toc-link:not(.is-active) {
@@ -157,7 +157,7 @@
 
 .toc-sublink {
   padding-block: 0.34rem;
-  color: color-mix(in srgb, var(--text-secondary) 88%, var(--ctp-overlay0));
+  color: color-mix(in srgb, var(--text-secondary) 88%, var(--overlay-color));
   font-size: 0.78rem;
   font-weight: 450;
 }

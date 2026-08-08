@@ -8,7 +8,7 @@
   height: 36px;
   align-items: center;
   justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--border-color) 25%, var(--ctp-transparent));
+  border: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
   border-radius: 50%;
   background: var(--paper-bg);
   box-shadow: 0 1px 4px var(--shadow-color);
@@ -20,9 +20,9 @@
 }
 
 .toc-toggle:hover {
-  border-color: color-mix(in srgb, var(--ctp-blue) 42%, var(--ctp-transparent));
-  background: color-mix(in srgb, var(--ctp-blue) 10%, var(--paper-bg));
-  color: var(--ctp-blue);
+  border-color: color-mix(in srgb, var(--accent-blue) 42%, transparent);
+  background: color-mix(in srgb, var(--accent-blue) 10%, var(--paper-bg));
+  color: var(--accent-blue);
 }
 
 .post-toc-sidebar {
@@ -41,7 +41,7 @@
   overflow: hidden;
   overscroll-behavior: contain;
   border: 0;
-  background: var(--ctp-transparent);
+  background: transparent;
   color: var(--text-color);
   opacity: 0;
   transform: translateX(-100%);
@@ -58,7 +58,7 @@
 }
 
 .post-toc-dialog::backdrop {
-  background: var(--ctp-transparent);
+  background: transparent;
   backdrop-filter: blur(0);
   transition:
     background-color 240ms ease,
@@ -83,7 +83,7 @@
     max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
     max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
   padding-top: max(3.8rem, calc(env(safe-area-inset-top) + 3rem));
-  border-right: 1px solid color-mix(in srgb, var(--border-color) 28%, var(--ctp-transparent));
+  border-right: 1px solid color-mix(in srgb, var(--border-color) 28%, transparent);
   background: color-mix(in srgb, var(--paper-bg) 96%, var(--background));
   box-shadow: 5px 0 28px var(--shadow-color-strong);
 }
@@ -104,7 +104,7 @@
   height: 2.25rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--border-color) 28%, var(--ctp-transparent));
+  border: 1px solid color-mix(in srgb, var(--border-color) 28%, transparent);
   border-radius: 50%;
   background: color-mix(in srgb, var(--paper-bg) 88%, var(--background));
   color: var(--text-secondary);
@@ -113,14 +113,14 @@
 }
 
 .toc-drawer-close:hover {
-  border-color: color-mix(in srgb, var(--ctp-blue) 42%, var(--ctp-transparent));
-  background: color-mix(in srgb, var(--ctp-blue) 10%, var(--paper-bg));
-  color: var(--ctp-blue);
+  border-color: color-mix(in srgb, var(--accent-blue) 42%, transparent);
+  background: color-mix(in srgb, var(--accent-blue) 10%, var(--paper-bg));
+  color: var(--accent-blue);
 }
 
 .toc-drawer-close:focus-visible,
 .toc-toggle:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--ctp-blue) 58%, var(--ctp-transparent));
+  outline: 2px solid color-mix(in srgb, var(--accent-blue) 58%, transparent);
   outline-offset: 2px;
 }
 
@@ -131,7 +131,7 @@
   }
 
   .post-toc-dialog[open]::backdrop {
-    background: var(--ctp-transparent);
+    background: transparent;
     backdrop-filter: blur(0);
   }
 }
@@ -152,7 +152,7 @@
     max-height: calc(100dvh - 5rem);
     overflow: hidden;
     padding: 0.82rem 0.72rem;
-    border: 1px solid color-mix(in srgb, var(--border-color) 24%, var(--ctp-transparent));
+    border: 1px solid color-mix(in srgb, var(--border-color) 24%, transparent);
     border-radius: 12px;
     background: color-mix(in srgb, var(--paper-bg) 91%, var(--background));
     box-shadow: 0 8px 22px var(--shadow-color);
@@ -209,7 +209,7 @@
   }
 
   .post-body pre {
-    border-color: var(--ctp-surface2);
+    border-color: var(--surface-strong);
     white-space: pre-wrap;
     word-wrap: break-word;
   }
