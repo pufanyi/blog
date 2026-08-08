@@ -1,6 +1,5 @@
-<div class="cv-page">
-  <app-header [data]="cv.header" />
-  <app-abstract [data]="cv.abstract" />
+<main class="cv-page">
+  <app-profile-summary [header]="cv.header" [abstract]="cv.abstract" />
   @for (section of cv.sections; track section.title; let i = $index) {
     <app-section [number]="i + 1" [title]="section.title">
       @if (section.entries) {
@@ -25,4 +24,4 @@
       }
     </app-section>
   }
-</div>
+</main>

@@ -15,11 +15,6 @@ const redirectRoutes: Routes = REDIRECTS.map(r => ({
 
 export const routes: Routes = [
   {
-    path: 'cv',
-    pathMatch: 'full',
-    redirectTo: '',
-  },
-  {
     path: '',
     loadComponent: () =>
       import('./components/blog-shell/blog-shell').then(m => m.BlogShellComponent),
@@ -27,10 +22,18 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
+        title: 'Fanyi Pu',
+        loadComponent: () =>
+          import('./pages/profile/profile').then(m => m.ProfilePageComponent),
+      },
+      {
+        path: 'cv',
+        title: 'Fanyi Pu — CV',
         loadComponent: () => import('./pages/cv/cv').then(m => m.CvPageComponent),
       },
       {
         path: 'blog',
+        title: "Fanyi's Blog",
         loadComponent: () => import('./pages/home/home').then(m => m.HomeComponent),
       },
       {

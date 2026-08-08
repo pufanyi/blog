@@ -1,0 +1,14 @@
+<main class="profile-page">
+  <app-profile-summary [header]="cv.header" [abstract]="cv.abstract" />
+
+  <nav class="profile-actions" aria-label="Profile destinations">
+    <a class="profile-action" routerLink="/cv">
+      <i class="ph ph-identification-card" aria-hidden="true"></i>
+      <span>Full CV</span>
+    </a>
+    <a class="profile-action" routerLink="/blog">
+      <i class="ph ph-notebook" aria-hidden="true"></i>
+      <span>Blog</span>
+    </a>
+  </nav>
+</main>

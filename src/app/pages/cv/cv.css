@@ -1,63 +1,3 @@
-/* ========== Header ========== */
-.cv-page .title-block {
-  text-align: center;
-  margin-bottom: 2.5rem;
-}
-
-.cv-page .title-wrapper {
-  margin-bottom: 1rem;
-}
-
-.cv-page .title-rule-top {
-  border: none;
-  height: 3px;
-  background: var(--border-color);
-  margin-bottom: 0.75rem;
-}
-
-.cv-page .title-rule-bottom {
-  border: none;
-  height: 1px;
-  background: var(--border-color);
-  margin-top: 0.75rem;
-}
-
-.cv-page .title {
-  font-family: var(--font-heading);
-  font-size: 2rem;
-  font-weight: bold;
-}
-
-.cv-page .author-photo {
-  width: 100px;
-  height: auto;
-  margin: 0.75rem 0;
-}
-
-.cv-page .affiliation {
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-}
-
-.cv-page .contact-info {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  margin-bottom: 0.75rem;
-}
-
-.cv-page .links {
-  font-family: var(--font-heading);
-  font-size: 0.95rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-}
-
 .cv-page .publication-links {
   margin-left: 0.5rem;
   font-size: 0.95rem;
@@ -68,77 +8,24 @@
   margin-right: 0.3rem;
 }
 
-.cv-page .icon-link {
-  color: var(--text-color);
-  transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
-  display: inline-flex;
-  font-size: 24px;
-}
-
-.cv-page .icon-link:hover {
-  color: var(--link-color);
-  text-decoration: none;
-  transform: scale(1.1);
-}
-
-.cv-page .separator {
-  color: var(--text-secondary);
-}
-
 /* ========== Sections ========== */
 .cv-page .section {
   margin-bottom: 2rem;
 }
 
 .cv-page .section-heading {
-  font-family: var(--font-heading);
-  font-size: 1.3rem;
-  font-weight: bold;
   margin-bottom: 1rem;
   padding-bottom: 0.3rem;
   border-bottom: 1px solid var(--border-color);
-}
-
-.cv-page .subsection-heading {
-  font-family: var(--font-heading);
-  font-size: 1.1rem;
-  font-weight: bold;
-  margin: 1.25rem 0 0.75rem;
-}
-
-/* ========== Abstract ========== */
-.cv-page .abstract {
-  margin-bottom: 2.5rem;
-}
-
-.cv-page .abstract-heading {
   font-family: var(--font-heading);
   font-size: 1.3rem;
   font-weight: bold;
-  text-align: center;
-  margin-bottom: 1rem;
 }
 
-.cv-page .abstract-content {
-  text-align: justify;
-  line-height: 1.7;
-}
-
-.cv-page .abstract-content p {
-  margin-bottom: 0.75rem;
-}
-
-.cv-page .abstract-content p:last-child {
-  margin-bottom: 0;
-}
-
-.cv-page .keywords {
-  margin-top: 1rem;
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-}
-
-.cv-page .keywords-label {
+.cv-page .subsection-heading {
+  margin: 1.25rem 0 0.75rem;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
   font-weight: bold;
 }
 
@@ -150,8 +37,8 @@
 .cv-page .entry-line {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
   column-gap: 1rem;
+  align-items: baseline;
 }
 
 .cv-page .entry-title {
@@ -159,9 +46,9 @@
 }
 
 .cv-page .entry-date {
+  justify-self: end;
   color: var(--text-secondary);
   font-size: 0.9rem;
-  justify-self: end;
   text-align: right;
   white-space: nowrap;
 }
@@ -169,11 +56,11 @@
 .cv-page .entry-detail {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
   column-gap: 1rem;
+  align-items: baseline;
+  margin-top: 0.2rem;
   color: var(--text-secondary);
   font-style: italic;
-  margin-top: 0.2rem;
 }
 
 .cv-page .entry-detail-main {
@@ -206,19 +93,19 @@
 
 /* ========== CV Footer ========== */
 .cv-page .footer {
-  font-family: var(--font-heading);
   margin-top: 3rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border-color);
-  text-align: center;
-  font-size: 0.85rem;
   color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  text-align: center;
 }
 
 .cv-page .footer-source {
   display: inline-flex;
-  align-items: center;
   gap: 0.35rem;
+  align-items: center;
   margin-top: 0.35rem;
 }
 
@@ -228,14 +115,6 @@
 
 /* ========== Mobile ========== */
 @media (max-width: 600px) {
-  .cv-page .title {
-    font-size: 1.6rem;
-  }
-
-  .cv-page .abstract-content {
-    text-align: left;
-  }
-
   .cv-page .entry-line,
   .cv-page .entry-detail {
     grid-template-columns: minmax(0, 1fr);
@@ -247,87 +126,26 @@
     justify-self: start;
     text-align: left;
   }
-
-  .cv-page .links {
-    line-height: 2;
-  }
 }
 
 /* ========== CV Print Styles ========== */
 @media print {
-  /* --- Header --- */
-  .cv-page .title-block {
-    margin-bottom: 1.5rem;
-  }
-
-  .cv-page .title {
-    font-size: 1.8rem;
-  }
-
-  .cv-page .author-photo {
-    width: 85px;
-    margin: 0.5rem 0;
-  }
-
-  .cv-page .affiliation {
-    margin-bottom: 0.3rem;
-    font-size: 0.95rem;
-  }
-
-  .cv-page .contact-info {
-    margin-bottom: 0.4rem;
-    font-size: 0.85rem;
-  }
-
-  .cv-page .links {
-    font-size: 0.9rem;
-  }
-
-  .cv-page .icon-link {
-    font-size: 20px;
-  }
-
-  /* --- Abstract --- */
-  .cv-page .abstract {
-    margin-bottom: 1.5rem;
-  }
-
-  .cv-page .abstract-heading {
-    font-size: 1.15rem;
-    margin-bottom: 0.6rem;
-  }
-
-  .cv-page .abstract-content {
-    font-size: 10pt;
-    line-height: 1.55;
-  }
-
-  .cv-page .abstract-content p {
-    margin-bottom: 0.5rem;
-  }
-
-  .cv-page .keywords {
-    margin-top: 0.6rem;
-    font-size: 0.88rem;
-  }
-
-  /* --- Sections --- */
   .cv-page .section {
     margin-bottom: 1.25rem;
+    break-inside: avoid-page;
   }
 
   .cv-page .section-heading {
-    font-size: 1.15rem;
     margin-bottom: 0.6rem;
     padding-bottom: 0.2rem;
+    font-size: 1.15rem;
   }
 
   .cv-page .subsection-heading {
-    font-size: 1rem;
     margin: 0.8rem 0 0.5rem;
+    font-size: 1rem;
   }
 
-  /* --- Entries --- */
   .cv-page .entry {
     margin-bottom: 0.8rem;
     break-inside: avoid;
@@ -351,24 +169,17 @@
     margin-bottom: 0.1rem;
   }
 
-  /* --- Lists --- */
   .cv-page .itemize li {
     margin-bottom: 0.15rem;
     font-size: 10pt;
   }
 
-  /* --- Page break control --- */
   .cv-page .section-heading,
   .cv-page .subsection-heading {
     break-after: avoid;
     page-break-after: avoid;
   }
 
-  .cv-page .section {
-    break-inside: avoid-page;
-  }
-
-  /* --- CV Footer --- */
   .cv-page .footer {
     margin-top: 2rem;
     padding-top: 0.75rem;
