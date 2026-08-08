@@ -1,3 +1,8 @@
+---
+title: "The Theoretical Minimum: Classical Mechanics"
+date: "2026-05-23"
+description: "The Theoretical Minimum: Classical Mechanics 阅读笔记"
+---
 ## The Principle of Least Action
 
 在 Lagrangian mechanics 中，我们尝试用一个函数 $\mathcal{L}(x, \dot{x}, t)$ 来描述系统的动力学。这个函数我们叫 Lagrangian。对于很多非相对论、保守力系统，并且势能不依赖速度时，常见的 Lagrangian 是

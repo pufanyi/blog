@@ -1,3 +1,8 @@
+---
+title: "Maxwell's Equations"
+date: "2024-04-26"
+description: "学不完了学不完了学不完了啊啊啊啊啊啊啊啊啊啊啊"
+---
 要学不完了。
 
 简单记一点点。

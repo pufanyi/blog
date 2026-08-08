@@ -1,3 +1,8 @@
+---
+title: "2021 Zhejiang Gao Kao"
+date: "2024-06-06"
+description: "明天就要高考去了，今天临时抱个佛脚"
+---
 ## Question
 
 Let $a, b$ be real numbers, and $a>1$. Consider the function $f(x)=a^x-bx+e^2$ ($x\in\mathbb{R}$).

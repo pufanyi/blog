@@ -3,15 +3,15 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { load as loadYaml } from 'js-yaml';
 import { JSDOM } from 'jsdom';
 import { Marked } from 'marked';
-import { basename, join } from 'path';
+import { join } from 'path';
 import { createHighlighter } from 'shiki';
 import { createCodeRenderer } from './lib/code-renderer.mjs';
+import { parsePostSource } from './lib/front-matter.mjs';
 import { mathBlock, mathInline } from './lib/math-extensions.mjs';
 import { tableRenderer } from './lib/table-renderer.mjs';
 import { buildTableOfContents } from './lib/toc-renderer.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const CONFIG_DIR = join(ROOT, 'content/config');
 const POSTS_DIR = join(ROOT, 'content/posts');
 const DATA_DIR = join(ROOT, 'src/app/data');
 const OUTPUT = join(DATA_DIR, 'posts.ts');
@@ -203,15 +203,29 @@ function renderMarkdown(md, slug, highlighter) {
 async function main() {
   mkdirSync(DATA_DIR, { recursive: true });
 
-  const configFiles = readdirSync(CONFIG_DIR)
-    .filter((f) => f.endsWith('.json'))
-    .sort();
+  const postEntries = readdirSync(POSTS_DIR, { withFileTypes: true });
+  const unexpectedEntries = postEntries.filter((entry) => !entry.isDirectory());
+  if (unexpectedEntries.length) {
+    const names = unexpectedEntries
+      .map((entry) => entry.name)
+      .sort()
+      .join(', ');
+    throw new Error(
+      `content/posts must contain only <slug>/index.md directories; unexpected entries: ${names}`,
+    );
+  }
 
-  const rawPosts = configFiles.map((file) => {
-    const slug = basename(file, '.json');
-    const meta = JSON.parse(readFileSync(join(CONFIG_DIR, file), 'utf-8'));
-    const md = readFileSync(join(POSTS_DIR, `${slug}.md`), 'utf-8');
-    return { slug, meta, md };
+  const postSlugs = postEntries.map((entry) => entry.name).sort();
+  const rawPosts = postSlugs.map((slug) => {
+    const relativeSource = `content/posts/${slug}/index.md`;
+    const sourcePath = join(POSTS_DIR, slug, 'index.md');
+    if (!existsSync(sourcePath)) {
+      throw new Error(`${relativeSource}: file does not exist`);
+    }
+
+    const source = readFileSync(sourcePath, 'utf-8');
+    const { metadata, body } = parsePostSource(source, relativeSource);
+    return { slug, meta: metadata, md: body };
   });
 
   // Create Shiki highlighter with all needed languages

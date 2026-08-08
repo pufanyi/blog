@@ -39,11 +39,15 @@ Project guidance for agents working in this repository.
 
 ## Content
 
-- Blog posts live under `content/posts`.
-- Post-local image/assets can live under `content/posts/<slug>/` and be
-  referenced from Markdown with relative image paths. The generator rewrites
-  those paths to `/posts/<slug>/...`, and Angular copies non-Markdown files
-  from `content/posts` into the published `/posts` asset path.
+- Each blog post lives at `content/posts/<slug>/index.md`; the directory name is
+  the post slug. `index.md` starts with YAML front matter delimited by `---`;
+  `title`, `date` (`YYYY-MM-DD`), and `description` are required, while
+  `coverImage` is optional.
+- Post-local image/assets live alongside `index.md` under
+  `content/posts/<slug>/` and are referenced from Markdown with relative image
+  paths. The generator rewrites those paths to `/posts/<slug>/...`, and Angular
+  copies non-Markdown files from `content/posts` into the published `/posts`
+  asset path.
 - Add an AI summary image button beside a Markdown heading by appending
   `<ai-img>relative-image.avif</ai-img>` to that heading. The generator rewrites
   the tag to an `AI Summary` button plus a hidden zoom source; clicking the
@@ -60,5 +64,4 @@ Project guidance for agents working in this repository.
   post metadata and generated content are refreshed before `pnpm build`,
   `pnpm start`, or `pnpm test`.
 - Files under `src/app/data` are generated from `content` and ignored by Git.
-  Do not edit or commit them directly; update the source content/config files
-  instead.
+  Do not edit or commit them directly; update the source content files instead.
