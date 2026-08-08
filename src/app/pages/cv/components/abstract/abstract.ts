@@ -8,4 +8,5 @@ import { CvAbstract } from '../../../../models/cv.model';
 })
 export class AbstractComponent {
   readonly data = input.required<CvAbstract>();
+  readonly showHeading = input(true);
 }

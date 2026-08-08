@@ -14,4 +14,5 @@ import { HeaderComponent } from '../header/header';
 export class ProfileSummaryComponent {
   readonly header = input.required<CvHeader>();
   readonly abstract = input.required<CvAbstract>();
+  readonly showAbstractHeading = input(true);
 }

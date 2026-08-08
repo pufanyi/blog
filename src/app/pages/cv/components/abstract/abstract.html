@@ -1,5 +1,7 @@
 <section class="abstract" id="abstract">
-  <h2 class="abstract-heading">Abstract</h2>
+  @if (showHeading()) {
+    <h2 class="abstract-heading">Abstract</h2>
+  }
   <div class="abstract-content">
     @for (para of data().paragraphs; track $index) {
       <p [innerHTML]="para"></p>
