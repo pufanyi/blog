@@ -1,5 +1,4 @@
 @import './styles/catppuccin.css';
-@import './styles/cv-print.css';
 
 ::selection { background: color-mix(in srgb, var(--ctp-blue) 28%, var(--ctp-transparent)); color: var(--ctp-text); }
 

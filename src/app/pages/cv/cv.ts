@@ -16,11 +16,4 @@ import { CV_DATA } from '../../data/cv';
 })
 export class CvPageComponent {
   readonly cv = CV_DATA;
-
-  sectionId(title: string): string {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-  }
 }

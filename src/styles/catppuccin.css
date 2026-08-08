@@ -45,9 +45,9 @@
   --paper-shadow:
     0 1px 3px color-mix(in srgb, var(--ctp-overlay0) 14%, var(--ctp-transparent)),
     0 10px 28px var(--shadow-color);
-  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --font-heading: var(--font-body);
-  --font-mono: "SFMono-Regular", "Cascadia Code", "Cascadia Mono", ui-monospace, monospace;
+  --font-body: "Roboto", sans-serif;
+  --font-heading: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  --font-mono: "Google Sans Code", monospace;
   --code-header-bg: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
 }
 

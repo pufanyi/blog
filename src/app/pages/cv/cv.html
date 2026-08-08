@@ -1,54 +1,28 @@
-<main class="cv-page">
-  <div class="cv-hero">
-    <app-header [data]="cv.header" />
-    <app-abstract [data]="cv.abstract" />
-  </div>
-
-  <div class="cv-content-grid">
-    <nav class="cv-section-nav" aria-label="Profile sections">
-      <span class="cv-section-nav-label">On this page</span>
-      <a class="cv-section-nav-link" href="#abstract">
-        <span class="cv-section-nav-number" aria-hidden="true">00</span>
-        <span>Overview</span>
-      </a>
-      @for (section of cv.sections; track section.title; let i = $index) {
-        <a class="cv-section-nav-link" [href]="'#' + sectionId(section.title)">
-          <span class="cv-section-nav-number" aria-hidden="true">0{{ i + 1 }}</span>
-          <span>{{ section.title }}</span>
-        </a>
+<div class="cv-page">
+  <app-header [data]="cv.header" />
+  <app-abstract [data]="cv.abstract" />
+  @for (section of cv.sections; track section.title; let i = $index) {
+    <app-section [number]="i + 1" [title]="section.title">
+      @if (section.entries) {
+        @for (entry of section.entries; track entry.title) {
+          <app-entry [title]="entry.title" [date]="entry.date"
+                     [detail]="entry.detail" [location]="entry.location"
+                     [links]="entry.links" [items]="entry.items" />
+        }
       }
-    </nav>
-
-    <div class="cv-sections">
-      @for (section of cv.sections; track section.title; let i = $index) {
-        <app-section [number]="i + 1" [title]="section.title" [id]="sectionId(section.title)">
-          @if (section.entries) {
-            @for (entry of section.entries; track entry.title) {
-              <app-entry
-                [title]="entry.title"
-                [date]="entry.date"
-                [detail]="entry.detail"
-                [location]="entry.location"
-                [links]="entry.links"
-                [items]="entry.items"
-              />
+      @if (section.subsections) {
+        @for (sub of section.subsections; track sub.title; let j = $index) {
+          <h3 class="subsection-heading">{{ i + 1 }}.{{ j + 1 }} &nbsp; {{ sub.title }}</h3>
+          <ul class="itemize">
+            @for (item of sub.items; track $index) {
+              <li [innerHTML]="item"></li>
             }
-          }
-          @if (section.subsections) {
-            @for (sub of section.subsections; track sub.title; let j = $index) {
-              <h3 class="subsection-heading">{{ i + 1 }}.{{ j + 1 }} &nbsp; {{ sub.title }}</h3>
-              <ul class="itemize">
-                @for (item of sub.items; track $index) {
-                  <li [innerHTML]="item"></li>
-                }
-              </ul>
-            }
-          }
-          @if (section.content) {
-            <p class="section-content" [innerHTML]="section.content"></p>
-          }
-        </app-section>
+          </ul>
+        }
       }
-    </div>
-  </div>
-</main>
+      @if (section.content) {
+        <p [innerHTML]="section.content"></p>
+      }
+    </app-section>
+  }
+</div>
