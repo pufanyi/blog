@@ -13,9 +13,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in srgb, var(--accent-teal) 48%, var(--border-color)),
-    color-mix(in srgb, var(--accent-blue) 48%, var(--border-color)),
-    color-mix(in srgb, var(--accent-mauve) 42%, var(--border-color)),
+    color-mix(in srgb, var(--accent-blue) 52%, var(--border-color)),
     transparent
   );
   margin-bottom: 0.75rem;
@@ -66,11 +64,6 @@
     box-shadow 0.2s ease,
     transform 0.2s ease;
 }
-
-.post-entry:nth-child(4n + 1) { --post-accent: var(--accent-blue); }
-.post-entry:nth-child(4n + 2) { --post-accent: var(--accent-teal); }
-.post-entry:nth-child(4n + 3) { --post-accent: var(--accent-clay); }
-.post-entry:nth-child(4n + 4) { --post-accent: var(--accent-mauve); }
 
 .post-entry::before {
   content: "";
