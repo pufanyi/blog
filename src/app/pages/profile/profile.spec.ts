@@ -18,7 +18,7 @@ describe('ProfilePageComponent', () => {
 
     const element = fixture.nativeElement as HTMLElement;
 
-    expect(element.querySelectorAll('.abstract-content p')).toHaveLength(1);
+    expect(element.querySelectorAll('.abstract-content p')).toHaveLength(4);
     expect(element.querySelector('.abstract-heading')).toBeNull();
     expect(element.querySelector('.section')).toBeNull();
     expect(element.querySelector('.profile-actions')).toBeNull();

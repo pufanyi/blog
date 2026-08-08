@@ -35,12 +35,34 @@ header:
 abstract:
   paragraphs:
     - >-
-      I am an incoming Ph.D. student in Computer Science at the
-      <a href="https://www.wisc.edu/" target="_blank">University of Wisconsin–Madison</a>,
-      starting in September 2026. I received my B.Sc. in Data Science and Artificial Intelligence
-      from <a href="https://www.ntu.edu.sg/" target="_blank">Nanyang Technological University</a>
-      with Honours (Highest Distinction). My research interests lie in
-      <em>multimodal models</em> and <em>video generation</em>.
+      I am currently a final-year undergraduate student at
+      <a href="https://www.ntu.edu.sg/" target="_blank">Nanyang Technological University</a>,
+      specializing in <a href="https://www.ntu.edu.sg/education/undergraduate-programme/bachelor-of-science-in-data-science-artificial-intelligence"
+      target="_blank">Data Science and Artificial Intelligence</a>.
+    - >-
+      I am currently doing research at <a href="https://www.sensetime.com/en"
+      target="_blank">SenseTime</a> and <a href="https://www.mmlab-ntu.com/"
+      target="_blank">MMLab@NTU</a>. I am fortunate to be supervised by
+      <a href="https://liuziwei7.github.io/" target="_blank">Prof. Ziwei Liu</a>, I am also
+      grateful for the extensive help I have received from <a href="https://brianboli.com/"
+      target="_blank">Bo Li</a>, <a href="https://caizhongang.com/" target="_blank">Zhongang Cai</a>
+      and <a href="https://scholar.google.com/citations?user=jZH2IPYAAAAJ&amp;hl=en"
+      target="_blank">Lei Yang</a>. My research interests currently lie in multi-modality
+      (unified) models and spatial intelligence.
+    - >-
+      During my time at <a href="http://www.sxyz.net/" target="_blank">Shaoxing No.1 High School</a>,
+      I participated in the <a href="https://www.noi.cn/" target="_blank">Olympiad in Informatics</a>.
+      Additionally, I competed in the <a href="https://icpc.global/" target="_blank">ICPC</a>
+      competition, where I earned a <a href="https://projects.pufanyi.com/assets/pdf/awards/Kunming.pdf"
+      target="_blank">gold medal</a> in the 2022 Kunming Asia Regional Contest and a
+      <a href="https://projects.pufanyi.com/assets/pdf/awards/Nanjing.pdf" target="_blank">silver medal</a>
+      in the 2022 Nanjing Asia Regional Contest. I am a contributor to the
+      <a href="https://ntu-icpc.github.io/npc/" target="_blank">Nanyang Programming Contest</a>.
+      Thanks to all <a href="https://projects.pufanyi.com/icpc" target="_blank">my teammates and friends</a>
+      who have supported me during my journey! 🙏
+    - >-
+      I like to play chess, my lichess ID is <a href="https://lichess.org/@/pufanyi"
+      target="_blank">@pufanyi</a>, my current rating is 2086 (rapid).
 
 sections:
   - title: Education
