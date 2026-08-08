@@ -32,6 +32,12 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/cv/cv').then(m => m.CvPageComponent),
       },
       {
+        path: 'icpc',
+        title: 'My ICPC Teammates — Fanyi Pu',
+        loadComponent: () =>
+          import('./pages/icpc/icpc').then(m => m.IcpcPageComponent),
+      },
+      {
         path: 'blog',
         title: "Fanyi's Blog",
         loadComponent: () => import('./pages/home/home').then(m => m.HomeComponent),

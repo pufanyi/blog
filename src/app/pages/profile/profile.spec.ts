@@ -26,6 +26,11 @@ describe('ProfilePageComponent', () => {
       'Curriculum Vitae',
     );
     expect(element.querySelector('.icon-link[href="https://pufanyi.com"]')).toBeNull();
+    expect(element.querySelector('.abstract-content a[href="/icpc"]')?.textContent).toBe(
+      'my teammates and friends',
+    );
+    expect(element.querySelector('.abstract-content a[href="/assets/pdf/awards/Kunming.pdf"]')).not.toBeNull();
+    expect(element.querySelector('.abstract-content a[href="/assets/pdf/awards/Nanjing.pdf"]')).not.toBeNull();
     const iconLinks = Array.from(element.querySelectorAll<HTMLAnchorElement>('.icon-link'));
     expect(iconLinks.every(link => link.dataset['tooltip'] === link.ariaLabel)).toBe(true);
   });

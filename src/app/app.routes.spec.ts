@@ -28,4 +28,17 @@ describe('application routes', () => {
     expect(prerenderedPaths).toContain('');
     expect(prerenderedPaths).toContain('cv');
   });
+
+  it('serves and prerenders the migrated ICPC page', async () => {
+    const shellRoute = routes.find(route => route.path === '' && route.children);
+    const icpcRoute = shellRoute?.children?.find(route => route.path === 'icpc');
+
+    expect(icpcRoute?.loadComponent).toBeTypeOf('function');
+
+    const loadedIcpcComponent = await icpcRoute?.loadComponent?.();
+    const { IcpcPageComponent } = await import('./pages/icpc/icpc');
+
+    expect(loadedIcpcComponent).toBe(IcpcPageComponent);
+    expect(serverRoutes.map(route => route.path)).toContain('icpc');
+  });
 });

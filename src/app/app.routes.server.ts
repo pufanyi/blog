@@ -11,6 +11,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender,
   },
   {
+    path: 'icpc',
+    renderMode: RenderMode.Prerender,
+  },
+  {
     path: 'blog',
     renderMode: RenderMode.Prerender,
   },
