@@ -77,17 +77,19 @@
 }
 
 .profile-summary .icon-link::before {
-  bottom: calc(100% + 0.18rem);
-  width: 0;
-  height: 0;
-  border: 0.32rem solid var(--ctp-transparent);
-  border-top-color: var(--text-color);
+  bottom: calc(100% + 0.48rem);
+  z-index: 11;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 1px;
+  background: var(--text-color);
   content: "";
-  transform: translate(-50%, -0.12rem);
+  transform: translate(-50%, 0.2rem) rotate(45deg);
 }
 
 .profile-summary .icon-link::after {
   bottom: calc(100% + 0.78rem);
+  z-index: 10;
   padding: 0.32rem 0.5rem;
   border-radius: 4px;
   color: var(--paper-bg);
@@ -113,7 +115,7 @@
 
 .profile-summary .icon-link:hover::before,
 .profile-summary .icon-link:focus-visible::before {
-  transform: translate(-50%, 0);
+  transform: translate(-50%, 0) rotate(45deg);
 }
 
 .profile-summary .icon-link:hover::after,
