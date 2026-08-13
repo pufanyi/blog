@@ -60,6 +60,10 @@ Project guidance for agents working in this repository.
   generation, add explicit `width` and `height` attributes to the `<ai-img>` tag.
 - When adding or touching image assets, manually convert any non-AVIF images to
   AVIF and reference the converted files instead.
+- Rich-text fields in `content/cv.yaml` support inline Markdown while retaining
+  compatibility with authored HTML. This applies to abstract paragraphs, entry
+  details and items, subsection items, and section content; structural fields
+  such as titles, dates, locations, and header data remain plain text.
 - The `prebuild`, `prestart`, and `pretest` hooks run `pnpm generate:data`, so
   post metadata and generated content are refreshed before `pnpm build`,
   `pnpm start`, or `pnpm test`.

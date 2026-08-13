@@ -18,7 +18,7 @@ describe('ProfilePageComponent', () => {
 
     const element = fixture.nativeElement as HTMLElement;
 
-    expect(element.querySelectorAll('.abstract-content p')).toHaveLength(4);
+    expect(element.querySelectorAll('.abstract-content p')).toHaveLength(5);
     expect(element.querySelector('.abstract-heading')).toBeNull();
     expect(element.querySelector('.section')).toBeNull();
     expect(element.querySelector('.profile-actions')).toBeNull();
@@ -29,8 +29,9 @@ describe('ProfilePageComponent', () => {
     expect(element.querySelector('.abstract-content a[href="/icpc"]')?.textContent).toBe(
       'my teammates and friends',
     );
-    expect(element.querySelector('.abstract-content a[href="/assets/pdf/awards/Kunming.pdf"]')).not.toBeNull();
-    expect(element.querySelector('.abstract-content a[href="/assets/pdf/awards/Nanjing.pdf"]')).not.toBeNull();
+    expect(element.querySelector('.abstract-content a[href="https://icpc.global/"]')?.textContent).toBe(
+      'ICPC',
+    );
     const iconLinks = Array.from(element.querySelectorAll<HTMLAnchorElement>('.icon-link'));
     expect(iconLinks.every(link => link.dataset['tooltip'] === link.ariaLabel)).toBe(true);
   });

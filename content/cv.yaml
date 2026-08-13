@@ -35,36 +35,34 @@ header:
 abstract:
   paragraphs:
     - >-
-      I am currently a final-year undergraduate student at
-      <a href="https://www.ntu.edu.sg/" target="_blank">Nanyang Technological University</a>,
-      specializing in <a href="https://www.ntu.edu.sg/education/undergraduate-programme/bachelor-of-science-in-data-science-artificial-intelligence"
-      target="_blank">Data Science and Artificial Intelligence</a>.
+      I am currently a final-year undergraduate student at [Nanyang Technological
+      University](https://www.ntu.edu.sg/), specializing in [Data Science and Artificial
+      Intelligence](https://www.ntu.edu.sg/education/undergraduate-programme/bachelor-of-science-in-data-science-artificial-intelligence).
     - >-
-      I am currently conducting research at <a href="https://www.sensetime.com/en"
-      target="_blank">SenseTime</a> and <a href="https://www.mmlab-ntu.com/"
-      target="_blank">MMLab@NTU</a>. I am fortunate to be supervised by
-      <a href="https://liuziwei7.github.io/" target="_blank">Prof. Ziwei Liu</a>, I am also
-      grateful for the extensive help I have received from <a href="https://brianboli.com/"
-      target="_blank">Bo Li</a>, <a href="https://caizhongang.com/" target="_blank">Zhongang Cai</a>
-      and <a href="https://scholar.google.com/citations?user=jZH2IPYAAAAJ"
-      target="_blank">Lei Yang</a>. My research interests center on multimodal models.
+      I am currently conducting research at [SenseTime](https://www.sensetime.com/en) and
+      [MMLab@NTU](https://www.mmlab-ntu.com/). I am fortunate to be supervised by
+      [Prof. Ziwei Liu](https://liuziwei7.github.io/), I am also grateful for the extensive
+      help I have received from [Bo Li](https://brianboli.com/), [Zhongang
+      Cai](https://caizhongang.com/) and [Lei
+      Yang](https://scholar.google.com/citations?user=jZH2IPYAAAAJ). My research interests
+      center on multimodal models.
     - >-
-      During my time at <a href="http://www.sxyz.net/" target="_blank">Shaoxing No.1 High School</a>,
-      I participated in the <a href="https://www.noi.cn/" target="_blank">Olympiad in Informatics</a>.
-      After graduating, I spent a rewarding year at the
-      <a href="https://drise.dlut.edu.cn/" target="_blank">School of International Information and Software</a>
-      at <a href="https://www.dlut.edu.cn/" target="_blank">Dalian University of Technology</a>.
-      Amid the disruption caused by the COVID-19 pandemic, I chose to withdraw and begin
-      my undergraduate studies anew at Nanyang Technological University.
+      During my time at [Shaoxing No.1 High School](http://www.sxyz.net/), I participated in
+      the [Olympiad in Informatics](https://www.noi.cn/). After graduating, I spent a
+      rewarding year at the [School of International Information and
+      Software](https://drise.dlut.edu.cn/) at [Dalian University of
+      Technology](https://www.dlut.edu.cn/). Amid the disruption caused by the COVID-19
+      pandemic, I chose to withdraw and begin my undergraduate studies anew at Nanyang
+      Technological University.
     - >-
       During my studies at Dalian University of Technology and Nanyang Technological University, I competed in the
-      <a href="https://icpc.global/" target="_blank">ICPC</a>. I also contribute to the
-      <a href="https://ntu-icpc.github.io/npc/" target="_blank">Nanyang Programming Contest</a>.
-      I am deeply grateful to <a href="/icpc">my teammates and friends</a>
+      [ICPC](https://icpc.global/). I also contribute to the
+      [Nanyang Programming Contest](https://ntu-icpc.github.io/npc/).
+      I am deeply grateful to [my teammates and friends](/icpc)
       for their support throughout this journey! 🙏
     - >-
-      I enjoy playing chess. My Lichess username is <a href="https://lichess.org/@/pufanyi"
-      target="_blank">@pufanyi</a>, and my current rapid rating is 2086.
+      I enjoy playing chess. My Lichess username is [@pufanyi](https://lichess.org/@/pufanyi),
+      and my current rapid rating is 2086.
 
 sections:
   - title: Education
@@ -115,7 +113,7 @@ sections:
           - text: Project Page
             href: "https://lmms-lab.github.io/lmms-eval-blog/lmms-eval-0.1/"
         items:
-          - "An open-source multimodal evaluation framework with <strong>4.3K GitHub stars</strong>"
+          - "An open-source multimodal evaluation framework with **4.3K GitHub stars**"
           - >-
             Built the evaluation pipeline and developed a low-cost automatic data-generation pipeline for
             Multi-modal LiveBench, which leverages continuously updated news and online forums to evaluate
@@ -175,8 +173,8 @@ sections:
         items:
           - >-
             Built an evaluation set with 300 expert-level videos and 900 human-annotated questions across six
-            disciplines, cited by <a href="https://deepmind.google/models/gemini/pro/" target="_blank">Gemini 3 Pro</a>
-            (Google) and <a href="https://openai.com/index/introducing-gpt-5/" target="_blank">GPT-5</a> (OpenAI)
+            disciplines, cited by [Gemini 3 Pro](https://deepmind.google/models/gemini/pro/)
+            (Google) and [GPT-5](https://openai.com/index/introducing-gpt-5/) (OpenAI)
           - >-
             Proposed a knowledge-gain metric to quantify performance improvements after watching video lectures;
             validated expert-level data in economics and medicine to ensure benchmark quality
@@ -190,7 +188,7 @@ sections:
           - text: Project Page
             href: "https://github.com/Luodian/Otter"
         items:
-          - "Developed an early vision-language-agent (VLA) model with <strong>3.3K GitHub stars</strong>"
+          - "Developed an early vision-language-agent (VLA) model with **3.3K GitHub stars**"
           - >-
             Developed a language-model-based pipeline that generated 2.8M multimodal instruction-tuning samples;
             created an evaluation framework that later evolved into LMMs-Eval
@@ -232,7 +230,7 @@ sections:
         location: Singapore
         items:
           - >-
-            Supervised by <a href="https://liuziwei7.github.io/" target="_blank">Prof. Liu Ziwei</a>;
+            Supervised by [Prof. Liu Ziwei](https://liuziwei7.github.io/);
             focused on multimodal language models and unified multimodal models
 
   - title: Competitions
@@ -242,11 +240,11 @@ sections:
         detail: Nanyang Technological University / Dalian University of Technology
         location: Singapore / China
         items:
-          - "<strong>Ranked 22nd</strong> in the 2024 ICPC Asia Pacific Championship"
-          - "<strong>Ranked 13th</strong> in the 2023 ICPC Asia Jakarta Regional Contest"
-          - "<strong>Ranked 6th</strong> in the 2022 ICPC Asia Manila Regional Contest"
-          - "<strong>Gold Medal</strong> in the 2021 ICPC Asia Kunming Regional Contest"
-          - "<strong>Silver Medal</strong> in the 2021 ICPC Asia Nanjing Regional Contest"
+          - "**Ranked 22nd** in the 2024 ICPC Asia Pacific Championship"
+          - "**Ranked 13th** in the 2023 ICPC Asia Jakarta Regional Contest"
+          - "**Ranked 6th** in the 2022 ICPC Asia Manila Regional Contest"
+          - "**Gold Medal** in the 2021 ICPC Asia Kunming Regional Contest"
+          - "**Silver Medal** in the 2021 ICPC Asia Nanjing Regional Contest"
 
       - title: Simon Marais Mathematics Competition
         date: Dec 2022
@@ -290,5 +288,5 @@ sections:
 
   - title: Interests
     content: >-
-      Physics, Chess (<a href="https://lichess.org/@/pufanyi" target="_blank">Lichess</a> rating: 2084),
+      Physics, Chess ([Lichess](https://lichess.org/@/pufanyi) rating: 2084),
       Calligraphy, Table Tennis
