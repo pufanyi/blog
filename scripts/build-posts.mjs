@@ -27,8 +27,8 @@ const imageDimensions = new Map();
 // Collect languages used across all posts for Shiki
 function collectLangs(posts) {
   const langs = new Set();
-  for (const md of posts) {
-    for (const match of md.matchAll(/```(\w+)/g)) {
+  for (const mdx of posts) {
+    for (const match of mdx.matchAll(/```(\w+)/g)) {
       langs.add(match[1]);
     }
   }
@@ -175,7 +175,7 @@ function renderAiImageFigures(html, slug) {
   return { html: document.body.innerHTML, toc };
 }
 
-function renderMarkdown(md, slug, highlighter) {
+function renderMdx(mdx, slug, highlighter) {
   // Custom image renderer: publishes post-local assets from content/posts/<slug>.
   const imageRenderer = (token) => {
     const src = normalizePostImageHref(token.href, slug);
@@ -197,7 +197,7 @@ function renderMarkdown(md, slug, highlighter) {
     },
   });
 
-  const html = renderer.parse(md, { async: false });
+  const html = renderer.parse(mdx, { async: false });
   return renderAiImageFigures(html, slug);
 }
 
@@ -212,33 +212,36 @@ async function main() {
       .sort()
       .join(', ');
     throw new Error(
-      `content/posts must contain only <slug>/index.md directories; unexpected entries: ${names}`,
+      `content/posts must contain only <slug>/index.mdx directories; unexpected entries: ${names}`,
     );
   }
 
   const postSlugs = postEntries.map((entry) => entry.name).sort();
-  const rawPosts = postSlugs.map((slug) => {
-    const relativeSource = `content/posts/${slug}/index.md`;
-    const sourcePath = join(POSTS_DIR, slug, 'index.md');
-    if (!existsSync(sourcePath)) {
-      throw new Error(`${relativeSource}: file does not exist`);
-    }
+  const rawPosts = postSlugs
+    .map((slug) => {
+      const relativeSource = `content/posts/${slug}/index.mdx`;
+      const sourcePath = join(POSTS_DIR, slug, 'index.mdx');
+      if (!existsSync(sourcePath)) {
+        throw new Error(`${relativeSource}: file does not exist`);
+      }
 
-    const source = readFileSync(sourcePath, 'utf-8');
-    const { metadata, body } = parsePostSource(source, relativeSource);
-    return { slug, meta: metadata, md: body };
-  });
+      const source = readFileSync(sourcePath, 'utf-8');
+      const { metadata, body } = parsePostSource(source, relativeSource);
+      return { slug, meta: metadata, mdx: body };
+    })
+    .filter(({ meta }) => !meta.draft);
 
   // Create Shiki highlighter with all needed languages
-  const langs = collectLangs(rawPosts.map((p) => p.md));
+  const langs = collectLangs(rawPosts.map((p) => p.mdx));
   const highlighter = await createHighlighter({
     themes: ['catppuccin-latte', 'catppuccin-mocha'],
     langs: langs.length ? langs : ['text'],
   });
 
-  const posts = rawPosts.map(({ slug, meta, md }) => {
-    const rendered = renderMarkdown(md, slug, highlighter);
-    return { slug, ...meta, contentHtml: rendered.html, toc: rendered.toc };
+  const posts = rawPosts.map(({ slug, meta, mdx }) => {
+    const rendered = renderMdx(mdx, slug, highlighter);
+    const { draft: _draft, ...publicMeta } = meta;
+    return { slug, ...publicMeta, contentHtml: rendered.html, toc: rendered.toc };
   });
 
   posts.sort((a, b) => b.date.localeCompare(a.date));

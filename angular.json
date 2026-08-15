@@ -29,7 +29,7 @@
                 "input": "content/posts",
                 "output": "posts",
                 "ignore": [
-                  "**/*.md"
+                  "**/*.mdx"
                 ]
               }
             ],

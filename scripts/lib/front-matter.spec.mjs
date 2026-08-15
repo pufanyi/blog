@@ -55,12 +55,21 @@ test('parsePostSource validates supported metadata and calendar dates', () => {
       ),
     /field "date" must be a valid YYYY-MM-DD date/,
   );
+});
+
+test('parsePostSource supports boolean draft metadata', () => {
+  const result = parsePostSource(
+    '---\ntitle: Example\ndate: 2026-08-08\ndescription: Test\ndraft: true\n---\nBody',
+    'draft.mdx',
+  );
+
+  assert.equal(result.metadata.draft, true);
   assert.throws(
     () =>
       parsePostSource(
-        '---\ntitle: Example\ndate: 2026-08-08\ndescription: Test\ndraft: true\n---\nBody',
-        'unknown.md',
+        '---\ntitle: Example\ndate: 2026-08-08\ndescription: Test\ndraft: yes\n---\nBody',
+        'draft.mdx',
       ),
-    /unsupported front matter field "draft"/,
+    /field "draft" must be a boolean/,
   );
 });

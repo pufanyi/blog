@@ -32,23 +32,23 @@ Project guidance for agents working in this repository.
 - All Angular-authored images should use `app-image-lightbox`, which wraps
   `NgOptimizedImage` and `medium-zoom`. Do not add bare template `<img>` tags
   unless there is a concrete framework limitation.
-- Markdown-generated post images are emitted as plain HTML first, then hydrated
+- MDX-generated post images are emitted as plain HTML first, then hydrated
   by the post page into `app-image-lightbox` instances. Keep generated image
   HTML dimensioned with `width`/`height` whenever possible so `NgOptimizedImage`
   can run correctly after hydration.
 
 ## Content
 
-- Each blog post lives at `content/posts/<slug>/index.md`; the directory name is
-  the post slug. `index.md` starts with YAML front matter delimited by `---`;
+- Each blog post lives at `content/posts/<slug>/index.mdx`; the directory name is
+  the post slug. `index.mdx` starts with YAML front matter delimited by `---`;
   `title`, `date` (`YYYY-MM-DD`), and `description` are required, while
   `coverImage` is optional.
-- Post-local image/assets live alongside `index.md` under
+- Post-local image/assets live alongside `index.mdx` under
   `content/posts/<slug>/` and are referenced from Markdown with relative image
   paths. The generator rewrites those paths to `/posts/<slug>/...`, and Angular
-  copies non-Markdown files from `content/posts` into the published `/posts`
+  copies non-MDX files from `content/posts` into the published `/posts`
   asset path.
-- Add an AI summary image button beside a Markdown heading by appending
+- Add an AI summary image button beside an MDX heading by appending
   `<ai-img>relative-image.avif</ai-img>` to that heading. The generator rewrites
   the tag to an `AI Summary` button plus a hidden zoom source; clicking the
   button should open the image directly with `medium-zoom`, not expand an inline

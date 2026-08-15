@@ -1,7 +1,7 @@
 import { JSON_SCHEMA, load as loadYaml } from 'js-yaml';
 
 const REQUIRED_FIELDS = ['title', 'date', 'description'];
-const OPTIONAL_FIELDS = ['coverImage'];
+const OPTIONAL_FIELDS = ['coverImage', 'draft'];
 const ALLOWED_FIELDS = new Set([...REQUIRED_FIELDS, ...OPTIONAL_FIELDS]);
 const OPENING_DELIMITER = /^---[ \t]*(?:\r?\n|$)/;
 const CLOSING_DELIMITER = /^---[ \t]*(?:\r?\n|$)/gm;
@@ -45,6 +45,10 @@ function validateMetadata(metadata, sourceName) {
     (typeof metadata.coverImage !== 'string' || !metadata.coverImage.trim())
   ) {
     fail(sourceName, 'front matter field "coverImage" must be a non-empty string');
+  }
+
+  if (metadata.draft !== undefined && typeof metadata.draft !== 'boolean') {
+    fail(sourceName, 'front matter field "draft" must be a boolean');
   }
 }
 
