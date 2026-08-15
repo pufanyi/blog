@@ -28,7 +28,7 @@ const FIELD_PRIORITY: Record<string, 'title' | 'description' | 'content'> = {
   content: 'content',
 };
 
-const PRIORITY_ORDER: Array<'title' | 'description' | 'content'> = [
+const PRIORITY_ORDER: ('title' | 'description' | 'content')[] = [
   'title',
   'description',
   'content',

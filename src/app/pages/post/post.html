@@ -26,10 +26,12 @@
       }
     </button>
 
+    <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -- native dialog keyboard interaction is handled by the browser -->
     <dialog
       class="post-toc-dialog"
       id="post-toc-dialog"
       #tocDialog
+      tabindex="-1"
       aria-label="Table of contents"
       (click)="onTocDialogClick($event)"
       (close)="onTocDialogClose()"

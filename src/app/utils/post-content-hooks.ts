@@ -1,11 +1,11 @@
 import mediumZoom from 'medium-zoom';
 
-type MathJaxApi = {
+interface MathJaxApi {
   startup?: {
     promise?: Promise<unknown>;
   };
   typesetPromise?: (elements?: HTMLElement[]) => Promise<unknown>;
-};
+}
 
 const IMAGE_ZOOM_OPTIONS = {
   margin: 24,
@@ -19,7 +19,7 @@ async function waitForMathJax(timeoutMs = 10000): Promise<MathJaxApi | null> {
 
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    const mathJax = (window as any).MathJax as MathJaxApi | undefined;
+    const mathJax = (window as Window & { MathJax?: MathJaxApi }).MathJax;
     if (mathJax?.typesetPromise) {
       return mathJax;
     }
@@ -56,7 +56,7 @@ export function optimizeContentImages(): void {
 
 export function initContentImageZoom(container?: HTMLElement): () => void {
   if (typeof document === 'undefined') {
-    return () => {};
+    return () => undefined;
   }
 
   const root = container ?? document;
@@ -69,11 +69,11 @@ export function initContentImageZoom(container?: HTMLElement): () => void {
 
 export function initAiSummaryFigures(container?: HTMLElement): () => void {
   if (typeof document === 'undefined') {
-    return () => {};
+    return () => undefined;
   }
 
   const root = container ?? document;
-  const cleanups: Array<() => void> = [];
+  const cleanups: (() => void)[] = [];
 
   root.querySelectorAll<HTMLButtonElement>('.ai-summary-button').forEach(button => {
     if (button.dataset['aiSummaryBound'] === 'true') {

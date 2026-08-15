@@ -320,7 +320,7 @@ export class PostComponent implements OnDestroy {
   }
 
   private hydrateContentImages(container: HTMLElement): () => void {
-    const refs: Array<ComponentRef<ImageLightboxComponent>> = [];
+    const refs: ComponentRef<ImageLightboxComponent>[] = [];
 
     for (const image of Array.from(container.querySelectorAll<HTMLImageElement>('img'))) {
       const src = image.getAttribute('src');

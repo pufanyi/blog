@@ -6,7 +6,7 @@ const DEFAULT_DURATION_MS = 420;
 
 export function smoothScrollTo(targetY: number, durationMs = DEFAULT_DURATION_MS): SmoothScrollHandle {
   if (typeof window === 'undefined') {
-    return { cancel() {} };
+    return { cancel: () => undefined };
   }
 
   const startY = window.scrollY;
@@ -15,7 +15,7 @@ export function smoothScrollTo(targetY: number, durationMs = DEFAULT_DURATION_MS
 
   if (Math.abs(deltaY) < 1 || reduceMotion || durationMs <= 0) {
     window.scrollTo(0, targetY);
-    return { cancel() {} };
+    return { cancel: () => undefined };
   }
 
   let frameId: number | null = null;

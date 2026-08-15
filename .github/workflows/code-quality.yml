@@ -1,4 +1,4 @@
-name: Biome
+name: Code quality
 
 on:
   pull_request:
@@ -7,8 +7,12 @@ on:
       - main
 
 jobs:
-  biome:
+  check:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
@@ -26,5 +30,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run Biome checks
-        run: pnpm biome:check
+      - name: Run code quality checks
+        run: pnpm check

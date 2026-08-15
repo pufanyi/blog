@@ -9,5 +9,8 @@
   [priority]="priority()"
   [sizes]="sizes()"
   [attr.data-zoom-src]="src()"
+  role="button"
+  tabindex="0"
   (click)="onImageClick($event)"
+  (keydown)="onImageKeydown($event)"
 />

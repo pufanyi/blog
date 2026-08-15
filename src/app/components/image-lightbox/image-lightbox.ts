@@ -50,4 +50,13 @@ export class ImageLightboxComponent implements OnDestroy {
       event.preventDefault();
     }
   }
+
+  onImageKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    event.preventDefault();
+    this.img().nativeElement.click();
+  }
 }
