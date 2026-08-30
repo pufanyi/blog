@@ -122,7 +122,6 @@ function addCitationMetadata(document, citations) {
       year,
       url: citation.URL,
       doi: citation.DOI,
-      abstract: citation.abstract,
     };
     for (const [name, value] of Object.entries(metadata)) {
       if (value !== undefined && value !== null && value !== '') {

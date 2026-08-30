@@ -112,7 +112,6 @@ export class CitationPreviewService {
     componentRef.setInput('title', reference.dataset['title'] ?? null);
     componentRef.setInput('authors', reference.dataset['authors'] ?? null);
     componentRef.setInput('year', reference.dataset['year'] ?? null);
-    componentRef.setInput('abstract', reference.dataset['abstract'] ?? null);
     componentRef.setInput('paperUrl', this.findPaperUrl(reference));
     componentRef.setInput('referenceHref', referenceHref);
 

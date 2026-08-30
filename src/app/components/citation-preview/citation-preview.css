@@ -73,11 +73,6 @@
   font-size: 0.8rem;
 }
 
-.citation-card-abstract {
-  margin-top: 0.65rem;
-  color: var(--text-color);
-}
-
 .citation-card-actions {
   display: flex;
   flex-wrap: wrap;

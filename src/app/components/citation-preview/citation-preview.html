@@ -26,9 +26,6 @@
           {{ authors() }}@if (authors() && year()) { · }{{ year() }}
         </div>
       }
-      @if (abstract(); as summary) {
-        <p class="citation-card-abstract">{{ summary }}</p>
-      }
     } @else {
       <div [innerHTML]="entryHtml()"></div>
     }

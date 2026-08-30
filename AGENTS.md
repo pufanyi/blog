@@ -54,17 +54,18 @@ Project guidance for agents working in this repository.
   1. Create or update `content/posts/<slug>/references.bib`. Use readable,
      stable keys such as `kingma2014autoencoding`; write authors as
      `Family, Given and Family, Given`; and include `title`, `year`, and `url`.
-     Prefer adding `doi`, `abstract`, publication venue, volume, and pages when
-     available. Use a landing-page URL rather than a direct PDF URL.
+     Prefer adding `doi`, publication venue, volume, and pages when available.
+     Use a landing-page URL rather than a direct PDF URL. Do not add abstracts;
+     citation previews intentionally show bibliographic metadata only.
   2. Cite an entry in `index.mdx` with `[@key]`. Multiple references can be
      written as `[@key1; @key2]`. Add a References heading followed by `[^ref]`
      once, at the desired bibliography location.
   3. Run `pnpm format:bib` after editing BibTeX, then `pnpm generate:data` to
      regenerate the post HTML. The generator applies APA style and copies CSL
      metadata onto each `.csl-entry` as `data-title`, `data-authors`,
-     `data-year`, `data-url`, `data-doi`, and `data-abstract` when present.
-     Citation previews consume these attributes; do not author `data-*`
-     attributes manually in MDX.
+     `data-year`, `data-url`, and `data-doi` when present. Citation previews
+     consume these attributes; do not author `data-*` attributes manually in
+     MDX.
   4. Run `pnpm check` and `pnpm test` before committing. `pnpm lint:bib` checks
      formatting, duplicate citation keys, duplicate DOIs, and parser warnings.
 - When adding or touching image assets, manually convert any non-AVIF images to
