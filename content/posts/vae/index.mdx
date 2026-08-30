@@ -19,10 +19,13 @@ $$
 \end{aligned}
 $$
 
+然后写代码的时候有个 reparameterization trick，其实就是如果我们算出 $\mu_i$ 和 $\sigma_i^2$ 然后采样，那么是不可导的。方法其实就是 $\mathcal{N}(\mu, \sigma^2 I)\sim \sigma\times\mathcal{N}(0, I)+\mu$ 就行。
+
 ## 参考文献
 
-[Auto-Encoding Variational Bayes](https://arxiv.org/pdf/1312.6114)
-
-苏神博客：
-- [变分自编码器（一）：原来是这么一回事](https://spaces.ac.cn/archives/5253)
-- [变分自编码器（二）：从贝叶斯观点出发](https://spaces.ac.cn/archives/5343)
+- [Auto-Encoding Variational Bayes](https://arxiv.org/pdf/1312.6114)
+- [Neural Discrete Representation Learning](https://arxiv.org/pdf/1711.00937)
+- 苏神博客：
+    - [变分自编码器（一）：原来是这么一回事](https://spaces.ac.cn/archives/5253)
+    - [变分自编码器（二）：从贝叶斯观点出发](https://spaces.ac.cn/archives/5343)
+    - [VQ-VAE的简明介绍：量子化自编码器](https://spaces.ac.cn/archives/6760)
