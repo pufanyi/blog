@@ -36,7 +36,7 @@ export class CitationPreviewService {
         }
 
         event.preventDefault();
-        this.open(link, reference, referenceHref);
+        this.open(link, reference);
       };
 
       link.addEventListener('click', handleClick);
@@ -62,7 +62,7 @@ export class CitationPreviewService {
     }
   }
 
-  private open(origin: HTMLElement, reference: HTMLElement, referenceHref: string): void {
+  private open(origin: HTMLElement, reference: HTMLElement): void {
     if (this.origin === origin && this.overlayRef) {
       this.close();
       return;
@@ -113,7 +113,6 @@ export class CitationPreviewService {
     componentRef.setInput('authors', reference.dataset['authors'] ?? null);
     componentRef.setInput('year', reference.dataset['year'] ?? null);
     componentRef.setInput('paperUrl', this.findPaperUrl(reference));
-    componentRef.setInput('referenceHref', referenceHref);
 
     this.subscriptions = [
       overlayRef.backdropClick().subscribe(() => this.close()),

@@ -13,6 +13,5 @@ export class CitationPreviewComponent {
   readonly authors = input<string | null>(null);
   readonly year = input<string | null>(null);
   readonly paperUrl = input<string | null>(null);
-  readonly referenceHref = input.required<string>();
   readonly closeRequested = output<boolean>();
 }

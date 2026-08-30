@@ -31,20 +31,4 @@
     }
   </div>
 
-  <footer class="citation-card-actions">
-    @if (paperUrl(); as url) {
-      <a class="citation-card-action" [href]="url" target="_blank" rel="noopener noreferrer">
-        <i class="ph ph-arrow-square-out" aria-hidden="true"></i>
-        Open paper
-      </a>
-    }
-    <a
-      class="citation-card-action"
-      [href]="referenceHref()"
-      (click)="closeRequested.emit(false)"
-    >
-      <i class="ph ph-list-magnifying-glass" aria-hidden="true"></i>
-      See in references
-    </a>
-  </footer>
 </article>

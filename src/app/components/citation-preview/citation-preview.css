@@ -46,7 +46,7 @@
 }
 
 .citation-card-close:focus-visible,
-.citation-card-action:focus-visible {
+.citation-card-title:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent-blue) 58%, transparent);
   outline-offset: 2px;
 }
@@ -73,48 +73,8 @@
   font-size: 0.8rem;
 }
 
-.citation-card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  padding: 0 1rem 1rem;
-}
-
-.citation-card-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.42rem 0.7rem;
-  border: 1px solid color-mix(in srgb, var(--accent-blue) 32%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent-blue) 8%, transparent);
-  color: var(--link-color);
-  font-family: var(--font-heading);
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.citation-card-action:hover {
-  background: color-mix(in srgb, var(--accent-blue) 14%, transparent);
-  color: var(--link-hover-color);
-  text-decoration: none;
-}
-
-@media (max-width: 480px) {
-  .citation-card-actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .citation-card-action {
-    justify-content: center;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .citation-card-close,
-  .citation-card-action {
+  .citation-card-close {
     transition: none;
   }
 }
