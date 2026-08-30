@@ -1,0 +1,28 @@
+---
+title: "ML Revisit: Variational Auto-Encoder"
+date: "2026-08-29"
+description: "Notes for Variational Auto-Encoder"
+---
+
+给定样本 $x_i$，后验分布 $p_{\phi}(z\mid x_i)\sim \mathcal{N}(\mu_i, \sigma^2_i I)$。其中我们希望 $p_\phi(z)\sim\mathcal{N}(0, I)$。
+
+构建网络 $\left<\mu_k, \log \sigma_k^2\right>=\phi(x_i)$。
+
+如果酱紫直接训的话，因为取正态分布的时候会带来噪声，所以模型肯定是希望 $\sigma^2_k$ 越小越好，逐渐的会退化为普通的 auto encoder。
+
+所以我们希望 $p_\phi(z)\sim\mathcal{N}(0, I)$，这样子加上一个
+
+$$
+\begin{aligned}
+\mathcal{L}_{\mu, \sigma^2} &= D_\mathrm{KL}\left(\mathcal{N}(\mu, \sigma^2)\Vert\mathcal{N}(0, 1)\right)\\
+&=\frac{1}{2}(-\log\sigma^2+\mu^2+\sigma^2-1)
+\end{aligned}
+$$
+
+## 参考文献
+
+[Auto-Encoding Variational Bayes](https://arxiv.org/pdf/1312.6114)
+
+苏神博客：
+- [变分自编码器（一）：原来是这么一回事](https://spaces.ac.cn/archives/5253)
+- [变分自编码器（二）：从贝叶斯观点出发](https://spaces.ac.cn/archives/5343)
