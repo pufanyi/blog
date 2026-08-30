@@ -1,8 +1,7 @@
 import { JSDOM } from 'jsdom';
 
 const TOC_HEADING_SELECTOR = 'h2, h3';
-const TOC_TEXT_EXCLUSIONS =
-  '.ai-summary-button, .ai-summary-link, .heading-permalink, ai-img, [data-toc-ignore]';
+const TOC_TEXT_EXCLUSIONS = '.heading-permalink, [data-toc-ignore]';
 
 export function slugifyHeading(text) {
   return text

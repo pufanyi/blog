@@ -100,68 +100,6 @@
   text-decoration-color: var(--link-color);
 }
 
-.post-body .ai-summary-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  max-width: 100%;
-  margin-left: 0.45rem;
-  padding: 0.18rem 0.45rem;
-  border: 1px solid color-mix(in srgb, var(--accent-slate) 32%, transparent);
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--accent-slate) 10%, transparent);
-  color: var(--accent-slate);
-  cursor: pointer;
-  font-family: var(--font-heading);
-  font-size: 0.72rem;
-  font-weight: 600;
-  line-height: 1.15;
-  appearance: none;
-  text-decoration: none;
-  text-decoration-color: transparent;
-  vertical-align: 0.14em;
-  white-space: nowrap;
-}
-
-.post-body .ai-summary-button:hover,
-.post-body .ai-summary-button[aria-expanded="true"] {
-  background: color-mix(in srgb, var(--accent-slate) 16%, transparent);
-  color: var(--link-hover-color);
-  text-decoration: none;
-  text-decoration-color: transparent;
-}
-
-.post-body .ai-summary-button:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent-slate) 58%, transparent);
-  outline-offset: 2px;
-}
-
-.post-body .ai-summary-button i {
-  font-size: 0.95em;
-  line-height: 1;
-}
-
-.post-body .ai-summary-figure {
-  margin: 1rem 0 1.5rem;
-  text-align: center;
-}
-
-.post-body .ai-summary-figure[hidden] {
-  display: none;
-}
-
-.post-body .ai-summary-figure--zoom-source {
-  height: 0;
-  margin: 0;
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.post-body .ai-summary-image {
-  cursor: zoom-in;
-}
-
 .post-body h2,
 .post-body h3 {
   scroll-margin-top: 1.5rem;

@@ -1,15 +1,19 @@
+import { evaluate } from '@mdx-js/mdx';
 import { execFileSync } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { load as loadYaml } from 'js-yaml';
 import { JSDOM } from 'jsdom';
-import { Marked } from 'marked';
 import { join } from 'path';
+import { createElement } from 'react';
+import * as jsxRuntime from 'react/jsx-runtime';
+import { renderToStaticMarkup } from 'react-dom/server';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import { createHighlighter } from 'shiki';
+import { pathToFileURL } from 'url';
 import { createCodeRenderer } from './lib/code-renderer.mjs';
 import { renderCvMarkdown } from './lib/cv-markdown.mjs';
 import { parsePostSource } from './lib/front-matter.mjs';
-import { mathBlock, mathInline } from './lib/math-extensions.mjs';
-import { tableRenderer } from './lib/table-renderer.mjs';
 import { buildTableOfContents } from './lib/toc-renderer.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -21,7 +25,6 @@ const REDIRECTS_OUTPUT = join(DATA_DIR, 'redirects.ts');
 const CV_INPUT = join(ROOT, 'content/cv.yaml');
 const CV_OUTPUT = join(DATA_DIR, 'cv.ts');
 const POST_ASSET_BASE = '/posts';
-const DEFAULT_AI_IMAGE_LABEL = 'AI Summary';
 const imageDimensions = new Map();
 
 // Collect languages used across all posts for Shiki
@@ -90,84 +93,67 @@ function getImageDimensions(href, slug) {
   }
 }
 
-function escapeAttribute(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('"', '&quot;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
+function replaceWithHtml(document, node, html) {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  node.replaceWith(template.content);
 }
 
-function insertAfter(referenceNode, newNode) {
-  referenceNode.parentNode?.insertBefore(newNode, referenceNode.nextSibling);
-}
-
-function renderAiImageFigures(html, slug) {
+function postprocessMdxHtml(html, slug, highlighter) {
   const dom = new JSDOM(`<body>${html}</body>`);
   const { document } = dom.window;
-  let aiImageCount = 0;
 
-  for (const node of Array.from(document.querySelectorAll('ai-img'))) {
-    const rawHref = node.getAttribute('src') || node.textContent || '';
-    const href = rawHref.trim();
+  // React 19 may emit image preload hints during static rendering. Angular owns
+  // the document shell, so post content should contain only authored content.
+  for (const preload of document.querySelectorAll('link[rel="preload"][as="image"]')) {
+    preload.remove();
+  }
 
-    if (!href) {
-      node.remove();
-      continue;
-    }
+  for (const code of Array.from(document.querySelectorAll('code.math-inline'))) {
+    const span = document.createElement('span');
+    span.className = 'math-inline';
+    span.textContent = `$${code.textContent ?? ''}$`;
+    code.replaceWith(span);
+  }
 
-    const label = node.getAttribute('label')?.trim() || DEFAULT_AI_IMAGE_LABEL;
-    const src = normalizePostImageHref(href, slug);
-    const targetId = `ai-summary-${slug}-${aiImageCount}`;
-    aiImageCount += 1;
+  for (const code of Array.from(document.querySelectorAll('code.math-display'))) {
+    const container = code.parentElement?.tagName === 'PRE' ? code.parentElement : code;
+    const div = document.createElement('div');
+    div.className = 'math-display';
+    div.textContent = `$$\n${code.textContent ?? ''}\n$$`;
+    container.replaceWith(div);
+  }
 
-    const button = document.createElement('button');
-    button.className = 'ai-summary-button';
-    button.type = 'button';
-    button.title = node.getAttribute('title')?.trim() || `Show ${label}`;
-    button.setAttribute('aria-label', `${label}: ${href}`);
-    button.setAttribute('aria-controls', targetId);
-    button.setAttribute('aria-expanded', 'false');
+  const renderCode = createCodeRenderer(highlighter);
+  for (const code of Array.from(document.querySelectorAll('pre > code'))) {
+    const pre = code.parentElement;
+    if (!pre) continue;
+    const languageClass = Array.from(code.classList).find((name) => name.startsWith('language-'));
+    const lang = languageClass?.slice('language-'.length) || '';
+    replaceWithHtml(document, pre, renderCode({ text: code.textContent ?? '', lang }));
+  }
 
-    const icon = document.createElement('i');
-    icon.className = 'ph ph-magic-wand';
-    icon.setAttribute('aria-hidden', 'true');
+  for (const table of Array.from(document.querySelectorAll('table'))) {
+    if (table.parentElement?.classList.contains('table-wrapper')) continue;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'table-wrapper';
+    table.replaceWith(wrapper);
+    wrapper.append(table);
+  }
 
-    const text = document.createElement('span');
-    text.textContent = label;
-
-    button.append(icon, text);
-
-    const figure = document.createElement('figure');
-    figure.className = 'ai-summary-figure';
-    figure.id = targetId;
-    figure.hidden = true;
-
-    const image = document.createElement('img');
-    image.className = 'ai-summary-image';
+  for (const image of Array.from(document.querySelectorAll('img'))) {
+    const authoredSrc = image.getAttribute('src')?.trim();
+    if (!authoredSrc) continue;
+    const src = normalizePostImageHref(authoredSrc, slug);
+    const dimensions = getImageDimensions(authoredSrc, slug);
     image.src = src;
-    image.alt = node.getAttribute('alt')?.trim() || label;
-    const dimensions = getImageDimensions(href, slug);
-    const width = node.getAttribute('width')?.trim() || dimensions?.width;
-    const height = node.getAttribute('height')?.trim() || dimensions?.height;
-    if (width && height) {
-      image.setAttribute('width', String(width));
-      image.setAttribute('height', String(height));
+    if (dimensions && (!image.hasAttribute('width') || !image.hasAttribute('height'))) {
+      image.width = dimensions.width;
+      image.height = dimensions.height;
     }
     image.setAttribute('loading', 'lazy');
     image.setAttribute('decoding', 'async');
     image.setAttribute('data-zoom-src', src);
-
-    figure.append(image);
-
-    const target = node.closest('h1,h2,h3,h4,h5,h6') || node.parentElement;
-    node.replaceWith(button);
-
-    if (target) {
-      insertAfter(target, figure);
-    } else {
-      button.after(figure);
-    }
   }
 
   const postPath = `/blog/${encodeURIComponent(slug)}`;
@@ -175,30 +161,14 @@ function renderAiImageFigures(html, slug) {
   return { html: document.body.innerHTML, toc };
 }
 
-function renderMdx(mdx, slug, highlighter) {
-  // Custom image renderer: publishes post-local assets from content/posts/<slug>.
-  const imageRenderer = (token) => {
-    const src = normalizePostImageHref(token.href, slug);
-    const alt = token.text || '';
-    const title = token.title ? ` title="${escapeAttribute(token.title)}"` : '';
-    const dimensions = getImageDimensions(token.href, slug);
-    const sizeAttrs = dimensions
-      ? ` width="${dimensions.width}" height="${dimensions.height}"`
-      : '';
-    return `<img src="${escapeAttribute(src)}" alt="${escapeAttribute(alt)}"${title}${sizeAttrs} loading="lazy" decoding="async" data-zoom-src="${escapeAttribute(src)}">`;
-  };
-
-  const renderer = new Marked({
-    extensions: [mathBlock, mathInline],
-    renderer: {
-      code: createCodeRenderer(highlighter),
-      table: tableRenderer,
-      image: imageRenderer,
-    },
+export async function renderMdx(mdx, slug, sourcePath, highlighter) {
+  const module = await evaluate(mdx, {
+    ...jsxRuntime,
+    baseUrl: pathToFileURL(sourcePath),
+    remarkPlugins: [remarkGfm, remarkMath],
   });
-
-  const html = renderer.parse(mdx, { async: false });
-  return renderAiImageFigures(html, slug);
+  const html = renderToStaticMarkup(createElement(module.default));
+  return postprocessMdxHtml(html, slug, highlighter);
 }
 
 async function main() {
@@ -227,7 +197,7 @@ async function main() {
 
       const source = readFileSync(sourcePath, 'utf-8');
       const { metadata, body } = parsePostSource(source, relativeSource);
-      return { slug, meta: metadata, mdx: body };
+      return { slug, meta: metadata, mdx: body, sourcePath };
     })
     .filter(({ meta }) => !meta.draft);
 
@@ -238,11 +208,13 @@ async function main() {
     langs: langs.length ? langs : ['text'],
   });
 
-  const posts = rawPosts.map(({ slug, meta, mdx }) => {
-    const rendered = renderMdx(mdx, slug, highlighter);
-    const { draft: _draft, ...publicMeta } = meta;
-    return { slug, ...publicMeta, contentHtml: rendered.html, toc: rendered.toc };
-  });
+  const posts = await Promise.all(
+    rawPosts.map(async ({ slug, meta, mdx, sourcePath }) => {
+      const rendered = await renderMdx(mdx, slug, sourcePath, highlighter);
+      const { draft: _draft, ...publicMeta } = meta;
+      return { slug, ...publicMeta, contentHtml: rendered.html, toc: rendered.toc };
+    }),
+  );
 
   posts.sort((a, b) => b.date.localeCompare(a.date));
 
@@ -287,4 +259,6 @@ export const CV_DATA: CvData = ${JSON.stringify(cv, null, 2)};
   console.log(`Generated CV data → src/app/data/cv.ts`);
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}

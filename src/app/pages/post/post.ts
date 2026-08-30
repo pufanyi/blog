@@ -28,7 +28,6 @@ import { ToolbarExtensionService } from '../../services/toolbar-extension.servic
 import { ImageLightboxComponent } from '../../components/image-lightbox/image-lightbox';
 import {
   typesetMath,
-  initAiSummaryFigures,
   initCodeCopyButtons,
   initContentImageZoom,
   optimizeContentImages,
@@ -109,7 +108,6 @@ export class PostComponent implements OnDestroy {
         return;
       }
 
-      let cleanupAiSummaryFigures: (() => void) | null = null;
       let cleanupContentImageZoom: (() => void) | null = null;
       let cleanupContentImages: (() => void) | null = null;
       let setupTimer: number | null = null;
@@ -134,7 +132,6 @@ export class PostComponent implements OnDestroy {
           initCodeCopyButtons();
           optimizeContentImages();
           cleanupContentImages = this.hydrateContentImages(postBody);
-          cleanupAiSummaryFigures = initAiSummaryFigures(postBody);
           cleanupContentImageZoom = initContentImageZoom(postBody);
           this.setupHeadingScrollSpy(postBody);
           this.giscus()?.load();
@@ -148,7 +145,6 @@ export class PostComponent implements OnDestroy {
         if (setupTimer !== null) {
           window.clearTimeout(setupTimer);
         }
-        cleanupAiSummaryFigures?.();
         cleanupContentImageZoom?.();
         cleanupContentImages?.();
         this.headingScrollSpy.disconnect();

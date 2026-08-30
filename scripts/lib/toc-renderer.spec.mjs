@@ -13,9 +13,9 @@ test('slugifyHeading creates readable Unicode-safe fragments', () => {
   assert.equal(slugifyHeading('---'), '');
 });
 
-test('renderTableOfContents builds hierarchy and excludes heading controls', () => {
+test('renderTableOfContents builds a heading hierarchy', () => {
   const result = renderToc(`
-    <h2>Principle <button class="ai-summary-button">AI Summary</button></h2>
+    <h2>Principle</h2>
     <h3>Derivation</h3>
     <h2>Examples</h2>
   `);

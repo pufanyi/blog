@@ -44,16 +44,9 @@ Project guidance for agents working in this repository.
   paths. The generator rewrites those paths to `/posts/<slug>/...`, and Angular
   copies non-MDX files from `content/posts` into the published `/posts`
   asset path.
-- Add an AI summary image button beside an MDX heading by appending
-  `<ai-img>relative-image.avif</ai-img>` to that heading. The generator rewrites
-  the tag to an `AI Summary` button plus a hidden zoom source; clicking the
-  button should open the image directly with `medium-zoom`, not expand an inline
-  figure. Relative paths are normalized the same way as post-local images.
-- Prefer mature UI/image tooling already in the project for interactions. For
-  example, AI summary figures use `medium-zoom` for image inspection instead of
-  ad-hoc navigation or custom zoom overlays.
-- If an AI summary image dimension cannot be inferred automatically during data
-  generation, add explicit `width` and `height` attributes to the `<ai-img>` tag.
+- Posts are compiled as standard MDX with GFM and math support. Prefer native
+  MDX syntax and semantic HTML elements such as `<details>` for authored
+  interactive content; imported build-time components are also supported.
 - When adding or touching image assets, manually convert any non-AVIF images to
   AVIF and reference the converted files instead.
 - Rich-text fields in `content/cv.yaml` support inline Markdown while retaining
