@@ -1,0 +1,53 @@
+<article class="citation-card" role="dialog" aria-label="Citation preview">
+  <header class="citation-card-header">
+    <span>Reference</span>
+    <button
+      type="button"
+      class="citation-card-close"
+      aria-label="Close citation preview"
+      title="Close"
+      (click)="closeRequested.emit(true)"
+    >
+      <i class="ph ph-x" aria-hidden="true"></i>
+    </button>
+  </header>
+
+  <div class="citation-card-entry">
+    @if (title(); as citationTitle) {
+      @if (paperUrl(); as url) {
+        <a class="citation-card-title" [href]="url" target="_blank" rel="noopener noreferrer">
+          {{ citationTitle }}
+        </a>
+      } @else {
+        <div class="citation-card-title">{{ citationTitle }}</div>
+      }
+      @if (authors() || year()) {
+        <div class="citation-card-meta">
+          {{ authors() }}@if (authors() && year()) { · }{{ year() }}
+        </div>
+      }
+      @if (abstract(); as summary) {
+        <p class="citation-card-abstract">{{ summary }}</p>
+      }
+    } @else {
+      <div [innerHTML]="entryHtml()"></div>
+    }
+  </div>
+
+  <footer class="citation-card-actions">
+    @if (paperUrl(); as url) {
+      <a class="citation-card-action" [href]="url" target="_blank" rel="noopener noreferrer">
+        <i class="ph ph-arrow-square-out" aria-hidden="true"></i>
+        Open paper
+      </a>
+    }
+    <a
+      class="citation-card-action"
+      [href]="referenceHref()"
+      (click)="closeRequested.emit(false)"
+    >
+      <i class="ph ph-list-magnifying-glass" aria-hidden="true"></i>
+      See in references
+    </a>
+  </footer>
+</article>

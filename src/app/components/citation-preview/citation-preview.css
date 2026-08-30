@@ -1,0 +1,125 @@
+:host {
+  display: block;
+  width: min(30rem, calc(100vw - 1.5rem));
+}
+
+.citation-card {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border-color) 42%, transparent);
+  border-radius: 10px;
+  background: var(--paper-bg);
+  box-shadow: 0 14px 36px var(--shadow-color-strong);
+  color: var(--text-color);
+}
+
+.citation-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.75rem 0.65rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 24%, transparent);
+  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 0.76rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.citation-card-close {
+  display: inline-flex;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.citation-card-close:hover {
+  background: color-mix(in srgb, var(--border-color) 12%, transparent);
+  color: var(--text-color);
+}
+
+.citation-card-close:focus-visible,
+.citation-card-action:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-blue) 58%, transparent);
+  outline-offset: 2px;
+}
+
+.citation-card-entry {
+  padding: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.citation-card-title {
+  display: block;
+  color: var(--link-color);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.citation-card-meta {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.citation-card-abstract {
+  margin-top: 0.65rem;
+  color: var(--text-color);
+}
+
+.citation-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0 1rem 1rem;
+}
+
+.citation-card-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.42rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--accent-blue) 32%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-blue) 8%, transparent);
+  color: var(--link-color);
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.citation-card-action:hover {
+  background: color-mix(in srgb, var(--accent-blue) 14%, transparent);
+  color: var(--link-hover-color);
+  text-decoration: none;
+}
+
+@media (max-width: 480px) {
+  .citation-card-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .citation-card-action {
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .citation-card-close,
+  .citation-card-action {
+    transition: none;
+  }
+}

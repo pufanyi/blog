@@ -6,7 +6,7 @@ description: "Notes for Autoencoder"
 
 ## Variational Autoencoder (VAE)
 
-最开始的文章是 [@kingma2022autoencodingvariationalbayes]。
+最开始的文章是 [@kingma2014autoencoding]。
 
 给定样本 $x_i$，后验分布 $p_{\phi}(z\mid x_i)\sim \mathcal{N}(\mu_i, \sigma^2_i I)$。其中我们希望 $p_\phi(z)\sim\mathcal{N}(0, I)$。
 
@@ -29,7 +29,7 @@ $$
 
 ## Vector Quantized-Variational Autoencoder (VQ-VAE)
 
-文章：[@NIPS2017_7a98af17]
+文章：[@vanDenOord2017neural]
 
 先把 $x\in \mathbb{R}^{H\times W\times 3}$ 降采样成 $z\in \mathbb{R}^{h\times w\times d}$。然后维护 embedding codebook $e\in\mathbb{R}^{K\times d}$。找到每个 $z_{ij}$ 的最近邻 $\hat{z}_{ij}$ 进入 decoder。
 

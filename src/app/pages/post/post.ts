@@ -25,6 +25,7 @@ import { GiscusCommentsComponent } from '../../components/giscus-comments/giscus
 import { BackToTopComponent } from '../../components/back-to-top/back-to-top';
 import { PostTocComponent } from '../../components/post-toc/post-toc';
 import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
+import { CitationPreviewService } from '../../services/citation-preview.service';
 import { ImageLightboxComponent } from '../../components/image-lightbox/image-lightbox';
 import {
   typesetMath,
@@ -61,6 +62,7 @@ export class PostComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly toolbarExt = inject(ToolbarExtensionService);
+  private readonly citationPreview = inject(CitationPreviewService);
   private readonly appRef = inject(ApplicationRef);
   private readonly environmentInjector = inject(EnvironmentInjector);
   private readonly slug = toSignal(this.route.paramMap.pipe(map(p => p.get('slug'))));
@@ -110,6 +112,7 @@ export class PostComponent implements OnDestroy {
 
       let cleanupContentImageZoom: (() => void) | null = null;
       let cleanupContentImages: (() => void) | null = null;
+      let cleanupCitationPreviews: (() => void) | null = null;
       let setupTimer: number | null = null;
       let isDisposed = false;
 
@@ -133,6 +136,7 @@ export class PostComponent implements OnDestroy {
           optimizeContentImages();
           cleanupContentImages = this.hydrateContentImages(postBody);
           cleanupContentImageZoom = initContentImageZoom(postBody);
+          cleanupCitationPreviews = this.citationPreview.bind(postBody);
           this.setupHeadingScrollSpy(postBody);
           this.giscus()?.load();
         }, attempt === 0 ? 0 : 25);
@@ -147,6 +151,7 @@ export class PostComponent implements OnDestroy {
         }
         cleanupContentImageZoom?.();
         cleanupContentImages?.();
+        cleanupCitationPreviews?.();
         this.headingScrollSpy.disconnect();
       });
     });

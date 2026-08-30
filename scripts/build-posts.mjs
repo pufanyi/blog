@@ -7,7 +7,7 @@ import { dirname, join } from 'path';
 import { createElement } from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
 import { renderToStaticMarkup } from 'react-dom/server';
-import rehypeCitation from 'rehype-citation';
+import rehypeCitation, { Cite } from 'rehype-citation';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import { createHighlighter } from 'shiki';
@@ -100,9 +100,42 @@ function replaceWithHtml(document, node, html) {
   node.replaceWith(template.content);
 }
 
-function postprocessMdxHtml(html, slug, highlighter) {
+function formatCitationAuthors(authors = []) {
+  return authors
+    .map(
+      ({ given, family, literal, 'non-dropping-particle': particle }) =>
+        literal ?? [given, particle, family].filter(Boolean).join(' '),
+    )
+    .filter(Boolean)
+    .join(', ');
+}
+
+function addCitationMetadata(document, citations) {
+  for (const citation of citations) {
+    const entry = document.getElementById(`bib-${citation.id.toLowerCase()}`);
+    if (!entry) continue;
+
+    const year = citation.issued?.['date-parts']?.[0]?.[0];
+    const metadata = {
+      title: citation.title,
+      authors: formatCitationAuthors(citation.author),
+      year,
+      url: citation.URL,
+      doi: citation.DOI,
+      abstract: citation.abstract,
+    };
+    for (const [name, value] of Object.entries(metadata)) {
+      if (value !== undefined && value !== null && value !== '') {
+        entry.dataset[name] = String(value);
+      }
+    }
+  }
+}
+
+function postprocessMdxHtml(html, slug, highlighter, citations = []) {
   const dom = new JSDOM(`<body>${html}</body>`);
   const { document } = dom.window;
+  addCitationMetadata(document, citations);
 
   // React 19 may emit image preload hints during static rendering. Angular owns
   // the document shell, so post content should contain only authored content.
@@ -170,7 +203,11 @@ function postprocessMdxHtml(html, slug, highlighter) {
 
 export async function renderMdx(mdx, slug, sourcePath, highlighter) {
   const bibliography = join(dirname(sourcePath), 'references.bib');
-  const rehypePlugins = existsSync(bibliography)
+  const hasBibliography = existsSync(bibliography);
+  const citations = hasBibliography
+    ? new Cite(readFileSync(bibliography, 'utf8'), { generateGraph: false }).data
+    : [];
+  const rehypePlugins = hasBibliography
     ? [
         [
           rehypeCitation,
@@ -190,7 +227,7 @@ export async function renderMdx(mdx, slug, sourcePath, highlighter) {
     rehypePlugins,
   });
   const html = renderToStaticMarkup(createElement(module.default));
-  return postprocessMdxHtml(html, slug, highlighter);
+  return postprocessMdxHtml(html, slug, highlighter, citations);
 }
 
 async function main() {

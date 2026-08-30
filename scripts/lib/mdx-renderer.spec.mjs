@@ -48,6 +48,9 @@ const value = 42;
     '/blog/example#bib-example2026',
   );
   assert.match(document.querySelector('#bib-example2026')?.textContent ?? '', /Example Reference/);
+  assert.equal(document.querySelector('#bib-example2026')?.dataset['title'], 'Example Reference');
+  assert.equal(document.querySelector('#bib-example2026')?.dataset['authors'], 'Jane Doe');
+  assert.equal(document.querySelector('#bib-example2026')?.dataset['year'], '2026');
   assert.ok(document.querySelector('.table-wrapper > table'));
   assert.equal(document.querySelector('.code-lang')?.textContent, 'js');
   assert.equal(result.toc[0]?.text, 'Native MDX 42');
