@@ -265,6 +265,22 @@
   text-underline-offset: 2px;
 }
 
+.post-body .citation-source-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2em;
+  font-family: var(--font-heading);
+  font-size: 0.88em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.post-body .citation-source-link::after {
+  content: '↗';
+  font-size: 0.85em;
+  text-decoration: none;
+}
+
 .post-body .csl-entry:has(> .csl-left-margin) {
   display: grid;
   grid-template-columns: 2rem minmax(0, 1fr);

@@ -51,7 +51,24 @@ $$
 z_q = z + (z_q - z).detach()
 ```
 
-就可以了。
+就可以了。其中 `z_q` 指的是 $\hat{z}$。
+
+对于第二个问题，首先我们希望 $\hat{z}$ 和 $z$ 能够尽量接近，所以我们理论上讲可以加一个 $\beta\|z-\hat{z}\|_2^2$ 的项。但是其实我们更希望是 $\hat{z}$ 去接近 $z$ 而不是 $z$ 去接近 $\hat{z}$，所以我们将这个项分解为
+
+$$
+\beta\|\mathrm{sg}[z]-\hat{z}\|_2^2+\gamma\|z-\mathrm{sg}[\hat{z}]\|_2^2
+$$
+
+一般情况下 $\beta>\gamma$，论文中是 $\beta=4\gamma$。
+
+所以最终 loss 是
+
+$$
+\left\|x - \mathrm{Decoder}(z+\mathrm{sg}[\hat{z}-z])\right\|_2^2+\beta\|\mathrm{sg}[z]-\hat{z}\|_2^2+\gamma\|z-\mathrm{sg}[\hat{z}]\|_2^2
+$$
+
+## Representation Autoencoder (RAE)
+
 
 ## References
 

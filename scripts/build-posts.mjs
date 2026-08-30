@@ -110,6 +110,44 @@ function formatCitationAuthors(authors = []) {
     .join(', ');
 }
 
+function compactCitationUrls(document, entry) {
+  const walker = document.createTreeWalker(entry, 4);
+  const textNodes = [];
+  while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+  for (const textNode of textNodes) {
+    const text = textNode.textContent ?? '';
+    const matches = [...text.matchAll(/https?:\/\/[^\s]+/g)];
+    if (matches.length === 0) continue;
+
+    const fragment = document.createDocumentFragment();
+    let offset = 0;
+    for (const match of matches) {
+      const start = match.index;
+      const rawUrl = match[0];
+      const url = rawUrl.replace(/[),.;]+$/, '');
+      const trailing = rawUrl.slice(url.length);
+      fragment.append(text.slice(offset, start));
+
+      const anchor = document.createElement('a');
+      anchor.className = 'citation-source-link';
+      anchor.href = url;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      anchor.title = url;
+      try {
+        anchor.textContent = new URL(url).hostname.replace(/^www\./, '');
+      } catch {
+        anchor.textContent = 'Source';
+      }
+      fragment.append(anchor, trailing);
+      offset = start + rawUrl.length;
+    }
+    fragment.append(text.slice(offset));
+    textNode.replaceWith(fragment);
+  }
+}
+
 function addCitationMetadata(document, citations) {
   for (const citation of citations) {
     const entry = document.getElementById(`bib-${citation.id.toLowerCase()}`);
@@ -128,6 +166,7 @@ function addCitationMetadata(document, citations) {
         entry.dataset[name] = String(value);
       }
     }
+    compactCitationUrls(document, entry);
   }
 }
 

@@ -51,6 +51,14 @@ const value = 42;
   assert.equal(document.querySelector('#bib-example2026')?.dataset['title'], 'Example Reference');
   assert.equal(document.querySelector('#bib-example2026')?.dataset['authors'], 'Jane Doe');
   assert.equal(document.querySelector('#bib-example2026')?.dataset['year'], '2026');
+  assert.equal(
+    document.querySelector('#bib-example2026 .citation-source-link')?.textContent,
+    'example.com',
+  );
+  assert.equal(
+    document.querySelector('#bib-example2026 .citation-source-link')?.getAttribute('href'),
+    'https://example.com/papers/reference',
+  );
   assert.ok(document.querySelector('.table-wrapper > table'));
   assert.equal(document.querySelector('.code-lang')?.textContent, 'js');
   assert.equal(result.toc[0]?.text, 'Native MDX 42');
