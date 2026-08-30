@@ -19,6 +19,8 @@ $$
 \end{aligned}
 $$
 
+就行。
+
 然后写代码的时候有个 reparameterization trick，其实就是如果我们算出 $\mu_i$ 和 $\sigma_i^2$ 然后采样，那么是不可导的。方法其实就是 $\mathcal{N}(\mu, \sigma^2 I)\sim \sigma\times\mathcal{N}(0, I)+\mu$ 就行。
 
 ## 参考文献
