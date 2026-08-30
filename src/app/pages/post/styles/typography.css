@@ -219,13 +219,50 @@
 }
 
 .post-body .references {
-  margin: 1rem 0 1.5rem;
+  display: grid;
+  gap: 0.65rem;
+  margin: 1.25rem 0 1.75rem;
 }
 
 .post-body .csl-entry {
-  margin-bottom: 0.75rem;
-  line-height: 1.55;
+  position: relative;
+  margin: 0;
+  padding: 0.85rem 1rem 0.85rem 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--border-color) 22%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-soft) 18%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent-blue) 45%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.6;
   overflow-wrap: anywhere;
+  scroll-margin-top: 7rem;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
+}
+
+.post-body .csl-entry:hover {
+  border-color: color-mix(in srgb, var(--accent-blue) 34%, var(--border-color));
+  background: color-mix(in srgb, var(--accent-blue) 5%, var(--paper-bg));
+  color: var(--text-color);
+}
+
+.post-body .csl-entry:target {
+  border-color: color-mix(in srgb, var(--accent-blue) 60%, var(--border-color));
+  background: color-mix(in srgb, var(--accent-blue) 10%, var(--paper-bg));
+  box-shadow:
+    inset 3px 0 0 var(--accent-blue),
+    0 5px 18px var(--shadow-color);
+  color: var(--text-color);
+}
+
+.post-body .csl-entry a {
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
 
 .post-body .csl-entry:has(> .csl-left-margin) {
@@ -242,4 +279,36 @@
 .post-body .csl-right-inline {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .post-body .references {
+    gap: 0.5rem;
+  }
+
+  .post-body .csl-entry {
+    padding: 0.75rem 0.8rem 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-body .csl-entry {
+    transition: none;
+  }
+}
+
+@media print {
+  .post-body .references {
+    display: block;
+  }
+
+  .post-body .csl-entry {
+    margin-bottom: 0.6rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-color);
+  }
 }
