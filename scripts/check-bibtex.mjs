@@ -35,7 +35,12 @@ for (const file of files) {
   const source = readFileSync(file, 'utf8');
   let result;
   try {
-    result = tidy(source, { duplicates: ['key', 'doi'] });
+    result = tidy(source, {
+      duplicates: ['key', 'doi'],
+      // Content BibTeX is UTF-8 and rendered as HTML, so Unicode does not need
+      // to be converted to LaTeX macros.
+      escape: false,
+    });
   } catch (error) {
     console.error(`${file}: ${error instanceof Error ? error.message : String(error)}`);
     failed = true;

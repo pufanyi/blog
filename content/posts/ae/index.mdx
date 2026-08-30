@@ -8,6 +8,8 @@ description: "Notes for Autoencoder"
 
 最开始的文章是 [@kingma2014autoencoding]。
 
+苏神博客亦有记载：[@kexuefm-5253; @kexuefm-5343]。
+
 给定样本 $x_i$，后验分布 $p_{\phi}(z\mid x_i)\sim \mathcal{N}(\mu_i, \sigma^2_i I)$。其中我们希望 $p_\phi(z)\sim\mathcal{N}(0, I)$。
 
 构建网络 $\left<\mu_k, \log \sigma_k^2\right>=\phi(x_i)$。
@@ -31,6 +33,8 @@ $$
 
 文章：[@vanDenOord2017neural]
 
+苏神博客：[@kexuefm-6760]
+
 先把 $x\in \mathbb{R}^{H\times W\times 3}$ 降采样成 $z\in \mathbb{R}^{h\times w\times d}$。然后维护 embedding codebook $e\in\mathbb{R}^{K\times d}$。找到每个 $z_{ij}$ 的最近邻 $\hat{z}_{ij}$ 进入 decoder。
 
 我们希望的 loss 是 $\left\|x-\mathrm{Decoder}(\hat{z})\right\|_2$，但是取最近邻这个步骤不可导。
@@ -39,9 +43,3 @@ $$
 ## 参考文献
 
 [^ref]
-
-### 延伸阅读
-
-- [变分自编码器（一）：原来是这么一回事](https://spaces.ac.cn/archives/5253)
-- [变分自编码器（二）：从贝叶斯观点出发](https://spaces.ac.cn/archives/5343)
-- [VQ-VAE的简明介绍：量子化自编码器](https://spaces.ac.cn/archives/6760)
