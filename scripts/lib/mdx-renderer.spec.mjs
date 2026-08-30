@@ -36,7 +36,7 @@ const value = 42;
 
   assert.equal(document.querySelector('h2')?.textContent, 'Native MDX 42');
   assert.equal(document.querySelector('details summary')?.textContent, 'Proof');
-  assert.equal(document.querySelector('.math-inline')?.textContent, '$x_i$');
+  assert.equal(document.querySelector('.math-inline')?.textContent, '\\(x_i\\)');
   assert.ok(document.querySelector('.table-wrapper > table'));
   assert.equal(document.querySelector('.code-lang')?.textContent, 'js');
   assert.equal(result.toc[0]?.text, 'Native MDX 42');

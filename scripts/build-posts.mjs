@@ -112,7 +112,7 @@ function postprocessMdxHtml(html, slug, highlighter) {
   for (const code of Array.from(document.querySelectorAll('code.math-inline'))) {
     const span = document.createElement('span');
     span.className = 'math-inline';
-    span.textContent = `$${code.textContent ?? ''}$`;
+    span.textContent = `\\(${code.textContent ?? ''}\\)`;
     code.replaceWith(span);
   }
 
@@ -120,7 +120,7 @@ function postprocessMdxHtml(html, slug, highlighter) {
     const container = code.parentElement?.tagName === 'PRE' ? code.parentElement : code;
     const div = document.createElement('div');
     div.className = 'math-display';
-    div.textContent = `$$\n${code.textContent ?? ''}\n$$`;
+    div.textContent = `\\[\n${code.textContent ?? ''}\n\\]`;
     container.replaceWith(div);
   }
 
