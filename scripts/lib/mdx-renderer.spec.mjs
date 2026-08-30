@@ -45,7 +45,7 @@ const value = 42;
   assert.equal(document.querySelector('.math-inline')?.textContent, '\\(x_i\\)');
   assert.equal(
     document.querySelector('[id^="citation--"] a')?.getAttribute('href'),
-    '#bib-example2026',
+    '/blog/example#bib-example2026',
   );
   assert.match(document.querySelector('#bib-example2026')?.textContent ?? '', /Example Reference/);
   assert.ok(document.querySelector('.table-wrapper > table'));

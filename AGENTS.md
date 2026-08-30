@@ -48,7 +48,7 @@ Project guidance for agents working in this repository.
   MDX syntax and semantic HTML elements such as `<details>` for authored
   interactive content; imported build-time components are also supported.
 - A post can keep BibTeX references in a sibling `references.bib` file and cite
-  them with Pandoc-style keys such as `[@key]`. Citations use the Vancouver CSL
+  them with Pandoc-style keys such as `[@key]`. Citations use the APA CSL
   style; place `[^ref]` where the generated bibliography should appear.
 - When adding or touching image assets, manually convert any non-AVIF images to
   AVIF and reference the converted files instead.

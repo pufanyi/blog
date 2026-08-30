@@ -158,6 +158,12 @@ function postprocessMdxHtml(html, slug, highlighter) {
   }
 
   const postPath = `/blog/${encodeURIComponent(slug)}`;
+  for (const anchor of document.querySelectorAll('a[href^="#"]')) {
+    const href = anchor.getAttribute('href');
+    if (href) {
+      anchor.setAttribute('href', `${postPath}${href}`);
+    }
+  }
   const toc = buildTableOfContents(document, postPath);
   return { html: document.body.innerHTML, toc };
 }
@@ -171,7 +177,7 @@ export async function renderMdx(mdx, slug, sourcePath, highlighter) {
           {
             bibliography: 'references.bib',
             path: dirname(sourcePath),
-            csl: 'vancouver',
+            csl: 'apa',
             linkCitations: true,
           },
         ],

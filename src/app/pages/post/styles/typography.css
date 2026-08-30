@@ -223,11 +223,15 @@
 }
 
 .post-body .csl-entry {
+  margin-bottom: 0.75rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.post-body .csl-entry:has(> .csl-left-margin) {
   display: grid;
   grid-template-columns: 2rem minmax(0, 1fr);
   gap: 0.35rem;
-  margin-bottom: 0.75rem;
-  line-height: 1.55;
 }
 
 .post-body .csl-left-margin {
