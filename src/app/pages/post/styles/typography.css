@@ -217,3 +217,25 @@
 .post-body details > :last-child {
   padding-bottom: 0.75rem;
 }
+
+.post-body .references {
+  margin: 1rem 0 1.5rem;
+}
+
+.post-body .csl-entry {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.55;
+}
+
+.post-body .csl-left-margin {
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.post-body .csl-right-inline {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

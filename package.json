@@ -71,6 +71,7 @@
     "jsdom": "^30.0.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "rehype-citation": "^2.3.2",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "typescript": "~6.0.3",

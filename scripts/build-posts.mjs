@@ -3,10 +3,11 @@ import { execFileSync } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { load as loadYaml } from 'js-yaml';
 import { JSDOM } from 'jsdom';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { createElement } from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
 import { renderToStaticMarkup } from 'react-dom/server';
+import rehypeCitation from 'rehype-citation';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import { createHighlighter } from 'shiki';
@@ -162,10 +163,25 @@ function postprocessMdxHtml(html, slug, highlighter) {
 }
 
 export async function renderMdx(mdx, slug, sourcePath, highlighter) {
+  const bibliography = join(dirname(sourcePath), 'references.bib');
+  const rehypePlugins = existsSync(bibliography)
+    ? [
+        [
+          rehypeCitation,
+          {
+            bibliography: 'references.bib',
+            path: dirname(sourcePath),
+            csl: 'vancouver',
+            linkCitations: true,
+          },
+        ],
+      ]
+    : [];
   const module = await evaluate(mdx, {
     ...jsxRuntime,
     baseUrl: pathToFileURL(sourcePath),
     remarkPlugins: [remarkGfm, remarkMath],
+    rehypePlugins,
   });
   const html = renderToStaticMarkup(createElement(module.default));
   return postprocessMdxHtml(html, slug, highlighter);

@@ -32,7 +32,8 @@
                 "input": "content/posts",
                 "output": "posts",
                 "ignore": [
-                  "**/*.mdx"
+                  "**/*.mdx",
+                  "**/*.bib"
                 ]
               }
             ],
