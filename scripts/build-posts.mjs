@@ -30,23 +30,29 @@ const POST_ASSET_BASE = '/posts';
 const imageDimensions = new Map();
 
 async function loadPostComponents(sourcePath) {
-  const directory = dirname(sourcePath);
-  const componentFiles = readdirSync(directory, { withFileTypes: true })
+  const postDirectory = dirname(sourcePath);
+  const scriptsDirectory = join(postDirectory, 'scripts');
+  if (!existsSync(scriptsDirectory)) {
+    return {};
+  }
+
+  const componentFiles = readdirSync(scriptsDirectory, { withFileTypes: true })
     .filter((entry) => entry.isFile() && entry.name.endsWith('.post-component.mjs'))
     .map((entry) => entry.name)
     .sort();
   const components = {};
 
   for (const file of componentFiles) {
-    const module = await import(pathToFileURL(join(directory, file)).href);
+    const componentPath = join(scriptsDirectory, file);
+    const module = await import(pathToFileURL(componentPath).href);
     const exported = module.POST_COMPONENTS;
     if (!exported || typeof exported !== 'object' || Array.isArray(exported)) {
-      throw new Error(`${join(directory, file)} must export a POST_COMPONENTS object`);
+      throw new Error(`${componentPath} must export a POST_COMPONENTS object`);
     }
 
     for (const [name, component] of Object.entries(exported)) {
       if (name in components) {
-        throw new Error(`Duplicate post component "${name}" in ${directory}`);
+        throw new Error(`Duplicate post component "${name}" in ${scriptsDirectory}`);
       }
       components[name] = component;
     }
