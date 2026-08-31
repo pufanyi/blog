@@ -33,7 +33,8 @@
                 "output": "posts",
                 "ignore": [
                   "**/*.mdx",
-                  "**/*.bib"
+                  "**/*.bib",
+                  "**/*.post-component.mjs"
                 ]
               }
             ],

@@ -16,7 +16,6 @@ import { createCodeRenderer } from './lib/code-renderer.mjs';
 import { renderCvMarkdown } from './lib/cv-markdown.mjs';
 import { parsePostSource } from './lib/front-matter.mjs';
 import { getSvgDimensions } from './lib/image-dimensions.mjs';
-import { POST_COMPONENTS } from './lib/post-components.mjs';
 import { buildTableOfContents } from './lib/toc-renderer.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -29,6 +28,32 @@ const CV_INPUT = join(ROOT, 'content/cv.yaml');
 const CV_OUTPUT = join(DATA_DIR, 'cv.ts');
 const POST_ASSET_BASE = '/posts';
 const imageDimensions = new Map();
+
+async function loadPostComponents(sourcePath) {
+  const directory = dirname(sourcePath);
+  const componentFiles = readdirSync(directory, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith('.post-component.mjs'))
+    .map((entry) => entry.name)
+    .sort();
+  const components = {};
+
+  for (const file of componentFiles) {
+    const module = await import(pathToFileURL(join(directory, file)).href);
+    const exported = module.POST_COMPONENTS;
+    if (!exported || typeof exported !== 'object' || Array.isArray(exported)) {
+      throw new Error(`${join(directory, file)} must export a POST_COMPONENTS object`);
+    }
+
+    for (const [name, component] of Object.entries(exported)) {
+      if (name in components) {
+        throw new Error(`Duplicate post component "${name}" in ${directory}`);
+      }
+      components[name] = component;
+    }
+  }
+
+  return components;
+}
 
 // Collect languages used across all posts for Shiki
 function collectLangs(posts) {
@@ -248,6 +273,7 @@ function postprocessMdxHtml(html, slug, highlighter, citations = []) {
 }
 
 export async function renderMdx(mdx, slug, sourcePath, highlighter) {
+  const components = await loadPostComponents(sourcePath);
   const bibliography = join(dirname(sourcePath), 'references.bib');
   const hasBibliography = existsSync(bibliography);
   const citations = hasBibliography
@@ -272,7 +298,7 @@ export async function renderMdx(mdx, slug, sourcePath, highlighter) {
     remarkPlugins: [remarkGfm, remarkMath],
     rehypePlugins,
   });
-  const html = renderToStaticMarkup(createElement(module.default, { components: POST_COMPONENTS }));
+  const html = renderToStaticMarkup(createElement(module.default, { components }));
   return postprocessMdxHtml(html, slug, highlighter, citations);
 }
 

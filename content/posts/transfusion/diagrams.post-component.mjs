@@ -242,7 +242,7 @@ function PatchLabel({ index }) {
   });
 }
 
-function AttentionMask({ width = '100%' }) {
+function AttentionMask({ width = 'min(100%, 32rem)' }) {
   const tokens = ['A', 'cute', 'cat', '<BOI>', 0, 1, 2, 3, '<EOI>', 'What'];
   const isPatch = (token) => typeof token === 'number';
   const label = (token) => (isPatch(token) ? h(PatchLabel, { index: token }) : token);
