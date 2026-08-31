@@ -1,16 +1,15 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noEmit": true,
-    "types": ["node", "react", "react-dom"]
+    "types": ["react", "react-dom"]
   },
   "include": [
-    "scripts/**/*.ts",
-    "content/posts/**/scripts/*.post-component.tsx"
+    "content/posts/**/scripts/*.post-component.tsx",
+    "scripts/lib/fixtures/**/scripts/*.post-component.tsx"
   ]
 }
