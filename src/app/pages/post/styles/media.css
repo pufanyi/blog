@@ -20,6 +20,22 @@
   margin-right: auto;
 }
 
+.post-body .post-image-responsive {
+  width: var(--post-image-width, 100%);
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.post-body .post-image-responsive > p {
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .post-body .post-image-responsive {
+    width: 100%;
+  }
+}
+
 .post-body .math-display {
   text-align: center;
   margin: 1.75rem 0;
