@@ -15,6 +15,7 @@ import { pathToFileURL } from 'url';
 import { createCodeRenderer } from './lib/code-renderer.mjs';
 import { renderCvMarkdown } from './lib/cv-markdown.mjs';
 import { parsePostSource } from './lib/front-matter.mjs';
+import { getSvgDimensions } from './lib/image-dimensions.mjs';
 import { buildTableOfContents } from './lib/toc-renderer.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -77,6 +78,12 @@ function getImageDimensions(href, slug) {
 
   if (imageDimensions.has(file)) {
     return imageDimensions.get(file);
+  }
+
+  const svgDimensions = getSvgDimensions(file);
+  if (svgDimensions) {
+    imageDimensions.set(file, svgDimensions);
+    return svgDimensions;
   }
 
   try {
