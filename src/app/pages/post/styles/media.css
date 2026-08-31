@@ -36,6 +36,194 @@
   }
 }
 
+.post-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.transfusion-diagram-shell,
+.attention-mask-shell {
+  margin: 1.5rem 0;
+}
+
+.transfusion-diagram-shell {
+  overflow-x: auto;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--paper-bg);
+  box-shadow: 0 1px 4px var(--shadow-color);
+}
+
+.transfusion-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--text-color);
+}
+
+.transfusion-diagram-transformer {
+  fill: var(--surface-soft);
+  stroke: var(--text-secondary);
+  stroke-width: 2;
+}
+
+.transfusion-diagram-transformer-label {
+  fill: var(--text-color);
+  font-family: var(--font-heading);
+  font-size: 34px;
+  font-weight: 500;
+}
+
+.transfusion-diagram-token-label {
+  fill: var(--text-color);
+  font-family: var(--font-body);
+  font-size: 24px;
+}
+
+.transfusion-diagram-token-box {
+  fill: var(--paper-bg);
+  stroke: var(--accent-blue);
+  stroke-width: 3;
+}
+
+.transfusion-diagram-blank-box {
+  fill: var(--paper-bg);
+  stroke: var(--overlay-color);
+  stroke-width: 3;
+  stroke-dasharray: 7 6;
+}
+
+.transfusion-diagram-image-group {
+  fill: none;
+  stroke: var(--accent-rose);
+  stroke-width: 3;
+}
+
+.transfusion-diagram-arrow {
+  stroke: var(--text-color);
+  stroke-width: 2.5;
+  marker-end: url("#transfusion-arrow");
+}
+
+.transfusion-diagram-arrowhead {
+  fill: var(--text-color);
+}
+
+.attention-mask-shell {
+  width: var(--attention-mask-width, 100%);
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.post-body .attention-mask-shell > .table-wrapper {
+  margin: 0;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.post-body .attention-mask-table {
+  min-width: 27rem;
+  margin: 0 auto;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: var(--text-color);
+  font-family: var(--font-body);
+}
+
+.post-body .attention-mask-table th,
+.post-body .attention-mask-table td {
+  box-sizing: border-box;
+  width: 2.4rem;
+  min-width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.post-body .attention-mask-table th {
+  font-size: 0.88rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.post-body .attention-mask-table thead tr,
+.post-body .attention-mask-table tbody tr,
+.post-body .attention-mask-table tbody tr:last-child {
+  border: 0;
+  background: transparent;
+}
+
+.post-body .attention-mask-table tbody td {
+  border: 2px solid var(--border-color);
+  transition:
+    filter 140ms ease,
+    outline-color 140ms ease;
+}
+
+.post-body .attention-mask-table tbody tr:hover td {
+  filter: brightness(0.96);
+}
+
+.post-body .attention-mask-table tbody td:hover {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid var(--accent-blue);
+  outline-offset: -3px;
+}
+
+.post-body .attention-mask-table .attention-allowed {
+  background: color-mix(in srgb, var(--accent-sage) 58%, var(--paper-bg));
+}
+
+.post-body .attention-mask-table .attention-masked {
+  background: var(--paper-bg);
+}
+
+.attention-mask-patch {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 2px;
+  background-image: url("/posts/transfusion/images/cat-noisy.avif");
+  background-repeat: no-repeat;
+  background-size: 200% 200%;
+  vertical-align: middle;
+}
+
+.attention-mask-patch-0 {
+  background-position: 0 0;
+}
+
+.attention-mask-patch-1 {
+  background-position: 100% 0;
+}
+
+.attention-mask-patch-2 {
+  background-position: 0 100%;
+}
+
+.attention-mask-patch-3 {
+  background-position: 100% 100%;
+}
+
+@media (max-width: 600px) {
+  .transfusion-diagram {
+    width: 55rem;
+    max-width: none;
+  }
+
+  .attention-mask-shell {
+    width: 100%;
+  }
+}
+
 .post-body .math-display {
   text-align: center;
   margin: 1.75rem 0;

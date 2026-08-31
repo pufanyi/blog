@@ -31,6 +31,10 @@ Inline math $x_i$ [@example2026].
 const value = 42;
 \`\`\`
 
+<TransfusionDiagram />
+
+<AttentionMask />
+
 ## References
 
 [^ref]
@@ -61,5 +65,11 @@ const value = 42;
   );
   assert.ok(document.querySelector('.table-wrapper > table'));
   assert.equal(document.querySelector('.code-lang')?.textContent, 'js');
+  assert.equal(
+    document.querySelector('.transfusion-diagram title')?.textContent,
+    'Transfusion model diagram',
+  );
+  assert.equal(document.querySelectorAll('.attention-mask-table tbody tr').length, 10);
+  assert.equal(document.querySelectorAll('.attention-mask-table tbody td').length, 100);
   assert.equal(result.toc[0]?.text, 'Native MDX 42');
 });

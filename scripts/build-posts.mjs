@@ -16,6 +16,7 @@ import { createCodeRenderer } from './lib/code-renderer.mjs';
 import { renderCvMarkdown } from './lib/cv-markdown.mjs';
 import { parsePostSource } from './lib/front-matter.mjs';
 import { getSvgDimensions } from './lib/image-dimensions.mjs';
+import { POST_COMPONENTS } from './lib/post-components.mjs';
 import { buildTableOfContents } from './lib/toc-renderer.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -271,7 +272,7 @@ export async function renderMdx(mdx, slug, sourcePath, highlighter) {
     remarkPlugins: [remarkGfm, remarkMath],
     rehypePlugins,
   });
-  const html = renderToStaticMarkup(createElement(module.default));
+  const html = renderToStaticMarkup(createElement(module.default, { components: POST_COMPONENTS }));
   return postprocessMdxHtml(html, slug, highlighter, citations);
 }
 
