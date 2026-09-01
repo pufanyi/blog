@@ -128,7 +128,9 @@
 }
 
 .post-body .attention-mask-table {
-  min-width: 27rem;
+  width: 26.4rem;
+  min-width: 26.4rem;
+  max-width: none;
   margin: 0 auto;
   border-collapse: collapse;
   table-layout: fixed;
@@ -145,6 +147,10 @@
   padding: 0;
   text-align: center;
   vertical-align: middle;
+}
+
+.post-body .attention-mask-table tr {
+  height: 2.4rem;
 }
 
 .post-body .attention-mask-table th {
