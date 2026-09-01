@@ -78,17 +78,8 @@
 }
 
 .toc-list {
-  position: relative;
-  padding: 0.08rem 0.1rem 0.2rem 0.72rem;
-}
-
-.toc-list::before {
-  content: '';
-  position: absolute;
-  inset-block: 0.3rem;
-  inset-inline-start: 0.16rem;
-  width: 1px;
-  background: color-mix(in srgb, var(--surface-strong) 62%, transparent);
+  counter-reset: toc-section;
+  border-block: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
 }
 
 .toc-item,
@@ -97,14 +88,22 @@
 }
 
 .toc-item + .toc-item {
-  margin-top: 0.18rem;
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 13%, transparent);
+}
+
+.toc-item {
+  counter-increment: toc-section;
+  counter-reset: toc-subsection;
+}
+
+.toc-subitem {
+  counter-increment: toc-subsection;
 }
 
 .toc-link {
   position: relative;
   display: block;
-  border-radius: 7px;
-  padding: 0.43rem 0.52rem;
+  padding: 0.55rem 0.35rem 0.55rem 2rem;
   color: var(--text-secondary);
   font-size: 0.83rem;
   font-weight: 520;
@@ -114,21 +113,22 @@
 }
 
 .toc-link::before {
-  content: '';
+  content: counter(toc-section, decimal-leading-zero);
   position: absolute;
-  top: 50%;
-  left: -0.64rem;
-  width: 3px;
-  height: 1.1rem;
-  border-radius: 999px;
-  background: transparent;
-  transform: translateY(-50%);
-  transition: background-color 160ms ease, box-shadow 160ms ease;
+  top: 0.61rem;
+  left: 0.25rem;
+  color: color-mix(in srgb, var(--text-secondary) 65%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  transition: color 160ms ease;
 }
 
 .toc-link:hover {
   color: var(--text-color);
-  background: color-mix(in srgb, var(--accent-blue) 11%, transparent);
+  background: color-mix(in srgb, var(--accent-blue) 4%, transparent);
   text-decoration: none;
 }
 
@@ -139,12 +139,16 @@
 
 .toc-link.is-active {
   color: var(--accent-blue);
-  background: color-mix(in srgb, var(--accent-blue) 13%, transparent);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent-blue) 11%, transparent),
+    color-mix(in srgb, var(--accent-blue) 3%, transparent) 72%,
+    transparent
+  );
 }
 
 .toc-link.is-active::before {
-  background: var(--accent-blue);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-blue) 42%, transparent);
+  color: var(--accent-blue);
 }
 
 .toc-item.contains-active > .toc-link:not(.is-active) {
@@ -152,14 +156,22 @@
 }
 
 .toc-sublist {
-  margin: 0.04rem 0 0.16rem 0.68rem;
+  margin: 0 0 0.35rem 1.25rem;
+  border-left: 1px solid color-mix(in srgb, var(--border-color) 16%, transparent);
 }
 
 .toc-sublink {
-  padding-block: 0.34rem;
+  padding: 0.38rem 0.3rem 0.38rem 2.2rem;
   color: color-mix(in srgb, var(--text-secondary) 88%, var(--overlay-color));
   font-size: 0.78rem;
   font-weight: 450;
+}
+
+.toc-sublink::before {
+  content: counter(toc-section) '.' counter(toc-subsection);
+  top: 0.43rem;
+  left: 0.45rem;
+  font-size: 0.62rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
