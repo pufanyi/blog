@@ -63,6 +63,8 @@
 
   <article class="post-body" #postBody [innerHTML]="safeHtml()"></article>
 
+  <app-post-citation [title]="post.title" [date]="post.date" [slug]="post.slug" />
+
   <section class="giscus-wrapper">
     <app-giscus-comments />
   </section>

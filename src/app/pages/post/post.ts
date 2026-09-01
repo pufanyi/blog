@@ -24,6 +24,7 @@ import { PostHeaderComponent } from '../../components/post-header/post-header';
 import { GiscusCommentsComponent } from '../../components/giscus-comments/giscus-comments';
 import { BackToTopComponent } from '../../components/back-to-top/back-to-top';
 import { PostTocComponent } from '../../components/post-toc/post-toc';
+import { PostCitationComponent } from '../../components/post-citation/post-citation';
 import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
 import { CitationPreviewService } from '../../services/citation-preview.service';
 import { ImageLightboxComponent } from '../../components/image-lightbox/image-lightbox';
@@ -46,6 +47,7 @@ const WIDE_QUERY = '(min-width: 1480px)';
     GiscusCommentsComponent,
     BackToTopComponent,
     PostTocComponent,
+    PostCitationComponent,
   ],
   templateUrl: './post.html',
   styleUrls: [

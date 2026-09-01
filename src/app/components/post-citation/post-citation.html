@@ -1,0 +1,21 @@
+<section class="post-citation" aria-labelledby="post-citation-title">
+  <div class="post-citation-heading">
+    <div>
+      <h2 id="post-citation-title">Cite this post</h2>
+      <p>If you found this post useful, you can cite it with the BibTeX entry below.</p>
+    </div>
+    <button
+      type="button"
+      class="citation-copy"
+      [class.is-copied]="copyState() === 'copied'"
+      (click)="copy()"
+    >
+      @switch (copyState()) {
+        @case ('copied') { Copied }
+        @case ('failed') { Copy failed }
+        @default { Copy BibTeX }
+      }
+    </button>
+  </div>
+  <pre><code>{{ bibtex() }}</code></pre>
+</section>
