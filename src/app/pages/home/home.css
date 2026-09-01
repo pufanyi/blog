@@ -42,51 +42,53 @@
 }
 
 .post-list {
-  display: grid;
-  gap: 0.78rem;
+  counter-reset: post;
+  border-block: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
 }
 
 .post-entry {
   --post-accent: var(--accent-blue);
+  counter-increment: post;
   position: relative;
   display: block;
   text-decoration: none;
   color: inherit;
-  padding: 0.96rem 1rem 1rem 1.16rem;
-  border: 1px solid color-mix(in srgb, var(--border-color) 16%, transparent);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--paper-bg) 92%, var(--background));
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--border-color) 12%, transparent);
+  padding: 0.9rem 0.4rem 0.92rem 2.65rem;
   overflow: hidden;
   transition:
     background-color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+    color 0.2s ease;
 }
 
 .post-entry::before {
-  content: "";
+  content: counter(post, decimal-leading-zero);
   position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: color-mix(in srgb, var(--post-accent) 72%, transparent);
-  opacity: 0.62;
-  transition: opacity 0.2s ease;
+  top: 1.02rem;
+  left: 0.35rem;
+  color: color-mix(in srgb, var(--text-secondary) 65%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+
+.post-entry + .post-entry {
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 13%, transparent);
 }
 
 .post-entry:hover {
   text-decoration: none;
-  background-color: color-mix(in srgb, var(--post-accent) 7%, var(--paper-bg));
-  border-color: color-mix(in srgb, var(--post-accent) 38%, transparent);
-  box-shadow:
-    0 8px 20px color-mix(in srgb, var(--post-accent) 10%, transparent),
-    0 1px 0 color-mix(in srgb, var(--post-accent) 18%, transparent);
-  transform: translateY(-1px);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--post-accent) 9%, transparent),
+    color-mix(in srgb, var(--post-accent) 2%, transparent) 72%,
+    transparent
+  );
 }
 
 .post-entry:hover::before {
-  opacity: 1;
+  color: var(--post-accent);
 }
 
 .post-entry:hover .post-title {
@@ -94,7 +96,6 @@
 }
 
 .post-entry:hover .post-date {
-  border-color: color-mix(in srgb, var(--post-accent) 34%, transparent);
   color: var(--text-color);
 }
 
@@ -136,11 +137,7 @@
   white-space: nowrap;
   font-family: var(--font-heading);
   line-height: 1.2;
-  padding: 0.22rem 0.42rem;
-  border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--background) 38%, transparent);
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .post-description {
@@ -161,7 +158,13 @@
   }
 
   .post-entry {
-    padding: 0.92rem 0.9rem 0.95rem 1rem;
+    padding: 0.82rem 0.15rem 0.85rem 2.15rem;
+  }
+
+  .post-entry::before {
+    top: 0.92rem;
+    left: 0.1rem;
+    font-size: 0.68rem;
   }
 
   .post-row {
@@ -182,7 +185,4 @@
     transition: none;
   }
 
-  .post-entry:hover {
-    transform: none;
-  }
 }
