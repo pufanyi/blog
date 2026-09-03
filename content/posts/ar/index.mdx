@@ -1,0 +1,31 @@
+---
+title: "ML Revisit: Auto Regressive"
+date: "2026-08-29"
+description: "Notes for Auto Regressive Models"
+---
+
+## Early Explorations
+
+正常情况下，auto regressive 是
+
+$$
+p(x_1, \dots, x_n) = p(x_1)\prod_{i=2}^np(x_i\mid x_1, \dots, x_{i-1})
+$$
+
+但其实 $x_i$ 不一定依赖全部的 $x_{1}\sim x_{i-1}$，可能就是一个子集 $\mathcal{P}_i$。那么其实我们可以搞一个 DAG，然后 $j\in \mathcal{P}_i$ 那么 $j$ 做 $i$ 的 parent。这样
+
+$$
+p(x_1, \dots, x_n)=\prod_{i=1}^n p(x_i\mid x_{\mathcal{P}_i})
+$$
+
+就是 Bayesian Networks [@peal1985bayesian, @kyburg1991probabilistic]。
+
+Fully Visible Sigmoid Belief Network (FVSBN) [@NIPS1995_55b1927f] 把每个像素看成 $0$ 或 $1$（黑白）然后跑 Logistic regression:
+
+$$
+f_i(x_1, \dots, x_{i-1})=\sigma\left(\alpha_0^{(i)}+\sum_{j=1}^{i-1}\alpha_j^{(i)}x_j\right)
+$$
+
+{/* ## References
+
+[^ref] */}
