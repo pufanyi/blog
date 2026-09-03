@@ -26,6 +26,8 @@ $$
 f_i(x_1, \dots, x_{i-1})=\sigma\left(\alpha_0^{(i)}+\sum_{j=1}^{i-1}\alpha_j^{(i)}x_j\right)
 $$
 
+Neural Autoregressive Density Estimator (DNAE) [@larochelle2011neural] 把 Logistic regression 改成了 MLP，RNADE [@uria2014rnaderealvaluedneuralautoregressive] 把离散变量改成了连续分布，用多个 normal distribution 表示。EoNADE [@uria2014deeptractabledensityestimator] 消除了标准 NADE 对 order 的依赖。训练的时候随机选一个顺序进行生成。
+
 {/* ## References
 
 [^ref] */}
