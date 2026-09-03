@@ -4,8 +4,6 @@ date: "2026-08-29"
 description: "Notes for Auto Regressive Models"
 ---
 
-## Early Explorations
-
 正常情况下，auto regressive 是
 
 $$
@@ -27,6 +25,12 @@ f_i(x_1, \dots, x_{i-1})=\sigma\left(\alpha_0^{(i)}+\sum_{j=1}^{i-1}\alpha_j^{(i
 $$
 
 Neural Autoregressive Density Estimator (DNAE) [@larochelle2011neural] 把 Logistic regression 改成了 MLP，RNADE [@uria2014rnaderealvaluedneuralautoregressive] 把离散变量改成了连续分布，用多个 normal distribution 表示。EoNADE [@uria2014deeptractabledensityestimator] 消除了标准 NADE 对 order 的依赖。训练的时候随机选一个顺序进行生成。
+
+Masked Autoencoder for Distribution Estimation (MADE) [@germain2015mademaskedautoencoderdistribution] 将 VAE 做成了 auto regressive 的形式，将每个 node 标 degree，小 degree 朝着大的 degree 连边，别的都 mask 掉。
+
+<MadeDiagram />
+
+RNN 就是把历史压成一个 latent，不解释。
 
 {/* ## References
 

@@ -219,6 +219,116 @@
   background-position: 100% 100%;
 }
 
+.made-diagram-shell {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--paper-bg);
+  box-shadow: 0 1px 4px var(--shadow-color);
+}
+
+.made-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--text-color);
+}
+
+.made-diagram-heading,
+.made-diagram-mask-label,
+.made-diagram-rule,
+.made-diagram-probability,
+.made-diagram-variable,
+.made-diagram-degree,
+.made-diagram-legend {
+  fill: var(--text-color);
+  font-family: var(--font-body);
+}
+
+.made-diagram-heading {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.made-diagram-node {
+  fill: var(--paper-bg);
+  stroke: var(--text-secondary);
+  stroke-width: 2.5;
+}
+
+.made-diagram-degree {
+  font-size: 17px;
+  font-weight: 500;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.made-diagram-variable {
+  font-size: 18px;
+  font-style: italic;
+  text-anchor: middle;
+}
+
+.made-diagram-edge {
+  stroke: var(--accent-blue);
+  stroke-width: 2;
+}
+
+.made-diagram-edge-masked {
+  stroke: var(--surface-strong);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 5;
+  opacity: 0.42;
+}
+
+.made-mask-cell,
+.made-mask-cell-active {
+  stroke: var(--surface-strong);
+  stroke-width: 1;
+}
+
+.made-mask-cell {
+  fill: var(--paper-bg);
+}
+
+.made-mask-cell-active {
+  fill: var(--accent-sage);
+}
+
+.made-diagram-mask-label {
+  font-size: 18px;
+  text-anchor: middle;
+}
+
+.made-diagram-rule {
+  font-size: 14px;
+  fill: var(--text-secondary);
+  text-anchor: middle;
+}
+
+.made-diagram-flow {
+  fill: none;
+  stroke: var(--accent-rose);
+  stroke-width: 3;
+  marker-end: url("#made-arrow");
+}
+
+.made-diagram-arrowhead {
+  fill: var(--accent-rose);
+}
+
+.made-diagram-probability {
+  font-size: 15px;
+  text-anchor: middle;
+}
+
+.made-diagram-legend {
+  font-size: 14px;
+}
+
 @media (max-width: 600px) {
   .transfusion-diagram {
     width: 55rem;
@@ -227,6 +337,11 @@
 
   .attention-mask-shell {
     width: 100%;
+  }
+
+  .made-diagram {
+    width: 55rem;
+    max-width: none;
   }
 }
 
