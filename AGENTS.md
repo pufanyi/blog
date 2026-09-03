@@ -94,8 +94,10 @@ Project guidance for agents working in this repository.
      stable keys such as `kingma2014autoencoding`; write authors as
      `Family, Given and Family, Given`; and include `title`, `year`, and `url`.
      Prefer adding `doi`, publication venue, volume, and pages when available.
-     Use a landing-page URL rather than a direct PDF URL. Do not add abstracts;
-     citation previews intentionally show bibliographic metadata only.
+     Prefer a dedicated landing-page URL when it clearly identifies the cited
+     work. If none exists, use the direct document URL rather than a generic
+     index or syllabus page. Do not add abstracts; citation previews
+     intentionally show bibliographic metadata only.
   2. Cite an entry in `index.mdx` with `[@key]`. Multiple references can be
      written as `[@key1; @key2]`. Add a References heading followed by `[^ref]`
      once, at the desired bibliography location.
