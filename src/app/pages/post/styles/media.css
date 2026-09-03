@@ -357,6 +357,19 @@
   font-size: 14px;
 }
 
+.made-diagram-legend-one,
+.made-diagram-legend-two {
+  stroke-width: 2;
+}
+
+.made-diagram-legend-one {
+  stroke: var(--surface-strong);
+}
+
+.made-diagram-legend-two {
+  stroke: var(--accent-blue);
+}
+
 .made-diagram-mask-key {
   font-size: 12px;
 }

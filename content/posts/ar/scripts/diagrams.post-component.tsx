@@ -353,10 +353,10 @@ function MadeDiagram() {
         </text>
 
         <g className="made-diagram-legend">
-          <line x1="690" y1="565" x2="726" y2="565" className="made-diagram-edge-one" />
-          <text x="736" y="570">depends on 1 input</text>
-          <line x1="840" y1="565" x2="876" y2="565" className="made-diagram-edge-two" />
-          <text x="886" y="570">depends on 2</text>
+          <line x1="700" y1="552" x2="736" y2="552" className="made-diagram-legend-one" />
+          <text x="746" y="557">depends on 1 input</text>
+          <line x1="700" y1="577" x2="736" y2="577" className="made-diagram-legend-two" />
+          <text x="746" y="582">depends on 2 inputs</text>
         </g>
       </svg>
       <figcaption className="made-diagram-caption">
