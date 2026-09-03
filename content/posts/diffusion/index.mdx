@@ -8,11 +8,22 @@ description: "Notes for Diffusion Models"
 
 参考：[@flowsanddiffusions2026]。
 
-定义：
+Flow models:
 
 $$
-X_0 \sim p_{\text{init}}\\
-\frac{\mathrm{d}}{\mathrm{d}t}X_t=u_t^\theta(X_t)
+\begin{aligned}
+X_0 &\sim p_{\text{init}}\\
+\frac{\mathrm{d}}{\mathrm{d}t}X_t&=u_t^\theta(X_t)
+\end{aligned}
+$$
+
+Diffusion Models 其实就是加入了随即运动，将其变成了 SDE：
+
+$$
+\begin{aligned}
+X_0 &\sim p_{\text{init}}\\
+\mathrm{d}X_t &= u_t^{\theta}(X_t)\mathrm{d}t+\sigma_t \mathrm{d}W_t
+\end{aligned}
 $$
 
 ## References
