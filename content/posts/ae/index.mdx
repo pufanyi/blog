@@ -10,6 +10,8 @@ description: "Notes for Autoencoder"
 
 苏神博客亦有记载：[@kexuefm-5253; @kexuefm-5343]。
 
+其他参考资料：[@grover2018vae]。
+
 给定样本 $x_i$，后验分布 $p_{\phi}(z\mid x_i)\sim \mathcal{N}(\mu_i, \sigma^2_i I)$。其中我们希望 $p_\phi(z)\sim\mathcal{N}(0, I)$。
 
 构建网络 $\left<\mu_k, \log \sigma_k^2\right>=\phi(x_i)$。
