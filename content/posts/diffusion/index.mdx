@@ -11,28 +11,25 @@ description: "Notes for Diffusion Models"
 Flow models:
 
 $$
-\begin{aligned}
-X_0 &\sim p_{\text{init}}\\
-\mathrm{d}X_t&=u_t^\theta(X_t)\mathrm{d}t
-\end{aligned}
+X_0 \sim p_{\text{init}}, \quad\mathrm{d}X_t=u_t^\theta(X_t)\mathrm{d}t
 $$
 
 Diffusion Models 其实就是加入了随即运动，将其变成了 SDE：
 
 $$
-\begin{aligned}
-X_0 &\sim p_{\text{init}}\\
-\mathrm{d}X_t &= u_t^{\theta}(X_t)\mathrm{d}t+\sigma_t \mathrm{d}W_t
-\end{aligned}
+X_0 \sim p_{\text{init}},
+\quad
+\mathrm{d}X_t = u_t^{\theta}(X_t)\mathrm{d}t+\sigma_t \mathrm{d}W_t
 $$
 
 其中 $W_t$ 是 Brownian motion（或者叫 Wiener process）：
 
 $$
-\begin{aligned}
-W_0 &= 0 \\
-W_{t+h} &= W_t + \sqrt{h}\epsilon_t, \epsilon_t\sim \mathcal{N}(0, I)
-\end{aligned}
+W_0 = 0,
+\quad
+W_{t+h} = W_t + \sqrt{h}\epsilon_t,
+\quad
+\epsilon_t\sim \mathcal{N}(0, I)
 $$
 
 ## References
