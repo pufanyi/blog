@@ -2,6 +2,14 @@
 
 Project guidance for agents working in this repository.
 
+## Living Project Notes
+
+- Treat this file as the agent's living notes and keep it actively maintained.
+  Whenever work reveals a durable, reusable lesson about this repository, add
+  it here as part of the task rather than waiting to be asked. Regularly revise,
+  reorganize, or remove guidance as the project and better practices evolve;
+  keep rules concise, current, and useful instead of merely accumulating them.
+
 ## Version Control
 
 - This repository uses Git for version control.
@@ -10,6 +18,9 @@ Project guidance for agents working in this repository.
 - Inspect changes with `git diff`.
 - Manage branches with `git branch` and `git switch`.
 - Sync with remotes using `git fetch`, `git pull`, and `git push`.
+- Always run `pnpm check` before every push, after the final code or content
+  change. Do not push unless it passes; if anything changes afterward, run it
+  again before pushing.
 
 ## Development
 
@@ -107,6 +118,3 @@ Project guidance for agents working in this repository.
   `pnpm start`, or `pnpm test`.
 - Files under `src/app/data` are generated from `content` and ignored by Git.
   Do not edit or commit them directly; update the source content files instead.
-- Keep this guidance current when repeated blog work reveals a reusable
-  repository-specific convention. Record durable practices here, not one-off
-  details from a particular post.

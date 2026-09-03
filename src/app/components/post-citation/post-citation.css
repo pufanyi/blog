@@ -29,12 +29,6 @@ h2 {
   font-size: 1rem;
 }
 
-p {
-  margin: 0.2rem 0 0;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-}
-
 .citation-copy {
   flex: none;
   appearance: none;
@@ -83,10 +77,6 @@ code {
 
   .post-citation-heading {
     align-items: flex-start;
-  }
-
-  .post-citation-heading p {
-    display: none;
   }
 
   pre {
