@@ -20,11 +20,12 @@ const outputNodes = [
 interface NodeProps {
   degree?: number;
   label?: string;
+  labelOffset?: number;
   x: number;
   y: number;
 }
 
-function NetworkNode({ degree, label, x, y }: NodeProps) {
+function NetworkNode({ degree, label, labelOffset = 38, x, y }: NodeProps) {
   return (
     <g>
       <circle cx={x} cy={y} r="20" className="made-diagram-node" />
@@ -34,7 +35,7 @@ function NetworkNode({ degree, label, x, y }: NodeProps) {
         </text>
       )}
       {label && (
-        <text x={x} y={y + 38} className="made-diagram-variable">
+        <text x={x} y={y + labelOffset} className="made-diagram-variable">
           {label}
         </text>
       )}
@@ -58,6 +59,8 @@ function Connections({
   return from.flatMap((source, sourceIndex) =>
     to.map((target, targetIndex) => {
       const allowed = isAllowed?.(source.degree, target.degree) ?? true;
+      if (!allowed) return null;
+
       return (
         <line
           key={`${sourceIndex}-${targetIndex}`}
@@ -65,7 +68,7 @@ function Connections({
           y1={fromY - 20}
           x2={target.x}
           y2={toY + 20}
-          className={allowed ? 'made-diagram-edge' : 'made-diagram-edge made-diagram-edge-masked'}
+          className="made-diagram-edge"
         />
       );
     }),
@@ -149,7 +152,13 @@ function MadeDiagram() {
           <NetworkNode key={`dense-hidden-${index}`} x={node.x} y={270} />
         ))}
         {outputNodes.map((node) => (
-          <NetworkNode key={`dense-output-${node.degree}`} x={node.x} y={140} label={node.label} />
+          <NetworkNode
+            key={`dense-output-${node.degree}`}
+            x={node.x}
+            y={140}
+            label={node.label}
+            labelOffset={-34}
+          />
         ))}
 
         <text x="445" y="35" className="made-diagram-heading">
@@ -166,8 +175,11 @@ function MadeDiagram() {
             [1, 1, 1, 1],
           ]}
         />
-        <text x="445" y="202" className="made-diagram-mask-label">
+        <text x="445" y="188" className="made-diagram-mask-label">
           M²
+        </text>
+        <text x="445" y="208" className="made-diagram-mask-shape">
+          output × hidden · 3 × 4
         </text>
         <MaskGrid
           x={418}
@@ -181,11 +193,17 @@ function MadeDiagram() {
             [1, 1, 0],
           ]}
         />
-        <text x="454" y="358" className="made-diagram-mask-label">
+        <text x="445" y="365" className="made-diagram-mask-label">
           M¹
         </text>
-        <text x="445" y="409" className="made-diagram-rule">
-          keep edges that respect degree
+        <text x="445" y="385" className="made-diagram-mask-shape">
+          hidden × input · 4 × 3
+        </text>
+        <text x="445" y="424" className="made-diagram-rule">
+          1 = keep · 0 = mask
+        </text>
+        <text x="565" y="228" className="made-diagram-operation">
+          W̃ = W ⊙ M
         </text>
         <path d="M 545 250 L 585 250" className="made-diagram-flow" />
 
@@ -243,15 +261,8 @@ function MadeDiagram() {
 
         <g className="made-diagram-legend">
           <line x1="630" y1="460" x2="666" y2="460" className="made-diagram-edge" />
-          <text x="675" y="464">kept</text>
-          <line
-            x1="747"
-            y1="460"
-            x2="783"
-            y2="460"
-            className="made-diagram-edge made-diagram-edge-masked"
-          />
-          <text x="792" y="464">masked</text>
+          <text x="675" y="464">kept connection</text>
+          <text x="795" y="464">numbers = degrees</text>
         </g>
       </svg>
     </figure>

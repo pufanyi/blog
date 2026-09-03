@@ -237,6 +237,8 @@
 
 .made-diagram-heading,
 .made-diagram-mask-label,
+.made-diagram-mask-shape,
+.made-diagram-operation,
 .made-diagram-rule,
 .made-diagram-probability,
 .made-diagram-variable,
@@ -277,13 +279,6 @@
   stroke-width: 2;
 }
 
-.made-diagram-edge-masked {
-  stroke: var(--surface-strong);
-  stroke-width: 1.5;
-  stroke-dasharray: 4 5;
-  opacity: 0.42;
-}
-
 .made-mask-cell,
 .made-mask-cell-active {
   stroke: var(--surface-strong);
@@ -300,6 +295,18 @@
 
 .made-diagram-mask-label {
   font-size: 18px;
+  text-anchor: middle;
+}
+
+.made-diagram-mask-shape {
+  font-size: 12px;
+  fill: var(--text-secondary);
+  text-anchor: middle;
+}
+
+.made-diagram-operation {
+  font-size: 14px;
+  fill: var(--accent-rose);
   text-anchor: middle;
 }
 
