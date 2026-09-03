@@ -237,13 +237,13 @@
 
 .made-diagram-heading,
 .made-diagram-mask-label,
-.made-diagram-mask-shape,
 .made-diagram-operation,
-.made-diagram-rule,
 .made-diagram-probability,
 .made-diagram-variable,
 .made-diagram-degree,
-.made-diagram-legend {
+.made-diagram-legend,
+.made-diagram-mask-key,
+.made-diagram-caption {
   fill: var(--text-color);
   font-family: var(--font-body);
 }
@@ -274,9 +274,38 @@
   text-anchor: middle;
 }
 
-.made-diagram-edge {
+.made-diagram-edge-dense,
+.made-diagram-edge-one,
+.made-diagram-edge-two {
+  fill: none;
+  stroke-width: 1.8;
+}
+
+.made-diagram-edge-dense {
+  stroke: var(--text-secondary);
+  marker-end: url("#made-arrow-dense");
+}
+
+.made-diagram-edge-one {
+  stroke: var(--surface-strong);
+  marker-end: url("#made-arrow-one");
+}
+
+.made-diagram-edge-two {
   stroke: var(--accent-blue);
-  stroke-width: 2;
+  marker-end: url("#made-arrow-two");
+}
+
+.made-diagram-arrow-dense {
+  fill: var(--text-secondary);
+}
+
+.made-diagram-arrow-one {
+  fill: var(--surface-strong);
+}
+
+.made-diagram-arrow-two {
+  fill: var(--accent-blue);
 }
 
 .made-mask-cell,
@@ -294,14 +323,12 @@
 }
 
 .made-diagram-mask-label {
-  font-size: 18px;
-  text-anchor: middle;
+  font-size: 20px;
+  text-anchor: start;
 }
 
-.made-diagram-mask-shape {
+.made-diagram-superscript {
   font-size: 12px;
-  fill: var(--text-secondary);
-  text-anchor: middle;
 }
 
 .made-diagram-operation {
@@ -310,20 +337,14 @@
   text-anchor: middle;
 }
 
-.made-diagram-rule {
-  font-size: 14px;
-  fill: var(--text-secondary);
-  text-anchor: middle;
-}
-
-.made-diagram-flow {
+.made-diagram-transform-arrow {
   fill: none;
   stroke: var(--accent-rose);
   stroke-width: 3;
-  marker-end: url("#made-arrow");
+  marker-end: url("#made-transform-arrow");
 }
 
-.made-diagram-arrowhead {
+.made-diagram-transform-arrowhead {
   fill: var(--accent-rose);
 }
 
@@ -334,6 +355,18 @@
 
 .made-diagram-legend {
   font-size: 14px;
+}
+
+.made-diagram-mask-key {
+  font-size: 12px;
+}
+
+.made-diagram-caption {
+  padding: 0 1rem 0.9rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  text-align: center;
 }
 
 @media (max-width: 600px) {

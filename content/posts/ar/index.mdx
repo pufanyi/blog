@@ -28,7 +28,7 @@ $$
 
 Neural Autoregressive Density Estimator (DNAE) [@larochelle2011neural] 把 Logistic regression 改成了 MLP，RNADE [@uria2014rnaderealvaluedneuralautoregressive] 把离散变量改成了连续分布，用多个 normal distribution 表示。EoNADE [@uria2014deeptractabledensityestimator] 消除了标准 NADE 对 order 的依赖。训练的时候随机选一个顺序进行生成。
 
-Masked Autoencoder for Distribution Estimation (MADE) [@germain2015mademaskedautoencoderdistribution] 通过给普通 autoencoder 的权重加 mask，将其变成 auto regressive 模型。每个 node 都有一个 degree：输入到隐藏层只保留 $m_{\text{in}}\leq m_{\text{hidden}}$ 的连接，隐藏层到输出层只保留 $m_{\text{hidden}}<m_{\text{out}}$ 的连接。因此第 $d$ 个输出只能依赖 $x_{<d}$。
+Masked Autoencoder for Distribution Estimation (MADE) [@germain2015mademaskedautoencoderdistribution] 将 autoencoder 做成了 auto regressive 的形式，将每个 node 标 degree，小 degree 朝着大的 degree 连边（隐藏层允许 degree 相等，输出层要求严格小于），别的都 mask 掉。
 
 <MadeDiagram />
 

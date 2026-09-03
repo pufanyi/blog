@@ -1,21 +1,34 @@
-const inputNodes = [
-  { x: 70, degree: 1, label: 'x₁' },
-  { x: 150, degree: 2, label: 'x₂' },
-  { x: 230, degree: 3, label: 'x₃' },
-] as const;
+interface DiagramNode {
+  degree: number;
+  label?: string;
+  x: number;
+}
 
-const hiddenNodes = [
+const inputNodes = [
+  { x: 70, degree: 3, label: 'x₁' },
+  { x: 150, degree: 1, label: 'x₂' },
+  { x: 230, degree: 2, label: 'x₃' },
+] as const satisfies ReadonlyArray<DiagramNode>;
+
+const firstHiddenNodes = [
+  { x: 45, degree: 2 },
+  { x: 115, degree: 1 },
+  { x: 185, degree: 2 },
+  { x: 255, degree: 2 },
+] as const satisfies ReadonlyArray<DiagramNode>;
+
+const secondHiddenNodes = [
   { x: 45, degree: 1 },
   { x: 115, degree: 2 },
-  { x: 185, degree: 1 },
-  { x: 255, degree: 2 },
-] as const;
+  { x: 185, degree: 2 },
+  { x: 255, degree: 1 },
+] as const satisfies ReadonlyArray<DiagramNode>;
 
 const outputNodes = [
-  { x: 70, degree: 1, label: 'x̂₁' },
-  { x: 150, degree: 2, label: 'x̂₂' },
-  { x: 230, degree: 3, label: 'x̂₃' },
-] as const;
+  { x: 70, degree: 3, label: 'x̂₁' },
+  { x: 150, degree: 1, label: 'x̂₂' },
+  { x: 230, degree: 2, label: 'x̂₃' },
+] as const satisfies ReadonlyArray<DiagramNode>;
 
 interface NodeProps {
   degree?: number;
@@ -44,22 +57,23 @@ function NetworkNode({ degree, label, labelOffset = 38, x, y }: NodeProps) {
 }
 
 function Connections({
+  classForEdge,
   from,
   fromY,
   isAllowed,
   to,
   toY,
 }: {
-  from: ReadonlyArray<{ x: number; degree: number }>;
+  classForEdge?: (source: DiagramNode, target: DiagramNode) => string;
+  from: ReadonlyArray<DiagramNode>;
   fromY: number;
   isAllowed?: (sourceDegree: number, targetDegree: number) => boolean;
-  to: ReadonlyArray<{ x: number; degree: number }>;
+  to: ReadonlyArray<DiagramNode>;
   toY: number;
 }) {
   return from.flatMap((source, sourceIndex) =>
     to.map((target, targetIndex) => {
-      const allowed = isAllowed?.(source.degree, target.degree) ?? true;
-      if (!allowed) return null;
+      if (isAllowed && !isAllowed(source.degree, target.degree)) return null;
 
       return (
         <line
@@ -67,8 +81,8 @@ function Connections({
           x1={source.x}
           y1={fromY - 20}
           x2={target.x}
-          y2={toY + 20}
-          className="made-diagram-edge"
+          y2={toY + 22}
+          className={classForEdge?.(source, target) ?? 'made-diagram-edge-dense'}
         />
       );
     }),
@@ -107,28 +121,78 @@ function MaskGrid({
   );
 }
 
+function MaskLabel({ layer, x, y }: { layer: string; x: number; y: number }) {
+  return (
+    <text x={x} y={y} className="made-diagram-mask-label">
+      M
+      <tspan baselineShift="super" className="made-diagram-superscript">
+        {layer}
+      </tspan>
+    </text>
+  );
+}
+
 function MadeDiagram() {
-  const madeX = 610;
-  const shiftedInputs = inputNodes.map((node) => ({ ...node, x: node.x + madeX }));
-  const shiftedHidden = hiddenNodes.map((node) => ({ ...node, x: node.x + madeX }));
-  const shiftedOutputs = outputNodes.map((node) => ({ ...node, x: node.x + madeX }));
+  const madeOffset = 650;
+  const shift = (nodes: ReadonlyArray<DiagramNode>) =>
+    nodes.map((node) => ({ ...node, x: node.x + madeOffset }));
+  const madeInputs = shift(inputNodes);
+  const madeFirstHidden = shift(firstHiddenNodes);
+  const madeSecondHidden = shift(secondHiddenNodes);
+  const madeOutputs = shift(outputNodes);
+  const dependencyClass = (degree: number) =>
+    degree === 1 ? 'made-diagram-edge-one' : 'made-diagram-edge-two';
 
   return (
     <figure className="made-diagram-shell">
       <svg
         className="made-diagram"
-        viewBox="0 0 920 500"
+        viewBox="0 0 1000 600"
         role="img"
         aria-labelledby="made-diagram-title made-diagram-description"
       >
-        <title id="made-diagram-title">MADE masking diagram</title>
+        <title id="made-diagram-title">MADE masking example</title>
         <desc id="made-diagram-description">
-          A dense autoencoder is multiplied by binary masks. Degrees on the masked network ensure
-          that each output depends only on earlier inputs in the autoregressive ordering.
+          A three-variable example with node degrees three, one, two at the input. Binary masks
+          remove connections so the outputs model p of x2, p of x3 given x2, and p of x1 given x2
+          and x3.
         </desc>
         <defs>
           <marker
-            id="made-arrow"
+            id="made-arrow-dense"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" className="made-diagram-arrow-dense" />
+          </marker>
+          <marker
+            id="made-arrow-one"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" className="made-diagram-arrow-one" />
+          </marker>
+          <marker
+            id="made-arrow-two"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" className="made-diagram-arrow-two" />
+          </marker>
+          <marker
+            id="made-transform-arrow"
             viewBox="0 0 10 10"
             refX="8"
             refY="5"
@@ -136,135 +200,168 @@ function MadeDiagram() {
             markerHeight="7"
             orient="auto"
           >
-            <path d="M 0 0 L 10 5 L 0 10 z" className="made-diagram-arrowhead" />
+            <path d="M 0 0 L 10 5 L 0 10 z" className="made-diagram-transform-arrowhead" />
           </marker>
         </defs>
 
-        <text x="150" y="35" className="made-diagram-heading">
-          Dense autoencoder
+        <text x="150" y="38" className="made-diagram-heading">
+          Autoencoder
         </text>
-        <Connections from={inputNodes} fromY={400} to={hiddenNodes} toY={270} />
-        <Connections from={hiddenNodes} fromY={270} to={outputNodes} toY={140} />
+        <Connections from={inputNodes} fromY={490} to={firstHiddenNodes} toY={380} />
+        <Connections from={firstHiddenNodes} fromY={380} to={secondHiddenNodes} toY={270} />
+        <Connections from={secondHiddenNodes} fromY={270} to={outputNodes} toY={160} />
         {inputNodes.map((node) => (
-          <NetworkNode key={`dense-input-${node.degree}`} x={node.x} y={400} label={node.label} />
+          <NetworkNode key={`dense-input-${node.label}`} x={node.x} y={490} label={node.label} />
         ))}
-        {hiddenNodes.map((node, index) => (
-          <NetworkNode key={`dense-hidden-${index}`} x={node.x} y={270} />
+        {firstHiddenNodes.map((node, index) => (
+          <NetworkNode key={`dense-hidden-one-${index}`} x={node.x} y={380} />
+        ))}
+        {secondHiddenNodes.map((node, index) => (
+          <NetworkNode key={`dense-hidden-two-${index}`} x={node.x} y={270} />
         ))}
         {outputNodes.map((node) => (
           <NetworkNode
-            key={`dense-output-${node.degree}`}
+            key={`dense-output-${node.label}`}
             x={node.x}
-            y={140}
+            y={160}
             label={node.label}
             labelOffset={-34}
           />
         ))}
-
-        <text x="445" y="35" className="made-diagram-heading">
+        <text x="445" y="38" className="made-diagram-heading">
           Binary masks
         </text>
         <MaskGrid
           x={409}
-          y={112}
+          y={128}
           rows={3}
           columns={4}
           values={[
-            [0, 0, 0, 0],
-            [1, 0, 1, 0],
             [1, 1, 1, 1],
+            [0, 0, 0, 0],
+            [1, 0, 0, 1],
           ]}
         />
-        <text x="445" y="188" className="made-diagram-mask-label">
-          M²
-        </text>
-        <text x="445" y="208" className="made-diagram-mask-shape">
-          output × hidden · 3 × 4
-        </text>
+        <MaskLabel layer="3" x={505} y={160} />
+
+        <MaskGrid
+          x={409}
+          y={255}
+          rows={4}
+          columns={4}
+          values={[
+            [0, 1, 0, 0],
+            [1, 1, 1, 1],
+            [1, 1, 1, 1],
+            [0, 1, 0, 0],
+          ]}
+        />
+        <MaskLabel layer="2" x={505} y={296} />
+
         <MaskGrid
           x={418}
-          y={283}
+          y={395}
           rows={4}
           columns={3}
           values={[
-            [1, 0, 0],
-            [1, 1, 0],
-            [1, 0, 0],
-            [1, 1, 0],
+            [0, 1, 1],
+            [0, 1, 0],
+            [0, 1, 1],
+            [0, 1, 1],
           ]}
         />
-        <text x="445" y="365" className="made-diagram-mask-label">
-          M¹
+        <MaskLabel layer="1" x={505} y={436} />
+        <g className="made-diagram-mask-key">
+          <rect x="405" y="510" width="14" height="14" className="made-mask-cell-active" />
+          <text x="427" y="522">1: keep</text>
+          <rect x="476" y="510" width="14" height="14" className="made-mask-cell" />
+          <text x="498" y="522">0: remove</text>
+        </g>
+        <text x="595" y="280" className="made-diagram-operation">
+          weights ⊙ masks
         </text>
-        <text x="445" y="385" className="made-diagram-mask-shape">
-          hidden × input · 4 × 3
-        </text>
-        <text x="445" y="424" className="made-diagram-rule">
-          1 = keep · 0 = mask
-        </text>
-        <text x="565" y="228" className="made-diagram-operation">
-          W̃ = W ⊙ M
-        </text>
-        <path d="M 545 250 L 585 250" className="made-diagram-flow" />
+        <path d="M 560 305 L 625 305" className="made-diagram-transform-arrow" />
 
-        <text x="760" y="35" className="made-diagram-heading">
+        <text x="800" y="38" className="made-diagram-heading">
           MADE
         </text>
         <Connections
-          from={shiftedInputs}
-          fromY={400}
-          to={shiftedHidden}
-          toY={270}
+          from={madeInputs}
+          fromY={490}
+          to={madeFirstHidden}
+          toY={380}
           isAllowed={(source, target) => source <= target}
+          classForEdge={(_, target) => dependencyClass(target.degree)}
         />
         <Connections
-          from={shiftedHidden}
-          fromY={270}
-          to={shiftedOutputs}
-          toY={140}
-          isAllowed={(source, target) => source < target}
+          from={madeFirstHidden}
+          fromY={380}
+          to={madeSecondHidden}
+          toY={270}
+          isAllowed={(source, target) => source <= target}
+          classForEdge={(_, target) => dependencyClass(target.degree)}
         />
-        {shiftedInputs.map((node) => (
+        <Connections
+          from={madeSecondHidden}
+          fromY={270}
+          to={madeOutputs}
+          toY={160}
+          isAllowed={(source, target) => source < target}
+          classForEdge={(source) => dependencyClass(source.degree)}
+        />
+        {madeInputs.map((node) => (
           <NetworkNode
-            key={`made-input-${node.degree}`}
+            key={`made-input-${node.label}`}
             x={node.x}
-            y={400}
+            y={490}
             degree={node.degree}
             label={node.label}
           />
         ))}
-        {shiftedHidden.map((node, index) => (
+        {madeFirstHidden.map((node, index) => (
           <NetworkNode
-            key={`made-hidden-${index}`}
+            key={`made-hidden-one-${index}`}
+            x={node.x}
+            y={380}
+            degree={node.degree}
+          />
+        ))}
+        {madeSecondHidden.map((node, index) => (
+          <NetworkNode
+            key={`made-hidden-two-${index}`}
             x={node.x}
             y={270}
             degree={node.degree}
           />
         ))}
-        {shiftedOutputs.map((node) => (
+        {madeOutputs.map((node) => (
           <NetworkNode
-            key={`made-output-${node.degree}`}
+            key={`made-output-${node.label}`}
             x={node.x}
-            y={140}
+            y={160}
             degree={node.degree}
           />
         ))}
-        <text x="680" y="86" className="made-diagram-probability">
-          p(x₁)
+        <text x="720" y="95" className="made-diagram-probability">
+          p(x₁ | x₂,x₃)
         </text>
-        <text x="760" y="86" className="made-diagram-probability">
-          p(x₂ | x₁)
+        <text x="800" y="95" className="made-diagram-probability">
+          p(x₂)
         </text>
-        <text x="840" y="86" className="made-diagram-probability">
-          p(x₃ | x₁,x₂)
+        <text x="880" y="95" className="made-diagram-probability">
+          p(x₃ | x₂)
         </text>
 
         <g className="made-diagram-legend">
-          <line x1="630" y1="460" x2="666" y2="460" className="made-diagram-edge" />
-          <text x="675" y="464">kept connection</text>
-          <text x="795" y="464">numbers = degrees</text>
+          <line x1="690" y1="565" x2="726" y2="565" className="made-diagram-edge-one" />
+          <text x="736" y="570">depends on 1 input</text>
+          <line x1="840" y1="565" x2="876" y2="565" className="made-diagram-edge-two" />
+          <text x="886" y="570">depends on 2</text>
         </g>
       </svg>
+      <figcaption className="made-diagram-caption">
+        Example order: x₂ → x₃ → x₁, giving p(x) = p(x₂) p(x₃ | x₂) p(x₁ | x₂,x₃).
+      </figcaption>
     </figure>
   );
 }
