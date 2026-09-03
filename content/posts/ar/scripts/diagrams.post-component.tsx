@@ -5,9 +5,9 @@ interface DiagramNode {
 }
 
 const inputNodes = [
-  { x: 70, degree: 3, label: 'x₁' },
-  { x: 150, degree: 1, label: 'x₂' },
-  { x: 230, degree: 2, label: 'x₃' },
+  { x: 70, degree: 3, label: 'x_1' },
+  { x: 150, degree: 1, label: 'x_2' },
+  { x: 230, degree: 2, label: 'x_3' },
 ] as const satisfies ReadonlyArray<DiagramNode>;
 
 const firstHiddenNodes = [
@@ -25,9 +25,9 @@ const secondHiddenNodes = [
 ] as const satisfies ReadonlyArray<DiagramNode>;
 
 const outputNodes = [
-  { x: 70, degree: 3, label: 'x̂₁' },
-  { x: 150, degree: 1, label: 'x̂₂' },
-  { x: 230, degree: 2, label: 'x̂₃' },
+  { x: 70, degree: 3, label: '\\hat{x}_1' },
+  { x: 150, degree: 1, label: '\\hat{x}_2' },
+  { x: 230, degree: 2, label: '\\hat{x}_3' },
 ] as const satisfies ReadonlyArray<DiagramNode>;
 
 interface NodeProps {
@@ -36,6 +36,38 @@ interface NodeProps {
   labelOffset?: number;
   x: number;
   y: number;
+}
+
+interface MathLabelProps {
+  className?: string;
+  height?: number;
+  tex: string;
+  width?: number;
+  x: number;
+  y: number;
+}
+
+function MathLabel({
+  className = '',
+  height = 32,
+  tex,
+  width = 100,
+  x,
+  y,
+}: MathLabelProps) {
+  const formula = '\\(' + tex + '\\)';
+
+  return (
+    <foreignObject
+      x={x - width / 2}
+      y={y - height / 2}
+      width={width}
+      height={height}
+      aria-hidden="true"
+    >
+      <div className={'made-diagram-math ' + className}>{formula}</div>
+    </foreignObject>
+  );
 }
 
 function NetworkNode({ degree, label, labelOffset = 38, x, y }: NodeProps) {
@@ -48,11 +80,31 @@ function NetworkNode({ degree, label, labelOffset = 38, x, y }: NodeProps) {
         </text>
       )}
       {label && (
-        <text x={x} y={y + labelOffset} className="made-diagram-variable">
-          {label}
-        </text>
+        <MathLabel
+          x={x}
+          y={y + labelOffset}
+          width={64}
+          height={28}
+          tex={label}
+          className="made-diagram-variable"
+        />
       )}
     </g>
+  );
+}
+
+type ConnectionRule = (sourceDegree: number, targetDegree: number) => boolean;
+
+const allowHiddenConnection: ConnectionRule = (source, target) => source <= target;
+const allowOutputConnection: ConnectionRule = (source, target) => source < target;
+
+function createMask(
+  targets: ReadonlyArray<DiagramNode>,
+  sources: ReadonlyArray<DiagramNode>,
+  isAllowed: ConnectionRule,
+) {
+  return targets.map((target) =>
+    sources.map((source) => Number(isAllowed(source.degree, target.degree))),
   );
 }
 
@@ -67,7 +119,7 @@ function Connections({
   classForEdge?: (source: DiagramNode, target: DiagramNode) => string;
   from: ReadonlyArray<DiagramNode>;
   fromY: number;
-  isAllowed?: (sourceDegree: number, targetDegree: number) => boolean;
+  isAllowed?: ConnectionRule;
   to: ReadonlyArray<DiagramNode>;
   toY: number;
 }) {
@@ -123,12 +175,13 @@ function MaskGrid({
 
 function MaskLabel({ layer, x, y }: { layer: string; x: number; y: number }) {
   return (
-    <text x={x} y={y} className="made-diagram-mask-label">
-      M
-      <tspan baselineShift="super" className="made-diagram-superscript">
-        {layer}
-      </tspan>
-    </text>
+    <MathLabel
+      x={x}
+      y={y}
+      width={54}
+      tex={'M^{' + layer + '}'}
+      className="made-diagram-mask-label"
+    />
   );
 }
 
@@ -140,6 +193,9 @@ function MadeDiagram() {
   const madeFirstHidden = shift(firstHiddenNodes);
   const madeSecondHidden = shift(secondHiddenNodes);
   const madeOutputs = shift(outputNodes);
+  const firstMask = createMask(firstHiddenNodes, inputNodes, allowHiddenConnection);
+  const secondMask = createMask(secondHiddenNodes, firstHiddenNodes, allowHiddenConnection);
+  const outputMask = createMask(outputNodes, secondHiddenNodes, allowOutputConnection);
   const dependencyClass = (degree: number) =>
     degree === 1 ? 'made-diagram-edge-one' : 'made-diagram-edge-two';
 
@@ -236,11 +292,7 @@ function MadeDiagram() {
           y={128}
           rows={3}
           columns={4}
-          values={[
-            [1, 1, 1, 1],
-            [0, 0, 0, 0],
-            [1, 0, 0, 1],
-          ]}
+          values={outputMask}
         />
         <MaskLabel layer="3" x={505} y={160} />
 
@@ -249,12 +301,7 @@ function MadeDiagram() {
           y={255}
           rows={4}
           columns={4}
-          values={[
-            [0, 1, 0, 0],
-            [1, 1, 1, 1],
-            [1, 1, 1, 1],
-            [0, 1, 0, 0],
-          ]}
+          values={secondMask}
         />
         <MaskLabel layer="2" x={505} y={296} />
 
@@ -263,12 +310,7 @@ function MadeDiagram() {
           y={395}
           rows={4}
           columns={3}
-          values={[
-            [0, 1, 1],
-            [0, 1, 0],
-            [0, 1, 1],
-            [0, 1, 1],
-          ]}
+          values={firstMask}
         />
         <MaskLabel layer="1" x={505} y={436} />
         <g className="made-diagram-mask-key">
@@ -277,9 +319,7 @@ function MadeDiagram() {
           <rect x="476" y="510" width="14" height="14" className="made-mask-cell" />
           <text x="498" y="522">0: remove</text>
         </g>
-        <text x="595" y="280" className="made-diagram-operation">
-          weights ⊙ masks
-        </text>
+        <MathLabel x={595} y={277} width={92} tex="W \odot M" className="made-diagram-operation" />
         <path d="M 560 305 L 625 305" className="made-diagram-transform-arrow" />
 
         <text x="800" y="38" className="made-diagram-heading">
@@ -290,7 +330,7 @@ function MadeDiagram() {
           fromY={490}
           to={madeFirstHidden}
           toY={380}
-          isAllowed={(source, target) => source <= target}
+          isAllowed={allowHiddenConnection}
           classForEdge={(_, target) => dependencyClass(target.degree)}
         />
         <Connections
@@ -298,7 +338,7 @@ function MadeDiagram() {
           fromY={380}
           to={madeSecondHidden}
           toY={270}
-          isAllowed={(source, target) => source <= target}
+          isAllowed={allowHiddenConnection}
           classForEdge={(_, target) => dependencyClass(target.degree)}
         />
         <Connections
@@ -306,7 +346,7 @@ function MadeDiagram() {
           fromY={270}
           to={madeOutputs}
           toY={160}
-          isAllowed={(source, target) => source < target}
+          isAllowed={allowOutputConnection}
           classForEdge={(source) => dependencyClass(source.degree)}
         />
         {madeInputs.map((node) => (
@@ -342,15 +382,27 @@ function MadeDiagram() {
             degree={node.degree}
           />
         ))}
-        <text x="720" y="95" className="made-diagram-probability">
-          p(x₁ | x₂,x₃)
-        </text>
-        <text x="800" y="95" className="made-diagram-probability">
-          p(x₂)
-        </text>
-        <text x="880" y="95" className="made-diagram-probability">
-          p(x₃ | x₂)
-        </text>
+        <MathLabel
+          x={720}
+          y={95}
+          width={130}
+          tex="p(x_1 \mid x_2,x_3)"
+          className="made-diagram-probability"
+        />
+        <MathLabel
+          x={800}
+          y={95}
+          width={64}
+          tex="p(x_2)"
+          className="made-diagram-probability"
+        />
+        <MathLabel
+          x={880}
+          y={95}
+          width={104}
+          tex="p(x_3 \mid x_2)"
+          className="made-diagram-probability"
+        />
 
         <g className="made-diagram-legend">
           <line x1="700" y1="552" x2="736" y2="552" className="made-diagram-legend-one" />
@@ -360,7 +412,8 @@ function MadeDiagram() {
         </g>
       </svg>
       <figcaption className="made-diagram-caption">
-        Example order: x₂ → x₃ → x₁, giving p(x) = p(x₂) p(x₃ | x₂) p(x₁ | x₂,x₃).
+        Example order: {'\\(x_2 \\to x_3 \\to x_1\\)'}, giving{' '}
+        {'\\(p(x)=p(x_2)p(x_3\\mid x_2)p(x_1\\mid x_2,x_3)\\)'}.
       </figcaption>
     </figure>
   );

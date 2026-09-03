@@ -236,16 +236,27 @@
 }
 
 .made-diagram-heading,
-.made-diagram-mask-label,
-.made-diagram-operation,
-.made-diagram-probability,
-.made-diagram-variable,
 .made-diagram-degree,
 .made-diagram-legend,
 .made-diagram-mask-key,
 .made-diagram-caption {
   fill: var(--text-color);
   font-family: var(--font-body);
+}
+
+.made-diagram-math {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  font-family: var(--font-body);
+  line-height: 1;
+}
+
+.made-diagram-math mjx-container {
+  margin: 0 !important;
 }
 
 .made-diagram-heading {
@@ -270,8 +281,6 @@
 
 .made-diagram-variable {
   font-size: 18px;
-  font-style: italic;
-  text-anchor: middle;
 }
 
 .made-diagram-edge-dense,
@@ -324,17 +333,11 @@
 
 .made-diagram-mask-label {
   font-size: 20px;
-  text-anchor: start;
-}
-
-.made-diagram-superscript {
-  font-size: 12px;
 }
 
 .made-diagram-operation {
   font-size: 14px;
-  fill: var(--accent-rose);
-  text-anchor: middle;
+  color: var(--accent-rose);
 }
 
 .made-diagram-transform-arrow {
@@ -350,7 +353,6 @@
 
 .made-diagram-probability {
   font-size: 15px;
-  text-anchor: middle;
 }
 
 .made-diagram-legend {

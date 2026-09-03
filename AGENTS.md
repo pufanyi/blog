@@ -33,7 +33,35 @@ Project guidance for agents working in this repository.
   HTML dimensioned with `width`/`height` whenever possible so `NgOptimizedImage`
   can run correctly after hydration.
 
+### Post Diagrams
+
+- Prefer post-local build-time components for authored technical diagrams.
+  Put them in `content/posts/<slug>/scripts/*.post-component.tsx`, export them
+  through a `POST_COMPONENTS` object, and invoke them directly from MDX.
+- Render structural diagrams as accessible inline SVG inside a `<figure>`.
+  Provide a meaningful `<title>`, `<desc>`, and `<figcaption>`, use a
+  responsive `viewBox`, and place the figure in an overflow container for
+  narrow screens.
+- Keep diagram colors in prefixed classes under the post media styles and use
+  only semantic variables from `src/styles/morandi.css`; verify both themes.
+- Keep one source of truth for a diagram's data. Derive related masks, cells,
+  edges, and labels from the same arrays and predicates instead of duplicating
+  hard-coded values that can drift apart.
+- For TeX inside inline SVG, use a sized `<foreignObject>` containing HTML
+  with MathJax delimiters such as `\(...\)`. The site uses MathJax CHTML, so
+  do not expect TeX inside an SVG `<text>` element to typeset reliably. Give
+  each foreign object explicit bounds and remove default `mjx-container`
+  margins.
+- After changing a diagram, run `pnpm generate:data`, `pnpm check`, and
+  `pnpm test`, then inspect the actual served page at desktop and narrow
+  widths. Check label collisions, arrowheads, legends, theme contrast, and
+  whether the visual encoding agrees with the underlying equations.
+
 ## Content
+
+- Treat existing prose as author-owned. Preserve its wording, tone, and
+  structure unless the user asks for a rewrite; make the smallest correction
+  needed for genuine factual or rendering errors.
 
 - Each blog post lives at `content/posts/<slug>/index.mdx`; the directory name is
   the post slug. `index.mdx` starts with YAML front matter delimited by `---`;
@@ -79,3 +107,6 @@ Project guidance for agents working in this repository.
   `pnpm start`, or `pnpm test`.
 - Files under `src/app/data` are generated from `content` and ignored by Git.
   Do not edit or commit them directly; update the source content files instead.
+- Keep this guidance current when repeated blog work reveals a reusable
+  repository-specific convention. Record durable practices here, not one-off
+  details from a particular post.
