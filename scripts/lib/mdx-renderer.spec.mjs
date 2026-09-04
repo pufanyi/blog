@@ -23,6 +23,8 @@ Inline math $x_i$ [@example2026].
 
 </details>
 
+Collapsed years [@collapsed2025; @collapsed2026].
+
 | A | B |
 | - | - |
 | 1 | 2 |
@@ -48,6 +50,20 @@ const value = 42;
   assert.equal(
     document.querySelector('[id^="citation--"] a')?.getAttribute('href'),
     '/blog/example#bib-example2026',
+  );
+  const collapsedCitation = document.querySelector(
+    '[id^="citation--collapsed2025--collapsed2026--"]',
+  );
+  assert.equal(collapsedCitation?.textContent, '(Doe et al., 2025, 2026)');
+  assert.deepEqual(
+    Array.from(collapsedCitation?.querySelectorAll('a') ?? [], (anchor) => ({
+      href: anchor.getAttribute('href'),
+      text: anchor.textContent,
+    })),
+    [
+      { href: '/blog/example#bib-collapsed2025', text: '2025' },
+      { href: '/blog/example#bib-collapsed2026', text: '2026' },
+    ],
   );
   assert.match(document.querySelector('#bib-example2026')?.textContent ?? '', /Example Reference/);
   assert.equal(document.querySelector('#bib-example2026')?.dataset['title'], 'Example Reference');

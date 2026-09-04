@@ -209,10 +209,59 @@ function addCitationMetadata(document, citations) {
   }
 }
 
+function repairCollapsedCitationLinks(document, citations) {
+  const citationYears = new Map(
+    citations.flatMap((citation) => {
+      const year = citation.issued?.['date-parts']?.[0]?.[0];
+      return year === undefined || year === null
+        ? []
+        : [[citation.id.toLowerCase(), String(year)]];
+    }),
+  );
+
+  for (const anchor of document.querySelectorAll('[id^="citation--"] a[href^="#bib-"]')) {
+    if (/[\p{L}\p{N}]/u.test(anchor.textContent ?? '')) continue;
+
+    const citation = anchor.closest('[id^="citation--"]');
+    const href = anchor.getAttribute('href');
+    const citationId = href?.slice('#bib-'.length).toLowerCase();
+    const year = citationId ? citationYears.get(citationId) : undefined;
+    if (!citation || !year) continue;
+
+    const walker = document.createTreeWalker(citation, 4);
+    let yearNode;
+    let yearOffset = -1;
+    while (walker.nextNode()) {
+      const candidate = walker.currentNode;
+      if (candidate.parentElement?.closest('a[href^="#bib-"]')) continue;
+
+      const offset = (candidate.textContent ?? '').indexOf(year);
+      if (offset === -1) continue;
+
+      yearNode = candidate;
+      yearOffset = offset;
+      break;
+    }
+    if (!yearNode) continue;
+
+    const text = yearNode.textContent ?? '';
+    const leadingText = text.slice(0, yearOffset);
+    const trailingText = text.slice(yearOffset + year.length);
+    anchor.replaceWith(document.createTextNode(anchor.textContent ?? ''));
+    anchor.textContent = year;
+    yearNode.replaceWith(
+      document.createTextNode(leadingText),
+      anchor,
+      document.createTextNode(trailingText),
+    );
+  }
+}
+
 function postprocessMdxHtml(html, slug, highlighter, citations = []) {
   const dom = new JSDOM(`<body>${html}</body>`);
   const { document } = dom.window;
   addCitationMetadata(document, citations);
+  repairCollapsedCitationLinks(document, citations);
 
   // React 19 may emit image preload hints during static rendering. Angular owns
   // the document shell, so post content should contain only authored content.

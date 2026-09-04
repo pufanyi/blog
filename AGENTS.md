@@ -111,6 +111,9 @@ Project guidance for agents working in this repository.
      MDX.
   4. Run `pnpm check` and `pnpm test` before committing. `pnpm lint:bib` checks
      formatting, duplicate citation keys, duplicate DOIs, and parser warnings.
+- Keep renderer coverage for APA-collapsed citations that share an author but
+  use different years; every displayed year must retain its own bibliography
+  link.
 - When adding or touching image assets, manually convert any non-AVIF images to
   AVIF and reference the converted files instead.
 - Rich-text fields in `content/cv.yaml` support inline Markdown while retaining
