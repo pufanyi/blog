@@ -32,7 +32,13 @@ W_{t+h} = W_t + \sqrt{h}\epsilon_t,
 \epsilon_t\sim \mathcal{N}(0, I)
 $$
 
-{/* 训练的时候，我们从数据中抽取 $z$，大部分时候我们假设模型算出来的 $p_t(\cdot\mid z)$ 满足某种分布，一般情况下是 $\mathcal{N}(\alpha_t, \beta_t^2I)$。 */}
+训练的时候，我们从数据中抽取 $z$，大部分时候我们假设模型算出来的 $p_t(\cdot\mid z)$ 满足某种分布，一般情况下我们会认为是 $\mathcal{N}(\alpha_t z, \beta_t^2I)$。这时候我们希望
+
+$$
+\left<\alpha_0, \beta_0\right> = \left<0, 1\right>,\quad\left<\alpha_1, \beta_1\right> = \left<1, 0\right>
+$$
+
+也就是从正态分布收敛到一个点 $\delta_z$（大概就是 $\cal{N}(z, 0)$，用 [Dirac delta function](https://en.wikipedia.org/wiki/Dirac_delta_function) 定义）。
 
 ## Reinforcement Learning
 
