@@ -82,7 +82,3 @@ $$
 因为普遍质疑是说像 DINOv2/SigLIP2 这种理解类型的 encoder "emphasize high-level semantics while downplaying low-level details"，所以这边提出质疑，用这些作为 encoder 来训 decoder。
 
 在正常的实验中，首先他们先用 ImageNet 做了训练，然后去比较 $x$ 和 $\hat{x}$ 的 rFID。比较出来的结果是 RAE 更好，但是他们又尝试用在 DiT 上，也就是用这个训练出来的 RAE 去训练 DiT，结果发现并无法 work。
-
-## References
-
-[^ref]

@@ -257,11 +257,33 @@ function repairCollapsedCitationLinks(document, citations) {
   }
 }
 
+function ensureBibliographyHeading(document) {
+  for (const bibliography of document.querySelectorAll('.references.csl-bib-body')) {
+    const previous = bibliography.previousElementSibling;
+    const isReferencesHeading =
+      previous?.matches('h1, h2, h3, h4, h5, h6') &&
+      previous.textContent?.trim().toLowerCase() === 'references';
+
+    if (isReferencesHeading && previous.tagName === 'H2') {
+      continue;
+    }
+
+    const heading = document.createElement('h2');
+    heading.textContent = 'References';
+    if (isReferencesHeading) {
+      previous.replaceWith(heading);
+    } else {
+      bibliography.before(heading);
+    }
+  }
+}
+
 function postprocessMdxHtml(html, slug, highlighter, citations = []) {
   const dom = new JSDOM(`<body>${html}</body>`);
   const { document } = dom.window;
   addCitationMetadata(document, citations);
   repairCollapsedCitationLinks(document, citations);
+  ensureBibliographyHeading(document);
 
   // React 19 may emit image preload hints during static rendering. Angular owns
   // the document shell, so post content should contain only authored content.

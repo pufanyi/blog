@@ -96,7 +96,9 @@ Project guidance for agents working in this repository.
   interactive content; imported build-time components are also supported.
 - A post can keep BibTeX references in a sibling `references.bib` file and cite
   them with Pandoc-style keys such as `[@key]`. Citations use the APA CSL
-  style; place `[^ref]` where the generated bibliography should appear.
+  style. When a bibliography is rendered, the generator appends it with a
+  level-two `References` heading; do not add a manual heading or `[^ref]`
+  marker to the MDX source.
 - Citation workflow:
   1. Create or update `content/posts/<slug>/references.bib`. Use readable,
      stable keys such as `kingma2014autoencoding`; write authors as
@@ -107,8 +109,8 @@ Project guidance for agents working in this repository.
      index or syllabus page. Do not add abstracts; citation previews
      intentionally show bibliographic metadata only.
   2. Cite an entry in `index.mdx` with `[@key]`. Multiple references can be
-     written as `[@key1; @key2]`. Add a References heading followed by `[^ref]`
-     once, at the desired bibliography location.
+     written as `[@key1; @key2]`. The References section is generated at the
+     end of the post automatically.
   3. Run `pnpm format:bib` after editing BibTeX, then `pnpm generate:data` to
      regenerate the post HTML. The generator applies APA style and copies CSL
      metadata onto each `.csl-entry` as `data-title`, `data-authors`,

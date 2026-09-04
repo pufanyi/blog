@@ -34,10 +34,6 @@ const value = 42;
 \`\`\`
 
 <FixtureDiagram />
-
-## References
-
-[^ref]
 `;
 
   const sourcePath = fileURLToPath(new URL('./fixtures/citation-post/index.mdx', import.meta.url));
@@ -84,4 +80,18 @@ const value = 42;
     'Discovered locally',
   );
   assert.equal(result.toc[0]?.text, 'Native MDX 42');
+  const referencesHeading = document.querySelector('h2#references');
+  assert.equal(document.querySelectorAll('h2#references').length, 1);
+  assert.equal(referencesHeading?.textContent, 'References');
+  assert.ok(referencesHeading?.nextElementSibling?.matches('#refs.references.csl-bib-body'));
+  assert.equal(
+    referencesHeading?.querySelector('.heading-permalink')?.getAttribute('href'),
+    '/blog/example#references',
+  );
+  assert.deepEqual(result.toc.at(-1), {
+    id: 'references',
+    text: 'References',
+    level: 2,
+    children: [],
+  });
 });
