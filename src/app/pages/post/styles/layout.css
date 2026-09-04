@@ -187,16 +187,6 @@
   border-top: 1px solid var(--border-light);
 }
 
-.not-found {
-  padding: 3rem 0;
-  text-align: center;
-}
-
-.not-found h1 {
-  margin-bottom: 1rem;
-  font-family: var(--font-heading);
-}
-
 @media print {
   .post-toc-sidebar,
   .post-toc-dialog,

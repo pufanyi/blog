@@ -16,7 +16,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { POSTS } from '../../data/posts';
@@ -28,6 +28,7 @@ import { PostCitationComponent } from '../../components/post-citation/post-citat
 import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
 import { CitationPreviewService } from '../../services/citation-preview.service';
 import { ImageLightboxComponent } from '../../components/image-lightbox/image-lightbox';
+import { NotFoundComponent } from '../not-found/not-found';
 import {
   typesetMath,
   initCodeCopyButtons,
@@ -42,12 +43,12 @@ const WIDE_QUERY = '(min-width: 1480px)';
   selector: 'app-post',
   standalone: true,
   imports: [
-    RouterLink,
     PostHeaderComponent,
     GiscusCommentsComponent,
     BackToTopComponent,
     PostTocComponent,
     PostCitationComponent,
+    NotFoundComponent,
   ],
   templateUrl: './post.html',
   styleUrls: [
