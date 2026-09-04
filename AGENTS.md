@@ -37,8 +37,8 @@ Project guidance for agents working in this repository.
 - All color choices should follow the muted Morandi theme and use the semantic
   color variables from `src/styles/morandi.css`.
 - The shared 404 experience lives in `src/app/pages/not-found` and is also used
-  for missing blog slugs. Keep its random scenario source injectable so each
-  variant and interaction remains deterministic in tests.
+  for missing blog slugs. Keep its recovery and peer-review interactions
+  covered by component tests.
 - All Angular-authored images should use `app-image-lightbox`, which wraps
   `NgOptimizedImage` and `medium-zoom`. Do not add bare template `<img>` tags
   unless there is a concrete framework limitation.
