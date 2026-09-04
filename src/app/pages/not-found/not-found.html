@@ -1,59 +1,44 @@
 <section class="exercise-error" aria-labelledby="not-found-title">
-  <header class="error-header">
-    <div class="proof-mark" aria-hidden="true">
-      <i class="ph ph-function"></i>
-      <span>∎</span>
-    </div>
-    <p class="error-eyebrow">Existence theorem · Proof omitted</p>
-    <h1 id="not-found-title">
-      <span class="error-code">404:&nbsp;</span>
-      <span>Existence Left as an Exercise</span>
-    </h1>
-  </header>
+  <h1 id="not-found-title" class="visually-hidden">404: Existence Left as an Exercise</h1>
+
+  <div class="proof-mark" aria-hidden="true">
+    <i class="ph ph-function"></i>
+    <span>∎</span>
+  </div>
 
   <article class="proof-sheet" aria-labelledby="theorem-label">
-    <div class="theorem-block">
+    <header class="theorem-block">
       <p id="theorem-label" class="proof-label">Theorem 404.1</p>
       <p class="theorem-statement">
         There exists a unique page <var>P</var> such that the current path maps to that resource.
       </p>
-    </div>
-
-    <div class="proof-rule" aria-hidden="true">
-      <span>Proof</span>
-    </div>
+    </header>
 
     <div class="proof-body">
       <p>
-        Clearly, it is enough to construct a homeomorphism on the complex plane satisfying every
-        non-trivial zero of the Riemann <var>ζ</var>-function.
+        <strong>Proof.</strong> Clearly, it is enough to construct a homeomorphism on the complex
+        plane satisfying every non-trivial zero of the Riemann <var>ζ</var>-function.
       </p>
-      <p class="omitted-step">
-        The construction is entirely straightforward and is therefore left as an exercise to the
-        reader.
+      <p>
+        <em>
+          The construction is entirely straightforward and is therefore left as an exercise to
+          the reader.
+        </em>
       </p>
-    </div>
-
-    <footer class="proof-footer">
-      <span>Details omitted by convention</span>
       <span class="qed" aria-label="End of proof">∎</span>
-    </footer>
+    </div>
   </article>
 
-  <div class="submission-block">
-    <p>Disagree with the proof? The committee accepts unsolicited manuscripts.</p>
-    <nav class="submission-actions" aria-label="404 recovery options">
-      <button class="primary-action" type="button" (click)="submitPaper()">
-        <i class="ph ph-file-pdf" aria-hidden="true"></i>
-        Submit Your Proof (PDF)
-      </button>
-      <a routerLink="/" class="secondary-action">
-        <i class="ph ph-sign-out" aria-hidden="true"></i>
-        Withdraw Safely
-      </a>
-    </nav>
-    <p class="submission-note">No prerequisites. Acceptance is not guaranteed.</p>
-  </div>
+  <nav class="submission-actions" aria-label="404 recovery options">
+    <button class="primary-action" type="button" (click)="submitPaper()">
+      <i class="ph ph-file-pdf" aria-hidden="true"></i>
+      Submit Your Proof (PDF)
+    </button>
+    <a routerLink="/" class="secondary-action">
+      <i class="ph ph-sign-out" aria-hidden="true"></i>
+      Withdraw Safely
+    </a>
+  </nav>
 </section>
 
 @if (reviewOpen()) {

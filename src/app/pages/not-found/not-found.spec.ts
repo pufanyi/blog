@@ -11,15 +11,19 @@ describe('NotFoundComponent', () => {
     }).compileComponents();
   });
 
-  it('renders the exercise theorem without raw TeX or an unnecessary input', () => {
+  it('keeps the title accessible while showing one uncluttered proof card', () => {
     const fixture = TestBed.createComponent(NotFoundComponent);
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    const heading = element.querySelector('h1')?.textContent?.replace(/\s+/g, ' ').trim();
+    const heading = element.querySelector('h1');
     const pageText = element.textContent ?? '';
 
-    expect(heading).toBe('404: Existence Left as an Exercise');
+    expect(heading?.textContent).toBe('404: Existence Left as an Exercise');
+    expect(heading?.classList.contains('visually-hidden')).toBe(true);
+    expect(element.querySelectorAll('.proof-sheet')).toHaveLength(1);
+    expect(element.querySelector('.proof-rule')).toBeNull();
+    expect(element.querySelector('.proof-footer')).toBeNull();
     expect(element.querySelectorAll('var')).toHaveLength(2);
     expect(pageText).not.toContain('\\(');
     expect(element.querySelector('input')).toBeNull();
