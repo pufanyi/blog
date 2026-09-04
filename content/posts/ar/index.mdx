@@ -40,6 +40,12 @@ GPT [@radford2018improving; @radford2019language; @brown2020languagemodelsfewsho
 
 PixelRNN [@oord2016pixelrecurrentneuralnetworks] 用 RNN 逐行填 pixel，PixelCNN 一开始也是在 [@oord2016pixelrecurrentneuralnetworks] 提出的，思想大概是用 CNN 每次推理做 AR。当然因为一些 CNN 的问题后续还有很多别的修改 [@oord2016conditionalimagegenerationpixelcnn]，这个有空再来补。
 
+## AR for Multimodal Generation
+
+参考了 [@jin2026nativear]。
+
+VideoGPT [@yan2021videogptvideogenerationusing] 使用 3D VQ-VAE 将视频 down-sampling 成 latent，然后用 auto regressive 的方法进行视频生成。
+
 {/* ## References
 
 [^ref] */}
