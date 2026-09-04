@@ -36,37 +36,15 @@ describe('NotFoundComponent', () => {
     return fixture;
   }
 
-  it('selects all three scenarios across the random range', () => {
-    expect(selectNotFoundScenario(0).id).toBe('quantum');
-    expect(selectNotFoundScenario(0.5).id).toBe('halting');
+  it('selects both scenarios with equal halves of the random range', () => {
+    expect(selectNotFoundScenario(0).id).toBe('halting');
+    expect(selectNotFoundScenario(0.49).id).toBe('halting');
+    expect(selectNotFoundScenario(0.5).id).toBe('exercise');
     expect(selectNotFoundScenario(0.99).id).toBe('exercise');
   });
 
-  it('renders the quantum puzzle and opens site search', async () => {
-    const fixture = await renderScenario(0);
-    const element = fixture.nativeElement as HTMLElement;
-
-    expect(element.querySelector('h1')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      '404: Page Lost in the Quantum Realm',
-    );
-    expect(element.querySelector('.equation')?.textContent).toContain('i\\hbar');
-
-    const input = element.querySelector<HTMLInputElement>('#quantum-solution');
-    const form = element.querySelector<HTMLFormElement>('.interaction-panel');
-    if (!input || !form) throw new Error('Quantum solution form was not rendered');
-
-    input.value = 'exp(-iEt / ħ)';
-    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    fixture.detectChanges();
-    expect(element.querySelector('.inline-result')?.textContent).toContain('V(x,t) is unspecified');
-
-    element.querySelector<HTMLButtonElement>('.secondary-action')?.click();
-    fixture.detectChanges();
-    expect(element.querySelector('app-search-modal')).not.toBeNull();
-  });
-
   it('starts the heat-death countdown from ten billion years', async () => {
-    const fixture = await renderScenario(0.5);
+    const fixture = await renderScenario(0);
     const element = fixture.nativeElement as HTMLElement;
 
     expect(element.querySelector('h1')?.textContent).toContain('404: The Halting Problem');

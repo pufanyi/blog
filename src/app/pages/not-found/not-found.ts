@@ -12,10 +12,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SearchModalComponent } from '../../components/search-modal/search-modal';
 import { typesetMath } from '../../utils/post-content-hooks';
 
-export type NotFoundScenarioId = 'quantum' | 'halting' | 'exercise';
+export type NotFoundScenarioId = 'halting' | 'exercise';
 
 interface NotFoundScenario {
   id: NotFoundScenarioId;
@@ -26,13 +25,6 @@ interface NotFoundScenario {
 }
 
 export const NOT_FOUND_SCENARIOS: readonly NotFoundScenario[] = [
-  {
-    id: 'quantum',
-    icon: 'ph-atom',
-    symbol: '?',
-    eyebrow: 'Quantum routing · State unobserved',
-    title: 'Page Lost in the Quantum Realm',
-  },
   {
     id: 'halting',
     icon: 'ph-cpu',
@@ -67,21 +59,13 @@ export function selectNotFoundScenario(randomValue: number): NotFoundScenario {
 @Component({
   selector: 'app-not-found',
   standalone: true,
-  imports: [RouterLink, SearchModalComponent],
+  imports: [RouterLink],
   templateUrl: './not-found.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './not-found.css',
 })
 export class NotFoundComponent implements OnDestroy {
   readonly scenario = selectNotFoundScenario(inject(NOT_FOUND_RANDOM)());
-  readonly quantumEquation = String.raw`\[
-    i\hbar\frac{\partial}{\partial t}\Psi(x,t)
-    = \left[
-      -\frac{\hbar^2}{2m}\frac{\partial^2}{\partial x^2} + V(x,t)
-    \right]\Psi(x,t)
-  \]`;
-  readonly searchOpen = signal(false);
-  readonly measurementResult = signal('');
   readonly heatDeathActive = signal(false);
   readonly heatDeathYears = signal(HEAT_DEATH_YEARS);
   readonly formattedHeatDeathYears = computed(() =>
@@ -105,15 +89,6 @@ export class NotFoundComponent implements OnDestroy {
     if (this.heatDeathTimer !== null && typeof window !== 'undefined') {
       window.clearInterval(this.heatDeathTimer);
     }
-  }
-
-  verifyQuantumSolution(event: Event, solution: string): void {
-    event.preventDefault();
-    this.measurementResult.set(
-      solution.trim()
-        ? 'Measurement inconclusive: V(x,t) is unspecified. The URL is probably the real problem.'
-        : 'No wavefunction detected. Enter a solution before measuring.',
-    );
   }
 
   witnessHeatDeath(): void {

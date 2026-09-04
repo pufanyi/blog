@@ -14,64 +14,6 @@
     </header>
 
     @switch (scenario.id) {
-      @case ('quantum') {
-        <p class="scenario-copy">
-          The page you are looking for is in a superposition. To collapse it into a real
-          redirect path, solve the equation below.
-        </p>
-
-        <div class="problem-panel equation-panel">
-          <p class="panel-label">Time-dependent Schrödinger equation</p>
-          <div
-            #mathContent
-            class="equation"
-            aria-label="The time-dependent Schrödinger equation"
-            [textContent]="quantumEquation"
-          ></div>
-        </div>
-
-        <form
-          class="interaction-panel"
-          aria-label="Quantum path verification"
-          (submit)="verifyQuantumSolution($event, solutionInput.value)"
-        >
-          <label for="quantum-solution">Analytic solution / verification token</label>
-          <div class="field-row">
-            <input
-              #solutionInput
-              id="quantum-solution"
-              type="text"
-              autocomplete="off"
-              spellcheck="false"
-              placeholder="Ψ(x,t) = …"
-              aria-describedby="measurement-result"
-            />
-            <button class="primary-action" type="submit">
-              <i class="ph ph-function" aria-hidden="true"></i>
-              Submit Reasoning
-            </button>
-          </div>
-          <p id="measurement-result" class="inline-result" aria-live="polite">
-            {{ measurementResult() }}
-          </p>
-        </form>
-
-        <div class="recovery-block">
-          <p><strong>Too difficult?</strong> You probably just mistyped the URL.</p>
-          <nav class="action-row" aria-label="404 recovery options">
-            <a routerLink="/" class="primary-action">
-              <i class="ph ph-house" aria-hidden="true"></i>
-              Return Home
-            </a>
-            <span class="action-separator" aria-hidden="true">or</span>
-            <button class="secondary-action" type="button" (click)="searchOpen.set(true)">
-              <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
-              Give Up and Search
-            </button>
-          </nav>
-        </div>
-      }
-
       @case ('halting') {
         <p class="scenario-copy">
           We started a universal algorithm to locate the page you requested. Unfortunately,
@@ -206,8 +148,4 @@
       </button>
     </section>
   </div>
-}
-
-@if (searchOpen()) {
-  <app-search-modal (closed)="searchOpen.set(false)" />
 }
