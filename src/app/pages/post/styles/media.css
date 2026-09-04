@@ -197,7 +197,7 @@
   width: 2rem;
   height: 2rem;
   border-radius: 2px;
-  background-image: url("/posts/transfusion/images/cat-noisy.avif");
+  background-image: var(--attention-mask-image);
   background-repeat: no-repeat;
   background-size: 200% 200%;
   vertical-align: middle;

@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react';
 
-const CLEAN_CAT = '/posts/transfusion/images/cat-clean.avif';
-const NOISY_CAT = '/posts/transfusion/images/cat-noisy.avif';
+const POST_IMAGE_ROOT = '/posts/umm/images';
+const CLEAN_CAT = `${POST_IMAGE_ROOT}/cat-clean.avif`;
+const NOISY_CAT = `${POST_IMAGE_ROOT}/cat-noisy.avif`;
 const PATCHES = [
   { x: 0, y: 0 },
   { x: 1, y: 0 },
@@ -234,7 +235,10 @@ function AttentionMask({ width = 'min(100%, 32rem)' }: { width?: string }) {
     if (row < 8) return column < 8;
     return column <= row;
   };
-  const style = { '--attention-mask-width': width } as CSSProperties;
+  const style = {
+    '--attention-mask-width': width,
+    '--attention-mask-image': `url("${NOISY_CAT}")`,
+  } as CSSProperties;
 
   return (
     <figure className="attention-mask-shell" style={style}>

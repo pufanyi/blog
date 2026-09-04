@@ -85,6 +85,9 @@ Project guidance for agents working in this repository.
   paths. The generator rewrites those paths to `/posts/<slug>/...`, and Angular
   copies non-MDX files from `content/posts` into the published `/posts`
   asset path.
+- When renaming a post slug, update absolute `/posts/<slug>/...` references in
+  post-local components and shared styles; unlike Markdown image paths, code
+  and CSS URLs are not rewritten automatically.
 - Posts are compiled as standard MDX with GFM and math support. Prefer native
   MDX syntax and semantic HTML elements such as `<details>` for authored
   interactive content; imported build-time components are also supported.
