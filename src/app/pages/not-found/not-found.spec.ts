@@ -1,17 +1,34 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NotFoundComponent } from './not-found';
 
 describe('NotFoundComponent', () => {
+  const mathJaxWindow = window as typeof window & {
+    MathJax?: {
+      startup: { promise: Promise<unknown> };
+      typesetPromise: ReturnType<typeof vi.fn>;
+    };
+  };
+  let typesetPromise: ReturnType<typeof vi.fn>;
+
   beforeEach(async () => {
+    typesetPromise = vi.fn().mockResolvedValue(undefined);
+    mathJaxWindow.MathJax = {
+      startup: { promise: Promise.resolve() },
+      typesetPromise,
+    };
     await TestBed.configureTestingModule({
       imports: [NotFoundComponent],
       providers: [provideRouter([])],
     }).compileComponents();
   });
 
-  it('keeps the title accessible while showing one uncluttered proof card', () => {
+  afterEach(() => {
+    delete mathJaxWindow.MathJax;
+  });
+
+  it('keeps the title accessible while showing one typeset proof card', async () => {
     const fixture = TestBed.createComponent(NotFoundComponent);
     fixture.detectChanges();
 
@@ -24,8 +41,10 @@ describe('NotFoundComponent', () => {
     expect(element.querySelectorAll('.proof-sheet')).toHaveLength(1);
     expect(element.querySelector('.proof-rule')).toBeNull();
     expect(element.querySelector('.proof-footer')).toBeNull();
-    expect(element.querySelectorAll('var')).toHaveLength(2);
-    expect(pageText).not.toContain('\\(');
+    expect(element.querySelectorAll('.math-symbol')).toHaveLength(2);
+    expect(pageText).toContain('\\(\\mathfrak{P}\\)');
+    expect(pageText).toContain('\\(\\zeta\\)');
+    await vi.waitFor(() => expect(typesetPromise).toHaveBeenCalledWith([element]));
     expect(element.querySelector('input')).toBeNull();
     expect(element.querySelector<HTMLAnchorElement>('.secondary-action')?.getAttribute('href')).toBe(
       '/',

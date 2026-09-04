@@ -1,5 +1,14 @@
-import { ChangeDetectionStrategy, Component, HostListener, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { typesetMath } from '../../utils/post-content-hooks';
 
 @Component({
   selector: 'app-not-found',
@@ -9,8 +18,14 @@ import { RouterLink } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './not-found.css',
 })
-export class NotFoundComponent {
+export class NotFoundComponent implements AfterViewInit {
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
   readonly reviewOpen = signal(false);
+
+  ngAfterViewInit(): void {
+    void typesetMath(this.host.nativeElement);
+  }
 
   submitPaper(): void {
     this.reviewOpen.set(true);

@@ -98,12 +98,12 @@
   line-height: 1.62;
 }
 
-var {
+.math-symbol {
   padding: 0 0.06em;
   color: var(--exercise-accent);
-  font-family: var(--font-heading);
   font-size: 1.06em;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .proof-body {

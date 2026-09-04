@@ -42,6 +42,9 @@ Project guidance for agents working in this repository.
 - All Angular-authored images should use `app-image-lightbox`, which wraps
   `NgOptimizedImage` and `medium-zoom`. Do not add bare template `<img>` tags
   unless there is a concrete framework limitation.
+- MathJax automatic typesetting is disabled globally. Angular-authored views
+  outside generated post content must call the shared `typesetMath` hook after
+  rendering when they contain TeX delimiters.
 - MDX-generated post images are emitted as plain HTML first, then hydrated
   by the post page into `app-image-lightbox` instances. Keep generated image
   HTML dimensioned with `width`/`height` whenever possible so `NgOptimizedImage`
