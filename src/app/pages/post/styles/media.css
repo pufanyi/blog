@@ -222,6 +222,7 @@
 .made-diagram-shell {
   margin: 1.5rem 0;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border-light);
   border-radius: 6px;
   background: var(--paper-bg);
@@ -395,7 +396,9 @@
   }
 
   .made-diagram {
-    width: 55rem;
+    /* WebKit misplaces foreignObject content when its SVG is viewBox-scaled. */
+    width: 1000px;
+    height: 600px;
     max-width: none;
   }
 }

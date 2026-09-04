@@ -62,7 +62,9 @@ Project guidance for agents working in this repository.
   with MathJax delimiters such as `\(...\)`. The site uses MathJax CHTML, so
   do not expect TeX inside an SVG `<text>` element to typeset reliably. Give
   each foreign object explicit bounds and remove default `mjx-container`
-  margins.
+  margins. WebKit can misplace this HTML when a responsive SVG is scaled; for
+  narrow overflow layouts, keep the rendered SVG dimensions at 1:1 with its
+  `viewBox` and verify on an actual WebKit device.
 - After changing a diagram, run `pnpm generate:data`, `pnpm check`, and
   `pnpm test`, then inspect the actual served page at desktop and narrow
   widths. Check label collisions, arrowheads, legends, theme contrast, and

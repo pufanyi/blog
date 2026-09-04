@@ -204,6 +204,7 @@ function MadeDiagram() {
       <svg
         className="made-diagram"
         viewBox="0 0 1000 600"
+        xmlns="http://www.w3.org/2000/svg"
         role="img"
         aria-labelledby="made-diagram-title made-diagram-description"
       >
