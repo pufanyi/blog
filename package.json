@@ -5,6 +5,7 @@
     "ng": "ng",
     "generate:data": "tsx --tsconfig tsconfig.scripts.json scripts/build-posts.mts",
     "prebuild": "pnpm generate:data",
+    "postbuild": "node scripts/prepare-deployment.mjs",
     "prestart": "pnpm generate:data",
     "pretest": "pnpm generate:data",
     "start": "ng serve",

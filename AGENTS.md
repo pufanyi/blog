@@ -28,6 +28,9 @@ Project guidance for agents working in this repository.
 - Generate derived content data with `pnpm generate:data`.
 - Start the local development server with `pnpm start`.
 - Build with `pnpm build`.
+- Production builds promote the prerendered `/404` route to `404.html` for
+  Cloudflare's `404-page` handling and generate `_redirects` from
+  `content/redirects.yaml`; do not edit either file under `dist` manually.
 - Run unit tests with `pnpm test`.
 - Run formatting and lint checks with `pnpm biome:check`.
 - Apply automatic Biome fixes with `pnpm biome:write`.

@@ -1,3 +1,4 @@
+import { RenderMode } from '@angular/ssr';
 import { describe, expect, it } from 'vitest';
 import { routes } from './app.routes';
 import { serverRoutes } from './app.routes.server';
@@ -40,5 +41,14 @@ describe('application routes', () => {
 
     expect(loadedIcpcComponent).toBe(IcpcPageComponent);
     expect(serverRoutes.map(route => route.path)).toContain('icpc');
+  });
+
+  it('serves and prerenders a dedicated custom 404 document', async () => {
+    const shellRoute = routes.find(route => route.path === '' && route.children);
+    const notFoundRoute = shellRoute?.children?.find(route => route.path === '404');
+    const fallbackRoute = shellRoute?.children?.find(route => route.path === '**');
+
+    expect(await notFoundRoute?.loadComponent?.()).toBe(await fallbackRoute?.loadComponent?.());
+    expect(serverRoutes).toContainEqual({ path: '404', renderMode: RenderMode.Prerender });
   });
 });

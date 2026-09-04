@@ -1,6 +1,10 @@
 import { Routes } from '@angular/router';
 import { REDIRECTS } from './data/redirects';
 
+const NOT_FOUND_TITLE = '404: Existence Left as an Exercise';
+const loadNotFoundComponent = () =>
+  import('./pages/not-found/not-found').then(m => m.NotFoundComponent);
+
 const redirectRoutes: Routes = REDIRECTS.map(r => ({
   path: r.from,
   children: [
@@ -46,11 +50,16 @@ export const routes: Routes = [
         path: 'blog/:slug',
         loadComponent: () => import('./pages/post/post').then(m => m.PostComponent),
       },
+      {
+        path: '404',
+        title: NOT_FOUND_TITLE,
+        loadComponent: loadNotFoundComponent,
+      },
       ...redirectRoutes,
       {
         path: '**',
-        loadComponent: () =>
-          import('./pages/not-found/not-found').then(m => m.NotFoundComponent),
+        title: NOT_FOUND_TITLE,
+        loadComponent: loadNotFoundComponent,
       },
     ],
   },
