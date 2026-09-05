@@ -31,9 +31,14 @@ Project guidance for agents working in this repository.
 - Production builds promote the prerendered `/404` route to `404.html` for
   Cloudflare's `404-page` handling and generate `_redirects` from
   `content/redirects.yaml`; do not edit either file under `dist` manually.
-- Run unit tests with `pnpm test`.
+- Run unit tests with `pnpm test`; use `pnpm test --watch=false` for a
+  noninteractive run. `pnpm check` does not run tests or the production build.
 - Run formatting and lint checks with `pnpm biome:check`.
 - Apply automatic Biome fixes with `pnpm biome:write`.
+- Assess route payloads on served production pages. The generated `POSTS`
+  array includes full article HTML, and shared shell/search imports can load
+  it on other pages; the CLI's initial bundle total excludes lazy chunks and
+  external scripts.
 
 ## Design
 
@@ -50,6 +55,9 @@ Project guidance for agents working in this repository.
 - MathJax automatic typesetting is disabled globally. Angular-authored views
   outside generated post content must call the shared `typesetMath` hook after
   rendering when they contain TeX delimiters.
+- Check search with real, bubbling keyboard events and both Chinese and
+  English queries. Verify one-step arrow navigation, focus containment,
+  dismissal, and focus restoration on the served page.
 - MDX-generated post images are emitted as plain HTML first, then hydrated
   by the post page into `app-image-lightbox` instances. Keep generated image
   HTML dimensioned with `width`/`height` whenever possible so `NgOptimizedImage`

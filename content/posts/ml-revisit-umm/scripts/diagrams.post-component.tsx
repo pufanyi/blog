@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 
-const POST_IMAGE_ROOT = '/posts/umm/images';
+const POST_IMAGE_ROOT = '/posts/ml-revisit-umm/images';
 const CLEAN_CAT = `${POST_IMAGE_ROOT}/cat-clean.avif`;
 const NOISY_CAT = `${POST_IMAGE_ROOT}/cat-noisy.avif`;
 const PATCHES = [
