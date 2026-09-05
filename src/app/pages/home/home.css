@@ -3,10 +3,6 @@
   margin-bottom: 2.25rem;
 }
 
-.title-wrapper {
-  margin-bottom: 1rem;
-}
-
 .title-rule-top {
   border: none;
   height: 3px;
@@ -32,13 +28,6 @@
   font-weight: bold;
   letter-spacing: 0;
   color: var(--text-color);
-}
-
-.title-subtitle {
-  color: var(--text-secondary);
-  font-family: var(--font-heading);
-  font-size: 0.88rem;
-  margin-top: 0.5rem;
 }
 
 .post-list {
