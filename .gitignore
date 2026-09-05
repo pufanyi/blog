@@ -2,9 +2,9 @@
 
 # Compiled output
 /dist
-/src/app/data/posts.ts
-/src/app/data/redirects.ts
-/src/app/data/cv.ts
+/src/app/data/
+/playwright-report/
+/test-results/
 /tmp
 /out-tsc
 /bazel-out

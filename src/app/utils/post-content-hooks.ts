@@ -1,50 +1,12 @@
 import mediumZoom from 'medium-zoom';
 
-interface MathJaxApi {
-  startup?: {
-    promise?: Promise<unknown>;
-  };
-  typesetPromise?: (elements?: HTMLElement[]) => Promise<unknown>;
-}
-
 const IMAGE_ZOOM_OPTIONS = {
   margin: 24,
   background: 'color-mix(in srgb, var(--background-deep) 86%, transparent)',
 };
 
-async function waitForMathJax(timeoutMs = 10000): Promise<MathJaxApi | null> {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const mathJax = (window as Window & { MathJax?: MathJaxApi }).MathJax;
-    if (mathJax?.typesetPromise) {
-      return mathJax;
-    }
-    await new Promise<void>(resolve => window.setTimeout(resolve, 50));
-  }
-
-  return null;
-}
-
-export async function typesetMath(container?: HTMLElement): Promise<void> {
-  const mathJax = await waitForMathJax();
-  if (!mathJax?.typesetPromise) {
-    return;
-  }
-
-  try {
-    await mathJax.startup?.promise;
-    await mathJax.typesetPromise(container ? [container] : undefined);
-  } catch (error) {
-    console.error('MathJax typeset failed', error);
-  }
-}
-
-export function optimizeContentImages(): void {
-  document.querySelectorAll<HTMLImageElement>('.post-body img').forEach(img => {
+export function optimizeContentImages(container: HTMLElement): void {
+  container.querySelectorAll<HTMLImageElement>('img').forEach(img => {
     if (!img.hasAttribute('loading')) {
       img.setAttribute('loading', 'lazy');
     }
@@ -54,40 +16,49 @@ export function optimizeContentImages(): void {
   });
 }
 
-export function initContentImageZoom(container?: HTMLElement): () => void {
+export function initContentImageZoom(container: HTMLElement): () => void {
   if (typeof document === 'undefined') {
     return () => undefined;
   }
 
-  const root = container ?? document;
-  const images = Array.from(root.querySelectorAll<HTMLImageElement>('.post-body img'))
-    .filter(img => !img.closest('app-image-lightbox'));
+  const root = container;
+  const images = Array.from(root.querySelectorAll<HTMLImageElement>('img')).filter(
+    img => !img.closest('app-image-lightbox'),
+  );
   const zoom = images.length ? mediumZoom(images, IMAGE_ZOOM_OPTIONS) : null;
 
   return () => zoom?.detach();
 }
 
-export function initCodeCopyButtons(): void {
-  document.querySelectorAll<HTMLButtonElement>('.code-copy').forEach(btn => {
-    if (btn.dataset['copyBound'] === 'true') return;
-    btn.dataset['copyBound'] = 'true';
-
-    btn.addEventListener('click', async () => {
-      const code = btn.closest('.code-block')?.querySelector('code');
+export function initCodeCopyButtons(container: HTMLElement): () => void {
+  const cleanups: (() => void)[] = [];
+  for (const button of container.querySelectorAll<HTMLButtonElement>('.code-copy')) {
+    let disposed = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onClick = async () => {
+      const code = button.closest('.code-block')?.querySelector('code');
       if (!code) return;
-
       try {
         await navigator.clipboard.writeText(code.textContent || '');
-        btn.classList.add('is-copied');
-        btn.textContent = 'Copied';
+        if (disposed) return;
+        button.classList.add('is-copied');
+        button.textContent = 'Copied';
       } catch {
-        btn.textContent = 'Copy failed';
+        if (disposed) return;
+        button.textContent = 'Copy failed';
       }
-
-      setTimeout(() => {
-        btn.classList.remove('is-copied');
-        btn.textContent = 'Copy';
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        button.classList.remove('is-copied');
+        button.textContent = 'Copy';
       }, 1800);
+    };
+    button.addEventListener('click', onClick);
+    cleanups.push(() => {
+      disposed = true;
+      clearTimeout(timer);
+      button.removeEventListener('click', onClick);
     });
-  });
+  }
+  return () => cleanups.forEach(cleanup => cleanup());
 }

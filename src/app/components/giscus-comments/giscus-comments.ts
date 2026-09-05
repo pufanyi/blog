@@ -1,4 +1,12 @@
-import { Component, OnDestroy, effect, inject, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  afterNextRender,
+  effect,
+  inject,
+  ElementRef,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ThemeService } from '../../services/theme.service';
 
 const GISCUS_THEMES = {
@@ -14,9 +22,11 @@ const GISCUS_THEMES = {
 })
 export class GiscusCommentsComponent implements OnDestroy {
   private readonly themeService = inject(ThemeService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private loaded = false;
 
   constructor() {
+    afterNextRender(() => this.load());
     effect(() => {
       const theme = this.themeService.theme();
       if (this.loaded) {
@@ -34,7 +44,7 @@ export class GiscusCommentsComponent implements OnDestroy {
       return;
     }
 
-    const container = document.querySelector('.giscus');
+    const container = this.host.nativeElement.querySelector('.giscus');
     if (!container) {
       return;
     }
@@ -69,7 +79,7 @@ export class GiscusCommentsComponent implements OnDestroy {
       return;
     }
 
-    const iframe = document.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
+    const iframe = this.host.nativeElement.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
     if (!iframe?.contentWindow) {
       return;
     }

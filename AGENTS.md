@@ -33,12 +33,23 @@ Project guidance for agents working in this repository.
   `content/redirects.yaml`; do not edit either file under `dist` manually.
 - Run unit tests with `pnpm test`; use `pnpm test --watch=false` for a
   noninteractive run. `pnpm check` does not run tests or the production build.
+- Run browser regressions with `pnpm test:e2e`; its pre-hook builds the site
+  and Playwright serves that production output at port 4173. Install Chromium
+  once with `pnpm exec playwright install chromium`. CI runs checks, unit tests,
+  and these desktop/mobile browser tests, retaining diagnostics on failure.
 - Run formatting and lint checks with `pnpm biome:check`.
 - Apply automatic Biome fixes with `pnpm biome:write`.
-- Assess route payloads on served production pages. The generated `POSTS`
-  array includes full article HTML, and shared shell/search imports can load
-  it on other pages; the CLI's initial bundle total excludes lazy chunks and
-  external scripts.
+- Generated `POSTS` contains summaries only. Load article HTML/TOC through
+  `loadPost` and the generated per-slug loaders. The serialized search index
+  and plaintext snippets belong to the deferred search modal; avoid importing
+  search services into the eager shell. Assess payloads on served production
+  pages, since CLI initial totals exclude lazy chunks and external scripts.
+- Keep article presentation in `PostComponent`, DOM enhancement and cleanup
+  in `PostContentDirective`, and TOC interaction in `PostNavigationComponent`.
+  Use render hooks and cleanup callbacks rather than retrying DOM queries.
+- `PageMetadataStrategy` handles browser and prerendered metadata.
+  `PageScrollService` consumes router scroll events and corrects saved positions
+  or fragments after fonts/formulas settle, unless the reader has scrolled.
 
 ## Design
 
@@ -52,12 +63,14 @@ Project guidance for agents working in this repository.
 - All Angular-authored images should use `app-image-lightbox`, which wraps
   `NgOptimizedImage` and `medium-zoom`. Do not add bare template `<img>` tags
   unless there is a concrete framework limitation.
-- MathJax automatic typesetting is disabled globally. Angular-authored views
-  outside generated post content must call the shared `typesetMath` hook after
-  rendering when they contain TeX delimiters.
+- MathJax loads on demand through `src/app/utils/mathjax.ts`, with automatic
+  typesetting disabled. Angular-authored views outside generated post content
+  must call `typesetMath` after rendering when they contain TeX delimiters.
 - Check search with real, bubbling keyboard events and both Chinese and
   English queries. Verify one-step arrow navigation, focus containment,
   dismissal, and focus restoration on the served page.
+- Keep search-result animations local: AutoAnimate's removal animation adjusts
+  window scrolling and can overwrite the page's saved reading position.
 - MDX-generated post images are emitted as plain HTML first, then hydrated
   by the post page into `app-image-lightbox` instances. Keep generated image
   HTML dimensioned with `width`/`height` whenever possible so `NgOptimizedImage`
@@ -144,8 +157,9 @@ Project guidance for agents working in this repository.
   compatibility with authored HTML. This applies to abstract paragraphs, entry
   details and items, subsection items, and section content; structural fields
   such as titles, dates, locations, and header data remain plain text.
-- The `prebuild`, `prestart`, and `pretest` hooks run `pnpm generate:data`, so
+- The `prebuild`, `prestart`, `pretest`, and `precheck` hooks run `pnpm generate:data`, so
   post metadata and generated content are refreshed before `pnpm build`,
-  `pnpm start`, or `pnpm test`.
+  `pnpm start`, `pnpm test`, or `pnpm check`. The content typecheck includes
+  the main generator, its TypeScript helpers, and post-local components.
 - Files under `src/app/data` are generated from `content` and ignored by Git.
   Do not edit or commit them directly; update the source content files instead.

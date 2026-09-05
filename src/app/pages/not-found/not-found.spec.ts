@@ -5,17 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NotFoundComponent } from './not-found';
 
 describe('NotFoundComponent', () => {
-  const mathJaxWindow = window as typeof window & {
-    MathJax?: {
-      startup: { promise: Promise<unknown> };
-      typesetPromise: ReturnType<typeof vi.fn>;
-    };
-  };
-  let typesetPromise: ReturnType<typeof vi.fn>;
+  let typesetPromise: ReturnType<typeof vi.fn<(elements: HTMLElement[]) => Promise<void>>>;
 
   beforeEach(async () => {
-    typesetPromise = vi.fn().mockResolvedValue(undefined);
-    mathJaxWindow.MathJax = {
+    typesetPromise = vi
+      .fn<(elements: HTMLElement[]) => Promise<void>>()
+      .mockResolvedValue(undefined);
+    window.MathJax = {
       startup: { promise: Promise.resolve() },
       typesetPromise,
     };
@@ -30,7 +26,7 @@ describe('NotFoundComponent', () => {
   });
 
   afterEach(() => {
-    delete mathJaxWindow.MathJax;
+    delete window.MathJax;
     vi.restoreAllMocks();
   });
 
@@ -49,9 +45,9 @@ describe('NotFoundComponent', () => {
     expect(pageText).toContain('\\(\\zeta\\)');
     await vi.waitFor(() => expect(typesetPromise).toHaveBeenCalledWith([element]));
     expect(element.querySelector('input')).toBeNull();
-    expect(element.querySelector<HTMLAnchorElement>('.secondary-action')?.getAttribute('href')).toBe(
-      '/',
-    );
+    expect(
+      element.querySelector<HTMLAnchorElement>('.secondary-action')?.getAttribute('href'),
+    ).toBe('/');
   });
 
   it('rejects a proof submission in peer review', () => {

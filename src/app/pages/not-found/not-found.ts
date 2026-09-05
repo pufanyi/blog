@@ -9,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { typesetMath } from '../../utils/post-content-hooks';
+import { typesetMath } from '../../utils/mathjax';
 
 @Component({
   selector: 'app-not-found',

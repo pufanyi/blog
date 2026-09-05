@@ -1,59 +1,67 @@
 # Blog
 
-This project uses [Angular CLI](https://github.com/angular/angular-cli) version 22.1.
+Fanyi Pu's Angular blog, with MDX posts, build-time citations and diagrams,
+prerendered routes, and a shared Morandi theme.
 
-## Development server
+## Development
 
-To start a local development server, run:
+Use the Node version in `.nvmrc` and pnpm version in `package.json`.
 
 ```bash
+pnpm install
 pnpm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+The development server runs at `http://localhost:4200/`. Posts live in
+`content/posts/<slug>/index.mdx`; see `AGENTS.md` for content conventions.
+`pnpm generate:data` rebuilds derived data, and also runs before start, build,
+test, and check commands.
 
-## Code scaffolding
+## Content and page lifecycle
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- `scripts/build-posts.mts` orchestrates generation; `scripts/lib/mdx-renderer.mts`
+  compiles MDX, citations, highlighted code, and the table of contents.
+- Generated files under `src/app/data` are ignored by Git. `posts.ts` contains
+  summaries, `posts/<slug>.ts` contains one article body and TOC, and
+  `post-loaders.ts` provides dynamic imports. Routes resolve articles through
+  `src/app/services/post-repository.ts`.
+- Search loads when its modal opens. Its generated plaintext documents and
+  serialized FlexSearch index use the same Chinese/English tokenizer as browser
+  queries; ordinary page visits do not load that index or all article bodies.
+- `PostComponent` composes the page. `PostContentDirective` enhances the rendered
+  body and owns cleanup; `PostNavigationComponent` owns the TOC drawer/sidebar.
+  MathJax is requested only when a rendered view contains TeX.
+- `PageMetadataStrategy` updates titles, descriptions, canonical links, and share
+  metadata in both browser navigation and prerendered HTML. `PageScrollService`
+  restores reading positions and anchors after asynchronous layout changes.
 
-```bash
-pnpm ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-pnpm ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Production preview
 
 ```bash
 pnpm build
+pnpm preview
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+The preview serves `dist/blog/browser` at `http://127.0.0.1:4173/`, including the
+generated custom `404.html`. The build also generates Cloudflare `_redirects`
+from `content/redirects.yaml`.
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Validation
 
 ```bash
-pnpm test
+pnpm check
+pnpm test --watch=false
+pnpm exec playwright install chromium
+pnpm test:e2e
 ```
 
-## Running end-to-end tests
+`check` runs script formatting, content/generator and browser-test typechecks,
+Angular lint, and MDX/BibTeX checks. Unit tests cover content rendering and Angular
+behavior. `test:e2e` builds production output and tests desktop/mobile Chromium:
+search keyboard/focus behavior, Chinese queries, route metadata, scroll/history,
+TOC anchors, prerendered 404 behavior, and deferred network loading.
 
-For end-to-end (e2e) testing, run:
-
-```bash
-pnpm ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Browser tests simulate delayed MathJax layout and stub analytics/comments so
+third-party outages do not determine CI results. Inspect the served site with
+real MathJax after changing formula rendering. CI runs the same validation and
+uploads Playwright reports, screenshots, and traces on failure.

@@ -1,10 +1,14 @@
-<div
+<dialog
+  #dialog
   class="search-backdrop"
+  aria-label="Search posts"
+  (cancel)="onCancel($event)"
+  (close)="close()"
   tabindex="-1"
   (click)="onBackdropClick($event)"
   (keydown)="onKeydown($event)"
 >
-  <div class="search-dialog" role="dialog" aria-modal="true" aria-label="Search posts">
+  <div class="search-dialog" cdkTrapFocus>
     <div class="search-input-wrap">
       <i class="ph ph-magnifying-glass search-icon"></i>
       <input
@@ -13,7 +17,11 @@
         placeholder="Search posts…"
         [value]="query()"
         (input)="onInput($event)"
-        (keydown)="onKeydown($event)"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-controls="search-results"
+        [attr.aria-expanded]="results().length > 0"
+        [attr.aria-activedescendant]="results().length ? 'search-result-' + activeIndex() : null"
         aria-label="Search"
       />
       <kbd>ESC</kbd>
@@ -22,7 +30,7 @@
       </button>
     </div>
 
-    <div class="search-results" appAutoAnimate [appAutoAnimateOptions]="{ duration: 150, easing: 'ease-out' }">
+    <div id="search-results" role="listbox" aria-label="Search results" class="search-results">
       @if (query() && results().length === 0) {
         <div class="search-empty">No results for "{{ query() }}"</div>
       } @else if (!query()) {
@@ -30,6 +38,11 @@
       } @else {
         @for (result of results(); track result.slug; let i = $index) {
           <button
+            type="button"
+            role="option"
+            tabindex="-1"
+            [id]="'search-result-' + i"
+            [attr.aria-selected]="i === activeIndex()"
             class="search-result-item"
             [class.active]="i === activeIndex()"
             (click)="goTo(result)"
@@ -46,4 +59,4 @@
       }
     </div>
   </div>
-</div>
+</dialog>

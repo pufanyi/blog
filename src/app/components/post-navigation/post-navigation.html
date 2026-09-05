@@ -1,0 +1,60 @@
+@if (items().length) {
+  <aside class="post-toc-sidebar">
+    <app-post-toc
+      [items]="items()"
+      [postPath]="postPath()"
+      [activeHeadingId]="activeHeadingId()"
+      [progress]="readingProgress()"
+      (sectionSelected)="onTocNavigate($event)"
+    />
+  </aside>
+
+  <button
+    class="toc-toggle"
+    type="button"
+    (click)="toggleToc()"
+    [attr.aria-expanded]="tocOpen()"
+    aria-controls="post-toc-dialog"
+    aria-label="Toggle table of contents"
+    title="Table of Contents"
+  >
+    @if (tocOpen()) {
+      <i class="ph ph-x" aria-hidden="true" style="font-size: 20px"></i>
+    } @else {
+      <i class="ph ph-list" aria-hidden="true" style="font-size: 20px"></i>
+    }
+  </button>
+
+  <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -- native dialog keyboard interaction is handled by the browser -->
+  <dialog
+    class="post-toc-dialog"
+    id="post-toc-dialog"
+    #tocDialog
+    tabindex="-1"
+    aria-label="Table of contents"
+    (click)="onTocDialogClick($event)"
+    (close)="onTocDialogClose()"
+  >
+    <div class="toc-drawer">
+      <button
+        class="toc-drawer-close"
+        type="button"
+        autofocus
+        aria-label="Close table of contents"
+        title="Close table of contents"
+        (click)="closeToc()"
+      >
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+
+      <app-post-toc
+        [items]="items()"
+        [postPath]="postPath()"
+        [activeHeadingId]="activeHeadingId()"
+        [progress]="readingProgress()"
+        (sectionSelected)="onTocNavigate($event)"
+      />
+    </div>
+  </dialog>
+}
+

@@ -1,105 +1,109 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, inject, output, signal, ElementRef, viewChild, afterNextRender, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { CdkTrapFocus } from '@angular/cdk/a11y';
+import {
+  Component,
+  inject,
+  output,
+  signal,
+  ElementRef,
+  viewChild,
+  afterNextRender,
+  OnDestroy,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { Router } from '@angular/router';
-import { SearchService, SearchResult } from '../../services/search.service';
-import { AutoAnimateDirective } from '../../directives/auto-animate';
+import { SearchService } from '../../services/search.service';
+import type { SearchResult } from '../../models/search.model';
 
 @Component({
   selector: 'app-search-modal',
   standalone: true,
-  imports: [AutoAnimateDirective],
+  imports: [CdkTrapFocus],
   templateUrl: './search-modal.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './search-modal.css',
 })
 export class SearchModalComponent implements OnDestroy {
-  private searchService = inject(SearchService);
-  private router = inject(Router);
-  private document = inject(DOCUMENT);
+  private readonly searchService = inject(SearchService);
+  private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
+  private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
+  private readonly inputEl = viewChild.required<ElementRef<HTMLInputElement>>('searchInput');
+  private readonly trigger = this.document.activeElement as HTMLElement | null;
+  private readonly previousBodyOverflow = this.document.body.style.overflow;
+  private readonly previousBodyOverscrollBehavior = this.document.body.style.overscrollBehavior;
+  private dismissed = false;
+  private restoreFocus = true;
 
-  closed = output<void>();
-
-  query = signal('');
-  results = signal<SearchResult[]>([]);
-  activeIndex = signal(0);
-
-  private inputEl = viewChild<ElementRef<HTMLInputElement>>('searchInput');
-  private previousBodyOverflow = '';
-  private previousBodyOverscrollBehavior = '';
+  readonly closed = output<void>();
+  readonly query = signal('');
+  readonly results = signal<SearchResult[]>([]);
+  readonly activeIndex = signal(0);
 
   constructor() {
     afterNextRender(() => {
-      this.inputEl()?.nativeElement.focus();
-      this.lockBodyScroll();
+      this.dialog().nativeElement.showModal();
+      this.inputEl().nativeElement.focus();
+      this.document.body.style.overflow = 'hidden';
+      this.document.body.style.overscrollBehavior = 'contain';
     });
   }
 
-  ngOnDestroy() {
-    this.unlockBodyScroll();
+  ngOnDestroy(): void {
+    this.dialog().nativeElement.close();
+    this.document.body.style.overflow = this.previousBodyOverflow;
+    this.document.body.style.overscrollBehavior = this.previousBodyOverscrollBehavior;
+    if (this.restoreFocus && this.trigger?.isConnected) this.trigger.focus({ preventScroll: true });
   }
 
-  onInput(event: Event) {
+  onInput(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.query.set(value);
     this.results.set(this.searchService.search(value));
     this.activeIndex.set(0);
   }
 
-  onKeydown(event: KeyboardEvent) {
-    const len = this.results().length;
-    switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault();
-        this.activeIndex.update(i => (i + 1) % Math.max(len, 1));
-        break;
-      case 'ArrowUp':
-        event.preventDefault();
-        this.activeIndex.update(i => (i - 1 + Math.max(len, 1)) % Math.max(len, 1));
-        break;
-      case 'Enter':
-        event.preventDefault();
-        if (len > 0) this.goTo(this.results()[this.activeIndex()]);
-        break;
-      case 'Escape':
-        this.close();
-        break;
+  onKeydown(event: KeyboardEvent): void {
+    // The native dialog handles Escape; CDK closes the Tab loop. Enter on a result
+    // or the close button must keep that button's native activation behavior.
+    if (event.target !== this.inputEl().nativeElement || event.isComposing) return;
+    const length = this.results().length;
+    if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && length) {
+      event.preventDefault();
+      const delta = event.key === 'ArrowDown' ? 1 : -1;
+      this.activeIndex.update(index => (index + delta + length) % length);
+      this.document
+        .getElementById(`search-result-${this.activeIndex()}`)
+        ?.scrollIntoView({ block: 'nearest' });
+    } else if (event.key === 'Enter' && length) {
+      event.preventDefault();
+      this.goTo(this.results()[this.activeIndex()]);
     }
   }
 
-  goTo(result: SearchResult) {
+  goTo(result: SearchResult): void {
+    this.restoreFocus = false;
     this.close();
-    this.router.navigate(['/blog', result.slug]);
+    void this.router.navigate(['/blog', result.slug]);
   }
 
-  onBackdropClick(event: MouseEvent) {
-    if ((event.target as HTMLElement).classList.contains('search-backdrop')) {
-      this.close();
-    }
+  onCancel(event: Event): void {
+    event.preventDefault();
+    this.close();
   }
 
-  close() {
+  onBackdropClick(event: MouseEvent): void {
+    if (event.target === this.dialog().nativeElement) this.close();
+  }
+
+  close(): void {
+    if (this.dismissed) return;
+    this.dismissed = true;
+    this.dialog().nativeElement.close();
     this.closed.emit();
   }
 
   matchLabel(field: SearchResult['matchField']): string {
-    switch (field) {
-      case 'title': return 'Title';
-      case 'description': return 'Description';
-      case 'content': return 'Content';
-    }
-  }
-
-  private lockBodyScroll() {
-    const body = this.document.body;
-    this.previousBodyOverflow = body.style.overflow;
-    this.previousBodyOverscrollBehavior = body.style.overscrollBehavior;
-    body.style.overflow = 'hidden';
-    body.style.overscrollBehavior = 'contain';
-  }
-
-  private unlockBodyScroll() {
-    const body = this.document.body;
-    body.style.overflow = this.previousBodyOverflow;
-    body.style.overscrollBehavior = this.previousBodyOverscrollBehavior;
+    return { title: 'Title', description: 'Description', content: 'Content' }[field];
   }
 }

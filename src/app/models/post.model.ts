@@ -7,12 +7,17 @@ export interface PostTocItem {
   children: PostTocItem[];
 }
 
-export interface Post {
+export interface PostSummary {
   slug: string;
   title: string;
   date: string;
   description: string;
-  contentHtml: string;
-  toc: PostTocItem[];
   coverImage?: string;
 }
+
+export interface PostContent {
+  contentHtml: string;
+  toc: PostTocItem[];
+}
+
+export interface Post extends PostSummary, PostContent {}

@@ -54,7 +54,7 @@ export class HeadingScrollSpy {
   private resizeObserver: ResizeObserver | null = null;
   private frameId: number | null = null;
 
-  observe(article: HTMLElement, tocItems: readonly PostTocItem[], hashId: string | null): void {
+  observe(article: HTMLElement, tocItems: readonly PostTocItem[]): void {
     this.disconnect();
 
     if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -78,10 +78,7 @@ export class HeadingScrollSpy {
       return;
     }
 
-    const hashHeading = hashId
-      ? this.headings.find(heading => heading.id === hashId) ?? null
-      : null;
-    this.activeHeadingId.set(hashHeading?.id ?? '');
+    this.activeHeadingId.set('');
 
     window.addEventListener('scroll', this.handleViewportChange, { passive: true });
     window.addEventListener('resize', this.handleViewportChange, { passive: true });
@@ -93,15 +90,7 @@ export class HeadingScrollSpy {
       this.resizeObserver.observe(article);
     }
 
-    if (hashHeading) {
-      this.frameId = window.requestAnimationFrame(() => {
-        this.frameId = null;
-        hashHeading.scrollIntoView({ behavior: 'instant', block: 'start' });
-        this.sync();
-      });
-    } else {
-      this.scheduleSync();
-    }
+    this.scheduleSync();
 
     void document.fonts?.ready.then(() => this.scheduleSync());
   }

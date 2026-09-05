@@ -140,3 +140,16 @@
     display: none !important;
   }
 }
+
+.search-loading {
+  position: fixed;
+  top: 4.5rem;
+  right: 1rem;
+  z-index: 1001;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  color: var(--text-color);
+  background: var(--paper-bg);
+  box-shadow: var(--paper-shadow);
+}

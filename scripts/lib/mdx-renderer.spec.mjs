@@ -3,7 +3,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { createHighlighter } from 'shiki';
-import { renderMdx } from '../build-posts.mts';
+import { renderMdx } from './mdx-renderer.mts';
 
 test('renderMdx compiles native MDX while preserving post enhancements', async (t) => {
   const highlighter = await createHighlighter({

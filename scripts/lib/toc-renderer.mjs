@@ -58,6 +58,9 @@ function appendPermalink(document, heading, id, text, postPath) {
  * Adds deterministic IDs and permalinks to article headings while building a
  * two-level table of contents. Doing this before Angular renders keeps SSR and
  * the hydrated browser DOM identical.
+ * @param {Document} document
+ * @param {string} postPath
+ * @returns {import('../../src/app/models/post.model').PostTocItem[]}
  */
 export function buildTableOfContents(document, postPath) {
   if (!postPath?.startsWith('/') || postPath.includes('#')) {
@@ -77,6 +80,7 @@ export function buildTableOfContents(document, postPath) {
       .map((element) => element.id.trim())
       .filter((id) => id.length > 0),
   );
+  /** @type {import('../../src/app/models/post.model').PostTocItem[]} */
   const toc = [];
   let currentSection = null;
 
@@ -86,10 +90,11 @@ export function buildTableOfContents(document, postPath) {
       continue;
     }
 
-    const level = Number(heading.tagName.slice(1));
+    const level = heading.tagName === 'H2' ? 2 : 3;
     const explicitId = heading.id.trim();
     const baseId = explicitId || slugifyHeading(text) || 'section';
     const id = allocateId(baseId, usedIds, reservedIds, explicitId.length > 0);
+    /** @type {import('../../src/app/models/post.model').PostTocItem} */
     const item = { id, text, level, children: [] };
 
     heading.id = id;

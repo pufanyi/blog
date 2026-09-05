@@ -1,5 +1,11 @@
-import { Routes } from '@angular/router';
+import { ResolveFn, Routes } from '@angular/router';
 import { REDIRECTS } from './data/redirects';
+import type { Post } from './models/post.model';
+
+const resolvePost: ResolveFn<Post | null> = route =>
+  import('./services/post-repository').then(module =>
+    module.loadPost(route.paramMap.get('slug') ?? ''),
+  );
 
 const NOT_FOUND_TITLE = '404: Existence Left as an Exercise';
 const loadNotFoundComponent = () =>
@@ -10,8 +16,7 @@ const redirectRoutes: Routes = REDIRECTS.map(r => ({
   children: [
     {
       path: '**',
-      loadComponent: () =>
-        import('./pages/redirect/redirect').then(m => m.RedirectComponent),
+      loadComponent: () => import('./pages/redirect/redirect').then(m => m.RedirectComponent),
       data: { redirect: r },
     },
   ],
@@ -27,27 +32,30 @@ export const routes: Routes = [
         path: '',
         pathMatch: 'full',
         title: 'Fanyi Pu',
-        loadComponent: () =>
-          import('./pages/profile/profile').then(m => m.ProfilePageComponent),
+        data: { description: 'Research, background, and writing by Fanyi Pu.' },
+        loadComponent: () => import('./pages/profile/profile').then(m => m.ProfilePageComponent),
       },
       {
         path: 'cv',
         title: 'Fanyi Pu — CV',
+        data: { description: 'Curriculum vitae of Fanyi Pu.' },
         loadComponent: () => import('./pages/cv/cv').then(m => m.CvPageComponent),
       },
       {
         path: 'icpc',
         title: 'My ICPC Teammates — Fanyi Pu',
-        loadComponent: () =>
-          import('./pages/icpc/icpc').then(m => m.IcpcPageComponent),
+        data: { description: 'My friends and teammates in ICPC.' },
+        loadComponent: () => import('./pages/icpc/icpc').then(m => m.IcpcPageComponent),
       },
       {
         path: 'blog',
         title: "Fanyi's Blog",
+        data: { description: 'Notes, derivations, and contest scraps by Fanyi Pu.' },
         loadComponent: () => import('./pages/home/home').then(m => m.HomeComponent),
       },
       {
         path: 'blog/:slug',
+        resolve: { post: resolvePost },
         loadComponent: () => import('./pages/post/post').then(m => m.PostComponent),
       },
       {
