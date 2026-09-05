@@ -3,7 +3,7 @@ import { unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { getSvgDimensions } from './image-dimensions.mjs';
+import { getSvgDimensions } from './image-dimensions.mts';
 
 test('reads SVG dimensions from its viewBox', (t) => {
   const file = join(tmpdir(), `image-dimensions-${process.pid}-${Date.now()}.svg`);

@@ -1,9 +1,10 @@
 import { JSDOM } from 'jsdom';
+import type { PostTocItem } from '../../src/app/models/post.model';
 
 const TOC_HEADING_SELECTOR = 'h2, h3';
 const TOC_TEXT_EXCLUSIONS = '.heading-permalink, [data-toc-ignore]';
 
-export function slugifyHeading(text) {
+export function slugifyHeading(text: string): string {
   return text
     .normalize('NFKD')
     .toLowerCase()
@@ -16,8 +17,8 @@ export function slugifyHeading(text) {
     .normalize('NFC');
 }
 
-function getHeadingText(heading) {
-  const clone = heading.cloneNode(true);
+function getHeadingText(heading: Element): string {
+  const clone = heading.cloneNode(true) as Element;
   for (const element of clone.querySelectorAll(TOC_TEXT_EXCLUSIONS)) {
     element.remove();
   }
@@ -25,7 +26,12 @@ function getHeadingText(heading) {
   return clone.textContent?.replace(/\s+/g, ' ').trim() ?? '';
 }
 
-function allocateId(base, usedIds, reservedIds, preserveBase) {
+function allocateId(
+  base: string,
+  usedIds: Set<string>,
+  reservedIds: ReadonlySet<string>,
+  preserveBase: boolean,
+): string {
   let candidate = base;
   let suffix = 1;
 
@@ -38,7 +44,13 @@ function allocateId(base, usedIds, reservedIds, preserveBase) {
   return candidate;
 }
 
-function appendPermalink(document, heading, id, text, postPath) {
+function appendPermalink(
+  document: Document,
+  heading: Element,
+  id: string,
+  text: string,
+  postPath: string,
+): void {
   heading.querySelector('.heading-permalink')?.remove();
 
   const permalink = document.createElement('a');
@@ -58,11 +70,8 @@ function appendPermalink(document, heading, id, text, postPath) {
  * Adds deterministic IDs and permalinks to article headings while building a
  * two-level table of contents. Doing this before Angular renders keeps SSR and
  * the hydrated browser DOM identical.
- * @param {Document} document
- * @param {string} postPath
- * @returns {import('../../src/app/models/post.model').PostTocItem[]}
  */
-export function buildTableOfContents(document, postPath) {
+export function buildTableOfContents(document: Document, postPath: string): PostTocItem[] {
   if (!postPath?.startsWith('/') || postPath.includes('#')) {
     throw new TypeError('postPath must be an absolute path without a fragment');
   }
@@ -80,9 +89,8 @@ export function buildTableOfContents(document, postPath) {
       .map((element) => element.id.trim())
       .filter((id) => id.length > 0),
   );
-  /** @type {import('../../src/app/models/post.model').PostTocItem[]} */
-  const toc = [];
-  let currentSection = null;
+  const toc: PostTocItem[] = [];
+  let currentSection: PostTocItem | null = null;
 
   for (const heading of headings) {
     const text = getHeadingText(heading);
@@ -94,8 +102,7 @@ export function buildTableOfContents(document, postPath) {
     const explicitId = heading.id.trim();
     const baseId = explicitId || slugifyHeading(text) || 'section';
     const id = allocateId(baseId, usedIds, reservedIds, explicitId.length > 0);
-    /** @type {import('../../src/app/models/post.model').PostTocItem} */
-    const item = { id, text, level, children: [] };
+    const item: PostTocItem = { id, text, level, children: [] };
 
     heading.id = id;
     if (!heading.hasAttribute('tabindex')) {
@@ -117,7 +124,7 @@ export function buildTableOfContents(document, postPath) {
   return toc;
 }
 
-export function renderTableOfContents(html, postPath) {
+export function renderTableOfContents(html: string, postPath: string) {
   const dom = new JSDOM(`<body>${html}</body>`);
   const { document } = dom.window;
   const toc = buildTableOfContents(document, postPath);

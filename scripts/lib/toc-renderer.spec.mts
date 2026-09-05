@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
-import { renderTableOfContents, slugifyHeading } from './toc-renderer.mjs';
+import { renderTableOfContents, slugifyHeading } from './toc-renderer.mts';
 
 const POST_PATH = '/blog/example-post';
-const renderToc = (html) => renderTableOfContents(html, POST_PATH);
+const renderToc = (html: string) => renderTableOfContents(html, POST_PATH);
 
 test('slugifyHeading creates readable Unicode-safe fragments', () => {
   assert.equal(slugifyHeading('  Crème brûlée & 量子力学  '), 'creme-brulee-量子力学');

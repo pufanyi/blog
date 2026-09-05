@@ -1,10 +1,11 @@
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
+import remarkLintNoUndefinedReferences from 'remark-lint-no-undefined-references';
 import remarkMath from 'remark-math';
 import remarkMdx from 'remark-mdx';
-import remarkLintNoUndefinedReferences from 'remark-lint-no-undefined-references';
 import remarkPresetLintConsistent from 'remark-preset-lint-consistent';
 import remarkPresetLintRecommended from 'remark-preset-lint-recommended';
+import type { Preset } from 'unified';
 
 export default {
   plugins: [
@@ -18,4 +19,4 @@ export default {
     // intentionally look like unresolved Markdown references at this stage.
     [remarkLintNoUndefinedReferences, false],
   ],
-};
+} satisfies Preset;

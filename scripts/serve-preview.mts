@@ -4,7 +4,7 @@ import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../dist/blog/browser', import.meta.url));
-const types = {
+const types: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -20,7 +20,7 @@ const types = {
 
 const server = createServer(async (request, response) => {
   try {
-    const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+    const pathname = decodeURIComponent(new URL(request.url ?? '/', 'http://localhost').pathname);
     let file = resolve(root, `.${pathname}`);
     if (file !== root && !file.startsWith(root + sep)) {
       response.writeHead(400).end();
@@ -44,6 +44,7 @@ const server = createServer(async (request, response) => {
     response.writeHead(500).end('Build the site with pnpm build before starting the preview.');
   }
 });
-server.listen(Number(process.env.PORT ?? 4173), '127.0.0.1', () => {
-  console.log(`Production preview: http://127.0.0.1:${process.env.PORT ?? 4173}`);
+const port = Number(process.env['PORT'] ?? 4173);
+server.listen(port, '127.0.0.1', () => {
+  console.log(`Production preview: http://127.0.0.1:${port}`);
 });

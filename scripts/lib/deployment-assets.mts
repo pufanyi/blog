@@ -1,7 +1,8 @@
 import { copyFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import type { Redirect } from '../../src/app/models/redirect.model';
 
-function normalizeRedirectPath(from) {
+function normalizeRedirectPath(from: string): string {
   if (typeof from !== 'string') {
     throw new TypeError('Redirect "from" values must be strings');
   }
@@ -14,7 +15,7 @@ function normalizeRedirectPath(from) {
   return `/${path}`;
 }
 
-export function renderCloudflareRedirects(redirects) {
+export function renderCloudflareRedirects(redirects: readonly Pick<Redirect, 'from'>[]): string {
   if (!Array.isArray(redirects)) {
     throw new TypeError('Redirect configuration must be an array');
   }
@@ -29,7 +30,10 @@ export function renderCloudflareRedirects(redirects) {
   return `${lines.join('\n')}\n`;
 }
 
-export function prepareDeploymentAssets(browserDirectory, redirects) {
+export function prepareDeploymentAssets(
+  browserDirectory: string,
+  redirects: readonly Pick<Redirect, 'from'>[],
+): void {
   const redirectFile = renderCloudflareRedirects(redirects);
   const prerendered404 = join(browserDirectory, '404', 'index.html');
   const csrShell = join(browserDirectory, 'index.csr.html');

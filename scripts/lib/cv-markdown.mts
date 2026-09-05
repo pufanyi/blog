@@ -1,16 +1,17 @@
 import { Marked } from 'marked';
+import type { CvData } from '../../src/app/models/cv.model';
 
 const markdown = new Marked();
 
-export function renderCvInlineMarkdown(value) {
+export function renderCvInlineMarkdown(value: string): string {
   return markdown.parseInline(value, { async: false });
 }
 
-function renderOptional(value) {
+function renderOptional(value: string | undefined): string | undefined {
   return typeof value === 'string' ? renderCvInlineMarkdown(value) : value;
 }
 
-export function renderCvMarkdown(cv) {
+export function renderCvMarkdown(cv: CvData): CvData {
   return {
     ...cv,
     abstract: cv.abstract

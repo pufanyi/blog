@@ -1,19 +1,24 @@
 import { readFileSync } from 'node:fs';
 import { extname } from 'node:path';
 
-function positiveNumber(value) {
-  const number = Number.parseFloat(value);
+export interface ImageDimensions {
+  width: number;
+  height: number;
+}
+
+function positiveNumber(value: string | undefined): number | null {
+  const number = Number.parseFloat(value ?? '');
   return Number.isFinite(number) && number > 0 ? number : null;
 }
 
-export function getSvgDimensions(file) {
+export function getSvgDimensions(file: string): ImageDimensions | null {
   if (extname(file).toLowerCase() !== '.svg') return null;
 
   const source = readFileSync(file, 'utf8');
   const openingTag = source.match(/<svg\b[^>]*>/i)?.[0];
   if (!openingTag) return null;
 
-  const attribute = (name) =>
+  const attribute = (name: string) =>
     openingTag.match(new RegExp(`\\b${name}\\s*=\\s*["']([^"']+)["']`, 'i'))?.[1];
   const viewBox = attribute('viewBox')
     ?.trim()

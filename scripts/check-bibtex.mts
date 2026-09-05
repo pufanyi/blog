@@ -1,13 +1,14 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // bibtex-tidy bundles this proposal for its CLI but not its library build.
 // Remove this compatibility shim once Node provides Map#getOrInsert natively.
 for (const prototype of [Map.prototype, WeakMap.prototype]) {
-  if (!prototype.getOrInsert) {
+  if (!('getOrInsert' in prototype)) {
     Object.defineProperty(prototype, 'getOrInsert', {
       configurable: true,
-      value(key, value) {
+      value<K, V>(this: Pick<Map<K, V>, 'has' | 'set' | 'get'>, key: K, value: V) {
         if (!this.has(key)) this.set(key, value);
         return this.get(key);
       },
@@ -16,7 +17,7 @@ for (const prototype of [Map.prototype, WeakMap.prototype]) {
 }
 
 const { tidy } = await import('bibtex-tidy');
-const POSTS_DIR = new URL('../content/posts/', import.meta.url).pathname;
+const POSTS_DIR = fileURLToPath(new URL('../content/posts/', import.meta.url));
 const write = process.argv.includes('--write');
 const files = readdirSync(POSTS_DIR, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
@@ -33,7 +34,7 @@ const files = readdirSync(POSTS_DIR, { withFileTypes: true })
 let failed = false;
 for (const file of files) {
   const source = readFileSync(file, 'utf8');
-  let result;
+  let result: ReturnType<typeof tidy>;
   try {
     result = tidy(source, {
       duplicates: ['key', 'doi'],

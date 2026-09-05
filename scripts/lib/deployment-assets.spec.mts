@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { prepareDeploymentAssets, renderCloudflareRedirects } from './deployment-assets.mjs';
+import { prepareDeploymentAssets, renderCloudflareRedirects } from './deployment-assets.mts';
 
 test('renderCloudflareRedirects preserves client-rendered redirect routes', () => {
   assert.equal(

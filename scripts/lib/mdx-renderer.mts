@@ -12,16 +12,12 @@ import rehypeCitation, { Cite } from 'rehype-citation';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import type { Highlighter } from 'shiki';
-import { createCodeRenderer } from './code-renderer.mjs';
-import { getSvgDimensions } from './image-dimensions.mjs';
-import { buildTableOfContents } from './toc-renderer.mjs';
+import { createCodeRenderer } from './code-renderer.mts';
+import { getSvgDimensions, type ImageDimensions } from './image-dimensions.mts';
+import { buildTableOfContents } from './toc-renderer.mts';
 
 const POSTS_DIR = fileURLToPath(new URL('../../content/posts', import.meta.url));
 const POST_ASSET_BASE = '/posts';
-interface Dimensions {
-  width: number;
-  height: number;
-}
 interface CitationAuthor {
   given?: string;
   family?: string;
@@ -36,7 +32,7 @@ interface CitationRecord {
   URL?: string;
   DOI?: string;
 }
-const imageDimensions = new Map<string, Dimensions | null>();
+const imageDimensions = new Map<string, ImageDimensions | null>();
 
 async function loadPostComponents(sourcePath: string): Promise<MDXComponents> {
   const postDirectory = dirname(sourcePath);
@@ -100,7 +96,7 @@ function resolvePostAssetPath(href: string, slug: string) {
   return join(POSTS_DIR, slug, localHref);
 }
 
-function getImageDimensions(href: string, slug: string): Dimensions | null {
+function getImageDimensions(href: string, slug: string): ImageDimensions | null {
   const file = resolvePostAssetPath(href, slug);
   if (!file || !existsSync(file)) {
     return null;

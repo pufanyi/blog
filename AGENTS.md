@@ -25,6 +25,14 @@ Project guidance for agents working in this repository.
 ## Development
 
 - Use `pnpm` for package scripts.
+- Prefer `.mts` for Node ESM scripts and executable configuration, `.ts` for
+  Angular/shared code, and `.tsx` for JSX. `tsconfig.scripts.json` checks all
+  tooling, script tests, and post-local components strictly, without `allowJs`.
+  Keep native Node entrypoints compatible with type stripping; MDX generation
+  and its tests use `tsx` because they load authored JSX components.
+- ESLint loads `eslint.config.mts` through the explicit `jiti` dev dependency.
+  Remark discovers `.remarkrc.json`, which points to `remark.config.mts` as a
+  preset; its current configuration loader does not discover TypeScript files.
 - Generate derived content data with `pnpm generate:data`.
 - Start the local development server with `pnpm start`.
 - Build with `pnpm build`.

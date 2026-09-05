@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { parsePostSource } from './front-matter.mjs';
+import { parsePostSource } from './front-matter.mts';
 
 const VALID_FRONT_MATTER = `---
 title: Example Post

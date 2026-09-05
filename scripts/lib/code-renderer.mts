@@ -1,4 +1,5 @@
 import { transformerNotationDiff, transformerNotationHighlight } from '@shikijs/transformers';
+import type { Highlighter } from 'shiki';
 
 const CATPPUCCIN_SOURCE_COLORS = {
   rose: ['#dc8a78', '#f5e0dc'],
@@ -24,13 +25,13 @@ const CATPPUCCIN_SOURCE_COLORS = {
 
 const syntaxColorMap = new Map(
   Object.entries(CATPPUCCIN_SOURCE_COLORS).flatMap(([token, colors]) =>
-    colors.map((color) => [color, `var(--syntax-${token})`]),
+    colors.map((color) => [color, `var(--syntax-${token})`] as const),
   ),
 );
 
-export function replaceInlineSyntaxColors(html) {
-  return html.replace(/style="([^"]*)"/g, (attribute, style) => {
-    const nextStyle = style.replace(/#[0-9a-f]{6}\b/gi, (color) => {
+export function replaceInlineSyntaxColors(html: string): string {
+  return html.replace(/style="([^"]*)"/g, (attribute: string, style: string) => {
+    const nextStyle = style.replace(/#[0-9a-f]{6}\b/gi, (color: string) => {
       return syntaxColorMap.get(color.toLowerCase()) ?? color;
     });
 
@@ -38,9 +39,9 @@ export function replaceInlineSyntaxColors(html) {
   });
 }
 
-export function createCodeRenderer(highlighter) {
-  return function code({ text, lang }) {
-    const language = lang && highlighter.getLoadedLanguages().includes(lang) ? lang : 'text';
+export function createCodeRenderer(highlighter: Highlighter) {
+  return function code({ text, lang }: { text: string; lang: string }): string {
+    const language = highlighter.getLoadedLanguages().find((loaded) => loaded === lang) ?? 'text';
     const html = replaceInlineSyntaxColors(
       highlighter.codeToHtml(text, {
         lang: language,

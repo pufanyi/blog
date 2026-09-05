@@ -17,6 +17,14 @@ The development server runs at `http://localhost:4200/`. Posts live in
 `pnpm generate:data` rebuilds derived data, and also runs before start, build,
 test, and check commands.
 
+Node tooling and executable configuration use `.mts`; Angular/shared code uses
+`.ts`, and authored JSX uses `.tsx`. Standalone scripts run directly on Node 24.
+MDX generation and its tests use `tsx` to load the post-local JSX components.
+All tooling, configuration, and script tests are included in strict typechecking.
+
+ESLint loads `eslint.config.mts` with `jiti`. Remark finds `.remarkrc.json` and
+loads its `remark.config.mts` preset, keeping plugin configuration in TypeScript.
+
 ## Content and page lifecycle
 
 - `scripts/build-posts.mts` orchestrates generation; `scripts/lib/mdx-renderer.mts`
@@ -55,7 +63,7 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-`check` runs script formatting, content/generator and browser-test typechecks,
+`check` runs tooling formatting, content/tooling and browser-test typechecks,
 Angular lint, and MDX/BibTeX checks. Unit tests cover content rendering and Angular
 behavior. `test:e2e` builds production output and tests desktop/mobile Chromium:
 search keyboard/focus behavior, Chinese queries, route metadata, scroll/history,

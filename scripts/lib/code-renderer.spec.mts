@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { replaceInlineSyntaxColors } from './code-renderer.mjs';
+import { replaceInlineSyntaxColors } from './code-renderer.mts';
 
 test('replaceInlineSyntaxColors maps both Catppuccin source themes to Morandi syntax tokens', () => {
   const html =

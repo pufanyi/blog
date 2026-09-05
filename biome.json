@@ -1,7 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
   "files": {
-    "includes": ["scripts/**/*.mjs", "scripts/**/*.mts"]
+    "includes": ["scripts/**/*.mts", "eslint.config.mts", "remark.config.mts"]
   },
   "formatter": {
     "enabled": true,

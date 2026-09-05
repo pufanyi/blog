@@ -6,11 +6,14 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noEmit": true,
-    "allowJs": true,
     "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
     "types": ["node", "react", "react-dom"]
   },
   "include": [
+    "eslint.config.mts",
+    "remark.config.mts",
     "scripts/**/*.mts",
     "content/posts/**/scripts/*.post-component.tsx",
     "scripts/lib/fixtures/**/scripts/*.post-component.tsx"

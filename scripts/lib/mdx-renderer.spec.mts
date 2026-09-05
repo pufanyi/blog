@@ -62,9 +62,10 @@ const value = 42;
     ],
   );
   assert.match(document.querySelector('#bib-example2026')?.textContent ?? '', /Example Reference/);
-  assert.equal(document.querySelector('#bib-example2026')?.dataset['title'], 'Example Reference');
-  assert.equal(document.querySelector('#bib-example2026')?.dataset['authors'], 'Jane Doe');
-  assert.equal(document.querySelector('#bib-example2026')?.dataset['year'], '2026');
+  const reference = document.querySelector<HTMLElement>('#bib-example2026');
+  assert.equal(reference?.dataset['title'], 'Example Reference');
+  assert.equal(reference?.dataset['authors'], 'Jane Doe');
+  assert.equal(reference?.dataset['year'], '2026');
   assert.equal(
     document.querySelector('#bib-example2026 .citation-source-link')?.textContent,
     'example.com',
