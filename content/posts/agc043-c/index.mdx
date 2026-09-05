@@ -1,0 +1,133 @@
+---
+title: "AGC043C Giant Graph"
+date: "2020-04-07"
+description: "AGC043C Giant Graph 题解。"
+---
+
+构造一个 $n^3$ 个点的无向图 $G$，方法如下：
+
+1. 给定 $3$ 张 $n$ 个点的无向图 $G_1,G_2,G_3$。
+2. 构造 $n^3$ 个点，标号是一个三元组 $\left<i,j,k\right>$。
+3. 对于 $G_1$ 中的边 $\left<u,v\right>$，连边 $\left<u,j,k\right>$ 和 $\left<v,j,k\right>$。
+4. 对于 $G_2$ 中的边 $\left<u,v\right>$，连边 $\left<i,u,k\right>$ 和 $\left<i,v,k\right>$。
+5. 对于 $G_3$ 中的边 $\left<u,v\right>$，连边 $\left<i,j,u\right>$ 和 $\left<i,j,v\right>$。
+6. 对于 $G$ 上的一个点 $\left<i,j,k\right>$，其点权为 ${10}^{18(i+j+k)}$。
+
+现在，要你求出 $G$ 的最大独立集大小膜 $998244353$ 以后的值。
+
+$2\le n\le 10^5,1\le m_1,m_2,m_3\le 10^5$
+
+考虑到是点权是一个大数的幂次，那肯定是选的数越大越好。
+
+考虑如果你知道了图 $G$ 之后你会怎么做。
+
+首先 $\left<n,n,n\right>$ 这个点必须得选，然后其跟她连边的点就不能选了。
+
+然后如果一个点已经确定了旁边已经比她大的点都不选了，那么她才会选。
+
+那会不会有两个相邻的点点权相等呢？显然不会。因为相邻的点必须有两个权值相等，那么另外一个肯定相等，这是不合法的。
+
+然后我们就考虑这个过程，就是我们考虑如何判断一个点选不选，那就要看与之相邻的比她大的点选不选，就是如果那些点都是不合法的，那么这个点合法，否则不合法。
+
+我们发现这跟博弈问题很像，就是有 $3$ 颗棋子，每个人每次可以把一个棋子移动到一个比她大的格子里，不能走的就输了。而先手必输态的点就是合法的。
+
+于是我们只要计算每个点的 `sg` 值即可。
+
+考虑到每张图 `sg` 值只会有 $\mathcal{O}(\sqrt n)$ 个，我们只要计算出之后暴力合并即可，于是合并复杂度是 $\mathcal{O}(n)$ 的。
+
+```cpp
+namespace dfcmd {
+
+    typedef long long LL;
+
+    const int maxn = 100005;
+    const int mod = 998244353;
+    const int di = 1000000000000000000LL % mod;
+
+    int bin[maxn];
+
+    inline void add(int& x, int y) {
+        x += y;
+        if (x >= mod) {
+            x -= mod;
+        }
+    }
+
+    int n;
+
+    struct myhnb {
+        int m;
+        int sg[maxn];
+        int ss[maxn];
+
+        struct Edge {
+            int to, nxt;
+        } e[maxn];
+
+        int first[maxn];
+        int cnt = 0;
+        
+        inline void add_edge(int u, int v) {
+            if (u > v) {
+                swap(u, v);
+            }
+            e[++cnt].nxt = first[u];
+            first[u] = cnt;
+            e[cnt].to = v;
+        }
+
+        int vis[maxn];
+
+        myhnb() {
+            memset(first, 0, sizeof(first));
+            memset(ss, 0, sizeof(ss));
+            memset(vis, 0, sizeof(vis));
+        }
+
+        inline void Dfs() {
+            for (int now = n; now; --now) {
+                vis[now] = true;
+                set<int> sgg;
+                sgg.clear();
+                for (int i = first[now]; i; i = e[i].nxt) {
+                    sgg.insert(sg[e[i].to]);
+                }
+                sg[now] = 0;
+                while (sgg.count(sg[now])) {
+                    sg[now]++;
+                }
+                add(ss[sg[now]], bin[now]);
+            }
+        }
+
+        inline int& operator [] (int x) {
+            return ss[x];
+        }
+    } d[3];
+
+    int main() {
+        read(n);
+        bin[0] = 1;
+        for (int i = 1; i <= n; ++i) {
+            bin[i] = (LL) bin[i - 1] * di % mod;
+        }
+        for (int i = 0; i < 3; ++i) {
+            read(d[i].m);
+            for (int j = 1; j <= d[i].m; ++j) {
+                int u, v;
+                read(u), read(v);
+                d[i].add_edge(u, v);
+            }
+            d[i].Dfs();
+        }
+        int ans = 0;
+        for (int i = 0; i <= 1000; ++i) {
+            for (int j = 0; j <= 1000; ++j) {
+                add(ans, (LL) d[0][i] * d[1][j] % mod * d[2][i ^ j] % mod);
+            }
+        }
+        writeln(ans);
+        return 0;
+    }
+}
+```

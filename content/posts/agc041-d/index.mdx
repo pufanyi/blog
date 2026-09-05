@@ -1,0 +1,119 @@
+---
+title: "AGC041D Problem Scores"
+date: "2020-03-04"
+description: "AGC041D Problem Scores 题解。"
+---
+
+问存在多少个长度为 $n\,(2\le n\le 5000)$ 的单调不减序列 $a$，满足 $1\le a_i\le n$，且对于任意 $k\,(1\le k<n)$，都有：对任意大小为 $k$ 的子集 $S$ 和大小为 $k+1$ 的子集 $T$，满足 $\sum_{x\in S}A_x<\sum_{x\in T}A_x$。答案对大质数 $m$ 取模。
+
+首先需要发现一个性质，就是如果 $k=\left\lfloor\frac{n}{2}\right\rfloor$ 的时候满足了，那么其他的 $k$ 都能满足。为什么呢？首先是对于每个 $k$，显然如果满足了 $\sum_{i=1}^{k+1}a_i\ge \sum_{i=n-k+1}^na_i$，就满足所有的 $S$ 和 $T$ 了。然后如果满足了 $k=\left\lfloor\frac{n}{2}\right\rfloor$ 的情况，如果 $k>\left\lfloor\frac{n}{2}\right\rfloor$，考虑到序列单调不降，左边加上一个较大的数，右边加上一个较小的数，那么不等式肯定仍然成立。否则，如果 $k<\left\lfloor\frac{n}{2}\right\rfloor$，其实就是左边减去一个较小的数，右边加上一个较大的数，不等式也仍然成立。
+
+那这个东西有什么用呢，我们考虑对一波式子。首先我们需要去掉一个单调性，我们构造一个差分数组 $\Delta a_i=a_i-a_{i-1}$，为了不让 $\Delta a_1$ 奇怪，我们就让 $a_0=1$，这样子其实就是 $a_i=1+\sum_{i=1}^n\Delta a_i$，然后我们的式子就变成了：
+$$
+\sum_{i=1}^{\left\lfloor\frac{n}{2}\right\rfloor+1}\sum_{j=1}^i\Delta a_j\ge \sum_{i=n-\left\lfloor\frac{n}{2}\right\rfloor+1}^n\sum_{j=1}^i\Delta a_j
+$$
+
+这个下取整感觉很难受，我们就直接将 $n$ 奇偶讨论好了：
+
+当 $n$ 是奇数时，$\left\lfloor\frac{n}{2}\right\rfloor=\frac{n-1}{2}$，也就是原式就变成了：
+$$
+\sum_{i=1}^{\frac{n+1}{2}}\sum_{j=1}^i\Delta a_j\ge \sum_{i=\frac{n+1}{2}+1}^n\sum_{j=1}^i\Delta a_j
+$$
+
+两边都加个 $\sum_{i=1}^{\frac{n+1}{2}}\sum_{j=1}^i\Delta a_j$ 把右边给补一下：
+$$
+2\sum_{i=1}^{\frac{n+1}{2}}\sum_{j=1}^i\Delta a_j\ge \sum_{i=1}^n\sum_{j=1}^i\Delta a_j
+$$
+
+根据套路，我们需要把前面的 $\Sigma$ 拆掉，于是我们拆掉它：
+$$
+2\sum_{i=1}^{\frac{n+1}{2}}\left(\frac{n+1}{2}-i+1\right)\Delta a_i\ge \sum_{i=1}^n\left(n-i+1\right)\Delta a_i
+$$
+
+考虑我们将 $a_i$ 差分的目的，其实就是想把左边的式子减过去，然后合并起来：
+$$
+\sum_{i=1}^nc_i\Delta a_i\le 0
+$$
+
+其中
+$$
+c_i=
+\begin{cases}
+i-2 & i\le \frac{n+1}{2}\\
+n-i+1 & i>\frac{n+1}{2}
+\end{cases}
+$$
+
+同样地，我们来考虑 $n$ 是偶数的情况：
+$$
+\sum_{i=1}^{\frac{n}{2}}\sum_{j=1}^i\Delta a_j\ge \sum_{i=\frac{n}{2}+2}^n\sum_{j=1}^i\Delta a_j
+$$
+
+补一补：
+$$
+2\sum_{i=1}^{\frac{n}{2}}\sum_{j=1}^i\Delta a_j\ge \sum_{i=1}^n\sum_{j=1}^i\Delta a_j-\sum_{i=1}^{\frac{n}{2}+1}\Delta a_i
+$$
+
+拆个 $\Sigma$：
+$$
+2\sum_{i=1}^{\frac{n}{2}}\left(\frac{n}{2}-i+1\right)\Delta a_i\ge \sum_{i=1}^n\left(n-i+1\right)\Delta a_i-\sum_{i=1}^{\frac{n}{2}+1}\Delta a_i
+$$
+
+写成 $\sum c_i\Delta a_i\le 0$ 的形式，可以得到：
+$$
+c_i=
+\begin{cases}
+i-2 & i\le\frac{n}{2}\\
+n-i & i=\frac{n}{2}+1\\
+n-i+1 & i>\frac{n}{2}+1
+\end{cases}
+$$
+
+不难发现当 $i=\frac{n}{2}+1$ 时，$n-i=\frac{n}{2}-1=i-2$，所以：
+$$
+c_i=
+\begin{cases}
+i-2 & i\le\frac{n}{2}+1\\
+n-i+1 & i>\frac{n}{2}+1
+\end{cases}
+$$
+
+综合奇偶两个式子，我们均可以得到：
+$$
+\sum_{i=1}^nc_i\Delta a_i\le 0
+$$
+
+其中
+$$
+c_i=
+\begin{cases}
+i-2 & i\le\left\lfloor\frac{n}{2}\right\rfloor+1\\
+n-i+1 & i>\left\lfloor\frac{n}{2}\right\rfloor+1
+\end{cases}
+$$
+
+我们回到题目，除了这个条件，我们再回过头来看看有什么缺的条件，仔细找了找好像只有 $\sum\Delta a_i+1\le n$ 了。
+
+于是我们考虑确定 $a_2\sim a_n$ 的值，然后回过头来看看有多少个符合条件的 $a_1$。
+
+我们发现只有两个条件：
+$$
+\begin{cases}
+a_1\le n-1-\sum_{i=2}^na_i\\
+a_1\ge \sum_{i=2}^nc_ia_i
+\end{cases}
+$$
+
+于是满足条件的 $a_1$ 个数就是：
+
+$$
+\max\left(0, n-\sum_{i=2}^n\left(c_i+1\right)a_i\right)
+$$
+
+我们令 $f_i$ 表示 $\sum_{j=2}^n\left(c_j+1\right)a_j=i$ 的方案数，那么最终的答案就是 $\sum_{i=0}^{n-1} (n-i)\cdot f_i$。
+
+我们最后要做的一件事情就是计算 $f_i$ 了，不难发现其实就是一个背包，第 $i$ 个物品重量 $c_i$，可以选 $a_i$ 个，直接大力 `dp` 过去即可。
+
+于是复杂度 $\mathcal{O}(n^2)$。
+
+[代码](https://atcoder.jp/contests/agc041/submissions/10518552)

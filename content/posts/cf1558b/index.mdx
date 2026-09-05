@@ -1,0 +1,73 @@
+---
+title: "CodeForces 1558B Up the Strip"
+date: "2021-08-25"
+description: "CodeForces 1558B Up the Strip 题解。"
+---
+
+有 $n\,(2\le n\le 4\cdot 10^6)$ 个节点，编号 $1\sim n$，你一开始在节点 $n$，想要到节点 $1$。假设你现在在节点 $x$，你可以进行以下两种操作：
+
+1. 选择一个正整数 $y\in \left[1, x - 1\right]$，并移动到节点 $x-y$。
+2. 选择一个正整数 $z\in \left[2, x\right]$，并移动到节点 $\left\lfloor\frac{x}{z}\right\rfloor$。
+
+求有多少种方案到达节点 $1$，只要有一次选择的 $x$ 或 $z$ 不同就算方案不同。答案对 $m$ 取模，其中 $m\in \left(10^8, 10^9\right)$ 且 $m$ 是素数。
+
+令 $f_i$ 表示 $n=i$ 时的答案，我们有：
+$$
+f_i=\sum_{j=1}^{i-1}f_j+\sum_{d=2}^{i}f_{\left\lfloor\frac{i}{d}\right\rfloor}
+$$
+前一部分表示用减法，后一部分表示用除法。
+
+考虑优化，第一部分直接前缀和，我们直接考虑第二部分。一种很直接的优化是将小于 $\sqrt{i}$ 的 $d$ 直接拿出来算，大于 $\sqrt{i}$ 的 $d$ 拿出来算贡献， $f_{k}$ 能转移到 $f_i$ 的 $d$ 应该满足 $k\le \frac{i}{d} < k + 1$，也即 $\frac{i}{k+1}<d\le\frac{i}{k}$，于是 $f_k$ 对 $f_i$ 的贡献应该为 $\left\lfloor\frac{n}{k}\right\rfloor-\left\lfloor\frac{n}{k+1}\right\rfloor$。这样做复杂度是 $\mathcal{O}(n\sqrt{n})$，过不去，但是如果你打 Div. 2 的话就能过一个 [easy 版](https://codeforces.com/contest/1561/problem/D1)。
+
+我们考虑换一种方式，考虑 $f_i$ 转移到 $f_{i+1}$，我们比较 $\sum_{d=2}^{i}f_{\left\lfloor\frac{i}{d}\right\rfloor}$ 与 $\sum_{d=2}^{i+1}f_{\left\lfloor\frac{i+1}{d}\right\rfloor}$，有如下变化：
+
+1. 多了一个 $f_1$，因为 $d$ 可以等于 $i+1$。
+2. 对于所有 $d\mid i+1$，$\left\lfloor\frac{i+1}{d}\right\rfloor=\left\lfloor\frac{i}{d}\right\rfloor+1$，所以 $f_{i+1}$ 比 $f_i$ 多了一个 $f_{\left\lfloor\frac{i+1}{d}\right\rfloor}$，少了一个 $f_{\left\lfloor\frac{i}{d}\right\rfloor}$。
+
+也就是说：
+$$
+\begin{aligned}
+f_{i+1}&=\sum_{j=1}^{i}f_j+\sum_{d=2}^{i+1}f_{\left\lfloor\frac{i+1}{d}\right\rfloor}\\&=f_i+\sum_{j=1}^{i-1}f_j+\sum_{d=2}^{i+1}f_{\left\lfloor\frac{i+1}{d}\right\rfloor}\\&=f_i+f_i+f_1+\sum_{d\mid i+1}\left(f_{\left\lfloor\frac{i+1}{d}\right\rfloor}-f_{\left\lfloor\frac{i}{d}\right\rfloor}\right)\\&=2f_i+f_1+\sum_{d\mid i+1}\left(f_{\left\lfloor\frac{i+1}{d}\right\rfloor}-f_{\left\lfloor\frac{i}{d}\right\rfloor}\right)
+\end{aligned}
+$$
+我们发现对于所有 $i$，总的约数个数为 $\sum_{i=1}^n\frac{n}{i}=\mathcal{O}(n\log n)$。其余转移为 $\mathcal{O}(n)$，故总复杂度为 $\mathcal{O}(n\log n)$。
+
+考虑实现，在每次计算出 $f_{i}$ 的时候，将所有的 $f_{ki}$ 都加上 $f_i-f_{i-1}$，这样空间复杂度就是 $\mathcal{O}(n)$。
+
+```cpp
+const int maxn = 4000005;
+
+int n, mod;
+
+void add(int& x, int y) {
+    x += y;
+    if (x >= mod) {
+        x -= mod;
+    } else if (x < 0) {
+        x += mod;
+    }
+}
+
+int f[maxn];
+
+int main() {
+    read(n), read(mod);
+    f[1] = 1;
+    for (int i = 2; i <= n; ++i) {
+        int tmp = f[i - 1] << 1 | 1;
+        if (tmp >= mod) {
+            tmp -= mod;
+        }
+        add(f[i], tmp);
+        if (i == 2) {
+            f[i] = 2;
+        }
+        for (int j = i << 1; j <= n; j += i) {
+            add(f[j], f[i]);
+            add(f[j], -f[i - 1]);
+        }
+    }
+    writeln(f[n]);
+    return 0;
+}
+```

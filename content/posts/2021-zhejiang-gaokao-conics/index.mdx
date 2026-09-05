@@ -1,0 +1,55 @@
+---
+title: "2021 浙江高考数学圆锥曲线"
+date: "2021-08-17"
+description: "圆锥曲线最后几步了忘了开根 qaq"
+---
+
+高考数学挂了
+
+圆锥曲线最后几步了忘了开根 qaq
+
+这里订正一下
+
+如图，已知 $F$ 是抛物线 $y^2=2px\,(p>0)$ 的焦点，$M$ 是抛物线的准线与 $x$ 轴的交点，且 $\left|MF\right|=2$
+
+![题目示意图](./images/problem.avif)
+
+（1）求抛物线的方程；
+
+解：$p=2\mathbb{R}ightarrow y^2=4x$
+
+（2）设过点 $F$ 的直线交抛物线与 $A$､$B$ 两点，斜率为 $2$ 的直线 $l$ 与直线 $MA,\,MB,\,AB$，$x$ 轴依次交于点 $P，Q，R，N$，且 $\left|RN\right|^2=\left|PN\right|\cdot\left|QN\right|$，求直线 $l$ 在 $x$ 轴上截距的范围。
+
+解：
+
+设 $A(a^2,2a),\ B(b^2,2b)$。有 $AB:\,(a+b)y=2x+2ab$。
+
+将 $F(1,0)$ 代入得：$ab=-1$，即 $AB:\,(a+b)y=2x-2$。
+
+设 $l:\,x=\frac{1}{2}y+t$，代入 $AB$，有：$y_R=\frac{2t-2}{a+b-1}$。
+
+考虑到 $M(-1,0)$，于是 $MA:\,\frac{y-2a}{x-a^2}=\frac{2a}{a^2+1}$。
+
+$MA$ 与 $l$ 联立：$y_P=\frac{2a(t+1)}{a^2-a+1}$。同理 $y_Q=\frac{2b(t+1)}{b^2-b+1}$。
+
+又 $\left|PN\right|\cdot\left|QN\right|=\left|RN\right|^2\Rightarrow y_R^2=-y_Py_Q$。
+
+考虑到 $-y_Py_Q=-\frac{4ab(t+1)^2}{(a^2-a+1)(b^2-b+1)}=\frac{4(t+1)^2}{a^2+b^2+1}$，$y_R^2=\frac{4(t-1)^2}{a^2+b^2-2a-2b-1}$。
+
+**当 $t\not=\pm 1$ 时：**
+
+我们有：$\left|PN\right|\cdot\left|QN\right|=\left|RN\right|^2\Rightarrow\left(\frac{t-1}{t+1}\right)^2=\frac{a^2+b^2-2a-2b-1}{a^2+b^2+1}$。
+
+令 $s=a+b$，则 $s=a-\frac{1}{a}\in\R$，$a^2+b^2=s^2-2ab=s^2+2$。
+
+那么我们有 $\left(\frac{t-1}{t+1}\right)^2=\frac{(s-1)^2}{s^2+3}$
+
+取 $r=\frac{(s-1)^2}{s^2+3}$，我们有 $(r-1)s^2+2s+(3r-1)=0$，$\Delta=4-4(r-1)(3r-1)\ge 0$。
+
+于是 $r\in \left[0, \frac{4}{3}\right]$，也即 $\frac{t-1}{t+1}\in\left[-\sqrt{\frac{4}{3}}, \sqrt{\frac{4}{3}}\right]$，故 $t\le -4\sqrt{3}-7$ 或 $t\ge 4\sqrt{3}-7$ 且 $t\not= 1$。
+
+**当 $t=\pm 1$ 时：**
+
+$\left|RN\right|^2=0$，但 $\left|PN\right|\cdot\left|QN\right|$ 不可能为 $0$，故不成立。
+
+综上，$t\in\left(-\infty, -4\sqrt{3}-7\right]\cup\left[4\sqrt{3}-7,1\right)\cup\left(1,+\infty\right)$。

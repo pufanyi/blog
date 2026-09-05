@@ -25,6 +25,8 @@ Project guidance for agents working in this repository.
 ## Development
 
 - Use `pnpm` for package scripts.
+- Restrict prose searches to `*.mdx` (and `*.bib` when needed); some post SVGs
+  embed large base64 images that can overwhelm text search output.
 - Prefer `.mts` for Node ESM scripts and executable configuration, `.ts` for
   Angular/shared code, and `.tsx` for JSX. `tsconfig.scripts.json` checks all
   tooling, script tests, and post-local components strictly, without `allowJs`.
