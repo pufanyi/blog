@@ -124,7 +124,8 @@ Project guidance for agents working in this repository.
   words, numbers, or inline math without changing the formulas or prose.
   Keep original code blocks verbatim; typography cleanup applies to prose only.
 - For MathJax compatibility, expand legacy KaTeX aliases such as `\N` to
-  equivalent standard TeX (`\mathbb{N}`). Inspect formulas for red undefined
+  equivalent standard TeX (`\mathbb{N}`). Match complete commands so `\R`
+  does not alter `\Rightarrow`. Inspect formulas for red undefined
   commands as well as `mjx-merror`; unsupported macros can render without
   producing an error node.
 
