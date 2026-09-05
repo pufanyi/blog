@@ -103,6 +103,9 @@ Project guidance for agents working in this repository.
 - Keep one source of truth for a diagram's data. Derive related masks, cells,
   edges, and labels from the same arrays and predicates instead of duplicating
   hard-coded values that can drift apart.
+- For coordinate geometry, use the same scale on both axes and calculate
+  intersections from the equations. Simple Latin point labels can use italic
+  SVG text; reserve MathJax containers for actual TeX.
 - For TeX inside inline SVG, use a sized `<foreignObject>` containing HTML
   with MathJax delimiters such as `\(...\)`. The site uses MathJax CHTML, so
   do not expect TeX inside an SVG `<text>` element to typeset reliably. Give
