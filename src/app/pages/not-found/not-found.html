@@ -1,11 +1,6 @@
 <section class="exercise-error" aria-labelledby="not-found-title">
   <h1 id="not-found-title" class="visually-hidden">404: Existence Left as an Exercise</h1>
 
-  <div class="proof-mark" aria-hidden="true">
-    <i class="ph ph-function"></i>
-    <span>∎</span>
-  </div>
-
   <article class="proof-sheet" aria-labelledby="theorem-label">
     <header class="theorem-block">
       <p id="theorem-label" class="proof-label">Theorem 404.1</p>
@@ -33,14 +28,10 @@
   </article>
 
   <nav class="submission-actions" aria-label="404 recovery options">
-    <button class="primary-action" type="button" (click)="submitPaper()">
-      <i class="ph ph-file-pdf" aria-hidden="true"></i>
+    <button class="primary-action" type="button" (click)="submitPaper()" aria-haspopup="dialog">
       Submit Your Proof (PDF)
     </button>
-    <a routerLink="/" class="secondary-action">
-      <i class="ph ph-sign-out" aria-hidden="true"></i>
-      Withdraw Safely
-    </a>
+    <a routerLink="/" class="secondary-action">Withdraw Safely</a>
   </nav>
 </section>
 
@@ -57,19 +48,18 @@
       aria-modal="true"
       aria-labelledby="review-title"
       aria-describedby="review-verdict"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
     >
       <div class="review-heading">
-        <span class="review-index">R2</span>
-        <div>
-          <p class="review-label">Peer review decision</p>
-          <h2 id="review-title">Reviewer #2</h2>
-        </div>
+        <p class="review-label">Peer review decision</p>
+        <h2 id="review-title">Reviewer #2</h2>
       </div>
       <blockquote id="review-verdict">
-        “The submission lacks novelty, and the proof contains undefined symbols.”
+        “The submission lacks novelty.”
       </blockquote>
-      <p class="verdict"><span aria-hidden="true"></span> Recommendation: Reject</p>
-      <button class="primary-action" type="button" (click)="reviewOpen.set(false)">
+      <p class="verdict">Recommendation: Reject</p>
+      <button class="primary-action" type="button" (click)="closeReview()" cdkFocusInitial>
         Acknowledge Review
       </button>
     </section>

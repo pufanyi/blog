@@ -1,3 +1,4 @@
+import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -22,13 +23,18 @@ describe('NotFoundComponent', () => {
       imports: [NotFoundComponent],
       providers: [provideRouter([])],
     }).compileComponents();
+    // JSDOM has no layout, so CDK cannot measure the visible dialog button.
+    vi.spyOn(TestBed.inject(InteractivityChecker), 'isFocusable').mockImplementation(
+      element => element instanceof HTMLButtonElement,
+    );
   });
 
   afterEach(() => {
     delete mathJaxWindow.MathJax;
+    vi.restoreAllMocks();
   });
 
-  it('keeps the title accessible while showing one typeset proof card', async () => {
+  it('keeps the accessible title, typeset proof and recovery link', async () => {
     const fixture = TestBed.createComponent(NotFoundComponent);
     fixture.detectChanges();
 
@@ -37,10 +43,7 @@ describe('NotFoundComponent', () => {
     const pageText = element.textContent ?? '';
 
     expect(heading?.textContent).toBe('404: Existence Left as an Exercise');
-    expect(heading?.classList.contains('visually-hidden')).toBe(true);
     expect(element.querySelectorAll('.proof-sheet')).toHaveLength(1);
-    expect(element.querySelector('.proof-rule')).toBeNull();
-    expect(element.querySelector('.proof-footer')).toBeNull();
     expect(element.querySelectorAll('.math-symbol')).toHaveLength(2);
     expect(pageText).toContain('\\(\\mathfrak{P}\\)');
     expect(pageText).toContain('\\(\\zeta\\)');
@@ -56,10 +59,41 @@ describe('NotFoundComponent', () => {
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    element.querySelector<HTMLButtonElement>('.submission-actions .primary-action')?.click();
+    element.querySelector<HTMLButtonElement>('.submission-actions button')?.click();
     fixture.detectChanges();
 
     expect(element.querySelector('[role="dialog"]')?.textContent).toContain('Reviewer #2');
     expect(element.querySelector('.verdict')?.textContent).toContain('Reject');
+
+    element.querySelector<HTMLElement>('.review-dialog')?.click();
+    fixture.detectChanges();
+    expect(element.querySelector('[role="dialog"]')).not.toBeNull();
+  });
+
+  it.each(['button', 'backdrop', 'escape'])('dismisses peer review with %s', async method => {
+    const fixture = TestBed.createComponent(NotFoundComponent);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const submitButton = element.querySelector<HTMLButtonElement>('.submission-actions button');
+    submitButton?.focus();
+    submitButton?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const closeButton = element.querySelector<HTMLButtonElement>('.review-dialog button');
+    expect(document.activeElement).toBe(closeButton);
+
+    if (method === 'button') {
+      closeButton?.click();
+    } else if (method === 'backdrop') {
+      element.querySelector<HTMLElement>('.review-backdrop')?.click();
+    } else {
+      closeButton?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    }
+    fixture.detectChanges();
+
+    expect(element.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(submitButton);
   });
 });

@@ -9,7 +9,6 @@
   margin: 0 auto;
   padding: clamp(0.25rem, 2vh, 1.25rem) 0 0.5rem;
   color: var(--text-color);
-  text-align: center;
 }
 
 .visually-hidden {
@@ -24,57 +23,6 @@
   border: 0;
 }
 
-.proof-mark {
-  position: relative;
-  display: grid;
-  width: 3.8rem;
-  height: 3.8rem;
-  margin: 0 auto 1.05rem;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, var(--exercise-accent) 42%, transparent);
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--exercise-accent) 3%, transparent);
-  color: var(--exercise-accent);
-}
-
-.proof-mark i {
-  font-size: 2.85rem;
-}
-
-.proof-mark span {
-  position: absolute;
-  top: -0.1rem;
-  right: -0.1rem;
-  display: grid;
-  width: 1.15rem;
-  height: 1.15rem;
-  place-items: center;
-  border: 1px solid var(--border-color);
-  border-radius: 50%;
-  background: var(--paper-bg);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  font-weight: 700;
-}
-
-.proof-sheet {
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--border-color) 58%, transparent);
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--surface-soft) 10%, var(--paper-bg));
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--shadow-color) 42%, transparent);
-  text-align: left;
-}
-
-.theorem-block,
-.proof-body {
-  padding-inline: clamp(1.1rem, 4vw, 1.8rem);
-}
-
-.theorem-block {
-  padding-block: clamp(1.05rem, 3vw, 1.35rem);
-}
-
 .proof-label,
 .review-label {
   color: var(--text-secondary);
@@ -86,7 +34,7 @@
 }
 
 .proof-label {
-  margin: 0 0 0.48rem;
+  margin: 0 0 0.65rem;
   color: var(--exercise-accent);
 }
 
@@ -107,9 +55,7 @@
 }
 
 .proof-body {
-  position: relative;
-  padding-block: 1.15rem 1.25rem;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 34%, transparent);
+  margin-top: 1.4rem;
   color: var(--text-secondary);
   font-size: 0.96rem;
   line-height: 1.72;
@@ -147,9 +93,9 @@
 .submission-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  margin-top: 1.15rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 1.5rem;
 }
 
 .primary-action,
@@ -157,10 +103,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.42rem;
-  min-height: 2.6rem;
+  min-height: 44px;
   padding: 0.62rem 0.95rem;
-  border-radius: 6px;
+  border-radius: 4px;
   font-family: var(--font-body);
   font-size: 0.86rem;
   font-weight: 500;
@@ -171,8 +116,7 @@
   transition:
     background-color 0.16s ease,
     border-color 0.16s ease,
-    color 0.16s ease,
-    transform 0.16s ease;
+    color 0.16s ease;
 }
 
 .primary-action {
@@ -182,25 +126,19 @@
 }
 
 .primary-action:hover {
-  border-color: var(--link-hover-color);
-  background: var(--link-hover-color);
+  border-color: color-mix(in srgb, var(--exercise-accent) 88%, var(--text-color));
+  background: color-mix(in srgb, var(--exercise-accent) 88%, var(--text-color));
   color: var(--on-accent);
   text-decoration: none;
-  transform: translateY(-1px);
 }
 
 .secondary-action {
-  border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
-  background: transparent;
-  color: var(--exercise-accent);
+  color: var(--text-secondary);
 }
 
 .secondary-action:hover {
-  border-color: var(--exercise-accent);
-  background: color-mix(in srgb, var(--exercise-accent) 7%, transparent);
   color: var(--exercise-accent);
-  text-decoration: none;
-  transform: translateY(-1px);
+  text-decoration: underline;
 }
 
 .primary-action:focus-visible,
@@ -224,33 +162,11 @@
   width: min(100%, 28rem);
   padding: clamp(1.35rem, 5vw, 2rem);
   border: 1px solid color-mix(in srgb, var(--border-color) 45%, transparent);
-  border-radius: 10px;
+  border-radius: 6px;
   background: var(--paper-bg);
   color: var(--text-color);
   box-shadow: 0 18px 50px var(--shadow-color-strong);
   text-align: left;
-  animation: review-in 0.2s ease-out;
-}
-
-.review-heading {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.review-index {
-  display: grid;
-  width: 2.6rem;
-  height: 2.6rem;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, var(--accent-red) 48%, transparent);
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--accent-red) 8%, transparent);
-  color: var(--accent-red);
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  font-weight: 700;
 }
 
 .review-dialog h2 {
@@ -261,33 +177,18 @@
 }
 
 .review-dialog blockquote {
-  margin: 1.1rem 0 0;
-  padding: 0.85rem 0.95rem;
-  border-left: 3px solid var(--accent-red);
-  background: color-mix(in srgb, var(--accent-red) 6%, transparent);
+  margin: 1.25rem 0;
   color: var(--text-secondary);
   font-style: italic;
   line-height: 1.62;
 }
 
 .verdict {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin: 0.95rem 0;
+  margin: 0 0 1.5rem;
   color: var(--accent-red);
   font-family: var(--font-mono);
   font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.verdict span {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: currentColor;
+  font-weight: 500;
 }
 
 .review-dialog .primary-action {
@@ -303,50 +204,25 @@
   }
 }
 
-@keyframes review-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 @media (max-width: 600px) {
   .exercise-error {
     padding-top: 0;
   }
 
-  .proof-mark {
-    width: 3.5rem;
-    height: 3.5rem;
-    margin-bottom: 0.85rem;
-  }
-
-  .proof-mark i {
-    font-size: 2.6rem;
-  }
-
-  .proof-sheet {
-    border-radius: 7px;
-  }
-
   .submission-actions {
     flex-direction: column;
-    gap: 0.5rem;
+    align-items: flex-start;
+    gap: 0.25rem;
   }
 
   .submission-actions .primary-action,
   .submission-actions .secondary-action {
-    width: min(100%, 18rem);
+    width: min(100%, 16rem);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .review-backdrop,
-  .review-dialog {
+  .review-backdrop {
     animation: none;
   }
 

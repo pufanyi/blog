@@ -1,3 +1,4 @@
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -13,7 +14,7 @@ import { typesetMath } from '../../utils/post-content-hooks';
 @Component({
   selector: 'app-not-found',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, CdkTrapFocus],
   templateUrl: './not-found.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './not-found.css',
