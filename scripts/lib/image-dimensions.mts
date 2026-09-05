@@ -1,9 +1,23 @@
 import { readFileSync } from 'node:fs';
 import { extname } from 'node:path';
+import { imageSize } from 'image-size';
 
 export interface ImageDimensions {
   width: number;
   height: number;
+}
+
+export function getImageDimensions(file: string): ImageDimensions | null {
+  try {
+    if (extname(file).toLowerCase() === '.svg') return getSvgDimensions(file);
+
+    const { width, height } = imageSize(readFileSync(file));
+    return Number.isFinite(width) && width > 0 && Number.isFinite(height) && height > 0
+      ? { width, height }
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 function positiveNumber(value: string | undefined): number | null {

@@ -83,6 +83,9 @@ Project guidance for agents working in this repository.
   by the post page into `app-image-lightbox` instances. Keep generated image
   HTML dimensioned with `width`/`height` whenever possible so `NgOptimizedImage`
   can run correctly after hydration.
+- Author ordinary post images with Markdown `![alt](./images/file.avif)`.
+  The generator reads local image dimensions through `image-size` and preserves
+  SVG viewBox handling; it does not require a system ImageMagick installation.
 
 ### Post Diagrams
 
@@ -131,6 +134,9 @@ Project guidance for agents working in this repository.
 - Posts are compiled as standard MDX with GFM and math support. Prefer native
   MDX syntax and semantic HTML elements such as `<details>` for authored
   interactive content; imported build-time components are also supported.
+- For legacy Jekyll imports, replace Liquid includes with Markdown or native
+  MDX and remove theme-only front matter. Keep original exports and ZIP archives
+  outside `content/posts`; files not excluded by the asset rules are published.
 - A post can keep BibTeX references in a sibling `references.bib` file and cite
   them with Pandoc-style keys such as `[@key]`. Citations use the APA CSL
   style. When a bibliography is rendered, the generator appends it with a

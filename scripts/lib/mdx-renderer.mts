@@ -1,4 +1,3 @@
-import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -13,7 +12,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import type { Highlighter } from 'shiki';
 import { createCodeRenderer } from './code-renderer.mts';
-import { getSvgDimensions, type ImageDimensions } from './image-dimensions.mts';
+import { getImageDimensions, type ImageDimensions } from './image-dimensions.mts';
 import { buildTableOfContents } from './toc-renderer.mts';
 
 const POSTS_DIR = fileURLToPath(new URL('../../content/posts', import.meta.url));
@@ -96,7 +95,7 @@ function resolvePostAssetPath(href: string, slug: string) {
   return join(POSTS_DIR, slug, localHref);
 }
 
-function getImageDimensions(href: string, slug: string): ImageDimensions | null {
+function getPostImageDimensions(href: string, slug: string): ImageDimensions | null {
   const file = resolvePostAssetPath(href, slug);
   if (!file || !existsSync(file)) {
     return null;
@@ -106,25 +105,9 @@ function getImageDimensions(href: string, slug: string): ImageDimensions | null 
     return imageDimensions.get(file) ?? null;
   }
 
-  const svgDimensions = getSvgDimensions(file);
-  if (svgDimensions) {
-    imageDimensions.set(file, svgDimensions);
-    return svgDimensions;
-  }
-
-  try {
-    const output = execFileSync('magick', ['identify', '-format', '%w %h', file], {
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
-    const [width, height] = output.split(/\s+/).map(Number);
-    const dimensions = Number.isFinite(width) && Number.isFinite(height) ? { width, height } : null;
-    imageDimensions.set(file, dimensions);
-    return dimensions;
-  } catch {
-    imageDimensions.set(file, null);
-    return null;
-  }
+  const dimensions = getImageDimensions(file);
+  imageDimensions.set(file, dimensions);
+  return dimensions;
 }
 
 function replaceWithHtml(document: Document, node: Element, html: string) {
@@ -324,7 +307,7 @@ function postprocessMdxHtml(
     const authoredSrc = image.getAttribute('src')?.trim();
     if (!authoredSrc) continue;
     const src = normalizePostImageHref(authoredSrc, slug);
-    const dimensions = getImageDimensions(authoredSrc, slug);
+    const dimensions = getPostImageDimensions(authoredSrc, slug);
     image.src = src;
     if (dimensions && (!image.hasAttribute('width') || !image.hasAttribute('height'))) {
       image.width = dimensions.width;

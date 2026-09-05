@@ -86,6 +86,7 @@
     "angular-eslint": "22.1.0",
     "bibtex-tidy": "^1.15.1",
     "eslint": "^10.6.0",
+    "image-size": "^2.0.2",
     "jiti": "^2.7.0",
     "js-yaml": "^5.2.3",
     "jsdom": "^30.0.1",
