@@ -21,9 +21,9 @@ description: "一道有趣的矩乘题。"
 
 显然元辅音可以分开来看，那我们就只看元音。
 
-于是我们就可以很自然地推出$ans=\sum_{i=1}^n(i+1)p^i$。由于有一个叫重音的东西，所以系数是$i+1$。直接算会T（70分），于是我们就想到了矩阵快速幂。
+于是我们就可以很自然地推出 $ans=\sum_{i=1}^n(i+1)p^i$。由于有一个叫重音的东西，所以系数是 $i+1$。直接算会 T（70 分），于是我们就想到了矩阵快速幂。
 
-首先我们当然想到是推$2\times 2$的，于是写出初始矩阵$\begin{bmatrix}0 & 2p \end{bmatrix}$，要转移到$\begin{bmatrix}2p & 3p^2+2p\end{bmatrix}$。发现矩阵的系数有变化，无法转移。于是我们就需要添加一格来辅助转移。观察两矩阵的系数变化，我们就不难推出辅助的那个应该填什么：$\begin{bmatrix}0&p&2p\end{bmatrix}\to \begin{bmatrix}2p&p^2&3p^2+2p\end{bmatrix}$。于是得出中间矩阵是$\begin{bmatrix}1&0&0\\0&p&p\\1&0&p\end{bmatrix}$。
+首先我们当然想到是推 $2\times 2$ 的，于是写出初始矩阵 $\begin{bmatrix}0 & 2p \end{bmatrix}$，要转移到 $\begin{bmatrix}2p & 3p^2+2p\end{bmatrix}$。发现矩阵的系数有变化，无法转移。于是我们就需要添加一格来辅助转移。观察两矩阵的系数变化，我们就不难推出辅助的那个应该填什么：$\begin{bmatrix}0&p&2p\end{bmatrix}\to \begin{bmatrix}2p&p^2&3p^2+2p\end{bmatrix}$。于是得出中间矩阵是 $\begin{bmatrix}1&0&0\\0&p&p\\1&0&p\end{bmatrix}$。
 
 然后就用同样的方法算辅音即可。
 

@@ -118,6 +118,9 @@ Project guidance for agents working in this repository.
 - Treat existing prose as author-owned. Preserve its wording, tone, and
   structure unless the user asks for a rewrite; make the smallest correction
   needed for genuine factual or rendering errors.
+- When migrating legacy posts, add spaces between Chinese text and Latin
+  words, numbers, or inline math without changing the formulas or prose.
+  Keep original code blocks verbatim; typography cleanup applies to prose only.
 
 - Each blog post lives at `content/posts/<slug>/index.mdx`; the directory name is
   the post slug. `index.mdx` starts with YAML front matter delimited by `---`;
@@ -138,8 +141,9 @@ Project guidance for agents working in this repository.
   MDX and remove theme-only front matter. Keep original exports and ZIP archives
   outside `content/posts`; files not excluded by the asset rules are published.
 - For Hexo imports, remove `<!--more-->` and replace plugin tags with equivalent
-  embeds, such as a PDF iframe with a direct link. Preserve original prose,
-  math placement, links, and code; editorial changes require a separate request.
+  embeds, such as a PDF iframe with a direct link. Apart from the prose spacing
+  above, preserve original prose, math placement, links, and code; further
+  editorial changes require a separate request.
   Attachment links use `/posts/<slug>/file.pdf`; only image paths are rewritten
   automatically.
 - Inspect PDF embeds with full Chromium (`channel: 'chromium'` in Playwright);
