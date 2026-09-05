@@ -1,0 +1,223 @@
+---
+title: "CodeForces 1562F Tubular Bells"
+date: "2021-09-20"
+description: "CodeForces 1562F Tubular Bells 题解。"
+---
+
+告诉你 $n$，要你猜一个长度为 $n$ 的正整数序列 $\left\{a_i\right\}$，$a_i$ 两两不同，且存在 $0\le l\le 2\times 10^5-n$ 使得 $a_i\in\left(l,l+n\right]$。
+
+每次你可以向交互库询问 `? x y`（$x\neq y$），交互库向你返回 $\mathrm{lcm}(a_x,a_y)$。询问次数为 $n+5000$，其中 $3\le n\le 10^5$。
+
+我们先考虑 $n$ 比较小的情况，这时候我们可以考虑到我们有那个 $5000$，我们考虑 $n^2$ 次询问。我们考虑利用一个柿子，也就是当 $\gcd(x,y)=1$ 时，$\gcd(\mathrm{lcm}(x,z),\mathrm{lcm}(y,z))=\gcd(\frac{xz}{\gcd(x,z)},\frac{yz}{\gcd(y,z)})=z\cdot\gcd(\frac{x}{\gcd(x,z)},\frac{y}{\gcd(y,z)})=z$，且有 $\forall x,y\in \mathbb{N}_+$，$z\mid\gcd(\mathrm{lcm}(x,z),\mathrm{lcm}(y,z))$。又 $\forall n\in \mathbb{N}_+$，$\gcd(n,n+1)=1$。故当 $n=4$ 时，我们只要令 $a_i=\gcd_{j\neq i}\mathrm{lcm}(a_i,a_j)$ 即可。而当 $n=3$ 时，我们发现最大的那个询问结果其实是两个最大的相乘，也即最小值为 $\left\lfloor\sqrt{\text{查询得到的最大值}}\right\rfloor-1$，且最小值的那个位置确定了，然后另外两个直接与最小值取 $\mathrm{lcm}$ 之后对比一下就也确定了。
+
+这种情况下，询问次数是 $\frac{n\cdot(n-1)}{2}$，而 $\frac{n\cdot(n-1)}{2}\le 5000 + n$ 正好解得 $n\le 100$。
+
+这样我们就解决了 $n\le 100$ 的情况，我们考虑 $n$ 更大的时候。首先我们会考虑到我们能否找到一个素数 $p$，且这个素数能尽量大，最好能保证 $\mathrm{lcm}(p,a_i)=p\cdot a_i$。我们考虑能否找到 $p\ge \frac{n}{2}$，这样的话除了有一个 $a_i=2p$ 可能会存在 $\mathrm{lcm}(p,a_i)=2p$。之外，其余的 $a_i$ 都能直接使用 $a_i=\frac{\mathrm{lcm}(p,a_i)}{p}$ 得到。因此我们可以先把除了 $\mathrm{lcm}$ 为 $2p$ 的位置留下，其余位置查询之后，换一个不是 $2$ 的素数判断那个位置是 $2$ 还是 $2p$。我们考虑时候有这样的两个素数，大概估计 $\pi(n))=\frac{n}{\ln n}$，当 $n$ 较大的时候素数密度是越来越疏的。而 $\pi(10^5)-\pi(10^5-100)=7.93$，也就是说应该是足够的，而事实证明当 $n\ge 100$ 的时候确实是足够的。
+
+然后我们考虑怎么找素数，我们考虑随机找一些位置并尝试将其确定下来。我们先大概看看应该需要找多少个位置，我们考虑由于素数密度越来越疏，我们就当是最大值是 $10^5$，于是素数密度为 $\rho(n)=\frac{\pi(10^5)-\pi(10^5-n)}{n}$，考虑到越往里素数越密，我们仍然认为选到素数的概率最小值为 $\rho(100)=0.08$，其实发现还是挺大的。然后我们考虑如何确定一个数，我们仍然用上面 $n^2$ 暴力的思路，我们考虑所随机几个数与要确定的这个数进行 $\mathrm{lcm}$，我们考虑随机两个数的素数概率为多大，我们令概率为 $\mathcal{P}$，那么我们发现如果随机两个数 $\gcd$ 为 $i\,(i\ge 2,i\in\mathbb{N}_+)$ 的概率为 $\frac{\mathcal{P}}{i^2}$，也就是要在 $\frac{n}{i}$ 的空间里找到的 $\gcd$ 为 $1$ 的方案然后把区间拉长 $i$ 倍，由于是两个数所以除了 $i^2$。于是我们有 $\mathcal{P}=1-\sum_{i=l}^r\frac{\mathcal{P}}{i^2}$ 也即 $\mathcal{P}=\frac{1}{1+\sum_{i=l}^r\frac{1}{i^2}}$，期望尝试 $1+\sum_{i=l}^r\frac{1}{i^2}$ 次，并不是一个很大的数。而我们又考虑生日悖论，因为我们是随机抽取多个数字，然后只要有其中两个 $\gcd$ 为 $1$ 即可，所以理论上即使是非洲酋长也应该是能过的。
+
+由于附赠了 $5000$ 次询问次数，所以我们考虑选 $249$ 个数，每个数抽 $20$ 个数与之 $\mathrm{lcm}$ 之后求 $\gcd$。剩下的 $20$ 次其实是给前面说的那个 $2p$ 的特殊情况留的。然后最后我们一遍 $\mathcal{O}(n)$ 询问即可。
+
+由于交互题写了很多调试语句所以代码可能有点小长 qaq
+
+```cpp
+typedef long long LL;
+ 
+int n;
+ 
+LL ask(int x, int y) {
+  assert(1 <= x && x <= n && 1 <= y && y <= n);
+  std::cout << "? " << x << ' ' << y << std::endl;
+  std::cout.flush();
+  LL ans;
+  std::cin >> ans;
+  return ans;
+}
+ 
+namespace solve_small {
+  const int maxn = 105;
+ 
+  LL lcm[maxn][maxn];
+ 
+  void solve() {
+    memset(lcm, 0, sizeof(lcm));
+    for (int i = 1; i <= n; ++i) {
+      for (int j = 1; j < i; ++j) {
+        lcm[i][j] = lcm[j][i] = ask(i, j);
+      }
+    }
+    std::pair<int, int> idans(0, 0);
+    if (n == 3) {
+      for (int i = 1; i <= n; ++i) {
+        for (int j = 1; j < i; ++j) {
+          if (lcm[i][j] > lcm[idans.first][idans.second]) {
+            idans = std::make_pair(i, j);
+          }
+        }
+      }
+      std::vector<int> ANS(4);
+      ANS[idans.first] = sqrt(lcm[idans.first][idans.second]);
+      ANS[idans.second] = ANS[idans.first] + 1;
+      ANS[6 - idans.first - idans.second] = ANS[idans.first] - 1;
+      if ((LL) ANS[idans.first] * ANS[6 - idans.first - idans.second]
+               / std::__gcd(ANS[idans.first], ANS[6 - idans.first - idans.second])
+          != lcm[idans.first][6 - idans.first - idans.second]) {
+        std::swap(ANS[idans.first], ANS[idans.second]);
+      }
+      std::cout << "! ";
+      for (int i = 1; i <= 3; ++i) {
+        std::cout << ANS[i] << ' ';
+      }
+      std::cout << std::endl;
+      std::cout.flush();
+    } else {
+      for (int i = 1; i <= n; ++i) {
+        for (int j = 1; j <= n; ++j) {
+          lcm[i][i] = std::__gcd(lcm[i][i], lcm[i][j]);
+        }
+      }
+      std::cout << "! ";
+      for (int i = 1; i <= n; ++i) {
+        std::cout << lcm[i][i] << ' ';
+      }
+      std::cout << std::endl;
+      std::cout.flush();
+    }
+  }
+}
+ 
+namespace solve_large {
+  struct debug {
+    int n;
+    std::vector<int> alb;
+ 
+    LL ask(int x, int y) {
+      return (LL) alb[x - 1] * alb[y - 1] / std::__gcd(alb[x - 1], alb[y - 1]);
+    }
+ 
+    debug() {
+      std::ifstream fin("a.in");
+      fin >> n;
+      for (int i = 1; i <= n; ++i) {
+        int xx;
+        fin >> xx;
+        alb.push_back(xx);
+      }
+    }
+  } deb;
+ 
+  #ifdef Debug
+  #define ask(x, y) deb.ask(x, y)
+  #endif
+ 
+  const int maxn = 200005;
+  
+  LL ans[maxn];
+  int np[maxn];
+ 
+  std::mt19937 rnd(20030211u);
+ 
+  void Euler(const int n = 200000) {
+    std::vector<int> prime;
+    prime.clear();
+    for (int i = 2; i <= n; ++i) {
+      if (!np[i]) {
+        prime.push_back(i);
+      }
+      for (unsigned j = 0; j < prime.size() && (LL) i * prime[j] <= n; ++j) {
+        np[i * prime[j]] = true;
+        if (!(i % prime[j])) {
+          break;
+        }
+      }
+    }
+  }
+ 
+  void solve() {
+    std::vector<int> id;
+    id.clear();
+    for (int i = 1; i <= n; ++i) {
+      ans[i] = 0;
+      id.push_back(i);
+    }
+    std::shuffle(id.begin(), id.end(), rnd);
+    int qd = 0;
+    for (int i = 1; i <= 249 && i <= n; ++i) {
+      qd = id[i - 1];
+      for (int j = 1; j <= 20; ++j) {
+        int wz = rnd() % n + 1;
+        while (wz == qd) {
+          wz = rnd() % n + 1;
+        }
+        ans[qd] = std::__gcd(ask(qd, wz), ans[qd]);
+        if (ans[qd] <= 200000 && ans[qd] && !np[ans[qd]]) {
+          break;
+        }
+      }
+      if (ans[qd] && !np[ans[qd]] && ((ans[qd] << 1) > n)) {
+        break;
+      }
+    }
+    assert(ans[qd] <= 200000 && ans[qd] && !np[ans[qd]] && ((ans[qd] << 1) > n));
+    for (int i = 1; i <= n; ++i) {
+      if (!ans[i]) {
+        ans[i] = ask(i, qd) / ans[qd];
+      }
+    }
+    LL mx = 0;
+    int idd = 0;
+    for (int i = 1; i <= n; ++i) {
+      if (!np[ans[i]] && ans[i] >= mx) {
+        mx = ans[i];
+        idd = i;
+      }
+    }
+    for (int i = 1; i <= n; ++i) {
+      if (ans[i] == 2) {
+        ans[i] = ask(i, idd) / mx;
+      }
+    }
+    #ifndef Debug
+    std::cout << "! ";
+    #endif
+    for (int i = 1; i <= n; ++i) {
+      std::cout << ans[i] << ' ';
+    }
+    std::cout << std::endl;
+    std::cout.flush();
+  }
+ 
+  #ifdef Debug
+  #undef ask(x, y) deb.ask(x, y)
+  #endif
+}
+ 
+void solve() {
+  #ifndef Debug
+  std::cin >> n;
+  #else
+  n = solve_large::deb.n;
+  freopen("a.out", "w", stdout);
+  std::cout << n << std::endl;
+  #endif
+  if (n <= 100) {
+    solve_small::solve();
+  } else {
+    solve_large::solve();
+  }
+}
+ 
+int main() {
+  solve_large::Euler();
+  int T;
+  #ifndef Debug
+  std::cin >> T;
+  #else
+  T = 1;
+  #endif
+  while (T--) {
+    solve();
+  }
+  return 0;
+}
+```

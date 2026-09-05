@@ -121,6 +121,10 @@ Project guidance for agents working in this repository.
 - When migrating legacy posts, add spaces between Chinese text and Latin
   words, numbers, or inline math without changing the formulas or prose.
   Keep original code blocks verbatim; typography cleanup applies to prose only.
+- For MathJax compatibility, expand legacy KaTeX aliases such as `\N` to
+  equivalent standard TeX (`\mathbb{N}`). Inspect formulas for red undefined
+  commands as well as `mjx-merror`; unsupported macros can render without
+  producing an error node.
 
 - Each blog post lives at `content/posts/<slug>/index.mdx`; the directory name is
   the post slug. `index.mdx` starts with YAML front matter delimited by `---`;

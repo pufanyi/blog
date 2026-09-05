@@ -1,0 +1,25 @@
+---
+title: "CodeForces 1594F Ideal Farm"
+date: "2021-10-09"
+description: "CodeForces 1594F Ideal Farm 题解。"
+---
+
+Farmer John 有 $s$ 只奶牛，和 $n$ 个独立的篱笆，每个篱笆里可以圈养一些奶牛。出于一种奇♂️怪的偏好，Farmer John 把篱笆排成了一排。第 $i$ 个篱笆圈养的奶牛数量为 $a_i$，显然我们有 $\sum_{i=1}^n a_i=s$。而且，处于 Farmer John 的癖好，他要求对于每个 $i$ 都有 $a_i>0$。
+
+Bessie 认为一个农场是“幸运的”当且仅当你可以找到一个区间 $[l,r]$，使得 $\sum_{i=l}^ra_i=k$。
+
+而得寸进尺的 Bessie 认为一个农场是“牛逼的”当且仅当不管 Farmer John 怎么安置他的奶牛，该农场都是“幸运的”。
+
+现在有 $t\,(1\le t\le 10^5)$ 组询问，每组询问给出 $s, n$ 和 $k\,(1\le s,n,k\le {10}^{18},\,n\le s)$，询问这个农场是不是“牛逼的”。
+
+由于是区间问题，我们考虑先将其转换为两点问题。考虑 $b_i=\sum_{j=1}^i a_i$，于是我们有 $\begin{cases}b_0=0\\b_n=s\end{cases}$。如果存在一对 $\left<i,j\right>$ 满足 $b_j-b_i=k$，那显然这个农场是幸运的。由于 $a_i>0$，每一个 $b_i$ 都是两两不同的。于是问题就转化成了，在 $1\sim s$ 中选出 $n$ 个数，使得这些数中不存在 $k$，且不存在一对 $\left<i,j\right>$ 满足 $j-i=k$。
+
+下面我们贪心地考虑最多能选出多少个满足条件的数。
+
+考虑到不能有 $k$ 这个条件，我们把 $k$ 的倍数和不是 $k$ 的倍数的数分开讨论，对于不是 $k$ 倍数的数，如果我们选了 $x$，那我们就不能选 $x+k$ 了（如果 $x+k\le s$ 的话）。于是我们考虑对每 $2k$ 个划分为一段，这样除了最后一段不满的，就有 $\left\lfloor\frac{s}{2k}\right\rfloor$ 段，而每一段我们可以贪心地选择 $1\sim k-1$，这样保证了最后留下的 $s\ \mathrm{mod}\ 2k$ 个数能尽量多取，于是这对于不是 $k$ 倍数的数，这 $\left\lfloor\frac{s}{2k}\right\rfloor$ 段可以选择 $\left\lfloor\frac{s}{2k}\right\rfloor\cdot(k-1)$ 个数。然后我们考虑是 $k$ 倍数，由于不能选择 $k$，我们只能选择 $2k$ 的倍数。这样这 $\left\lfloor\frac{s}{2k}\right\rfloor$ 段我们就能选取 $\left\lfloor\frac{s}{2k}\right\rfloor$ 个数。于是前 $\left\lfloor\frac{s}{2k}\right\rfloor$ 段一共最多能选取 $\left\lfloor\frac{s}{2k}\right\rfloor\cdot k$ 个数。
+
+然后我们考虑最后留下的 $s\ \mathrm{mod}\ 2k$ 个数，我们不难发现最多只能选这里面前 $k-1$ 个数了（第 $k$ 个数不能选了是因为我们已经选了原序列中第 $k\cdot \left\lfloor\frac{s}{2k}\right\rfloor$ 个数了）。因此，这一部分最多能选 $\min\left\{s\ \mathrm{mod}\ 2k, k - 1\right\}$ 个数。
+
+然而上面那段忘记了一个条件，那就是第 $s$ 个数是必须要选的，因为 $b_n=s$。但是大部分情况下这没有关系，因为如果第 $s$ 个数没有选的话，那我们肯定选择了第 $s-k$ 个数（因为我们是贪心选最多的，如果第 $s-k$ 个数和第 $s$ 个数都不选的话，那就不是最优的了，因为可以选一个使所选数加一），于是我们把第 $s-k$ 个数删去，选择第 $s$ 个数即可。唯一的影响在于如果当 $s=k$ 的时候，那既然第 $s$ 个数一定要选，那么答案就只能是 `YES` 了。
+
+所以，我们最终只要比较 $\left\lfloor\frac{s}{2k}\right\rfloor\cdot k+\min\left\{s\ \mathrm{mod}\ 2k, k - 1\right\}$ 与 $n$ 的大小即可得出答案。
