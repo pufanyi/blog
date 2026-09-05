@@ -1,0 +1,95 @@
+---
+title: "CodeForces 551C GukiZ hates Boxes"
+date: "2018-12-29"
+description: "CodeForces 551C GukiZ hates Boxes 题解。"
+---
+
+[原题链接](https://codeforces.com/problemset/problem/551/C)
+
+有$n$个位置$(1\sim n)$，第$i$个位置上有$a_i$个箱子。有$m$个人，开始在$0$位置（即在$1$号位置左边），每一秒钟每个人都可以选择搬走自己位置上的一个箱子或向前走一步（即从位置$i$走到位置$i+1$）。问最少需要多少时间才可以将箱子全部搬完。
+
+输入第一行两个正整数$n, m(n, m\le 10^5)$，第二行$n$个整数$a_i(0\le a_i\le 10^9)$。
+
+## 题解
+
+发现正着做比较麻烦，于是考虑二分答案。
+
+如果需要验证的答案为$x$，那我们就让每个人都有$x$秒。
+
+我们考虑让人一个一个来，一个显然的贪心就是让每个人都拿尽量远的箱子。
+
+然后大力模拟即可。
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long LL;
+
+const int maxn = 100005, maxm = 100005;
+
+int aa[maxn];
+int now[maxn];
+int n, m;
+
+inline bool pan(LL x)
+{
+    for(int i = 1; i <= n; ++i)
+        now[i] = aa[i];
+    int noww = n;
+    for(int i = 1; i <= m; ++i)
+    {
+        LL tx = x;
+        while(!now[noww] && noww)
+            noww--;
+        if(!noww)
+            return true;
+        tx -= noww;
+        if(tx < 0)
+            return false;
+        while(tx >= 0)
+        {
+            if(now[noww] > tx)
+            {
+                now[noww] -= tx;
+                break;
+            }
+            else
+            {
+                tx-= now[noww];
+                now[noww] = 0;
+                while(!now[noww] && noww)
+                    noww--;
+                if(!noww)
+                    return true;
+            }
+        }
+    }
+    while(!now[noww] && noww)
+        noww--;
+    return !noww;
+}
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    for(int i = 1; i <= n; ++i)
+        scanf("%d", &aa[i]);
+    LL l = 0, r = 0x3f3f3f3f3f3f3f3f;
+    while(l < r)
+    {
+        LL mid = (l + r) >> 1;
+        if(pan(mid))
+            r = mid;
+        else
+            l = mid + 1;
+    }
+    printf("%I64d\n", l);
+    return 0;
+}
+```

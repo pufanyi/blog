@@ -137,6 +137,13 @@ Project guidance for agents working in this repository.
 - For legacy Jekyll imports, replace Liquid includes with Markdown or native
   MDX and remove theme-only front matter. Keep original exports and ZIP archives
   outside `content/posts`; files not excluded by the asset rules are published.
+- For Hexo imports, remove `<!--more-->` and replace plugin tags with equivalent
+  embeds, such as a PDF iframe with a direct link. Preserve original prose,
+  math placement, links, and code; editorial changes require a separate request.
+  Attachment links use `/posts/<slug>/file.pdf`; only image paths are rewritten
+  automatically.
+- Inspect PDF embeds with full Chromium (`channel: 'chromium'` in Playwright);
+  the default headless shell can leave PDF frames blank without a native viewer.
 - A post can keep BibTeX references in a sibling `references.bib` file and cite
   them with Pandoc-style keys such as `[@key]`. Citations use the APA CSL
   style. When a bibliography is rendered, the generator appends it with a

@@ -1,0 +1,95 @@
+---
+title: "20180524 模拟赛 T3 Word"
+date: "2018-12-22"
+description: "一道有趣的矩乘题。"
+---
+
+一道有趣的矩乘题。
+
+<iframe
+  src="/posts/20180524-word/problem.pdf"
+  title="Word 原题题面"
+  width="100%"
+  height="600"
+  loading="lazy"
+  style={{ border: 0 }}
+/>
+
+[查看原题 PDF](/posts/20180524-word/problem.pdf)
+
+## 题解
+
+显然元辅音可以分开来看，那我们就只看元音。
+
+于是我们就可以很自然地推出$ans=\sum_{i=1}^n(i+1)p^i$。由于有一个叫重音的东西，所以系数是$i+1$。直接算会T（70分），于是我们就想到了矩阵快速幂。
+
+首先我们当然想到是推$2\times 2$的，于是写出初始矩阵$\begin{bmatrix}0 & 2p \end{bmatrix}$，要转移到$\begin{bmatrix}2p & 3p^2+2p\end{bmatrix}$。发现矩阵的系数有变化，无法转移。于是我们就需要添加一格来辅助转移。观察两矩阵的系数变化，我们就不难推出辅助的那个应该填什么：$\begin{bmatrix}0&p&2p\end{bmatrix}\to \begin{bmatrix}2p&p^2&3p^2+2p\end{bmatrix}$。于是得出中间矩阵是$\begin{bmatrix}1&0&0\\0&p&p\\1&0&p\end{bmatrix}$。
+
+然后就用同样的方法算辅音即可。
+
+## 代码
+
+```cpp
+#include <cstring>
+#include <cmath>
+#include <fstream>
+
+using namespace std;
+
+typedef long long LL;
+
+ifstream fin("word.in");
+ofstream fout("word.out");
+
+LL chen[4][4], q, p, n, mod, jg[2][4], tt[4][4];
+
+inline void pow(int aa)
+{
+    while(aa)
+    {
+        if(aa & 1)
+        {
+            for(int j = 1; j <= 3; ++j)
+            {
+                tt[1][j] = 0;
+                for(int k = 1; k <= 3; ++k)
+                    tt[1][j] = (tt[1][j] + jg[1][k] * chen[k][j] % mod) %mod;
+            }
+            memcpy(jg, tt, sizeof(jg));
+        }
+        aa >>= 1;
+        for(int i = 1; i <= 3; ++i)
+        {
+            for(int j = 1; j <= 3; ++j)
+            {
+                tt[i][j] = 0;
+                for(int k = 1; k <= 3; ++k)
+                    tt[i][j] = (tt[i][j]+chen[i][k]*chen[k][j]%mod)%mod;
+            }
+        }
+        memcpy(chen, tt, sizeof(chen));
+    }
+}
+
+int main()
+{
+    fin >> q >> p >> n >> mod;
+    jg[1][1] = (q<<1) % mod;
+    jg[1][2] = q % mod;
+    chen[1][1] = chen[2][1] = chen[2][2] = q % mod;
+    chen[1][3] = chen[3][3] = 1;
+    pow(n);
+    LL sumy = jg[1][3];
+    memset(jg, 0, sizeof(jg));
+    memset(chen, 0, sizeof(chen));
+    jg[1][1] = (p<<1) % mod;
+    jg[1][2] = p%mod;
+    chen[1][1] = chen[2][1] = chen[2][2] = p % mod;
+    chen[1][3] = chen[3][3] = 1;
+    pow(n);
+    LL sumf = jg[1][3];
+    LL ans = (sumy * sumf % mod + sumy + sumf) % mod;
+    fout << ans;
+    return 0;
+}
+```
