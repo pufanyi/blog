@@ -1,0 +1,119 @@
+.cf351d-pointers-shell {
+  container-type: inline-size;
+  margin: 1.75rem 0;
+}
+
+.cf351d-pointers-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.cf351d-pointers-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+.cf351d-pointers-diagram {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  height: auto;
+}
+
+.cf351d-pointers-fa {
+  color: var(--text-color);
+}
+
+.cf351d-pointers-ffa {
+  color: var(--accent-red);
+}
+
+.cf351d-pointers-edge,
+.cf351d-pointers-halo {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cf351d-pointers-edge {
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.cf351d-pointers-ffa .cf351d-pointers-edge {
+  stroke-dasharray: 6 5;
+}
+
+.cf351d-pointers-halo {
+  stroke: var(--paper-bg);
+  stroke-width: 6;
+}
+
+.cf351d-pointers-origin,
+.cf351d-pointers-arrowhead,
+.cf351d-pointers-label,
+.cf351d-pointers-note {
+  fill: currentColor;
+}
+
+.cf351d-pointers-label,
+.cf351d-pointers-row-label,
+.cf351d-pointers-value,
+.cf351d-pointers-index {
+  font-family: var(--font-mono);
+}
+
+.cf351d-pointers-label {
+  font-size: 17px;
+}
+
+.cf351d-pointers-note {
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.cf351d-pointers-row-label,
+.cf351d-pointers-index {
+  fill: var(--text-secondary);
+  font-size: 16px;
+}
+
+.cf351d-pointers-cell {
+  fill: var(--paper-bg);
+  stroke: var(--border-color);
+  stroke-width: 1;
+}
+
+.cf351d-pointers-divider {
+  stroke: var(--surface-soft);
+  stroke-width: 1;
+}
+
+.cf351d-pointers-value,
+.cf351d-pointers-index {
+  text-anchor: middle;
+}
+
+.cf351d-pointers-value {
+  fill: var(--text-color);
+  font-size: 24px;
+}
+
+.cf351d-pointers-shell figcaption {
+  margin-top: 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.cf351d-pointers-scroll-hint {
+  display: none;
+}
+
+@container (max-width: 639px) {
+  .cf351d-pointers-scroll-hint {
+    display: inline;
+  }
+}

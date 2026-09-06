@@ -22,9 +22,9 @@ description: "CodeForces 351D Jeff and Removing Periods 题解。"
 
 大致就是这样一幅图：
 
-![fa 与 ffa 的关系示意图](./images/fa-ffa.avif)
+<FaFfaDiagram />
 
-黑色表示 $fa[i]$，红色表示 $ffa[i]$（如果 $fa[i]$ 或 $ffa[i]$ 连到了 $0$ 就没画）。
+上方实线表示 $fa[i]$，下方红色虚线表示 $ffa[i]$（如果 $fa[i]$ 或 $ffa[i]$ 连到了 $0$ 就没画）。
 
 不难得出如果 $i - fa[i] = fa[i] - fa[fa[i]]$，那么 $ffa[i] = ffa[fa[i]]$，否则 $ffa[i] = fa[fa[i]]$。
 
