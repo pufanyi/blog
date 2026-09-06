@@ -36,6 +36,7 @@ import { NotFoundComponent } from '../not-found/not-found';
     './styles/code-blocks.css',
     './styles/tables.css',
     './styles/media.css',
+    './styles/media/collectives.css',
     './styles/layout.css',
   ],
   changeDetection: ChangeDetectionStrategy.Eager,

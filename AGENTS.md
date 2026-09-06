@@ -98,8 +98,12 @@ Project guidance for agents working in this repository.
   Provide a meaningful `<title>`, `<desc>`, and `<figcaption>`, use a
   responsive `viewBox`, and place the figure in an overflow container for
   narrow screens.
+- Pass one string to a React-rendered SVG `<title>` (use a template string for
+  dynamic labels); mixed JSX children produce React warnings and empty titles.
 - Keep diagram colors in prefixed classes under the post media styles and use
   only semantic variables from `src/styles/morandi.css`; verify both themes.
+  Post styles have per-file production budgets; put large diagram styles under
+  `styles/media/` and register them separately in `PostComponent.styleUrls`.
 - Keep one source of truth for a diagram's data. Derive related masks, cells,
   edges, and labels from the same arrays and predicates instead of duplicating
   hard-coded values that can drift apart.
