@@ -1,0 +1,37 @@
+---
+title: "AGC032E Modulo Pairing"
+date: "2020-02-10"
+description: "AGC032E Modulo Pairing 题解。"
+---
+
+给一个长度为 $2n$ 的序列，要求将其两两匹配成 $n$ 组，假设第 $i$ 组为 $(x_i,y_i)$，求 $\max_{i=1}^n(x_i+y_i)\bmod m$ 的最小值，$1\le n\le 10^5,1\le m\le 10^9,0\le a_i<m$。
+
+我们首先我们有：
+$$
+(x+y)\bmod m=\begin{cases}
+x+y&x+y\le m\\
+x+y-m&x+y>m
+\end{cases}
+$$
+
+接下来我们看几种情况：
+
+![按是否取模区分的四种区间配对调整情况](./images/pairing-cases.avif)
+
+如果我们有 $x_1\le x_2\le x_3\le x_4$，那么我们有这样 $4$ 中情况：
+
+第一种，$x_3+x_4<m$，那显然 $(x_1,x_4),(x_2,x_3)$ 更优。
+
+第二种，$x_1+x_2\ge m$，和第一种一样。
+
+第三种，$\begin{cases}x_1+x_3<m\\x_2+x_4\ge m\end{cases}$，考虑到 $x_2+x_4-m<x_2$，故有 $\max\{x_1+x_3,x_2+x_4-m\}=x_1+x_3$，而考虑到 $\begin{cases}x_1+x_2\le x_1+x_3\\x_3+x_4-m<x_3\end{cases}$，故有 $\max\{x_1+x_3,x_2+x_4-m\}\ge \max\{x_1+x_2,x_3+x_4-m\}$。所以 $(x_1,x_2),(x_3,x_4)$ 一定比 $(x_1,x_3),(x_2,x_4)$ 优。
+
+我们再来看 $(x_1,x_4),(x_2,x_3)$ 的情况。如果有 $\begin{cases}x_1+x_4\ge m\\x_2+x_3\ge m\end{cases}$，那就有 $\begin{cases}x_1+x_4-m<x1\\x_2+x_3-m<x_2\end{cases}$，所以 $\max\{x_1+x_4-m,x_2+x_3-m\}<x_2\le \max\{x_1+x_2,x_3+x_4-m\}$，此时 $(x_1,x_4),(x_2,x_3)$ 的方案更优。但是如果有 $x_1+x_4\le m$ 或是 $x_2+x_3\le m$，则答案将会更大。
+
+第四种，$\begin{cases}x_1+x_4<m\\x_2+x_3<m\\x_3+x_6\ge m\\x_4+x_5\ge m\end{cases}$。根据前面的讨论，我们仅需比较 $(x_1,x_4),(x_2,x_3),(x_5,x_6)$ 和 $(x_1,x_2),(x_3,x_4),(x_5,x_6)$ 即可，不难发现 $\begin{cases}x_1+x_2\le x_1+x_4\\x_3+x_6-m<x_3\le x_2+x_3\\x_4+x_5-m\le x_5+x_6-m\end{cases}$，于是 $\max\{x_1+x_2,x_3+x_6-m,x_4+x_5-m\}\le \max\{x_1+x_4,x_2+x_3,x_5+x_6-m\}$。
+
+根据第一、二、三种情况，我们发现，最终的划分结果肯定是被分成两部分，左边部分最小的匹配，次大的和次小的匹配……右边也这样匹配。其中左边所有的匹配 $(x,y)$ 都有 $x+y<m$，右边的匹配 $(x,y)$ 都有 $x+y\ge m$。
+
+根据第四种情况，我们可以发现蓝色的匹配数越多越好，于是我们考虑二分蓝色的匹配数量，最终确定答案。
+
+代码可以看[这里](https://atcoder.jp/contests/agc032/submissions/9683145)。

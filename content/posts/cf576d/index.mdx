@@ -1,0 +1,13 @@
+---
+title: "CodeForces 576D Flights for Regular Customers"
+date: "2020-02-13"
+description: "CodeForces 576D Flights for Regular Customers 题解。"
+---
+
+有一张 $n$ 个点 $m$ 条边的无向图，第 $i$ 条边开通的条件是你已经走过了 $d_i$ 条边，问 $1\to n$ 至少需要走多少条边，或输出无解。$n\le m\le 150,\,0\le d_i\le 10^9$。
+
+首先有一个 simple 的想法就是枚举路径上的 $d$ 最大的边，然后先用比该边 $d$ 小的边满足要求地走 $d_i$ 步，然后再用 $d$ 小于等于该边的边走到终点。
+
+我们考虑将边从大到小排序，首先要算出前 $d_i$ 步能到哪儿，这不难用矩乘，然后是走用小于等于 $d_i$ 的边走到终点，这一个 `bfs` 即可解决。
+
+[代码在这里](https://codeforces.com/contest/576/submission/70923772)

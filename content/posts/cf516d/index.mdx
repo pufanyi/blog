@@ -1,0 +1,15 @@
+---
+title: "CodeForces 516D Drazil and Morning Exercise"
+date: "2020-02-12"
+description: "CodeForces 516D Drazil and Morning Exercise 题解。"
+---
+
+给你一棵树，边有边权，定义 $f_x=\max_{i=1}^n\operatorname{dist}(x,i)$。$q$ 次询问，每次给出一个数 $l$ 求最大的连通块 $s$ 满足 $\max_{x\in s}f_x-\min_{x\in s}f_x\le l$。$n\le 10^5,q\le 50$。
+
+首先假设这棵树的直径的两个端点为 $u,v$，不难发现 $f_x=\max(\operatorname{dist}(u,x)\operatorname{v,x})$。这个用证明直径的方法可以证明。
+
+然后我们需要发现一个性质，那就是将点按照 $f$ 从大到小排序，那么儿子一定排在父亲的前面。
+
+然后就好办了，我们考虑将点按 $f$ 从大到小排序，然后我们考虑在上面 `two points`，一边用并查集维护两个指针所在区间的联通性，插入一个点直接将其儿子合并，删除节点是发现只会删除叶子节点，不会改变连通性，只要把该连通块 `size` 减掉即可。
+
+[这里是代码](https://codeforces.com/contest/516/submission/70819750)

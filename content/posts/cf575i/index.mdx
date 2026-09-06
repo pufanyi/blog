@@ -1,0 +1,23 @@
+---
+title: "CodeForces 575I Robots protection"
+date: "2020-02-11"
+description: "CodeForces 575I Robots protection 题解。"
+---
+
+你需要在平面直角坐标系上进行 $q$ 次操作。每次操作有两种，要么放置一个两条直角边平行于坐标轴的等腰直角三角形，要么查询某一个点被多少个三角形覆盖。保证所有点的坐标都是整数且 $\in [1,n]$。$n \le 5 \times 10^3, q \le 10^5$。
+
+考虑到四种方向是对称的，我们只考虑其中一种情况，比如说直角顶点在左下角的情况，令三个顶点为 $(x,y), (x+l,y), (x,y+l)$。
+
+首先我们发现需要加的所有点 $(x',y')$，都满足 $x+y\le x'+y'\le x+y+l$，这个东西用一棵树状数组就可以维护：
+
+![两条平行斜线之间的带状区域，包含待覆盖的三角形](./images/diagonal-strip.avif)
+
+然后我们就是要减去这两块：
+
+![带状区域中需要减去的左侧和下侧区域](./images/excluded-regions.avif)
+
+我们考虑如何减去，观察这些点的性质，首先均满足 $x'+y'\in [x+y,x+y+l]$，然后其还满足 $x'<x$ 或 $y'<y$。于是我们可以考虑开两棵二维树状数组，一棵维护下标 $(x+y,x)$，另一棵维护下标 $(x+y,y)$，然后在这两棵树状数组上矩阵加即可。
+
+时间复杂度 $\mathcal{O}(q\log^2n)$，空间 $\mathcal{O}(n^2)$。
+
+[代码在这儿](https://codeforces.com/contest/575/submission/70715634)。

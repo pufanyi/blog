@@ -1,0 +1,43 @@
+---
+title: "CodeForces 1264D Beautiful Bracket Sequence"
+date: "2020-01-31"
+description: "CodeForces 1264D Beautiful Bracket Sequence 题解。"
+---
+
+给定一个长度为 $n$ 的字符串，其中只有 `'(', ')', '?'` 三种字符，其中 `'?'` 可以为 `'('` 或者 `')'`。对于一个括号序列，定义其权值为其通过删除字符后可以得到的合法的括号匹配的最深的深度，求出所有可能的括号序列（即问号替换后）的权值和。
+
+在 `D1` 中，$n\le 2000$；在 `D2` 中，$n\le 10^6$。
+
+考虑枚举答案计算方案数，显然对于一个括号序列，存在一个划分点使得划分点左边的左括号个数等于划分点右边的有括号个数。则此时该括号序列的深度就是划分点左边的左括号个数。这样 `dp` 之后合并一下是 $\mathcal{O}(n^2)$ 的。这样 `D1` 就做完了。
+
+考虑把前面 `dp` 的式子转换成组合数，我们考虑每个分割点，前面有 $l$ 个左括号，$r$ 个右括号，前面有 $x$ 个问号，后面有 $y$ 个问号。
+
+其实答案就是：
+$$
+\sum_{i=0}^x(l+i)\binom{x}{i}\binom{y}{l+i-r}=l\sum_{i=0}^x\binom{x}{i}\binom{y}{l+i-r}+\sum_{i=0}^xi\binom{x}{i}\binom{y}{l+i-r}
+$$
+
+对于左边的式子：
+$$
+\begin{aligned}
+&l\sum_{i=0}^x\binom{x}{i}\binom{y}{l+i-r}\\
+=\ &l\sum_{i=0}^x\binom{x}{i}\binom{y}{y+r-l-i}\\
+=\ &l\binom{x+y}{y+r-l}
+\end{aligned}
+$$
+
+对于右边的式子：
+$$
+\begin{aligned}
+&\sum_{i=0}^xi\binom{x}{i}\binom{y}{l+i-r}\\
+=\ &\sum_{i=0}^xx\binom{x-1}{i-1}\binom{y}{y-l-i+r}\\
+=\ &x\binom{x+y-1}{y-l+r-1}
+\end{aligned}
+$$
+
+所以该点的贡献为：
+$$
+l\binom{x+y}{y+r-l}+x\binom{x+y-1}{y-l+r-1}
+$$
+
+代码就直接丢链接了：[D1](https://codeforces.com/contest/1264/submission/66377279)、[D2](https://codeforces.com/contest/1264/submission/66378940)。

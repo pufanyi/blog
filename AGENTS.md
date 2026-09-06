@@ -171,6 +171,8 @@ Project guidance for agents working in this repository.
   embeds, such as a PDF iframe with a direct link. Apart from the prose spacing
   above, preserve original prose, math placement, links, and code; further
   editorial changes require a separate request.
+  Resolve relative images in the asset folder named after the source post;
+  prefer original PNGs over derived WebP files when converting to AVIF.
   Attachment links use `/posts/<slug>/file.pdf`; only image paths are rewritten
   automatically.
 - Inspect PDF embeds with full Chromium (`channel: 'chromium'` in Playwright);

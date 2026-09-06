@@ -1,0 +1,59 @@
+---
+title: "CodeForces 708E Student's Camp"
+date: "2020-02-10"
+description: "CodeForces 708E Student's Camp 题解。"
+---
+
+有一个 $(n + 2) \times m$ 的长方形，除了第一行和最后一行，其他每一行每一天最左边和最右边的格子都有 $p$ 的概率被摧毁，每行之间独立且左边和右边独立，求 $k$ 天之后最上面一行与最下面一行四联通的概率。
+
+其中 $1\le n,m\le 1500,\,0\le k\le 10^5$，答案对 $10^9+7$ 取模。
+
+一个简单的想法就是我们令 $h_{i,l,r}$ 表示 $k$ 天后第 $i$ 行还剩下 $[l,r]$，前 $i$ 行联通的概率。$P_{l,r}$ 表示单独一行只剩 $[l,r]$ 的概率。
+
+首先我们有：
+
+$$
+h_{i,l,r}=P_{l,r}\sum_{[l,r]\cap[l',r']\neq\emptyset}h_{i-1,l',r'}
+$$
+
+接下来我们考虑 $P_{l,r}$，我们令 $q_{i}=\binom{k}{i}p^i(1-p)^{k-i}$，不难发现：
+
+$$
+P_{l,r}=q_{l-1}q_{m-r}
+$$
+
+然后我们令 $f_{i,r}$ 表示右端点为 $r$ 的所有 $h$ 之和，同理 $g_{i,l}$ 表示以左端点为 $l$ 的所有 $h$ 之和，再令 $F_{i,r}$ 表示右端点小于等于 $r$ 的所有 $h$ 之和，同理 $G_{i,l}$ 表示以左端点大于等于 $l$ 的所有 $h$ 之和。
+
+具体地：
+
+$$
+\begin{aligned}
+f_{i,r}&=\sum_{l=1}^rh_{i,l,r}\\
+g_{i,l}&=\sum_{r=l}^mh_{i,l,r}\\
+F_{i,r}&=\sum_{R=1}^rf_{i,R}\\
+G_{i,l}&=\sum_{L=l}^mg_{i,L}
+\end{aligned}
+$$
+
+于是我们就有：
+
+$$
+h_{i,l,r}=P_{l,r}\left(F_{i-1,m}-F_{i-1,l-1}-G_{i-1,r+1}\right)
+$$
+
+将 $h$ 代入 $f$ 和 $g$，我们有：
+
+$$
+\begin{aligned}
+f_{i,r}&=\sum_{l=1}^rq_{l-1}q_{m-r}\left(F_{i-1,m}-F_{i-1,l-1}-G_{i-1,r+1}\right)\\
+&=q_{m-r}\left(\sum_{l=1}^rq_{l-1}\left(F_{i-1,m}-F_{i-1,l-1}\right)-G_{i-1,r+1}\sum_{l=1}^rq_{l-1}\right)\\
+g_{i,l}&=\sum_{r=l}^mq_{l-1}q_{m-r}\left(F_{i-1,m}-F_{i-1,l-1}-G_{i-1,r+1}\right)\\
+&=q_{l-1}\left(\sum_{r=l}^mq_{m-r}\left(F_{i-1,m}-G_{i-1,r+1}\right)-F_{i-1,l-1}\sum_{r=l}^mq_{m-r}\right)
+\end{aligned}
+$$
+
+考虑到最后答案是 $F_{n,m}$，我们发现我们可以绕过 $h$ 来求 $F$。
+
+最终复杂度 $\mathcal{O}(k+nm)$。
+
+代码可以看[这里](https://codeforces.com/contest/708/submission/69550720)。
