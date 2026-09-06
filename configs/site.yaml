@@ -1,0 +1,12 @@
+# 公共站点信息；修改后运行 pnpm generate:data，部署前重新构建。
+url: https://pufanyi.com
+title: Fanyi's Blog
+description: Research, notes, and writing by Fanyi Pu.
+defaultImage: /me.avif
+author:
+  name: Fanyi Pu
+  citationName: Pu, Fanyi
+  citationKeyPrefix: pu
+footer:
+  lastUpdated: August 2026
+  sourceCodeUrl: https://github.com/pufanyi/blog

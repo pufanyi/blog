@@ -1,5 +1,6 @@
 import {
   Component,
+  InjectionToken,
   OnDestroy,
   afterNextRender,
   effect,
@@ -8,11 +9,18 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { ThemeService } from '../../services/theme.service';
+import { COMMENTS_CONFIG } from '../../data/comments-config';
+import { SITE_CONFIG } from '../../data/site-config';
+import type { CommentsConfig } from '../../models/config.model';
 
-const GISCUS_THEMES = {
-  light: 'https://pufanyi.com/giscus-morandi-light.css',
-  dark: 'https://pufanyi.com/giscus-morandi-dark.css',
-} as const;
+export const GISCUS_CONFIG = new InjectionToken<CommentsConfig>('Giscus configuration', {
+  providedIn: 'root',
+  factory: () => COMMENTS_CONFIG,
+});
+export const GISCUS_SITE_URL = new InjectionToken<string>('Giscus site URL', {
+  providedIn: 'root',
+  factory: () => SITE_CONFIG.url,
+});
 
 @Component({
   selector: 'app-giscus-comments',
@@ -21,6 +29,8 @@ const GISCUS_THEMES = {
   template: '<div class="giscus"></div>',
 })
 export class GiscusCommentsComponent implements OnDestroy {
+  private readonly config = inject(GISCUS_CONFIG);
+  private readonly siteUrl = inject(GISCUS_SITE_URL);
   private readonly themeService = inject(ThemeService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private loaded = false;
@@ -40,7 +50,7 @@ export class GiscusCommentsComponent implements OnDestroy {
   }
 
   load(): void {
-    if (typeof document === 'undefined') {
+    if (!this.config.enabled || typeof document === 'undefined') {
       return;
     }
 
@@ -53,25 +63,25 @@ export class GiscusCommentsComponent implements OnDestroy {
 
     const script = document.createElement('script');
     script.src = 'https://giscus.app/client.js';
-    script.setAttribute('data-repo', 'pufanyi/blog');
-    script.setAttribute('data-repo-id', 'R_kgDORRRa1g');
-    script.setAttribute('data-category', 'General');
-    script.setAttribute('data-category-id', 'DIC_kwDORRRa1s4C2sEx');
+    script.setAttribute('data-repo', this.config.repo);
+    script.setAttribute('data-repo-id', this.config.repoId);
+    script.setAttribute('data-category', this.config.category);
+    script.setAttribute('data-category-id', this.config.categoryId);
     script.setAttribute('data-mapping', 'pathname');
     script.setAttribute('data-strict', '0');
-    script.setAttribute('data-reactions-enabled', '1');
+    script.setAttribute('data-reactions-enabled', this.config.reactionsEnabled ? '1' : '0');
     script.setAttribute('data-emit-metadata', '0');
-    script.setAttribute('data-input-position', 'bottom');
+    script.setAttribute('data-input-position', this.config.inputPosition);
     script.setAttribute('data-theme', this.getThemeValue());
-    script.setAttribute('data-lang', 'en');
+    script.setAttribute('data-lang', this.config.language);
     script.crossOrigin = 'anonymous';
     script.async = true;
     container.appendChild(script);
     this.loaded = true;
   }
 
-  private getThemeValue(): string {
-    return GISCUS_THEMES[this.themeService.theme()];
+  private getThemeValue(theme: 'light' | 'dark' = this.themeService.theme()): string {
+    return new URL(`/giscus-morandi-${theme}.css`, this.siteUrl).href;
   }
 
   private syncTheme(theme: 'light' | 'dark'): void {
@@ -88,7 +98,7 @@ export class GiscusCommentsComponent implements OnDestroy {
       {
         giscus: {
           setConfig: {
-            theme: GISCUS_THEMES[theme],
+            theme: this.getThemeValue(theme),
           },
         },
       },

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { PostCitationComponent } from './post-citation';
+import { SITE_CONFIG } from '../../data/site-config';
 
 describe('PostCitationComponent', () => {
   it('builds a stable BibTeX entry from post metadata', () => {
@@ -9,12 +10,12 @@ describe('PostCitationComponent', () => {
     fixture.componentRef.setInput('slug', 'hello-world');
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.bibtex()).toBe(`@misc{pu2026helloworld,
-  author = {Pu, Fanyi},
+    expect(fixture.componentInstance.bibtex()).toBe(`@misc{${SITE_CONFIG.author.citationKeyPrefix}2026helloworld,
+  author = {${SITE_CONFIG.author.citationName.replace(/([&%#_{}])/g, '\\$1')}},
   title  = {Research \\& Development},
   year   = {2026},
   month  = {9},
-  url    = {https://pufanyi.com/blog/hello-world}
+  url    = {${SITE_CONFIG.url}/blog/hello-world}
 }`);
   });
 });

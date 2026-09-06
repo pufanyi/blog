@@ -3,9 +3,9 @@ import { Injectable, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import type { Post } from '../models/post.model';
+import { SITE_CONFIG } from '../data/site-config';
+import { blogPagePath, type BlogPage } from '../utils/blog-pagination';
 
-const SITE_URL = 'https://pufanyi.com';
-const SITE_NAME = "Fanyi's Blog";
 const NOT_FOUND_TITLE = '404: Existence Left as an Exercise';
 
 @Injectable()
@@ -18,23 +18,29 @@ export class PageMetadataStrategy extends TitleStrategy {
     let route = snapshot.root;
     while (route.firstChild) route = route.firstChild;
     const post = route.data['post'] as Post | null | undefined;
+    const blogPage = route.data['blogPage'] as BlogPage | null | undefined;
     const missing =
       route.routeConfig?.path === '404' ||
       route.routeConfig?.path === '**' ||
-      (route.routeConfig?.path === 'blog/:slug' && !post);
+      (route.routeConfig?.path === 'blog/:slug' && !post) ||
+      (route.routeConfig?.path === 'blog/page/:page' && !blogPage);
     const title = missing
       ? NOT_FOUND_TITLE
       : post
-        ? `${post.title} — Fanyi Pu`
-        : (this.buildTitle(snapshot) ?? SITE_NAME);
+        ? `${post.title} — ${SITE_CONFIG.author.name}`
+        : blogPage
+          ? `${SITE_CONFIG.title}${blogPage.number > 1 ? ` — Page ${blogPage.number}` : ''}`
+          : (this.buildTitle(snapshot) ?? SITE_CONFIG.title);
     const description = missing
-      ? 'This page could not be found. Return to Fanyi Pu’s homepage or browse the blog.'
+      ? `This page could not be found. Return to ${SITE_CONFIG.author.name}’s homepage or browse the blog.`
       : (post?.description ??
         (route.data['description'] as string | undefined) ??
-        'Research, notes, and writing by Fanyi Pu.');
-    const path = new URL(snapshot.url, SITE_URL).pathname.replace(/\/$/, '') || '/';
-    const canonical = `${SITE_URL}${path}`;
-    const image = new URL(post?.coverImage ?? '/me.avif', SITE_URL).href;
+        SITE_CONFIG.description);
+    const path = blogPage
+      ? blogPagePath(blogPage.number)
+      : new URL(snapshot.url, SITE_CONFIG.url).pathname.replace(/\/$/, '') || '/';
+    const canonical = `${SITE_CONFIG.url}${path}`;
+    const image = new URL(post?.coverImage ?? SITE_CONFIG.defaultImage, SITE_CONFIG.url).href;
 
     this.title.setTitle(title);
     this.meta.updateTag({ name: 'description', content: description });
@@ -44,7 +50,7 @@ export class PageMetadataStrategy extends TitleStrategy {
       'og:description': description,
       'og:url': canonical,
       'og:type': post ? 'article' : 'website',
-      'og:site_name': SITE_NAME,
+      'og:site_name': SITE_CONFIG.title,
       'og:image': image,
     }))
       this.meta.updateTag({ property, content });
@@ -57,17 +63,35 @@ export class PageMetadataStrategy extends TitleStrategy {
       this.meta.updateTag({ name, content });
     if (post) {
       this.meta.updateTag({ property: 'article:published_time', content: post.date });
-      this.meta.updateTag({ property: 'article:author', content: SITE_URL });
+      this.meta.updateTag({ property: 'article:author', content: SITE_CONFIG.url });
     } else {
       this.meta.removeTag('property="article:published_time"');
       this.meta.removeTag('property="article:author"');
     }
-    let link = this.document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    this.updateLink('canonical', canonical);
+    this.updateLink(
+      'prev',
+      blogPage && blogPage.number > 1
+        ? `${SITE_CONFIG.url}${blogPagePath(blogPage.number - 1)}` : null,
+    );
+    this.updateLink(
+      'next',
+      blogPage && blogPage.number < blogPage.totalPages
+        ? `${SITE_CONFIG.url}${blogPagePath(blogPage.number + 1)}` : null,
+    );
+  }
+
+  private updateLink(rel: string, href: string | null): void {
+    let link = this.document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
+    if (href === null) {
+      link?.remove();
+      return;
+    }
     if (!link) {
       link = this.document.createElement('link');
-      link.rel = 'canonical';
+      link.rel = rel;
       this.document.head.appendChild(link);
     }
-    link.href = canonical;
+    link.href = href;
   }
 }

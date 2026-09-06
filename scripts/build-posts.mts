@@ -18,6 +18,7 @@ import { createSearchIndex } from '../src/app/utils/search-index';
 import { renderCvMarkdown } from './lib/cv-markdown.mts';
 import { parsePostSource } from './lib/front-matter.mts';
 import { normalizePostImageHref, renderMdx } from './lib/mdx-renderer.mts';
+import { loadSiteConfiguration } from './lib/site-config.mts';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const POSTS_DIR = join(ROOT, 'content/posts');
@@ -89,7 +90,18 @@ async function writePosts(posts: Post[]): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  const configuration = loadSiteConfiguration(join(ROOT, 'configs'));
   mkdirSync(DATA_DIR, { recursive: true });
+  for (const [filename, type, name, value] of [
+    ['site-config', 'SiteConfig', 'SITE_CONFIG', configuration.site],
+    ['blog-config', 'BlogConfig', 'BLOG_CONFIG', configuration.blog],
+    ['comments-config', 'CommentsConfig', 'COMMENTS_CONFIG', configuration.comments],
+  ] as const) {
+    writeFileSync(
+      join(DATA_DIR, `${filename}.ts`),
+      `${GENERATED}import type { ${type} } from '../models/config.model';\n\nexport const ${name}: ${type} = ${JSON.stringify(value, null, 2)};\n`,
+    );
+  }
   const entries = readdirSync(POSTS_DIR, { withFileTypes: true });
   const unexpected = entries.filter((entry) => !entry.isDirectory());
   if (unexpected.length) {
@@ -137,7 +149,7 @@ async function main(): Promise<void> {
     highlighter.dispose();
   }
 
-  const redirects = loadYaml(readFileSync(join(ROOT, 'content/redirects.yaml'), 'utf-8')) ?? [];
+  const redirects = configuration.redirects;
   writeFileSync(
     join(DATA_DIR, 'redirects.ts'),
     `${GENERATED}import type { Redirect } from '../models/redirect.model';\n\nexport const REDIRECTS: Redirect[] = ${JSON.stringify(redirects, null, 2)};\n`,

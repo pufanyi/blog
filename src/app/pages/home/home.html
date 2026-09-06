@@ -1,34 +1,81 @@
-<div class="title-block">
-  <div class="title-wrapper">
-    <hr class="title-rule-top" />
-    <h1 class="title">Fanyi's Blog</h1>
-    <hr class="title-rule-bottom" />
+@if (page(); as page) {
+  <div class="title-block">
+    <div class="title-wrapper">
+      <hr class="title-rule-top" />
+      <h1 #heading class="title" tabindex="-1">{{ title }}</h1>
+      <hr class="title-rule-bottom" />
+    </div>
   </div>
-</div>
 
-<section class="post-list" appAutoAnimate [appAutoAnimateOptions]="{ duration: 180, easing: 'ease-out' }">
-  @for (post of posts; track post.slug) {
-    <a class="post-entry" [routerLink]="['/blog', post.slug]">
-      @if (post.coverImage) {
-        <app-image-lightbox
-          [src]="post.coverImage"
-          [alt]="post.title"
-          width="720"
-          height="360"
-          [priority]="$first"
-          loading="lazy"
-          imgClass="post-entry-image"
-          preventAncestorNavigation
-        />
-      }
-      <div class="post-row">
-        <span class="post-title">
-          <i class="ph ph-file-text" aria-hidden="true"></i>
-          <span>{{ post.title }}</span>
+  <div class="archive-summary" aria-live="polite" aria-atomic="true">
+    <span>{{ page.totalPosts }} posts</span>
+    <span>{{ page.start }}–{{ page.end }} · Page {{ page.number }} of {{ page.totalPages }}</span>
+  </div>
+  <section class="post-list" aria-label="Blog posts" [style.counter-reset]="'post ' + (page.start ? page.start - 1 : 0)">
+    @for (post of page.posts; track post.slug) {
+      <a class="post-entry" [routerLink]="['/blog', post.slug]">
+        @if (config.showCoverImages && post.coverImage) {
+          <app-image-lightbox
+            [src]="post.coverImage"
+            [alt]="post.title"
+            width="720"
+            height="360"
+            [priority]="$first"
+            loading="lazy"
+            imgClass="post-entry-image"
+            preventAncestorNavigation
+          />
+        }
+        <div class="post-row">
+          <span class="post-title">
+            <i class="ph ph-file-text" aria-hidden="true"></i>
+            <span>{{ post.title }}</span>
+          </span>
+          @if (config.showDates) {
+            <time class="post-date" [attr.datetime]="post.date">{{ post.date }}</time>
+          }
+        </div>
+        @if (config.showDescriptions) {
+          <div class="post-description">{{ post.description }}</div>
+        }
+      </a>
+    } @empty {
+      <p class="archive-empty">No posts yet.</p>
+    }
+  </section>
+
+  @if (page.totalPages > 1) {
+    <nav class="pagination" aria-label="Blog pages">
+      @if (page.number > 1) {
+        <a class="pagination-step" [routerLink]="pagePath(page.number - 1)" [state]="paginationState" rel="prev" aria-label="Previous page">
+          <i class="ph ph-arrow-left" aria-hidden="true"></i><span>Previous</span>
+        </a>
+      } @else {
+        <span class="pagination-step is-disabled" aria-disabled="true">
+          <i class="ph ph-arrow-left" aria-hidden="true"></i><span>Previous</span>
         </span>
-        <time class="post-date" [attr.datetime]="post.date">{{ post.date }}</time>
+      }
+      <div class="pagination-numbers">
+        @for (item of pageItems(); track $index) {
+          @if (item === 'ellipsis') {
+            <span class="pagination-ellipsis" aria-hidden="true">…</span>
+          } @else {
+            <a class="pagination-number" [routerLink]="pagePath(item)" [state]="paginationState"
+              [attr.aria-label]="'Page ' + item" [attr.aria-current]="item === page.number ? 'page' : null">{{ item }}</a>
+          }
+        }
       </div>
-      <div class="post-description">{{ post.description }}</div>
-    </a>
+      @if (page.number < page.totalPages) {
+        <a class="pagination-step" [routerLink]="pagePath(page.number + 1)" [state]="paginationState" rel="next" aria-label="Next page">
+          <span>Next</span><i class="ph ph-arrow-right" aria-hidden="true"></i>
+        </a>
+      } @else {
+        <span class="pagination-step is-disabled" aria-disabled="true">
+          <span>Next</span><i class="ph ph-arrow-right" aria-hidden="true"></i>
+        </span>
+      }
+    </nav>
   }
-</section>
+} @else {
+  <app-not-found />
+}

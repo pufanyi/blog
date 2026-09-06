@@ -2,8 +2,18 @@ import { RenderMode } from '@angular/ssr';
 import { describe, expect, it } from 'vitest';
 import { routes } from './app.routes';
 import { serverRoutes } from './app.routes.server';
+import { BLOG_CONFIG } from './data/blog-config';
+import { POSTS } from './data/posts';
+import { blogPageCount } from './utils/blog-pagination';
 
 describe('application routes', () => {
+  it('prerenders every archive page using the configured page size', async () => {
+    const route = serverRoutes.find(route => route.path === 'blog/page/:page');
+    if (!route || !('getPrerenderParams' in route)) throw new Error('Missing paginated archive route');
+    const pages = await route.getPrerenderParams();
+    expect(pages).toEqual(Array.from({ length: blogPageCount(POSTS.length, BLOG_CONFIG.postsPerPage) - 1 }, (_, index) => ({ page: String(index + 2) })));
+    expect(serverRoutes).toContainEqual({ path: 'blog', renderMode: RenderMode.Prerender });
+  });
   it('uses the concise profile at / and keeps the full CV at /cv', async () => {
     const shellRoute = routes.find(route => route.path === '' && route.children);
     const homeRoute = shellRoute?.children?.find(route => route.path === '');

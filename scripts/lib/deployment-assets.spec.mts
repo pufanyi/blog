@@ -8,7 +8,7 @@ import { prepareDeploymentAssets, renderCloudflareRedirects } from './deployment
 test('renderCloudflareRedirects preserves client-rendered redirect routes', () => {
   assert.equal(
     renderCloudflareRedirects([{ from: 'legacy' }, { from: '/nested/path/' }]),
-    `# Generated from content/redirects.yaml — do not edit manually
+    `# Generated from configs/redirects.yaml — do not edit manually
 /legacy /index.csr 200
 /nested/path /index.csr 200
 /legacy/* /index.csr 200

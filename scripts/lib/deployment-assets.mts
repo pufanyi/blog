@@ -22,7 +22,7 @@ export function renderCloudflareRedirects(redirects: readonly Pick<Redirect, 'fr
 
   const paths = redirects.map((redirect) => normalizeRedirectPath(redirect?.from));
   const lines = [
-    '# Generated from content/redirects.yaml — do not edit manually',
+    '# Generated from configs/redirects.yaml — do not edit manually',
     ...paths.map((path) => `${path} /index.csr 200`),
     ...paths.map((path) => `${path}/* /index.csr 200`),
   ];

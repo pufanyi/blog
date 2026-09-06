@@ -10,10 +10,14 @@
     />
     <app-post-header [title]="article.title" [date]="article.date" [coverImage]="article.coverImage" />
     <article class="post-body" [appPostContent]="article"></article>
-    <app-post-citation [title]="article.title" [date]="article.date" [slug]="article.slug" />
-    <section class="giscus-wrapper">
-      <app-giscus-comments />
-    </section>
+    @if (showCitation) {
+      <app-post-citation [title]="article.title" [date]="article.date" [slug]="article.slug" />
+    }
+    @if (commentsEnabled) {
+      <section class="giscus-wrapper">
+        <app-giscus-comments />
+      </section>
+    }
     <app-back-to-top />
   }
 } @else {

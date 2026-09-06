@@ -6,6 +6,10 @@ import { ThemeService } from '../../services/theme.service';
 import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
 import { SearchModalComponent } from '../search-modal/search-modal';
 
+function isBlogList(url: string): boolean {
+  return /^\/blog(?:\/page\/\d+)?\/?$/.test(url.split(/[?#]/)[0] ?? '');
+}
+
 @Component({
   selector: 'app-toolbar',
   standalone: true,
@@ -22,9 +26,9 @@ export class ToolbarComponent {
   showBlogLink = toSignal(
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-      map(e => e.urlAfterRedirects !== '/blog'),
+      map(e => !isBlogList(e.urlAfterRedirects)),
     ),
-    { initialValue: this.router.url !== '/blog' },
+    { initialValue: !isBlogList(this.router.url) },
   );
 
   @HostListener('document:keydown', ['$event'])

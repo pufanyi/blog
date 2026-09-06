@@ -36,17 +36,28 @@ Project guidance for agents working in this repository.
   Remark discovers `.remarkrc.json`, which points to `remark.config.mts` as a
   preset; its current configuration loader does not discover TypeScript files.
 - Generate derived content data with `pnpm generate:data`.
+- Site settings live in `configs/{site,blog,comments,redirects}.yaml`. The data
+  generator validates them before emitting typed modules under `src/app/data`.
+  After editing YAML during development, run `pnpm generate:data` again.
+- Blog pagination uses `/blog` and `/blog/page/:page`. Keep the resolver,
+  prerendered page count, metadata, and navigation on the same pagination helpers
+  and configured page size. Keep search over all posts and avoid list removal
+  animations that interfere with the router's saved scroll positions.
 - Start the local development server with `pnpm start`.
 - Build with `pnpm build`.
 - Production builds promote the prerendered `/404` route to `404.html` for
   Cloudflare's `404-page` handling and generate `_redirects` from
-  `content/redirects.yaml`; do not edit either file under `dist` manually.
+  `configs/redirects.yaml`; do not edit either file under `dist` manually.
 - Run unit tests with `pnpm test`; use `pnpm test --watch=false` for a
   noninteractive run. `pnpm check` does not run tests or the production build.
+- Angular's unit-test builder does not support `vi.mock` for relative imports.
+  Override injectable dependencies through `TestBed` when testing configuration.
 - Run browser regressions with `pnpm test:e2e`; its pre-hook builds the site
   and Playwright serves that production output at port 4173. Install Chromium
   once with `pnpm exec playwright install chromium`. CI runs checks, unit tests,
   and these desktop/mobile browser tests, retaining diagnostics on failure.
+- Before focusing an offscreen control in a browser test, scroll it into view.
+  Otherwise global smooth scrolling can overlap the next navigation.
 - Run formatting and lint checks with `pnpm biome:check`.
 - Apply automatic Biome fixes with `pnpm biome:write`.
 - Generated `POSTS` contains summaries only. Load article HTML/TOC through

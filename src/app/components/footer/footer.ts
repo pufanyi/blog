@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { SITE_CONFIG } from '../../data/site-config';
 
 @Component({
   selector: 'app-footer',
@@ -8,6 +9,6 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   styleUrl: './footer.css',
 })
 export class FooterComponent {
-  readonly lastUpdated = 'August 2026';
-  readonly sourceCodeUrl = 'https://github.com/pufanyi/blog';
+  readonly lastUpdated = SITE_CONFIG.footer.lastUpdated;
+  readonly sourceCodeUrl = SITE_CONFIG.footer.sourceCodeUrl;
 }

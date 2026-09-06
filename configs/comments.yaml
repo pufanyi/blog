@@ -1,0 +1,9 @@
+# Giscus 的公开仓库与界面设置。
+enabled: true
+repo: pufanyi/blog
+repoId: R_kgDORRRa1g
+category: General
+categoryId: DIC_kwDORRRa1s4C2sEx
+language: en
+reactionsEnabled: true
+inputPosition: bottom

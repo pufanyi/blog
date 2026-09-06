@@ -1,8 +1,87 @@
 import { expect, test, type Page } from '@playwright/test';
 import { POSTS } from '../src/app/data/posts';
+import { BLOG_CONFIG } from '../src/app/data/blog-config';
+import { SITE_CONFIG } from '../src/app/data/site-config';
+import { JSDOM } from 'jsdom';
 
 const diffusion = POSTS.find(post => post.slug === 'ml-revisit-diffusion')!;
 const autoregressive = POSTS.find(post => post.slug === 'ml-revisit-ar')!;
+const archivePages = Math.max(1, Math.ceil(POSTS.length / BLOG_CONFIG.postsPerPage));
+
+test('archive pagination supports keyboard navigation, reload, and history', async ({ page }) => {
+  test.skip(archivePages < 2, 'The configured archive fits on one page');
+  await page.goto('/blog');
+  await expect(page.locator('.post-entry')).toHaveCount(BLOG_CONFIG.postsPerPage);
+  await expect(page.locator('.post-title span').first()).toHaveText(POSTS[0]!.title);
+  const next = page.getByRole('link', { name: 'Next page', exact: true });
+  await next.scrollIntoViewIfNeeded();
+  await next.focus();
+  await next.press('Enter');
+  await expect(page).toHaveURL('/blog/page/2');
+  await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+  await expect(page.locator('.post-title span').first()).toHaveText(POSTS[BLOG_CONFIG.postsPerPage]!.title);
+  await expect(page.locator('.pagination [aria-current="page"]')).toHaveText('2');
+  await expect(page).toHaveTitle(`${SITE_CONFIG.title} — Page 2`);
+  await page.reload();
+  await expect(page.locator('.post-title span').first()).toHaveText(POSTS[BLOG_CONFIG.postsPerPage]!.title);
+
+  const entry = page.locator('.post-entry').last();
+  const articlePath = await entry.getAttribute('href');
+  await entry.locator('.post-title').scrollIntoViewIfNeeded();
+  const position = await page.evaluate(() => scrollY);
+  await entry.locator('.post-title').click();
+  await expect(page).toHaveURL(articlePath!);
+  await expect(page.locator('link[rel="prev"], link[rel="next"]')).toHaveCount(0);
+  await page.goBack();
+  await expect(page).toHaveURL('/blog/page/2');
+  await expect(page.locator('.pagination [aria-current="page"]')).toHaveText('2');
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(position);
+  await page.getByRole('link', { name: 'Previous page', exact: true }).click();
+  await expect(page).toHaveURL('/blog');
+  await page.goBack();
+  await expect(page).toHaveURL('/blog/page/2');
+  await page.goForward();
+  await expect(page).toHaveURL('/blog');
+});
+
+test('archive pages contain their own posts and metadata before JavaScript runs', async ({ request, page }) => {
+  for (const number of new Set([1, Math.min(2, archivePages), archivePages])) {
+    const path = number === 1 ? '/blog' : `/blog/page/${number}`;
+    const response = await request.get(path);
+    expect(response.status()).toBe(200);
+    const document = new JSDOM(await response.text()).window.document;
+    const entries = Array.from(document.querySelectorAll('.post-entry'));
+    const expected = POSTS.slice((number - 1) * BLOG_CONFIG.postsPerPage, number * BLOG_CONFIG.postsPerPage);
+    expect(entries.map(entry => entry.querySelector('.post-title span')?.textContent)).toEqual(expected.map(post => post.title));
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}${path}`);
+    expect(document.title).toBe(`${SITE_CONFIG.title}${number > 1 ? ` — Page ${number}` : ''}`);
+    expect(document.querySelectorAll('link[rel="prev"]').length).toBe(number > 1 ? 1 : 0);
+    expect(document.querySelectorAll('link[rel="next"]').length).toBe(number < archivePages ? 1 : 0);
+  }
+  await page.goto('/blog/page/1');
+  await expect(page).toHaveURL('/blog');
+  for (const number of ['0', 'banana', String(archivePages + 1)]) {
+    const response = await request.get(`/blog/page/${number}`);
+    expect(response.status()).toBe(404);
+    await page.goto(`/blog/page/${number}`);
+    await expect(page).toHaveTitle('404: Existence Left as an Exercise');
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, follow');
+  }
+});
+
+test('search finds articles outside the current archive page', async ({ page }) => {
+  test.skip(archivePages < 2, 'The configured archive fits on one page');
+  const older = POSTS[BLOG_CONFIG.postsPerPage]!;
+  await page.goto('/blog');
+  await expect(page.locator('.post-entry').filter({ hasText: older.title })).toHaveCount(0);
+  const { input } = await openSearch(page);
+  await input.fill(older.title);
+  const result = page.getByRole('option').filter({ hasText: older.title });
+  await expect(result).toBeVisible();
+  await result.click();
+  await expect(page).toHaveURL(`/blog/${older.slug}`);
+});
 
 async function openSearch(page: Page) {
   const trigger = page.getByRole('button', { name: 'Search', exact: true });
@@ -79,7 +158,7 @@ test('Chinese search finds words inside prose and keyboard selection navigates',
   await input.fill('Diffusion');
   await input.press('Enter');
   await expect(page).toHaveURL(`/blog/${diffusion.slug}`);
-  await expect(page).toHaveTitle(`${diffusion.title} — Fanyi Pu`);
+  await expect(page).toHaveTitle(`${diffusion.title} — ${SITE_CONFIG.author.name}`);
   await expect(page.locator('.toolbar-mobile-title')).toHaveText('Reading');
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     'content',
@@ -88,14 +167,14 @@ test('Chinese search finds words inside prose and keyboard selection navigates',
   await expect(page.locator('meta[property="og:type"]')).toHaveAttribute('content', 'article');
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
     'content',
-    `${diffusion.title} — Fanyi Pu`,
+    `${diffusion.title} — ${SITE_CONFIG.author.name}`,
   );
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',
-    `https://pufanyi.com/blog/${diffusion.slug}`,
+    `${SITE_CONFIG.url}/blog/${diffusion.slug}`,
   );
   await page.getByRole('link', { name: 'Home', exact: true }).click();
-  await expect(page).toHaveTitle('Fanyi Pu');
+  await expect(page).toHaveTitle(SITE_CONFIG.author.name);
   await expect(page.locator('meta[property="og:type"]')).toHaveAttribute('content', 'website');
   await expect(page.locator('meta[property="article:published_time"]')).toHaveCount(0);
 });
@@ -156,9 +235,9 @@ test('prerendered HTML contains article metadata and missing routes return the 4
     const response = await request.get(`/blog/${post.slug}`);
     expect(response.status()).toBe(200);
     const html = await response.text();
-    expect(html).toContain(`<title>${post.title} — Fanyi Pu</title>`);
+    expect(html).toContain(`<title>${post.title} — ${SITE_CONFIG.author.name}</title>`);
     expect(html).toContain(`content="${post.description}"`);
-    expect(html).toContain(`href="https://pufanyi.com/blog/${post.slug}"`);
+    expect(html).toContain(`href="${SITE_CONFIG.url}/blog/${post.slug}"`);
     expect(html).toContain('property="og:type" content="article"');
     expect(html).not.toContain('<script id="MathJax-script"');
   }
@@ -171,7 +250,7 @@ test('prerendered HTML contains article metadata and missing routes return the 4
   );
   await expect(page).toHaveTitle('404: Existence Left as an Exercise');
   await page.getByRole('link', { name: 'Home', exact: true }).click();
-  await expect(page).toHaveTitle('Fanyi Pu');
+  await expect(page).toHaveTitle(SITE_CONFIG.author.name);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'index, follow');
 });
 

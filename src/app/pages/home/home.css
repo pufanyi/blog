@@ -30,9 +30,116 @@
   color: var(--text-color);
 }
 
+.title:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 0.3rem;
+}
+
 .post-list {
   counter-reset: post;
   border-block: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+}
+
+.archive-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.3rem 1rem;
+  margin-bottom: 0.8rem;
+  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.archive-empty {
+  padding: 2rem 0;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 1.6rem;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.pagination a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.pagination a:hover {
+  color: var(--link-color);
+  background: var(--accent-bg);
+}
+
+.pagination a:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 3px;
+}
+
+.pagination-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: max(44px, 2.75rem);
+  padding: 0 0.4rem;
+}
+
+.pagination-number {
+  display: grid;
+  place-items: center;
+  min-width: max(44px, 2.75rem);
+  min-height: max(44px, 2.75rem);
+  padding: 0 0.25rem;
+  border: 1px solid transparent;
+}
+
+.pagination-number[aria-current="page"] {
+  color: var(--text-color);
+  background: var(--accent-bg);
+  border-color: var(--border-color);
+  font-weight: 600;
+}
+
+.pagination-ellipsis {
+  color: var(--text-secondary);
+  padding-inline: 0.3rem;
+}
+
+.pagination .is-disabled {
+  color: var(--text-secondary);
+  opacity: 0.45;
+}
+
+@media (max-width: 600px) {
+  .pagination-numbers {
+    order: -1;
+    width: 100%;
+  }
+}
+
+@media print {
+  .pagination {
+    display: none;
+  }
 }
 
 .post-entry {

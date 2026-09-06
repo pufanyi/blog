@@ -17,6 +17,11 @@ The development server runs at `http://localhost:4200/`. Posts live in
 `pnpm generate:data` rebuilds derived data, and also runs before start, build,
 test, and check commands.
 
+Site settings live in [`configs/`](configs/README.md): archive page size and
+display options, site metadata and citation authorship, footer, comments, and
+redirects. The default archive page size is 10. After editing YAML while the
+development server is running, run `pnpm generate:data` to refresh the app.
+
 Node tooling and executable configuration use `.mts`; Angular/shared code uses
 `.ts`, and authored JSX uses `.tsx`. Standalone scripts run directly on Node 24.
 MDX generation and its tests use `tsx` to load the post-local JSX components.
@@ -52,7 +57,7 @@ pnpm preview
 
 The preview serves `dist/blog/browser` at `http://127.0.0.1:4173/`, including the
 generated custom `404.html`. The build also generates Cloudflare `_redirects`
-from `content/redirects.yaml`.
+from `configs/redirects.yaml`.
 
 ## Validation
 

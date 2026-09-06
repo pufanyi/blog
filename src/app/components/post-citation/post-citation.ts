@@ -1,7 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
-
-const SITE_URL = 'https://pufanyi.com';
-const AUTHOR = 'Pu, Fanyi';
+import { SITE_CONFIG } from '../../data/site-config';
 
 function escapeBibtex(value: string): string {
   return value.replace(/([&%#_{}])/g, '\\$1');
@@ -24,12 +22,12 @@ export class PostCitationComponent {
     const [year, month] = this.date().split('-');
     const keySlug = this.slug().replace(/[^a-zA-Z0-9]+/g, '').toLowerCase() || 'post';
 
-    return `@misc{pu${year}${keySlug},
-  author = {${AUTHOR}},
+    return `@misc{${SITE_CONFIG.author.citationKeyPrefix}${year}${keySlug},
+  author = {${escapeBibtex(SITE_CONFIG.author.citationName)}},
   title  = {${escapeBibtex(this.title())}},
   year   = {${year}},
   month  = {${Number(month)}},
-  url    = {${SITE_URL}/blog/${encodeURIComponent(this.slug())}}
+  url    = {${SITE_CONFIG.url}/blog/${encodeURIComponent(this.slug())}}
 }`;
   });
 

@@ -17,6 +17,8 @@ import { PostNavigationComponent } from '../../components/post-navigation/post-n
 import { PostCitationComponent } from '../../components/post-citation/post-citation';
 import { PostContentDirective } from '../../directives/post-content';
 import { NotFoundComponent } from '../not-found/not-found';
+import { BLOG_CONFIG } from '../../data/blog-config';
+import { COMMENTS_CONFIG } from '../../data/comments-config';
 
 @Component({
   selector: 'app-post',
@@ -43,6 +45,8 @@ import { NotFoundComponent } from '../not-found/not-found';
   encapsulation: ViewEncapsulation.None,
 })
 export class PostComponent {
+  readonly showCitation = BLOG_CONFIG.showCitation;
+  readonly commentsEnabled = COMMENTS_CONFIG.enabled;
   private readonly route = inject(ActivatedRoute);
   readonly post = toSignal(this.route.data.pipe(map(data => data['post'] as Post | null)), {
     initialValue: null,
