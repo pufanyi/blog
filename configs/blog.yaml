@@ -1,8 +1,8 @@
-# 列表按发布日期倒序排列；第一页是 /blog，后续页是 /blog/page/2 等。
+# Posts are sorted newest first; pages use /blog, /blog/page/2, and so on.
 postsPerPage: 10
 description: Notes, derivations, and contest scraps by Fanyi Pu.
 showDescriptions: true
 showCoverImages: true
 showDates: true
-# 文章末尾的 BibTeX 引用卡片。
+# Show the BibTeX citation card at the end of each article.
 showCitation: true

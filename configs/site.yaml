@@ -1,4 +1,4 @@
-# 公共站点信息；修改后运行 pnpm generate:data，部署前重新构建。
+# Public site settings; run pnpm generate:data after edits and rebuild before deploying.
 url: https://pufanyi.com
 title: Fanyi's Blog
 description: Research, notes, and writing by Fanyi Pu.
