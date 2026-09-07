@@ -32,9 +32,14 @@ test('archive pagination supports keyboard navigation, reload, and history', asy
   const position = await page.evaluate(() => scrollY);
   await entry.locator('.post-title').click();
   await expect(page).toHaveURL(articlePath!);
+  await expect(page.locator('#article-structured-data')).toHaveCount(1);
+  expect(
+    await page.locator('#article-structured-data').evaluate(script => JSON.parse(script.textContent!).url),
+  ).toBe(`${SITE_CONFIG.url}${articlePath}`);
   await expect(page.locator('link[rel="prev"], link[rel="next"]')).toHaveCount(0);
   await page.goBack();
   await expect(page).toHaveURL('/blog/page/2');
+  await expect(page.locator('#article-structured-data')).toHaveCount(0);
   await expect(page.locator('.pagination [aria-current="page"]')).toHaveText('2');
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(position);
   await page.getByRole('link', { name: 'Previous page', exact: true }).click();
@@ -254,6 +259,19 @@ test('prerendered HTML contains article metadata and missing routes return the 4
     expect(html).toContain(`href="${SITE_CONFIG.url}/blog/${post.slug}"`);
     expect(html).toContain('property="og:type" content="article"');
     expect(html).not.toContain('<script id="MathJax-script"');
+    const dom = new JSDOM(html);
+    const scripts = dom.window.document.querySelectorAll('script[type="application/ld+json"]');
+    expect(scripts.length).toBe(1);
+    expect(JSON.parse(scripts[0]!.textContent!)).toMatchObject({
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: post.title,
+      description: post.description,
+      datePublished: post.date,
+      author: [{ '@type': 'Person', name: SITE_CONFIG.author.name, url: `${SITE_CONFIG.url}/` }],
+      mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_CONFIG.url}/blog/${post.slug}` },
+    });
+    dom.window.close();
   }
   const missing = await request.get('/blog/this-post-does-not-exist');
   expect(missing.status()).toBe(404);
@@ -263,6 +281,7 @@ test('prerendered HTML contains article metadata and missing routes return the 4
     '404: Existence Left as an Exercise',
   );
   await expect(page).toHaveTitle('404: Existence Left as an Exercise');
+  await expect(page.locator('#article-structured-data')).toHaveCount(0);
   await page.getByRole('link', { name: 'Home', exact: true }).click();
   await expect(page).toHaveTitle(SITE_CONFIG.author.name);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'index, follow');

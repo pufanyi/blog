@@ -69,6 +69,7 @@ export class PageMetadataStrategy extends TitleStrategy {
       this.meta.removeTag('property="article:author"');
     }
     this.updateLink('canonical', canonical);
+    this.updateArticleStructuredData(missing ? null : post, canonical);
     this.updateLink(
       'prev',
       blogPage && blogPage.number > 1
@@ -79,6 +80,38 @@ export class PageMetadataStrategy extends TitleStrategy {
       blogPage && blogPage.number < blogPage.totalPages
         ? `${SITE_CONFIG.url}${blogPagePath(blogPage.number + 1)}` : null,
     );
+  }
+
+  private updateArticleStructuredData(post: Post | null | undefined, canonical: string): void {
+    let script = this.document.head.querySelector<HTMLScriptElement>('#article-structured-data');
+    if (!post) {
+      script?.remove();
+      return;
+    }
+    const data = {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      '@id': `${canonical}#article`,
+      url: canonical,
+      mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+      headline: post.title,
+      description: post.description,
+      datePublished: post.date,
+      author: [{
+        '@type': 'Person',
+        name: SITE_CONFIG.author.name,
+        url: new URL('/', SITE_CONFIG.url).href,
+      }],
+      ...(post.coverImage ? { image: [new URL(post.coverImage, SITE_CONFIG.url).href] } : {}),
+    };
+    if (!script) {
+      script = this.document.createElement('script');
+      script.id = 'article-structured-data';
+      script.type = 'application/ld+json';
+      this.document.head.appendChild(script);
+    }
+    // Escape raw-text delimiters so authored text cannot close the script in prerendered HTML.
+    script.textContent = JSON.stringify(data).replaceAll('<', '\\u003c');
   }
 
   private updateLink(rel: string, href: string | null): void {

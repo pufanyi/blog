@@ -74,6 +74,9 @@ Project guidance for agents working in this repository.
   in `PostContentDirective`, and TOC interaction in `PostNavigationComponent`.
   Use render hooks and cleanup callbacks rather than retrying DOM queries.
 - `PageMetadataStrategy` handles browser and prerendered metadata.
+  It also owns article `BlogPosting` JSON-LD: reuse authored dates and article
+  covers, omit unknown modification dates and unrelated fallback images, and
+  escape `<` when serializing JSON into HTML script elements.
   `PageScrollService` consumes router scroll events and corrects saved positions
   or fragments after fonts/formulas settle, unless the reader has scrolled.
 
