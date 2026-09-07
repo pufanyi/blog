@@ -57,3 +57,214 @@ $$
 最终复杂度 $\mathcal{O}(k+nm)$。
 
 代码可以看[这里](https://codeforces.com/contest/708/submission/69550720)。
+
+```cpp
+#include <map>
+#include <set>
+#include <stack>
+#include <ctime>
+#include <cmath>
+#include <queue>
+#include <cstdio>
+#include <cctype>
+#include <vector>
+#include <bitset>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <algorithm>
+ 
+using namespace std;
+ 
+namespace pufanyi {
+ 
+    inline char gc() {
+        static const int L = 233333;
+        static char sxd[L], *sss = sxd, *ttt = sxd;
+        if (sss == ttt) {
+            ttt = (sss = sxd) + fread(sxd, 1, L, stdin);
+            if (sss == ttt) {
+                return EOF;
+            }
+        }
+        return *sss++;
+    }
+ 
+#ifndef _AT_HOME
+#define dd c = gc()
+#else
+#define dd c = getchar()
+#endif
+    inline char readalpha() {
+        char dd;
+        for (; !isalpha(c); dd);
+        return c;
+    }
+ 
+    inline char readchar() {
+        char dd;
+        for (; c == ' '; dd);
+        return c;
+    }
+ 
+    template <class T>
+    inline bool read(T& x) {
+        bool flg = false;
+        char dd;
+        x = 0;
+        for (; !isdigit(c); dd) {
+            if (c == '-') {
+                flg = true;
+            } else if(c == EOF) {
+                return false;
+            }
+        }
+        for (; isdigit(c); dd) {
+            x = (x << 1) + (x << 3) + (c ^ 48);
+        }
+        if (flg) {
+            x = -x;
+        }
+        return true;
+    }
+#undef dd
+ 
+    template <class T>
+    inline void write(T x) {
+        if (x < 0) {
+            putchar('-');
+            x = -x;
+        }
+        if (x < 10) {
+            putchar(x | 48);
+            return;
+        }
+        write(x / 10);
+        putchar((x % 10) | 48);
+    }
+ 
+    template <class T>
+    inline void writesp(T x) {
+        write(x);
+        putchar(' ');
+    }
+ 
+    template <class T>
+    inline void writeln(T x) {
+        write(x);
+        puts("");
+    }
+ 
+    typedef long long LL;
+ 
+    const int maxn = 1505;
+    const int maxk = 100005;
+    const int mod = 1000000007;
+ 
+    inline void add(int& x, int y) {
+        x += y;
+        if (x >= mod) {
+            x -= mod;
+        } else if (x < 0) {
+            x += mod;
+        }
+    }
+ 
+    inline int plus(int x, int y) {
+        x += y;
+        if (x >= mod) {
+            x -= mod;
+        } else if (x < 0) {
+            x += mod;
+        }
+        return x;
+    }
+ 
+    inline int ksm(int a, int b) {
+        int ans = 1;
+        for (; b; b >>= 1, a = (LL) a * a % mod) {
+            if (b & 1) {
+                ans = (LL) ans * a % mod;
+            }
+        }
+        return ans;
+    }
+ 
+    int n, m, p, k;
+    int fac[maxk];
+    int inv[maxk];
+    int pp[maxk];
+    int ppp[maxk];
+    int q[maxk];
+    int f[maxn];
+    int g[maxn];
+    int F[maxn];
+    int G[maxn];
+ 
+    inline int C(int n, int m) {
+        if (n < m) {
+            return 0;
+        } else {
+            return (LL) fac[n] * inv[m] % mod * inv[n - m] % mod;
+        }
+    }
+ 
+    inline int Main() {
+        int a, b;
+        read(n), read(m);
+        read(a), read(b);
+        p = (LL) a * ksm(b, mod - 2) % mod;
+        int PP = (mod + 1 - p) % mod;
+        read(k);
+        fac[0] = 1, pp[0] = 1, ppp[0] = 1;
+        for (int i = 1; i <= k; ++i) {
+            pp[i] = (LL) pp[i - 1] * p % mod;
+            ppp[i] = (LL) ppp[i - 1] * PP % mod;
+            fac[i] = (LL) fac[i - 1] * i % mod;
+        }
+        inv[k] = ksm(fac[k], mod - 2);
+        for (int i = k - 1; ~i; --i) {
+            inv[i] = (LL) inv[i + 1] * (i + 1) % mod;
+        }
+        for (int i = 0; i <= m; ++i) {
+            q[i] = (LL) C(k, i) * pp[i] % mod * ppp[k - i] % mod;
+        }
+        f[m] = g[1] = F[m] = G[1] = 1;
+        for (int i = 1; i <= n; ++i) {
+            int s1 = 0, s2 = 0;
+            for (int r = 1; r <= m; ++r) {
+                add(s1, (LL) q[r - 1] * (F[m] - F[r - 1]) % mod);
+                add(s2, q[r - 1]);
+                f[r] = 0;
+                add(f[r], s1);
+                add(f[r], - (LL) G[r + 1] * s2 % mod);
+                f[r] = (LL) f[r] * q[m - r] % mod;
+            }
+            s1 = 0, s2 = 0;
+            for (int l = m; l; --l) {
+                add(s1, (LL) q[m - l] * (F[m] - G[l + 1]) % mod);
+                add(s2, q[m - l]);
+                g[l] = 0;
+                add(g[l], s1);
+                add(g[l], - (LL) F[l - 1] * s2 % mod);
+                g[l] = (LL) g[l] * q[l - 1] % mod;
+            }
+            for (int r = 1; r <= m; ++r) {
+                F[r] = plus(F[r - 1], f[r]);
+            }
+            for (int l = m; l; --l) {
+                G[l] = plus(G[l + 1], g[l]);
+            }
+        }
+        writeln(F[m]);
+        return 0;
+    }
+ 
+}
+ 
+int main() {
+    return pufanyi::Main();
+}
+```

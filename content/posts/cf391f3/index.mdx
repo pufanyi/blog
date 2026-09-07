@@ -23,3 +23,55 @@ description: "CodeForces 391F3 Stock Trading 题解。"
 根据这样两个性质，我们可以得到很多个区间。不难发现这些区间是独立的。最后我们取前 $k$ 大的区间即可。
 
 具体代码可以[戳这里](https://codeforces.com/contest/391/submission/69274254)。
+
+```cpp
+namespace pufanyi {
+    const int maxn = 4000005;
+
+    typedef long long LL;
+
+    LL aa[maxn];
+    LL bb[maxn];
+    LL sl[maxn];
+    LL sr[maxn];
+
+    int Main() {
+        int n, k;
+        read(n), read(k);
+        for (int i = 1; i <= n; ++i) {
+            read(aa[i]);
+        }
+        int m = 0, tl = 0, tr = 0;
+        for (int i = 1, j = 1; i <= n; i = j + 1, j = i) {
+            while (j <= n && aa[j + 1] >= aa[j]) {
+                ++j;
+            }
+            while (tl && aa[i] <= sl[tl]) {
+                bb[++m] = sr[tr--] - sl[tl--];
+            }
+            sl[++tl] = aa[i];
+            while (tr && aa[j] >= sr[tr]) {
+                bb[++m] = sr[tr--] - sl[tl--];
+            }
+            sr[++tr] = aa[j];
+        }
+        while (tl) {
+            bb[++m] = sr[tr--] - sl[tl--];
+        }
+        k = min(k, m);
+        nth_element(bb + 1, bb + k, bb + m + 1, greater<LL>());
+        LL ans = 0;
+        for (int i = 1; i <= k; ++i) {
+            if (bb[i] > 0) {
+                ans += bb[i];
+            }
+        }
+        writeln(ans);
+        return 0;
+    }
+}
+
+int main() {
+    return pufanyi::Main();
+}
+```
