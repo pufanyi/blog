@@ -5,6 +5,17 @@ description: "Notes for Attention"
 draft: true
 ---
 
-## Multi-Head Attention
+## Multi-Head Attention (MHA)
 
-宇宙级经典论文 [@vaswani2023attentionneed]。
+经典论文 [@vaswani2023attentionneed]，参考了 [@weng2023transformer; @kexuefm-10091]。
+
+MHA 大概就是把 QKV 分成多组：
+
+$$
+O = \begin{bmatrix}
+O_1&\cdots&O_h
+\end{bmatrix}W^{(o)}\\
+O_t = \mathrm{Attention}\left(X_qW_t^{(q)}, X_kW_t^{(k)}, X_vW_t^{(v)}\right)
+$$
+
+有一个问题是 head 比较多之后 KV-cache 就会占很大显存。
