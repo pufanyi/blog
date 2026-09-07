@@ -52,3 +52,13 @@ $$
 $$
 
 我们可以将 $W_1$ 做 Column-wise 拆分，$W_2$ 做 Row-wise 拆分，这样子做完 $XW_1$ 之后不需要做 All-Gather，反向传播过完 $W_2$ 之后也不需要 All-Gather 完整梯度。
+
+对于 attention，考虑到 Megatron [@shoeybi2020megatronlmtrainingmultibillionparameter] 里没有考虑 number of attention heads 大于 TP 的情况（[代码位置](https://github.com/NVIDIA/Megatron-LM/blob/b1fe7599e18a213292600177ad7ff290a1127160/megatron/core/transformer/transformer_config.py#L1586-L1590)），我们也只讨论这一点
+
+```python
+if self.num_attention_heads % self.tensor_model_parallel_size != 0:
+    raise ValueError(
+        f"num_attention_heads ({self.num_attention_heads}) must be a multiple of "
+        f"tensor_model_parallel_size ({self.tensor_model_parallel_size})."
+    )
+```
