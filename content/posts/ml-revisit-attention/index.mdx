@@ -13,10 +13,28 @@ Multi-Head Attention (MHA) [@vaswani2023attentionneed] 大概就是把 QKV 分�
 $$
 O = \begin{bmatrix}
 O_1&\cdots&O_h
-\end{bmatrix}W^{(o)}\\
-O_t = \mathrm{Attention}\left(X_qW_t^{(q)}, X_kW_t^{(k)}, X_vW_t^{(v)}\right)
+\end{bmatrix}W_o\\
+O_t = \mathrm{Attention}\left(X_qW_q^{(t)}, X_kW_k^{(t)}, X_vW_v^{(t)}\right)
 $$
 
-为了压缩 KV cache，Multi-Query Attention (MQA) [@shazeer2019fasttransformerdecodingwritehead] 让 $K$ 和 $V$ 合并成一个 head。但是这样可能导致压缩过猛，所以 Grouped-Query Attention (GQA) [@ainslie2023gqatraininggeneralizedmultiquery] 将 head 分成 $g$ 组，每组 share 同一个 $W^{(k)}$ 和 $W^{(v)}$。
+为了压缩 KV cache，Multi-Query Attention (MQA) [@shazeer2019fasttransformerdecodingwritehead] 让 $K$ 和 $V$ 合并成一个 head。但是这样可能导致压缩过猛，所以 Grouped-Query Attention (GQA) [@ainslie2023gqatraininggeneralizedmultiquery] 将 head 分成 $g$ 组，每组 share 同一个 $W_k$ 和 $W_v$。
 
 <AttentionHeadsDiagram />
+
+## Multi-Head Latent Attention
+
+首先将 $X$ 压缩成 $C_q\in\mathbb{R}^{s_q\times d_{c}^{(q)}}$ 和 $C_{kv}\in\mathbb{R}^{s_{kv}\times d_{c}^{(kv)}}$ 两个低秩矩阵。这样子的话
+
+$$
+W_q\in\mathbb{R}^{d_c^{(q)}\times d_{qk}},\quad W_{k}\in \mathbb{R}^{d_c^{(kv)}\times d_{qk}}, \quad W_{v}\in\mathbb{R}^{d_c^{(kv)}\times d_{v}}
+$$
+
+然后考虑
+
+$$
+QK^{\top} = C_qW_q\left(C_{kv}W_k\right)^{\top} = C_qW_{q}W_{k}^{\top}C_{kv}^{\top}
+$$
+
+因为 $C_qW_qW_k^{\top}$ 计算比较简单，我们把这部分合并，cache $C_{kv}$ 即可。
+
+但问题是，我们之前因为需要得到 $Q=C_{kv}W_k$ 然后 apply RoPE [@su2023roformerenhancedtransformerrotary]，现在 $C_qW_qW_k^{\top}$ 合并了，无法在中间插入 rope。解决方案是选取 $Q$ 和 $K$ 中的一部分维度，这些维度不做低秩压缩上 RoPE，然后这些维度共享一个 $K$。
