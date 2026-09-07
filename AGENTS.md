@@ -130,6 +130,8 @@ Project guidance for agents working in this repository.
 - Keep one source of truth for a diagram's data. Derive related masks, cells,
   edges, and labels from the same arrays and predicates instead of duplicating
   hard-coded values that can drift apart.
+- Match diagram symbols, head indices, and matrix/vector conventions to the
+  surrounding post; adapt reference figures to the author's notation.
 - For coordinate geometry, use the same scale on both axes and calculate
   intersections from the equations. Simple Latin point labels can use italic
   SVG text; reserve MathJax containers for actual TeX.

@@ -63,4 +63,13 @@ if self.num_attention_heads % self.tensor_model_parallel_size != 0:
     )
 ```
 
-对于 MHA 
+对于 MHA 就非常好做了，对于
+
+$$
+O = \begin{bmatrix}
+O_1 & O_2 & \cdots & O_h
+\end{bmatrix}W_o\\
+O_t = \mathrm{Attention}\left(XW_q^{(t)}, XW_k^{(t)}, XW_v^{(t)}\right)
+$$
+
+我们将 $W_o$ 进行 Row-wise 切分。然后每张卡单独计算一定量的 heads，这样子天然是一个 Column-wise 切分的状态。

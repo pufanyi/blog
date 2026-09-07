@@ -1,0 +1,212 @@
+.mla-figure {
+  container-type: inline-size;
+  margin: 1.75rem 0;
+  text-align: left;
+  hyphens: none;
+}
+
+.mla-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.mla-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mla-query {
+  color: var(--accent-sage);
+}
+.mla-kv {
+  color: var(--accent-blue);
+}
+.mla-rope {
+  color: var(--accent-lavender);
+}
+.mla-neutral {
+  color: var(--text-secondary);
+}
+
+.mla-line-key {
+  width: 1.5rem;
+  border-top: 2px solid currentColor;
+}
+
+.mla-rope .mla-line-key {
+  border-top-style: dashed;
+}
+
+.mla-cache-key {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 0.85rem;
+  border: 1px solid var(--accent-blue);
+  border-radius: 2px;
+  background: repeating-linear-gradient(135deg, transparent 0 3px, var(--accent-blue) 3px 4px);
+}
+
+.mla-scroll {
+  max-width: 100%;
+  margin-top: 0.75rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.mla-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+.mla-diagram {
+  display: block;
+  width: 780px;
+  height: 700px;
+  margin-inline: auto;
+}
+
+.mla-edge {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+}
+
+.mla-edge.mla-rope {
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+.mla-arrowhead {
+  fill: currentColor;
+}
+
+.mla-node-box {
+  fill: color-mix(in srgb, currentColor 5%, var(--paper-bg));
+  stroke: currentColor;
+  stroke-width: 1.2;
+}
+
+.mla-node-cached .mla-node-box {
+  fill: color-mix(in srgb, currentColor 12%, var(--paper-bg));
+  stroke-width: 2.4;
+}
+
+.mla-node[data-node="attention"] .mla-node-box {
+  fill: color-mix(in srgb, var(--accent-ochre) 9%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+}
+
+.mla-cache-stripe {
+  stroke: var(--accent-blue);
+  stroke-width: 1.2;
+}
+.mla-hatch {
+  stroke: var(--accent-blue);
+  stroke-width: 1.1;
+}
+
+.mla-cache-badge {
+  fill: var(--accent-blue);
+}
+
+.mla-cache-badge-label {
+  fill: var(--on-accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-anchor: middle;
+}
+
+.mla-node-title,
+.mla-attention-title,
+.mla-projection-label {
+  text-anchor: middle;
+  font-family: var(--font-body);
+  fill: var(--text-secondary);
+}
+
+.mla-node-title {
+  font-size: 11px;
+}
+
+.mla-attention-title {
+  fill: var(--text-color);
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 500;
+  dominant-baseline: central;
+}
+
+.mla-node-math {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: var(--text-color);
+  font-size: 19px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mla-node-math mjx-container {
+  margin: 0 !important;
+}
+
+.mla-projection-label {
+  fill: currentColor;
+  stroke: var(--paper-bg);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+  font-size: 12px;
+}
+
+.mla-cache-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.65rem;
+  padding: 0.8rem 0.5rem;
+  border-block: 1px solid var(--accent-blue);
+  background: var(--accent-bg);
+  color: var(--text-color);
+  font-size: 0.83rem;
+}
+
+.mla-cache-summary strong {
+  color: var(--text-color);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.mla-figure figcaption {
+  margin-top: 0.85rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.85;
+}
+
+.mla-scroll-hint {
+  display: none;
+  margin-top: 0.8rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+@container (max-width: 779px) {
+  .mla-scroll-hint {
+    display: block;
+  }
+}

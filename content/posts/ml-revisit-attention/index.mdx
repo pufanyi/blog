@@ -23,6 +23,8 @@ $$
 
 ## Multi-Head Latent Attention
 
+Multi-Head Latent Attention (MLA) [@deepseekai2024deepseekv2strongeconomicalefficient] 尝试将 QKV 低秩压缩。
+
 首先将 $X$ 压缩成 $C_q\in\mathbb{R}^{s_q\times d_{c}^{(q)}}$ 和 $C_{kv}\in\mathbb{R}^{s_{kv}\times d_{c}^{(kv)}}$ 两个低秩矩阵。这样子的话
 
 $$
@@ -37,4 +39,8 @@ $$
 
 因为 $C_qW_qW_k^{\top}$ 计算比较简单，我们把这部分合并，cache $C_{kv}$ 即可。
 
-但问题是，我们之前因为需要得到 $Q=C_{kv}W_k$ 然后 apply RoPE [@su2023roformerenhancedtransformerrotary]，现在 $C_qW_qW_k^{\top}$ 合并了，无法在中间插入 rope。解决方案是选取 $Q$ 和 $K$ 中的一部分维度，这些维度不做低秩压缩上 RoPE，然后这些维度共享一个 $K$。
+但问题是，我们之前因为需要得到 $K=C_{kv}W_k$ 然后 apply RoPE [@su2023roformerenhancedtransformerrotary]，现在 $C_qW_qW_k^{\top}$ 合并了，无法在中间插入 rope。解决方案是给 $Q$ 和 $K$ 单独加一个 RoPE 分支：$Q$ 的 RoPE 分支从 $C_q$ 投影得到，$K$ 的 RoPE 分支直接从 $X$ 投影得到，并在所有 heads 间共享一个 $K$。
+
+下面沿用上文的矩阵记号展开 MLA 的结构：
+
+<MlaDiagram />
