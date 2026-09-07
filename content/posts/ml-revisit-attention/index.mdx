@@ -4,11 +4,11 @@ date: "2026-09-07"
 description: "Notes for Attention"
 ---
 
-## Multi-Head Attention (MHA)
+参考了 [@weng2023transformer; @kexuefm-10091; @purshow2026attention]。
 
-经典论文 [@vaswani2023attentionneed]，参考了 [@weng2023transformer; @kexuefm-10091]。
+## Multi-Head Attention
 
-MHA 大概就是把 QKV 分成多组：
+Multi-Head Attention (MHA) [@vaswani2023attentionneed] 大概就是把 QKV 分成多组：
 
 $$
 O = \begin{bmatrix}
@@ -16,3 +16,7 @@ O_1&\cdots&O_h
 \end{bmatrix}W^{(o)}\\
 O_t = \mathrm{Attention}\left(X_qW_t^{(q)}, X_kW_t^{(k)}, X_vW_t^{(v)}\right)
 $$
+
+为了压缩 KV cache，Multi-Query Attention (MQA) [@shazeer2019fasttransformerdecodingwritehead] 让 $K$ 和 $V$ 合并成一个 head。但是这样可能导致压缩过猛，所以 Grouped-Query Attention (GQA) [@ainslie2023gqatraininggeneralizedmultiquery] 将 head 分成 $g$ 组，每组 share 同一个 $W^{(k)}$ 和 $W^{(v)}$。
+
+<AttentionHeadsDiagram />

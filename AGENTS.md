@@ -189,6 +189,8 @@ Project guidance for agents working in this repository.
   style. When a bibliography is rendered, the generator appends it with a
   level-two `References` heading; do not add a manual heading or `[^ref]`
   marker to the MDX source.
+- Citation keys resolve only against the current post's `references.bib`;
+  entries in another post's bibliography are not shared automatically.
 - Citation workflow:
   1. Create or update `content/posts/<slug>/references.bib`. Use readable,
      stable keys such as `kingma2014autoencoding`; write authors as

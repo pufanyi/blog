@@ -38,6 +38,7 @@ import { COMMENTS_CONFIG } from '../../data/comments-config';
     './styles/code-blocks.css',
     './styles/tables.css',
     './styles/media.css',
+    './styles/media/attention-heads.css',
     './styles/media/collectives.css',
     './styles/media/cf351d-pointers.css',
     './styles/media/cf391f3-trading.css',
