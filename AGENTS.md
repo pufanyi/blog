@@ -97,6 +97,9 @@ Project guidance for agents working in this repository.
 - Check search with real, bubbling keyboard events and both Chinese and
   English queries. Verify one-step arrow navigation, focus containment,
   dismissal, and focus restoration on the served page.
+- Keep the search listbox explicitly `tabindex="-1"`: Chromium otherwise adds
+  an overflowing results container to the Tab order. Its combobox owns arrow-key
+  navigation; cover overflow explicitly in browser tests.
 - Keep search-result animations local: AutoAnimate's removal animation adjusts
   window scrolling and can overwrite the page's saved reading position.
 - MDX-generated post images are emitted as plain HTML first, then hydrated

@@ -30,7 +30,8 @@
       </button>
     </div>
 
-    <div id="search-results" role="listbox" aria-label="Search results" class="search-results">
+    <!-- The combobox owns keyboard navigation; keep the scrollable list out of the Tab order. -->
+    <div id="search-results" role="listbox" tabindex="-1" aria-label="Search results" class="search-results">
       @if (query() && results().length === 0) {
         <div class="search-empty">No results for "{{ query() }}"</div>
       } @else if (!query()) {

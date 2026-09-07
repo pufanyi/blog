@@ -124,12 +124,22 @@ test.afterEach(async ({ page }) => {
 test('search moves one result per key and keeps focus inside the dialog', async ({ page }) => {
   await page.goto('/blog');
   const { trigger, input } = await openSearch(page);
+  // Ensure overflow regardless of viewport size or changes to the post collection.
+  await page.addStyleTag({ content: '.search-results { max-height: 140px; }' });
   await input.fill('model');
   await expect(page.getByRole('option').nth(2)).toBeVisible();
+  const results = page.getByRole('listbox', { name: 'Search results' });
+  await expect.poll(() => results.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
   await expect(input).toHaveAttribute('aria-activedescendant', 'search-result-0');
   await input.press('ArrowDown');
   await expect(input).toHaveAttribute('aria-activedescendant', 'search-result-1');
   await input.press('ArrowUp');
+  await expect(input).toHaveAttribute('aria-activedescendant', 'search-result-0');
+  await input.press('ArrowUp');
+  await expect(input).toHaveAttribute('aria-activedescendant', `search-result-${await page.getByRole('option').count() - 1}`);
+  await expect.poll(() => results.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+  await expect(input).toBeFocused();
+  await input.press('ArrowDown');
   await expect(input).toHaveAttribute('aria-activedescendant', 'search-result-0');
   await input.press('Tab');
   await expect(page.getByRole('button', { name: 'Close search' })).toBeFocused();
@@ -141,6 +151,10 @@ test('search moves one result per key and keeps focus inside the dialog', async 
   await expect(page.getByRole('dialog', { name: 'Search posts' })).toHaveCount(0);
   await expect(trigger).toBeFocused();
   await openSearch(page);
+  await input.press('Tab');
+  await expect(page.getByRole('button', { name: 'Close search' })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(input).toBeFocused();
   await page.getByRole('button', { name: 'Close search' }).click();
   await expect(trigger).toBeFocused();
 });
