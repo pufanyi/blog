@@ -35,3 +35,155 @@ $$
 根据第四种情况，我们可以发现蓝色的匹配数越多越好，于是我们考虑二分蓝色的匹配数量，最终确定答案。
 
 代码可以看[这里](https://atcoder.jp/contests/agc032/submissions/9683145)。
+
+```cpp
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <map>
+#include <set>
+#include <stack>
+#include <ctime>
+#include <cmath>
+#include <queue>
+#include <cstdio>
+#include <cctype>
+#include <vector>
+#include <bitset>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+namespace pufanyi {
+
+    inline char gc() {
+        static const int L = 233333;
+        static char sxd[L], *sss = sxd, *ttt = sxd;
+        if (sss == ttt) {
+            ttt = (sss = sxd) + fread(sxd, 1, L, stdin);
+            if (sss == ttt) {
+                return EOF;
+            }
+        }
+        return *sss++;
+    }
+
+#ifndef _AT_HOME
+#define dd c = gc()
+#else
+#define dd c = getchar()
+#endif
+    inline char readalpha() {
+        char dd;
+        for (; !isalpha(c); dd);
+        return c;
+    }
+
+    inline char readchar() {
+        char dd;
+        for (; c == ' '; dd);
+        return c;
+    }
+
+    template <class T>
+    inline bool read(T& x) {
+        bool flg = false;
+        char dd;
+        x = 0;
+        for (; !isdigit(c); dd) {
+            if (c == '-') {
+                flg = true;
+            } else if(c == EOF) {
+                return false;
+            }
+        }
+        for (; isdigit(c); dd) {
+            x = (x << 1) + (x << 3) + (c ^ 48);
+        }
+        if (flg) {
+            x = -x;
+        }
+        return true;
+    }
+#undef dd
+
+    template <class T>
+    inline void write(T x) {
+        if (x < 0) {
+            putchar('-');
+            x = -x;
+        }
+        if (x < 10) {
+            putchar(x | 48);
+            return;
+        }
+        write(x / 10);
+        putchar((x % 10) | 48);
+    }
+
+    template <class T>
+    inline void writesp(T x) {
+        write(x);
+        putchar(' ');
+    }
+
+    template <class T>
+    inline void writeln(T x) {
+        write(x);
+        puts("");
+    }
+
+    typedef long long LL;
+
+    const int maxn = 200005;
+
+    int n, m;
+    int aa[maxn];
+
+    inline bool check(int x) {
+        int lim = x << 1;
+        for (int l = lim + 1, r = n << 1; l < r; ++l, --r) {
+            if (aa[l] + aa[r] < m) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    int Main() {
+        read(n), read(m);
+        for (int i = 1; i <= n << 1; ++i) {
+            read(aa[i]);
+        }
+        sort(aa + 1, aa + (n << 1) + 1);
+        int l = 0, r = n;
+        while (l < r) {
+            int mid = (l + r) >> 1;
+            if (check(mid)) {
+                r = mid;
+            } else {
+                l = mid + 1;
+            }
+        }
+        int ans = 0;
+        int lim = l << 1;
+        for (int l = 1, r = lim; l < r; ++l, --r) {
+            ans = max(ans, (aa[l] + aa[r]) % m);
+        }
+        for (int l = lim + 1, r = n << 1; l < r; ++l, --r) {
+            ans = max(ans, (aa[l] + aa[r]) % m);
+        }
+        writeln(ans);
+        return 0;
+    }
+
+}
+
+int main() {
+    return pufanyi::Main();
+}
+```

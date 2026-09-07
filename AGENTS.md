@@ -78,6 +78,11 @@ Project guidance for agents working in this repository.
 
 - All color choices should follow the muted Morandi theme and use the semantic
   color variables from `src/styles/morandi.css`.
+- For Linux browser screenshots, verify a CJK fallback font is available. On
+  WSL, a temporary Fontconfig configuration can load Windows fonts without
+  changing the site's typography.
+- Disable animations when capturing theme changes so SVG strokes and animated
+  page backgrounds are captured in the same theme state.
 - The shared 404 experience lives in `src/app/pages/not-found` and is also used
   for missing blog slugs. Keep its recovery and peer-review interactions
   covered by component tests. Preserve its academic copy during style-only
@@ -115,6 +120,8 @@ Project guidance for agents working in this repository.
   dynamic labels); mixed JSX children produce React warnings and empty titles.
 - Keep diagram colors in prefixed classes under the post media styles and use
   only semantic variables from `src/styles/morandi.css`; verify both themes.
+  Distinguish edge roles with line patterns or weight as well as color, since
+  muted hues can look alike at small sizes.
   Post styles have per-file production budgets; put large diagram styles under
   `styles/media/` and register them separately in `PostComponent.styleUrls`.
 - Keep one source of truth for a diagram's data. Derive related masks, cells,
