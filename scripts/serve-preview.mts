@@ -9,6 +9,7 @@ const types: Record<string, string> = {
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json',
+  '.xml': 'application/xml; charset=utf-8',
   '.avif': 'image/avif',
   '.svg': 'image/svg+xml',
   '.woff': 'font/woff',
