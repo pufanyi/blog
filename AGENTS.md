@@ -176,6 +176,8 @@ Project guidance for agents working in this repository.
   hard-coded values that can drift apart.
   Memory diagrams should state tensor precisions and included allocations;
   distinguish stored model states from peak memory used by temporary buffers.
+  Distributed training flows should distinguish per-layer/bucket collectives
+  from total per-step communication and show temporary states being released.
 - Match diagram symbols, head indices, and matrix/vector conventions to the
   surrounding post; adapt reference figures to the author's notation.
 - When redrawing legacy graphs, validate nodes and capacities against the

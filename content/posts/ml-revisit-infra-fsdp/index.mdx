@@ -26,4 +26,6 @@ description: "Notes for Data Parallel"
 
 对于 ZeRO-2，切分了 optimizer states 和 gradient。事实上和 ZeRO-1 是一样的。因为我们不难观察到 ZeRO-1 中，backward reduce-scatter 之后，每张卡只需要保存部分梯度，别的梯度可以立刻释放掉。所以通信仍然是一次 Reduce-Scatter 一次 All-Gather，也就是 $4\Psi$。
 
-对于 ZeRO-3，把模型参数也给切分了。这时候每次 forward 我们需要做一次 All-Gather 聚合模型参数。然后和 ZeRO-2 的做法一致。通信量是 $2\Psi+4\Psi=6\Psi$。
+对于 ZeRO-3，把模型参数也给切分了。这时候每次 forward 我们需要按层 All-Gather 聚合模型参数，用完就释放完整参数，所以 backward 前还需要再次 All-Gather 本层参数。梯度做 Reduce-Scatter 后，每张卡更新并保留自己的参数分片，等下次 forward 时再聚合。于是通信量是两次参数 All-Gather 加一次梯度 Reduce-Scatter，也就是 $2\Psi+2\Psi+2\Psi=6\Psi$。
+
+<ZeroFlowComparison />

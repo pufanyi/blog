@@ -1,0 +1,183 @@
+.infra-zero-flow-figure {
+  container-type: inline-size;
+  margin: 2rem 0;
+  text-align: left;
+  hyphens: none;
+}
+
+.infra-zero-flow-intro {
+  margin-bottom: 0.85rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.infra-zero-flow-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.infra-zero-flow-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+.infra-zero-flow-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  min-width: 780px;
+}
+
+.infra-zero-flow-panel {
+  min-width: 0;
+  padding: 0.6rem 0 0.7rem;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+}
+
+.infra-zero-flow-heading {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 0.7rem;
+  text-align: center;
+}
+
+.infra-zero-flow-heading strong {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.infra-zero-flow-heading > span {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.infra-zero-flow-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.infra-zero-flow-phase {
+  fill: color-mix(in srgb, var(--surface-soft) 12%, var(--paper-bg));
+  stroke: var(--border-light);
+  stroke-width: 1;
+}
+
+.infra-zero-flow-operation {
+  fill: color-mix(in srgb, var(--surface-soft) 35%, var(--paper-bg));
+  stroke: var(--border-color);
+  stroke-width: 0.7;
+}
+
+.infra-zero-flow-rank,
+.infra-zero-flow-action,
+.infra-zero-flow-note,
+.infra-zero-flow-label {
+  fill: var(--text-color);
+  text-anchor: middle;
+  font-family: var(--font-body);
+  font-size: 11px;
+}
+
+.infra-zero-flow-rank {
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.infra-zero-flow-action {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.infra-zero-flow-phase-title {
+  fill: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.infra-zero-flow-note {
+  fill: var(--text-secondary);
+  font-size: 10px;
+}
+
+.infra-zero-flow-label.infra-zero-parameters,
+.infra-zero-flow-label.infra-zero-gradients {
+  fill: currentColor;
+}
+
+.infra-zero-flow-transfer {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.8;
+  opacity: 0.18;
+}
+
+.infra-zero-flow-transfer-focus {
+  stroke-width: 1.35;
+  opacity: 1;
+}
+
+.infra-zero-flow-exchange.infra-zero-gradients .infra-zero-flow-transfer {
+  stroke-dasharray: 3 2;
+}
+
+.infra-zero-flow-local path {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 0.8;
+  opacity: 0.5;
+}
+
+.infra-zero-flow-arrow-parameters { fill: var(--accent-teal); }
+.infra-zero-flow-arrow-gradients { fill: var(--accent-blush); }
+.infra-zero-flow-arrow-local { fill: var(--text-secondary); }
+
+.infra-zero-flow-unused {
+  opacity: 0.25;
+}
+
+.infra-zero-flow-reduced {
+  fill: none;
+  stroke: var(--text-color);
+  stroke-width: 1;
+}
+
+.infra-zero-flow-cost {
+  display: grid;
+  gap: 0.4rem;
+  padding-top: 0.65rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.infra-zero-flow-cost > span:nth-child(2) {
+  color: var(--text-color);
+  font-size: 0.85rem;
+}
+
+.infra-zero-flow-scroll-hint {
+  display: none;
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.73rem;
+  text-align: center;
+}
+
+.infra-zero-flow-figure figcaption {
+  margin-top: 0.85rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.8;
+  text-align: left;
+}
+
+@container (max-width: 779px) {
+  .infra-zero-flow-scroll-hint { display: block; }
+}
