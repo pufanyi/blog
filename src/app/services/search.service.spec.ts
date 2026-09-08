@@ -5,7 +5,7 @@ describe('generated search index', () => {
   it('finds Chinese words in published posts and puts title matches before body matches', () => {
     const search = new SearchService();
     expect(search.search('模型').map(result => result.slug)).toEqual(
-      expect.arrayContaining(['ml-revisit-ae', 'ml-revisit-diffusion']),
+      expect.arrayContaining(['ml-revisit-vae', 'ml-revisit-diffusion']),
     );
     const results = search.search('model');
     expect(results[0].matchField).toBe('title');
