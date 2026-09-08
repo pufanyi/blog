@@ -1,0 +1,19 @@
+---
+title: "Infra: Data Parallel"
+date: "2026-09-08"
+description: "Notes for Data Parallel"
+---
+
+参考了 [@tazi2025ultra; @hashimoto2026cs336]。
+
+## Naïve Data Parallelism
+
+最拿衣服的 DP 大概就是每张卡存个模型，每张卡然后算出 gradient 然后 All-Reduce。但 All-Reduce 的时候 GPU 也没啥别的事情做。一个简单的优化方法是，反向传播的时候，我们每经过一个 block 就 async 地触发那一层地 All-Reduce。使用 [`torch.Tensor.register_post_accumulate_grad_hook`](https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.register_post_accumulate_grad_hook.html) 就可以做。
+
+然后如果每个小 block 都触发一次 All-Reduce，就比较零散。所以优化方案是几个 block bucket 起来做一次 All-Reduce。
+
+然后对于 gradient accumulation 的时候，`optimizer.step()` 的前一步才需要执行 All-Reduce。
+
+## Zero Redundancy Optimizer (ZeRO)
+
+<ZeroShardingDiagram />
