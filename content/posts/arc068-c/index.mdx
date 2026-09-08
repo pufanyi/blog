@@ -1,0 +1,93 @@
+---
+title: "ARC068E Snuke Line"
+date: "2019-04-14"
+description: "ARC068E Snuke Line 题解。"
+---
+
+[原题链接](https://arc068.contest.atcoder.jp/tasks/arc068_c)
+
+有一趟列车有 $M+1$ 个车站，从 $0$ 到 $M$ 编号。有 $N$ 种商品，第 $i$ 种只在编号 $[l_i,r_i]$ 的车站出售。一辆列车有一个预设好的系数 $d$，从 $0$ 出发，只会在 $d$ 的倍数车站停车。对于 $d$ 从 $1$ 到 $M$ 的列车，求最多能买到多少种商品。
+
+$1\le N \le 3\times 10^5;1\le M\le 10^5;1\le l_i\le r_i\le M$。
+
+
+
+## 题解
+
+我们考虑对于每个 $d$，如果区间 $[l_i,r_i]$ 有 $r_i-l_i+1\ge d$，那么显然它一定会被覆盖，我们直接统计答案。
+
+我们考虑 $r_i-l_i+1<d$ 的情况，显然它只会被覆盖一次，所以我们只要求这些区间与这些点的交点个数即可。
+
+于是我们由长度从小到大枚举区间，放入线段树中。对于每个 $d$ 枚举点。由于点的总数是 $T(n)=\sum_{i=1}^n\frac{n}{i}=\mathcal{O}(n\ln n)$，所以复杂度为 $\mathcal{O}(n\log ^ 2 n)$。
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 300005;
+
+int n, m;
+
+#define lowbit(x) (x & (-x))
+
+struct Tree
+{
+    int no[maxn];
+
+    inline void add(int pla, int x)
+    {
+        for (; pla <= m; pla += lowbit(pla))
+            no[pla] += x;
+    }
+
+    inline void add_qj(int l, int r)
+    {
+        add(l, 1);
+        if (r < m)
+            add(r + 1, -1);
+    }
+
+    inline int query(int pla)
+    {
+        int ans = 0;
+        for (; pla; pla -= lowbit(pla))
+            ans += no[pla];
+        return ans;
+    }
+} tr;
+
+struct QJ
+{
+    int l, r;
+    inline int len() { return r - l + 1; }
+    friend bool operator < (QJ a, QJ b)
+    { return a.r - a.l < b.r - b.l; }
+} qj[maxn];
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    for (int i = 1; i <= n; ++i)
+        scanf("%d%d", &qj[i].l, &qj[i].r);
+    sort(qj + 1, qj + n + 1);
+    int now = 1;
+    for (int i = 1; i <= m; ++i)
+    {
+        while (now <= n && qj[now].len() < i)
+        {
+            tr.add_qj(qj[now].l, qj[now].r);
+            now++;
+        }
+        int ans = n - now + 1;
+        for (int j = 0; j <= m; j += i)
+            ans += tr.query(j);
+        printf("%d\n", ans);
+    }
+    return 0;
+}
+```

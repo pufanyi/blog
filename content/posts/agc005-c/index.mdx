@@ -1,0 +1,77 @@
+---
+title: "AGC005C Tree Restoring"
+date: "2019-04-14"
+description: "AGC005C Tree Restoring 题解。"
+---
+
+青木君特别喜欢数列和树，他觉得它们是世界上最美妙的事物。
+
+有一天，神仙给了青木君一个长度为 $n$ 的整数数列 $a$。这让青木君特别想构造一棵美妙树。
+
+美妙树的每条边长度都为 $1$。而且美妙树有一个最重要的性质：对于每一个点 $i(1\le i\le n)$，在树中离它距离最远的点与它的距离应恰好等于 $a_i$。
+
+青木君想了想就秒掉了这题，他决定考考你：对于一个给定的序列，是否存在一棵美妙树？[^1]
+
+$2\le n\le 100,1\le a_i\le n−1$
+
+
+
+## 题解
+
+首先根据这个序列我们可以很方便地求出直径。
+
+然后我们把树的直径上的点删掉，即 $l, l-1, l-2, \cdots, mid, mid + 1, \cdots, l - 1, l$，如果不存在那么一定是 `impossible`。
+
+然后还有就是不可能出现 $a$ 比直径中点小的点，把它判掉就过了此题。
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <cctype>
+#include <set>
+#include <iostream>
+
+using namespace std;
+
+// 读优略去
+
+const int maxn = 105;
+const int inf = 0x3f3f3f3f;
+
+int tong[maxn];
+
+int main()
+{
+    int n, zj = 0;
+    read(n);
+    for (int i = 1, a; i <= n; ++i)
+    {
+        read(a);
+        tong[a]++;
+        zj = max(a, zj);
+    }
+    for (int i = 0; i <= zj; ++i)
+    {
+        int noww = max(i, zj - i);
+        if (!tong[noww])
+        {
+            puts("Impossible");
+            return 0;
+        }
+        tong[noww]--;
+    }
+    for (int i = 1; i <= ((zj + 1) >> 1); ++i)
+    {
+        if (tong[i])
+        {
+            puts("Impossible");
+            return 0;
+        }
+    }
+    puts("Possible");
+    return 0;
+}
+```
+
+[^1]: 翻译来自[luogu](https://www.luogu.org/problemnew/show/AT2061)

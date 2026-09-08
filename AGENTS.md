@@ -162,7 +162,7 @@ Project guidance for agents working in this repository.
   words, numbers, or inline math without changing the formulas or prose.
   Keep original code blocks verbatim; typography cleanup applies to prose only.
 - For MathJax compatibility, expand legacy KaTeX aliases such as `\N` to
-  equivalent standard TeX (`\mathbb{N}`). Match complete commands so `\R`
+  equivalent standard TeX (`\mathbb{N}`), and `\empty` to `\emptyset`. Match complete commands so `\R`
   does not alter `\Rightarrow`. Inspect formulas for red undefined
   commands as well as `mjx-merror`; unsupported macros can render without
   producing an error node.
@@ -192,7 +192,9 @@ Project guidance for agents working in this repository.
   Resolve relative images in the asset folder named after the source post;
   prefer original PNGs over derived WebP files when converting to AVIF.
   Attachment links use `/posts/<slug>/file.pdf`; only image paths are rewritten
-  automatically.
+  automatically. Update migrated cross-post links to `/blog/<slug>` and
+  regenerate heading fragments with `slugifyHeading`; legacy Hexo anchors
+  can differ in case and punctuation.
 - Inspect PDF embeds with full Chromium (`channel: 'chromium'` in Playwright);
   the default headless shell can leave PDF frames blank without a native viewer.
 - A post can keep BibTeX references in a sibling `references.bib` file and cite

@@ -1,0 +1,77 @@
+---
+title: "造一棵树"
+date: "2019-09-21"
+description: "生成树形测试数据的代码记录。"
+---
+
+帮人造了几组数据。
+
+其实就是造了一棵树。
+
+记录一下以备后用。
+
+
+
+```cpp
+#include <cstdio>
+#include <vector>
+#include <utility>
+#include <cassert>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <algorithm>
+
+#define hb bh
+
+using namespace std;
+
+const int maxn = 1000000;
+
+int n, m, seed;
+int bh[maxn];
+vector<pair<int, int> > ve;
+vector<int> rt;
+vector<int> ln;
+
+int main(int argc, char** argv) {
+	assert(argc == 4);
+	ofstream fout(argv[1]);
+	sscanf(argv[2], "%d", &n);
+	sscanf(argv[3], "%d", &seed);
+	srand((unsigned) seed);
+	fout << n << '\n';
+	mt19937 rnd((unsigned) seed);
+	int lim = n / 3;
+	for (int i = 1; i <= n; ++i) {
+		bh[i] = i;
+	}
+	int Lrt = max(1, max(lim - (lim / 10), lim - 10));
+	random_shuffle(bh + 1, bh + n + 1);
+	rt.push_back(bh[1]);
+	for (int i = 2; i <= lim; ++i) {
+		ve.push_back(make_pair(bh[i], rt[rnd() % rt.size()]));
+		if (i - Lrt > 1) {
+			rt.push_back(hb[i - Lrt]);
+		}
+	}
+	for (int i = lim + 1; i <= n; ++i) {
+		if (ln.empty() || !(rnd() % max(3, lim >> 3))) {
+			ve.push_back(make_pair(hb[i], rt[rnd() % rt.size()]));
+		} else {
+			ve.push_back(make_pair(hb[i], ln[max(0, (int) (ln.size() - (rnd() % 100) - 1))]));
+		}
+		ln.push_back(hb[i]);
+	}
+	random_shuffle(ve.begin(), ve.end());
+	for (auto x : ve) {
+		if (rnd() & 1) {
+			fout << x.first << ' ' << x.second << '\n';
+		} else {
+			fout << x.second << ' ' << x.first << '\n';
+		}
+	}
+	fout.close();
+	return 0;
+}
+```

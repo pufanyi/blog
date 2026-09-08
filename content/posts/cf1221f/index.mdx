@@ -1,0 +1,282 @@
+---
+title: "CodeForces 1221F Choose a Square"
+date: "2019-10-04"
+description: "CodeForces 1221F Choose a Square 题解。"
+---
+
+题意大概就是有 $n$ 个点，每个点其坐标 $x_i,y_i$ 与权值 $c_i$，其中 $1\le n\le 5\cdot 10^5,0\le x_i,y_i\le 10^9,-10^6\le c_i\le 10^6$。
+
+让你选一个正方形，该正方形的左下角及右上角必须在 $y=x$ 这条直线上。所获得的权值为在正方形内的点的权值和减去正方形的边权。输出所获的最大权值及其选择正方形的左下角 $x_1,y_1$ 及右上角 $x_2,y_2$，要求 $0\le x_1=y_1\le x_2=y_2\le 2\cdot 10^9$。
+
+
+
+其实就是让你选两个数 $l,r$，左下角为 $(l,l)$，右上角为 $(r,r)$。
+
+我们考虑一个点是否在正方形内。
+
+我们发现对于第 $i$ 个点，若 $l\le \min\{x_i,y_i\}\le \max\{x_i,y_i\}\le r$，那么 $(x_i,y_i)$ 就在正方形内。
+
+所以我们发现答案就是：
+$$
+\sum_{\max\{x_i,y_i\}\le r} c_i-\sum_{ \min\{x_i,y_i\}< l\le \max\{x_i,y_i\}\le r}c_i-(r-l+1)
+$$
+我们考虑枚举右端点 $r$，也就是枚举 $\sum_{\max\{x_i,y_i\}\le r} c_i-r$，同时用线段树维护 $-\sum_{ \min\{x_i,y_i\}< l\le \max\{x_i,y_i\}\le r}c_i+l-1$ 的最小值即可。
+
+```cpp
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <map>
+#include <set>
+#include <stack>
+#include <ctime>
+#include <cmath>
+#include <queue>
+#include <cstdio>
+#include <cctype>
+#include <vector>
+#include <bitset>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long LL;
+
+inline char gc() {
+	static const LL L = 233333;
+	static char sxd[L], *sss = sxd, *ttt = sxd;
+	if (sss == ttt) {
+		ttt = (sss = sxd) + fread(sxd, 1, L, stdin);
+		if (sss == ttt) {
+			return EOF;
+		}
+	}
+	return *sss++;
+}
+
+#ifndef dd
+#define dd c = gc()
+#endif
+inline char readalpha() {
+	char dd;
+	for (; !isalpha(c); dd);
+	return c;
+}
+
+inline char readchar() {
+	char dd;
+	for (; c == ' '; dd);
+	return c;
+}
+
+template <class T>
+inline bool read(T& x) {
+	bool flg = false;
+	char dd;
+	x = 0;
+	for (; !isdigit(c); dd) {
+		if (c == '-') {
+			flg = true;
+		} else if(c == EOF) {
+			return false;
+		}
+	}
+	for (; isdigit(c); dd) {
+		x = (x << 1) + (x << 3) + (c ^ 48);
+	}
+	if (flg) {
+		x = -x;
+	}
+	return true;
+}
+#undef dd
+
+template <class T>
+inline void write(T x) {
+	if (x < 0) {
+		putchar('-');
+		x = -x;
+	}
+	if (x < 10) {
+		putchar(x | 48);
+		return;
+	}
+	write(x / 10);
+	putchar((x % 10) | 48);
+}
+
+typedef long long LL;
+
+const LL maxn = 1000005;
+
+LL n;
+LL _cnt = 0;
+
+set<LL> mj;
+
+#define ls(x) (x << 1)
+#define rs(x) (x << 1 | 1)
+
+struct Tree {
+	struct Node {
+		pair<LL, LL> xx;
+		LL lzy;
+	} no[maxn << 2];
+
+	inline void push_up(LL x) {
+		no[x].xx = max(no[ls(x)].xx, no[rs(x)].xx);
+	}
+
+	inline void build_tree(LL l, LL r, LL k) {
+		static auto x = mj.begin();
+		if (l == r) {
+			auto tmp = x;
+			++tmp;
+			if (tmp != mj.end()) {
+				no[k].xx = make_pair(*tmp, *x);
+			} else {
+				no[k].xx = make_pair(-233333, *x);
+			}
+			x++;
+			return;
+		}
+		LL mid = (l + r) >> 1;
+		build_tree(l, mid, ls(k));
+		build_tree(mid + 1, r, rs(k));
+		push_up(k);
+	}
+
+	inline void push_down(LL k) {
+		if (no[k].lzy) {
+			no[ls(k)].xx.first -= no[k].lzy;
+			no[rs(k)].xx.first -= no[k].lzy;
+			no[ls(k)].lzy += no[k].lzy;
+			no[rs(k)].lzy += no[k].lzy;
+			no[k].lzy = 0;
+		}
+	}
+
+	inline void add(LL l, LL r, LL k, LL L, LL R, LL x) {
+		if (L <= l && r <= R) {
+			no[k].lzy += x;
+			no[k].xx.first -= x;
+			return;
+		}
+		LL mid = (l + r) >> 1;
+		push_down(k);
+		if (L <= mid) {
+			add(l, mid, ls(k), L, R, x);
+		}
+		if (R > mid) {
+			add(mid + 1, r, rs(k), L, R, x);
+		}
+		push_up(k);
+	}
+
+	inline pair<LL, LL> query(LL l, LL r, LL k, LL L, LL R) {
+		if (L <= l && r <= R) {
+			return no[k].xx;
+		}
+		LL mid = (l + r) >> 1;
+		push_down(k);
+		if (R <= mid) {
+			return query(l, mid, ls(k), L, R);
+		} else if (L > mid) {
+			return query(mid + 1, r, rs(k), L, R);
+		} else {
+			return max(query(l, mid, ls(k), L, R), query(mid + 1, r, rs(k), L, R));
+		}
+	}
+} tr;
+
+struct QJ {
+	LL mn, mx, mnid, mxid, qz;
+
+	friend bool operator < (QJ a, QJ b) {
+		return a.mx < b.mx;
+	}
+} qj[maxn];
+
+struct LS {
+	LL x, id;
+
+	friend bool operator < (LS a, LS b) {
+		return a.x < b.x;
+	}
+} ls[maxn << 1];
+
+map<int, int> anss;
+
+int main() {
+	read(n);
+	for (LL i = 1; i <= n; ++i) {
+		LL x, y;
+		read(x), read(y), read(qj[i].qz);
+		if (x == y) {
+			anss[x] += qj[i].qz;
+		}
+		qj[i].mn = min(x, y);
+		qj[i].mx = max(x, y);
+		ls[++_cnt].x = qj[i].mn;
+		ls[_cnt].id = i << 1;
+		ls[++_cnt].x = qj[i].mx;
+		ls[_cnt].id = i << 1 | 1;
+		mj.insert(x);
+		mj.insert(y);
+	}
+	sort(ls + 1, ls + _cnt + 1);
+	LL cnt = 0;
+	for (LL i = 1; i <= _cnt; ++i) {
+		if (i == 1 || ls[i].x != ls[i - 1].x) {
+			cnt++;
+		}
+		if (ls[i].id & 1) {
+			qj[ls[i].id >> 1].mxid = cnt;
+		} else {
+			qj[ls[i].id >> 1].mnid = cnt;
+		}
+	}
+	sort(qj + 1, qj + n + 1);
+	LL ansx = 1300000000, ansy = 1300000000, ans = 0;
+	for (auto x : anss) {
+		if (x.second > ans) {
+			ans = x.second;
+			ansx = ansy = x.first;
+		}
+	}
+	tr.build_tree(1, cnt, 1);
+	LL now = 1;
+	LL __cnt = 0;
+	LL sum = 0;
+	int bg = *mj.begin();
+	for (auto x : mj) {
+		__cnt++;
+		while (now <= n && qj[now].mx <= x) {
+			tr.add(1, cnt, 1, qj[now].mnid, cnt, qj[now].qz);
+			sum += qj[now].qz;
+			now++;
+		}
+		if (__cnt > 1) {
+			pair<LL, LL> an = tr.query(1, cnt, 1, 1, __cnt - 1);
+			LL Ans = sum + an.first - x;
+			if (Ans > ans) {
+				auto tx = mj.lower_bound(an.second);
+				ansx = *(++tx);
+				ansy = x;
+				ans = Ans;
+			}
+		}
+		int len = x - bg;
+		if (sum - len > ans) {
+			ansx = bg, ansy = x, ans = sum - len;
+		}
+	}
+	printf("%lld\n", ans);
+	printf("%lld %lld %lld %lld\n", ansx, ansx, ansy, ansy);
+	return 0;
+}
+```
