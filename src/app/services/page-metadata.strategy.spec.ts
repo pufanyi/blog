@@ -38,6 +38,8 @@ describe('article structured data', () => {
       providers: [
         provideRouter([
           { path: '', component: MetadataTestPage },
+          { path: 'cv', component: MetadataTestPage },
+          { path: 'pdf-viewer', component: MetadataTestPage, data: { noindex: true } },
           { path: 'blog', component: MetadataTestPage },
           {
             path: 'blog/:slug',
@@ -106,5 +108,28 @@ describe('article structured data', () => {
     expect(document.head.querySelector('#article-structured-data')).toBeNull();
     await harness.navigateByUrl('/');
     expect(document.head.querySelector('#article-structured-data')).toBeNull();
+  });
+
+  it('advertises Markdown equivalents and clears stale links on missing or noindex pages', async () => {
+    const harness = await RouterTestingHarness.create();
+    const alternate = () => document.head.querySelector<HTMLLinkElement>('link[rel="alternate"][type="text/markdown"]');
+    const guide = () => document.head.querySelector<HTMLLinkElement>('link[rel="describedby"][type="text/plain"]');
+    for (const [route, markdown] of [
+      ['/', '/profile.md'],
+      ['/cv', '/profile.md'],
+      ['/blog', '/blog/index.md'],
+      ['/blog/first?source=search#example', '/blog/first.md'],
+      ['/blog/second', '/blog/second.md'],
+    ]) {
+      await harness.navigateByUrl(route);
+      expect(alternate()?.href).toBe(`${SITE_CONFIG.url}${markdown}`);
+      expect(guide()?.href).toBe(`${SITE_CONFIG.url}/llms.txt`);
+      expect(document.head.querySelectorAll('link[rel="alternate"][type="text/markdown"]')).toHaveLength(1);
+    }
+    for (const route of ['/blog/missing', '/pdf-viewer']) {
+      await harness.navigateByUrl(route);
+      expect(alternate()).toBeNull();
+      expect(guide()).toBeNull();
+    }
   });
 });

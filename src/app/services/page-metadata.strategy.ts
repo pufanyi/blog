@@ -72,6 +72,12 @@ export class PageMetadataStrategy extends TitleStrategy {
       this.meta.removeTag('property="article:author"');
     }
     this.updateLink('canonical', canonical);
+    const markdownPath = missing || route.data['noindex'] ? null
+      : post ? `/blog/${post.slug}.md`
+        : path === '/' || path === '/cv' ? '/profile.md'
+          : blogPage || path === '/blog' ? '/blog/index.md' : null;
+    this.updateLink('alternate', markdownPath ? `${SITE_CONFIG.url}${markdownPath}` : null, 'text/markdown');
+    this.updateLink('describedby', missing || route.data['noindex'] ? null : `${SITE_CONFIG.url}/llms.txt`, 'text/plain');
     this.updateArticleStructuredData(missing ? null : post, canonical);
     this.updateLink(
       'prev',
@@ -117,8 +123,9 @@ export class PageMetadataStrategy extends TitleStrategy {
     script.textContent = JSON.stringify(data).replaceAll('<', '\\u003c');
   }
 
-  private updateLink(rel: string, href: string | null): void {
-    let link = this.document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
+  private updateLink(rel: string, href: string | null, type?: string): void {
+    const selector = `link[rel="${rel}"]${type ? `[type="${type}"]` : ''}`;
+    let link = this.document.head.querySelector<HTMLLinkElement>(selector);
     if (href === null) {
       link?.remove();
       return;
@@ -126,6 +133,7 @@ export class PageMetadataStrategy extends TitleStrategy {
     if (!link) {
       link = this.document.createElement('link');
       link.rel = rel;
+      if (type) link.type = type;
       this.document.head.appendChild(link);
     }
     link.href = href;

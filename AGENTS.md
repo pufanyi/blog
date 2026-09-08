@@ -39,6 +39,13 @@ Project guidance for agents working in this repository.
   Remark discovers `.remarkrc.json`, which points to `remark.config.mts` as a
   preset; its current configuration loader does not discover TypeScript files.
 - Generate derived content data with `pnpm generate:data`.
+- The same generator writes `/llms.txt`, `/profile.md`, `/blog/index.md`, and
+  `/blog/<slug>.md` to the ignored `.generated/agent-content` asset directory.
+  Export expanded MDX before syntax highlighting so code annotations remain
+  intact; retain math, citation links, diagram descriptions, and direct PDF URLs.
+  Profile exports reuse rendered CV data. Never maintain a second copy of prose.
+  Angular copies these files at the site root; keep Markdown discovery links in
+  `PageMetadataStrategy` and Markdown MIME types in hosting/preview configuration.
 - Site settings live in `configs/{site,blog,comments,redirects}.yaml`. The data
   generator validates them before emitting typed modules under `src/app/data`.
   After editing YAML during development, run `pnpm generate:data` again.

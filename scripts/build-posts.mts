@@ -15,6 +15,7 @@ import type { CvData } from '../src/app/models/cv.model';
 import type { Post } from '../src/app/models/post.model';
 import type { SearchDocument, SerializedSearchIndex } from '../src/app/models/search.model';
 import { createSearchIndex } from '../src/app/utils/search-index';
+import { type AgentPost, buildAgentFiles, writeAgentFiles } from './lib/agent-content.mts';
 import { renderCvMarkdown } from './lib/cv-markdown.mts';
 import { parsePostSource } from './lib/front-matter.mts';
 import { normalizePostImageHref, renderMdx } from './lib/mdx-renderer.mts';
@@ -133,6 +134,7 @@ async function main(): Promise<void> {
     themes: ['catppuccin-latte', 'catppuccin-mocha'],
     langs: languages.length ? languages : ['text'],
   });
+  const agentPosts: AgentPost[] = [];
   try {
     const posts: Post[] = await Promise.all(
       rawPosts.map(async ({ slug, meta, mdx, sourcePath }) => {
@@ -140,6 +142,7 @@ async function main(): Promise<void> {
         if (summary.coverImage)
           summary.coverImage = normalizePostImageHref(summary.coverImage, slug);
         const rendered = await renderMdx(mdx, slug, sourcePath, highlighter);
+        agentPosts.push({ ...summary, slug, markdownHtml: rendered.markdownHtml });
         return { ...summary, slug, contentHtml: rendered.html, toc: rendered.toc };
       }),
     );
@@ -162,6 +165,9 @@ async function main(): Promise<void> {
     `${GENERATED}import type { CvData } from '../models/cv.model';\n\nexport const CV_DATA: CvData = ${JSON.stringify(cv, null, 2)};\n`,
   );
   console.log('Generated redirects and CV data');
+  const agentFiles = buildAgentFiles(agentPosts, cv, configuration.site);
+  writeAgentFiles(join(ROOT, '.generated/agent-content'), agentFiles);
+  console.log(`Generated ${agentFiles.size} agent-readable Markdown and index files`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

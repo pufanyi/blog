@@ -286,15 +286,6 @@ function postprocessMdxHtml(
     container.replaceWith(div);
   }
 
-  const renderCode = createCodeRenderer(highlighter);
-  for (const code of Array.from(document.querySelectorAll('pre > code'))) {
-    const pre = code.parentElement;
-    if (!pre) continue;
-    const languageClass = Array.from(code.classList).find((name) => name.startsWith('language-'));
-    const lang = languageClass?.slice('language-'.length) || '';
-    replaceWithHtml(document, pre, renderCode({ text: code.textContent ?? '', lang }));
-  }
-
   for (const table of Array.from(document.querySelectorAll('table'))) {
     if (table.parentElement?.classList.contains('table-wrapper')) continue;
     const wrapper = document.createElement('div');
@@ -335,7 +326,17 @@ function postprocessMdxHtml(
     }
   }
   const toc = buildTableOfContents(document, postPath);
-  return { html: document.body.innerHTML, toc };
+  // Export before Shiki transforms annotation comments and adds presentation markup.
+  const markdownHtml = document.body.innerHTML;
+  const renderCode = createCodeRenderer(highlighter);
+  for (const code of Array.from(document.querySelectorAll('pre > code'))) {
+    const pre = code.parentElement;
+    if (!pre) continue;
+    const languageClass = Array.from(code.classList).find((name) => name.startsWith('language-'));
+    const lang = languageClass?.slice('language-'.length) || '';
+    replaceWithHtml(document, pre, renderCode({ text: code.textContent ?? '', lang }));
+  }
+  return { html: document.body.innerHTML, toc, markdownHtml };
 }
 
 export async function renderMdx(

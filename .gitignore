@@ -3,6 +3,7 @@
 # Compiled output
 /dist
 /src/app/data/
+/.generated/
 /playwright-report/
 /test-results/
 /tmp

@@ -1,2 +1,8 @@
 /giscus-morandi-*.css
   Access-Control-Allow-Origin: *
+
+/profile.md
+  Content-Type: text/markdown; charset=utf-8
+
+/blog/*.md
+  Content-Type: text/markdown; charset=utf-8

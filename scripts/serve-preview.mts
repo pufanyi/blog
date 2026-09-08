@@ -20,6 +20,7 @@ const types: Record<string, string> = {
   '.png': 'image/png',
   '.pdf': 'application/pdf',
   '.txt': 'text/plain; charset=utf-8',
+  '.md': 'text/markdown; charset=utf-8',
 };
 
 const server = createServer(async (request, response) => {
