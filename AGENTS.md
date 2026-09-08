@@ -18,9 +18,10 @@ Project guidance for agents working in this repository.
 - Inspect changes with `git diff`.
 - Manage branches with `git branch` and `git switch`.
 - Sync with remotes using `git fetch`, `git pull`, and `git push`.
-- Always run `pnpm check` before every push, after the final code or content
-  change. Do not push unless it passes; if anything changes afterward, run it
-  again before pushing.
+- Always run both `pnpm check` (lint and typecheck) and noninteractive unit
+  tests (`pnpm test --watch=false`) before every push, after the final code or
+  content change. Note that `pnpm check` does not run tests. Do not push unless
+  both pass; if anything changes afterward, run them again before pushing.
 
 ## Development
 

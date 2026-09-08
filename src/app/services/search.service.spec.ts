@@ -7,9 +7,9 @@ describe('generated search index', () => {
     expect(search.search('模型').map(result => result.slug)).toEqual(
       expect.arrayContaining(['ml-revisit-vae', 'ml-revisit-diffusion']),
     );
-    const results = search.search('model');
+    const results = search.search('attention');
     expect(results[0].matchField).toBe('title');
-    expect(results[0].title).toContain('Multimodal Models');
+    expect(results[0].title).toContain('Attention');
     expect(search.search('   ')).toEqual([]);
   });
 });
