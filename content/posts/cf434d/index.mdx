@@ -33,9 +33,9 @@ $n\le 50; m\le 100; |a_i|\le 10;|b_i|,|c_i|\le1000;-100\le l_i\le r_i\le 100;|d_
 
 大概就是这样一张图：
 
-![](./flow1.avif)
+<IndependentChainsDiagram />
 
-如果这些函数的取值互补干涉，那么 $n\times lim-\text{最小割}$ 就是答案。
+如果这些函数的取值互不干涉，那么 $n\times lim-\text{最小割}$ 就是答案。
 
 我们考虑如何加入这些限制。
 
@@ -43,7 +43,7 @@ $n\le 50; m\le 100; |a_i|\le 10;|b_i|,|c_i|\le1000;-100\le l_i\le r_i\le 100;|d_
 
 如果割绿色的那两条边：
 
-![](/posts/cf434d/flow2.svg)
+<ConstraintCutDiagram />
 
 很开心地测一下样例，炸了……
 
@@ -61,15 +61,15 @@ $n\le 50; m\le 100; |a_i|\le 10;|b_i|,|c_i|\le1000;-100\le l_i\le r_i\le 100;|d_
 
 建出来的图大概是长这样的：
 
-![](./flow3.avif)
+<MissingEndpointDiagram />
 
-最小割是选 $(1,3)\to T$ 和 $(2,3)\to T$。
+最小割是选 $(1,3)\to T$ 和 $(2,2)\to T$。
 
 但显然 $(1,3)\to T​$ 是不能选的。因为由 $x_1\le x_2​$ 和 $x_2\le x_1​$ 可知 $x_1=x_2​$。
 
-于是我们只得再建一个 $(i,r_i+1)$ 点，$(i,r_i)\to (i,r_i+1)$ 流 $f_i(r_i)$，$(i,r_i+1)\to T$ 流 $\infty$。
+于是我们只得再建一个 $(i,r_i+1)$ 点，$(i,r_i)\to (i,r_i+1)$ 流 $lim-f_i(r_i)$，$(i,r_i+1)\to T$ 流 $\infty$。
 
-![](./flow4.avif)
+<SentinelEndpointDiagram />
 
 这样就完美了。
 

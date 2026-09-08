@@ -1,0 +1,179 @@
+.cf434d-figure {
+  container-type: inline-size;
+  max-width: 700px;
+  margin: 2rem auto;
+}
+
+.cf434d-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.cf434d-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+/* Keep foreignObject math at 1:1 scale, including in narrow WebKit layouts. */
+.cf434d-diagram {
+  display: block;
+  width: 700px;
+  max-width: none;
+}
+
+.cf434d-note {
+  fill: var(--text-secondary);
+  font-family: var(--font-body);
+  text-anchor: middle;
+  font-size: 14px;
+}
+
+.cf434d-heading {
+  margin-bottom: 0.75rem;
+  color: var(--text-color);
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.cf434d-math {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  color: var(--text-color);
+  font-size: 16px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.cf434d-math mjx-container {
+  margin: 0 !important;
+}
+
+.cf434d-node rect {
+  fill: var(--paper-bg);
+  stroke: var(--border-color);
+  stroke-width: 1.4;
+}
+
+.cf434d-sentinel rect {
+  fill: var(--accent-bg);
+  stroke: var(--accent-blue);
+  stroke-dasharray: 4 3;
+}
+
+.cf434d-ordinary {
+  color: var(--text-secondary);
+}
+
+.cf434d-constraint {
+  color: var(--accent-blue);
+}
+
+.cf434d-cut {
+  color: var(--accent-sage);
+}
+
+.cf434d-bypass {
+  color: var(--accent-rose);
+}
+
+.cf434d-edge {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cf434d-constraint .cf434d-edge {
+  stroke-dasharray: 6 5;
+  stroke-width: 2;
+}
+
+.cf434d-cut .cf434d-edge,
+.cf434d-bypass .cf434d-edge {
+  stroke-width: 3;
+}
+
+.cf434d-edge.cf434d-omitted {
+  stroke-dasharray: 1 6;
+}
+
+.cf434d-cut-mark {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  paint-order: stroke;
+}
+
+.cf434d-arrowhead {
+  fill: currentColor;
+}
+
+.cf434d-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.cf434d-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cf434d-key {
+  display: inline-block;
+  width: 1.5rem;
+  height: 0;
+  border-top: 2px solid currentColor;
+}
+
+.cf434d-key.cf434d-constraint {
+  border-top-style: dashed;
+}
+
+.cf434d-key-omitted {
+  border-top-style: dotted;
+}
+
+.cf434d-key.cf434d-cut {
+  height: auto;
+  border: 0;
+  font-weight: bold;
+  line-height: 1;
+  text-align: center;
+}
+
+.cf434d-key.cf434d-bypass {
+  border-top-width: 3px;
+}
+
+.cf434d-figure figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.cf434d-scroll-hint {
+  display: none;
+}
+
+@container (max-width: 699px) {
+  .cf434d-scroll-hint {
+    display: block;
+    margin-top: 0.4rem;
+  }
+}

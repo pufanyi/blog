@@ -138,6 +138,10 @@ Project guidance for agents working in this repository.
   hard-coded values that can drift apart.
 - Match diagram symbols, head indices, and matrix/vector conventions to the
   surrounding post; adapt reference figures to the author's notation.
+- When redrawing legacy graphs, validate nodes and capacities against the
+  article sample and code; numbered image files can represent different drafts.
+  Route fan-in edges to distinct node ports and place labels clear of curves;
+  opaque label backgrounds can hide unintended breaks in a path.
 - For coordinate geometry, use the same scale on both axes and calculate
   intersections from the equations. Simple Latin point labels can use italic
   SVG text; reserve MathJax containers for actual TeX.
