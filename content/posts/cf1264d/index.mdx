@@ -41,3 +41,349 @@ l\binom{x+y}{y+r-l}+x\binom{x+y-1}{y-l+r-1}
 $$
 
 代码就直接丢链接了：[D1](https://codeforces.com/contest/1264/submission/66377279)、[D2](https://codeforces.com/contest/1264/submission/66378940)。
+
+D1:
+
+```cpp
+#define _CRT_SECURE_NO_WARNINGS
+ 
+#include <map>
+#include <set>
+#include <stack>
+#include <ctime>
+#include <cmath>
+#include <queue>
+#include <cstdio>
+#include <cctype>
+#include <vector>
+#include <bitset>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <algorithm>
+ 
+using namespace std;
+ 
+inline char gc() {
+    static const int L = 233333;
+    static char sxd[L], *sss = sxd, *ttt = sxd;
+    if (sss == ttt) {
+        ttt = (sss = sxd) + fread(sxd, 1, L, stdin);
+        if (sss == ttt) {
+            return EOF;
+        }
+    }
+    return *sss++;
+}
+ 
+#ifndef _AT_HOME
+#define dd c = gc()
+#else
+#define dd c = getchar()
+#endif
+inline char readalpha() {
+    char dd;
+    for (; !isalpha(c); dd);
+    return c;
+}
+ 
+inline char readchar() {
+    char dd;
+    for (; c == ' '; dd);
+    return c;
+}
+ 
+template <class T>
+inline bool read(T& x) {
+    bool flg = false;
+    char dd;
+    x = 0;
+    for (; !isdigit(c); dd) {
+        if (c == '-') {
+            flg = true;
+        } else if(c == EOF) {
+            return false;
+        }
+    }
+    for (; isdigit(c); dd) {
+        x = (x << 1) + (x << 3) + (c ^ 48);
+    }
+    if (flg) {
+        x = -x;
+    }
+    return true;
+}
+#undef dd
+ 
+template <class T>
+inline void write(T x) {
+    if (x < 0) {
+        putchar('-');
+        x = -x;
+    }
+    if (x < 10) {
+        putchar(x | 48);
+        return;
+    }
+    write(x / 10);
+    putchar((x % 10) | 48);
+}
+ 
+template <class T>
+inline void writesp(T x) {
+    write(x);
+    putchar(' ');
+}
+ 
+template <class T>
+inline void writeln(T x) {
+    write(x);
+    puts("");
+}
+ 
+typedef long long LL;
+ 
+const int maxn = 2005;
+const int mod = 998244353;
+ 
+int f[maxn][maxn];
+int g[maxn][maxn];
+char s[maxn];
+ 
+inline void add(int& x, const int y) {
+    x += y;
+    if (x >= mod) {
+        x -= mod;
+    }
+}
+ 
+int main() {
+    scanf("%s", s + 1);
+    int n = strlen(s + 1);
+    f[0][0] = 1;
+    for (int i = 1; i <= n; ++i) {
+        if (s[i] == '(') {
+            for (int j = 1; j <= i; ++j) {
+                f[i][j] = f[i - 1][j - 1];
+            }
+        } else if (s[i] == ')') {
+            for (int j = 0; j <= i; ++j) {
+                f[i][j] = f[i - 1][j];
+            }
+        } else {
+            for (int j = 0; j <= i; ++j) {
+                add(f[i][j], f[i - 1][j - 1]);
+                add(f[i][j], f[i - 1][j]);
+            }
+        }
+    }
+    g[n + 1][0] = 1;
+    for (int i = n; i; --i) {
+        if (s[i] == ')') {
+            for (int j = 1; j <= i; ++j) {
+                g[i][j] = g[i + 1][j - 1];
+            }
+        } else if (s[i] == '(') {
+            for (int j = 0; j <= i; ++j) {
+                g[i][j] = g[i + 1][j];
+            }
+        } else {
+            for (int j = 0; j <= i; ++j) {
+                add(g[i][j], g[i + 1][j - 1]);
+                add(g[i][j], g[i + 1][j]);
+            }
+        }
+    }
+    int ans = 0;
+    for (int i = 1; i < n; ++i) {
+        for (int j = 1; j <= n; ++j) {
+            add(ans, (LL) f[i][j] * g[i + 1][j] % mod * j % mod); 
+        }
+    }
+    writeln(ans);
+    return 0;
+}
+```
+
+D2:
+
+```cpp
+#define _CRT_SECURE_NO_WARNINGS
+ 
+#include <map>
+#include <set>
+#include <stack>
+#include <ctime>
+#include <cmath>
+#include <queue>
+#include <cstdio>
+#include <cctype>
+#include <vector>
+#include <bitset>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <algorithm>
+ 
+using namespace std;
+ 
+inline char gc() {
+    static const int L = 233333;
+    static char sxd[L], *sss = sxd, *ttt = sxd;
+    if (sss == ttt) {
+        ttt = (sss = sxd) + fread(sxd, 1, L, stdin);
+        if (sss == ttt) {
+            return EOF;
+        }
+    }
+    return *sss++;
+}
+ 
+#ifndef _AT_HOME
+#define dd c = gc()
+#else
+#define dd c = getchar()
+#endif
+inline char readalpha() {
+    char dd;
+    for (; !isalpha(c); dd);
+    return c;
+}
+ 
+inline char readchar() {
+    char dd;
+    for (; c == ' '; dd);
+    return c;
+}
+ 
+template <class T>
+inline bool read(T& x) {
+    bool flg = false;
+    char dd;
+    x = 0;
+    for (; !isdigit(c); dd) {
+        if (c == '-') {
+            flg = true;
+        } else if(c == EOF) {
+            return false;
+        }
+    }
+    for (; isdigit(c); dd) {
+        x = (x << 1) + (x << 3) + (c ^ 48);
+    }
+    if (flg) {
+        x = -x;
+    }
+    return true;
+}
+#undef dd
+ 
+template <class T>
+inline void write(T x) {
+    if (x < 0) {
+        putchar('-');
+        x = -x;
+    }
+    if (x < 10) {
+        putchar(x | 48);
+        return;
+    }
+    write(x / 10);
+    putchar((x % 10) | 48);
+}
+ 
+template <class T>
+inline void writesp(T x) {
+    write(x);
+    putchar(' ');
+}
+ 
+template <class T>
+inline void writeln(T x) {
+    write(x);
+    puts("");
+}
+ 
+typedef long long LL;
+ 
+const int maxn = 1000005;
+const int mod = 998244353;
+ 
+int l[maxn];
+int r[maxn];
+int C1[maxn];
+int C2[maxn];
+int fac[maxn];
+int inv[maxn];
+char s[maxn];
+ 
+inline void add(int& x, const int y) {
+    x += y;
+    if (x >= mod) {
+        x -= mod;
+    }
+}
+ 
+inline int ksm(int a, int b) {
+    int ans = 1;
+    for (; b; b >>= 1, a = (LL) a * a % mod) {
+        if (b & 1) {
+            ans = (LL) ans * a % mod;
+        }
+    }
+    return ans;
+}
+ 
+inline int C(int n, int m) {
+    if (n < m || n < 0 || m < 0) {
+        return 0;
+    }
+    return (LL) fac[n] * inv[m] % mod * inv[n - m] % mod;
+}
+ 
+int main() {
+    scanf("%s", s + 1);
+    int n = strlen(s + 1);
+    int ans = 0;
+    fac[0] = 1;
+    for (int i = 1; i <= n; ++i) {
+        fac[i] = (LL) fac[i - 1] * i % mod;
+    }
+    inv[n] = ksm(fac[n], mod - 2);
+    for (int i = n - 1; ~i; --i) {
+        inv[i] = (LL) inv[i + 1] * (i + 1) % mod;
+    }
+    for (int i = 1; i <= n; ++i) {
+        l[i] = l[i - 1];
+        C1[i] = C1[i - 1];
+        if (s[i] == '(') {
+            l[i]++;
+        } else if (s[i] == '?') {
+            C1[i]++;
+        }
+    }
+    for (int i = n; i; --i) {
+        r[i] = r[i + 1];
+        C2[i] = C2[i + 1];
+        if (s[i] == ')') {
+            r[i]++;
+        } else if (s[i] == '?') {
+            C2[i]++;
+        }
+    }
+    for (int i = 1; i < n; ++i) {
+        int tmpans = 0;
+        int L = l[i], R = r[i + 1];
+        int c1 = C1[i], c2 = C2[i + 1];
+        add(tmpans, (LL) L * C(c1 + c2, c1 + L - R) % mod);
+        add(tmpans, (LL) c1 * C(c1 + c2 - 1, c1 + L - R) % mod);
+        add(ans, tmpans);
+    }
+    writeln(ans);
+    return 0;
+}
+```
