@@ -1,0 +1,178 @@
+---
+title: "北京省选集训2019 图的难题"
+date: "2019-04-13"
+description: "北京省选集训2019 图的难题 题解。"
+---
+
+## 题目大意
+
+给定一张无向图，要求把边染成黑白两色，要求所有白色边构成的子图没有环，且所有黑色边构成的子图没有环。
+
+多组询问，输出是否有解。
+
+$n\le 500,m\le 2n,T\le 10$。
+
+
+
+## 题解
+
+显然，由白边构成的图是一个森林，黑边构成的图也是个森林。
+
+显然森林所有的导出子图也是森林。
+
+那么显然图是一个森林的充要条件为其最大导出子图的 $|E|-|V|\le -1$。
+
+我们考虑原问题，如果一张图 $G$ 要有解，那么 $G$ 的所有导出子图都要有解，且该图的 $|E|\le 2(|V|-1)$，也就是让黑白两种颜色都能是一片森林。
+
+有了这个~~有理有据的~~性质，我们就把问题转化成了：对于图 $G$，定义 $\rho_G=|E|-2|V|+2$，求出一张图所有导出子图 $\rho?$ 的最大值。
+
+我们考虑网络流，$S?$ 向所有原图的边（看作点）连边，容量为 $1?$，原图中每条边向与之相连的点连边，容量 $\infty?$，原图中点向 $T?$ 连边，容量为 $2?$。
+
+考虑最小割，把割 $S\to \text{原图中边}$ 的边看成是不选该边，把 $原图中点\to T$ 的边看成是选该点，这样 $\rho_G=|E|-\text{不被选的边}+\text{被选的点}+2=|E|-\text{最小割}+2$。
+
+然后发现输出 `"NO"`$\times \infty$，因为它把所有边全割了，这样其实就是选了一个空集，$\rho=2$，GG。
+
+我们强制选一个点，枚举一个点强行割掉，发现这样割使用了 $2?$，正好答案就是 $\rho_G=|E|-\text{最小割}?$。
+
+直接判断正负即可。
+
+复杂度 $\mathcal{O}(\text{能过})?$。
+
+## 代码
+
+```cpp
+#include <bits/stdc++.h>
+
+using namespace std;
+
+// 读入输出优化直接删了
+
+const int maxN = 505;
+const int maxn = maxN << 2;
+const int maxm = maxn << 3;
+const int inf = 0x3f3f3f3f;
+
+struct Edge
+{
+    int to, nxt, cap;
+} e[maxm << 1];
+
+int first[maxn], fb[maxn];
+
+int cnt;
+inline void add_edge(int from, int to, int cap)
+{
+    e[++cnt].nxt = fb[from];
+    fb[from] = cnt;
+    e[cnt].to = to;
+    e[cnt].cap = cap;
+    e[++cnt].nxt = fb[to];
+    fb[to] = cnt;
+    e[cnt].to = from;
+    e[cnt].cap = 0;
+}
+
+int n, m, S, T;
+
+struct EDGE
+{
+    int from, to;
+} ee[maxn];
+
+inline void jiantu(int k)
+{
+    memset(fb, 0xff, sizeof(fb));
+    cnt = -1;
+    for (int i = 1; i <= n; ++i)
+        if (i != k)
+            add_edge(i, T, 2);
+    for (int i = 1; i <= m; ++i)
+    {
+        add_edge(i + n, ee[i].from, inf);
+        add_edge(i + n, ee[i].to, inf);
+        add_edge(S, i + n, 1);
+    }
+}
+
+int dep[maxn];
+
+inline bool bfs()
+{
+    memset(dep, 0x3f, sizeof(dep));
+    for (int i = S; i <= T; ++i)
+        first[i] = fb[i];
+    queue<int> q;
+    q.push(S);
+    dep[S] = 0;
+    while (!q.empty())
+    {
+        int now = q.front();
+        q.pop();
+        for (int i = first[now]; ~i; i = e[i].nxt)
+        {
+            int to = e[i].to;
+            if (dep[to] >= inf && e[i].cap > 0)
+            {
+                q.push(to);
+                dep[to] = dep[now] + 1;
+            }
+        }
+    }
+    return dep[T] < inf;
+}
+
+inline int dfs(int now, int limit)
+{
+    if (now == T || !limit)
+        return limit;
+    int flow = 0;
+    for (int i = first[now]; ~i; i = e[i].nxt)
+    {
+        first[now] = i;
+        int to = e[i].to, f;
+        if (dep[to] == dep[now] + 1 && (f = dfs(to, min(limit, e[i].cap))))
+        {
+            e[i].cap -= f;
+            e[i ^ 1].cap += f;
+            limit -= f;
+            flow += f;
+            if (!limit)
+                break;
+        }
+    }
+    return flow;
+}
+
+inline int Dinic()
+{
+    int ans = 0;
+    while (bfs())
+        ans += dfs(S, inf);
+    return ans;
+}
+
+inline void solve()
+{
+    read(n), read(m);
+    S = 0;
+    T = n + m + 1;
+    for (int i = 1; i <= m; ++i)
+        read(ee[i].from), read(ee[i].to);
+    int ans = 0;
+    for (int i = 1; i <= n; ++i)
+    {
+        jiantu(i);
+        ans = max(ans, m - Dinic());
+    }
+    puts(ans > 0 ? "No" : "Yes");
+}
+
+int main()
+{
+    int TT;
+    read(TT);
+    while (TT--)
+        solve();
+    return 0;
+}
+```

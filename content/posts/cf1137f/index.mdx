@@ -1,0 +1,359 @@
+---
+title: "CodeForces 1137F Matches Are Not a Child's Play"
+date: "2019-03-27"
+description: "CodeForces 1137F Matches Are Not a Child's Play 题解。"
+---
+
+## 题目大意
+
+我们定义一棵树的删除序列为：每一次将树中编号最小的叶子删掉，将该节点编号加入到当前序列的最末端，最后只剩下一个节点时将该节点的编号加入到结尾。
+
+![](./样例.avif)
+
+例如对于上图中的树，它的删除序列为：`2 4 3 1 5`。
+
+现在给出一棵 $n$ 个节点的树，有 $m$ 次操作：
+
+1. `up v`：将 $v$ 号节点的编号变为当前所有节点编号的 $\max + 1$；
+1. `when v`：查询 $v$ 在当前树的删除序列中是第几号元素；
+1. `compare u v`：查询 $u$ 和 $v$ 在当前树的删除序列中谁更靠前。
+
+
+
+### 输入格式
+
+第一行两个正整数 $n,q(1 \leq n , q \leq 200000)$ 表示树的点数和操作数。
+
+接下来 $n-1$ 行每行 $2$ 个正整数 $u,v(1 \leq u,v \leq n)$ 表示树上的一条边。
+
+接下来 $q$ 行每行描述一个操作。
+
+### 输出格式
+
+每一个询问输出一行。
+
+对于 `when v` 询问，输出一个正整数表示 $v$ 是当前删除序列的哪一个元素。
+
+对于 `compare u v` 询问，如果 $u$ 在删除序列中更靠前则输出 $u$，否则输出 $v$。[^1]
+
+## 题解
+
+显然在任意时刻最大的那个节点一定是在最后被删的。
+
+于是我们考虑 `up` 操作带来的影响。
+
+假设 `up` 了 $x$，上一次（`up` 前）最大的那个点是 $y$。
+
+我们发现最后删着删着一定只剩下了 $x$ 到 $y$ 路径上的这几个点。
+
+然后从 $y$ 开始一个一个往 $x$ 那边删。
+
+于是 $y\sim x$ 这条链上的点移到了删除序列的末尾。
+
+我们可以把 $y\sim x$ 看成一个缩起来的点，我们发现其它点的相对位置不变。
+
+接下来的思路感觉跟[这题](//www.luogu.org/problemnew/show/P3703)很像。
+
+我们考虑用 `LCT` 维护这棵树，`LCT` 中的每棵 `splay` 表示一段连续的删除区间。
+
+开始时根当然是最大的。
+
+样例大概是这样一幅图：
+
+![](./pou.avif)
+
+删除序列应该是 `2 4 3 1 5`。
+
+根当然就是最大的那个点。
+
+由于一个 `splay` 是连续删的。所以我们给每个 `splay` 一个标号（具体到实现就是给 `splay` 上每个点染色，可以参考下面的代码），把它放在树状数组上，即在该 `splay` 的 `color` 上加上该 `splay` 的 `size`。
+
+```cpp
+inline void dfs(int now)
+{
+	col[now] = now, siz[now] = 1;
+	for(int i = first[now]; i; i = e[i].nxt)
+	{
+		register int to = e[i].to;
+		if(to != fa[now])
+		{
+			fa[to] = now; dfs(to);
+			if(col[to] > col[now]) // 如果它后代有比它大的节点，那么一定会影响他它
+			{
+				col[now] = col[to];
+				s[now][1] = to;
+				siz[now] = siz[to] + 1;
+			}
+		}
+	}
+	tr.add(col[now], 1); // 树状数组在该color上加1
+}
+```
+
+我们考虑查询，就是该点所在 `splay` 之前的所有点数加上该 `splay` 上所有该结点后面的点数。
+
+大概就是 `树状数组.query(col[x] - 1) + splay.query(在x之前的节点个数)`。
+
+当然也可以写成：
+
+```cpp
+inline int query(int x)
+{
+	splay(x);
+	return tr.query(col[x]) - siz[s[x][0]];
+}
+```
+
+最后考虑修改。
+
+我们发现修改就是 `make_root`，当然因为 `make_root` 里已经有 `access` 了。
+
+至于轻重链切换的时候，只要在树状数组里把原有的 `splay` 删掉，新增的 `splay` 加上就可以了，具体可以见代码。
+
+```cpp
+inline void access(int x)
+{
+	for(int y = 0; x; x = fa[y = x])
+	{
+		splay(x);
+		s[x][1] = 0; // 假装它右边什么都没有，这样就可以把需要新增的splay整个提取出来了
+		push_up(x);
+		tr.add(col[x], -siz[x]);
+		tr.add(nowcol, siz[x]);
+		s[x][1] = y; // 然后在接上y
+		push_up(x);
+	}
+}
+
+inline void make_root(int x)
+{
+	nowcol++;
+	access(x);
+	splay(x);
+	fan(x); // 翻转
+	col[x] = nowcol; // 最后再把整个splay的color标记打上
+}
+```
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 200005;
+const int maxq = 200005;
+
+int n, q;
+
+struct Edge
+{
+	int to, nxt;
+} e[maxn << 1];
+
+int first[maxn];
+
+inline void add_edge(int from, int to)
+{
+	static int cnt = 0;
+	e[++cnt].nxt = first[from];
+	e[cnt].to = to;
+	first[from] = cnt;
+	e[++cnt].nxt = first[to];
+	e[cnt].to = from;
+	first[to] = cnt;
+}
+
+#define lowbit(x) (x & -x)
+
+struct BIT
+{
+	int xx[maxn << 1];
+
+	inline void add(int pla, int x)
+	{
+		for(; pla <= n + q; pla += lowbit(pla))
+			xx[pla] += x;
+	}
+
+	inline int query(int pla)
+	{
+		int ans = 0;
+		for(; pla; pla -= lowbit(pla))
+			ans += xx[pla];
+		return ans;
+	}
+} tr;
+
+int fa[maxn];
+int s[maxn][2];
+int siz[maxn];
+int col[maxn];
+int lzy[maxn];
+
+inline void dfs(int now)
+{
+	col[now] = now;
+	siz[now] = 1;
+	for(int i = first[now]; i; i = e[i].nxt)
+	{
+		register int to = e[i].to;
+		if(to != fa[now])
+		{
+			fa[to] = now;
+			dfs(to);
+			if(col[to] > col[now])
+			{
+				col[now] = col[to];
+				s[now][1] = to;
+				siz[now] = siz[to] + 1;
+			}
+		}
+	}
+	tr.add(col[now], 1);
+}
+
+inline bool nroot(int x)
+{
+	return s[fa[x]][0] == x || s[fa[x]][1] == x;
+}
+
+inline void push_up(int x)
+{
+	siz[x] = siz[s[x][0]] + siz[s[x][1]] + 1;
+}
+
+inline void fan(int x)
+{
+	lzy[x] ^= 1;
+	swap(s[x][0], s[x][1]);
+}
+
+inline void push_down(int x)
+{
+	if(lzy[x])
+	{
+		lzy[x] = 0;
+		if(s[x][0])
+			fan(s[x][0]);
+		if(s[x][1])
+			fan(s[x][1]);
+	}
+	if(s[x][0])
+		col[s[x][0]] = col[x];
+	if(s[x][1])
+		col[s[x][1]] = col[x];
+}
+
+inline void rotate(int x)
+{
+	int y = fa[x], z = fa[y];
+	int d = s[y][1] == x, k = s[x][!d];
+	if(nroot(y))
+		s[z][s[z][1] == y] = x;
+	fa[x] = z;
+	s[x][!d] = y;
+	fa[y] = x;
+	s[y][d] = k;
+	if(k)
+		fa[k] = y;
+	push_up(y);
+	push_up(x);
+}
+
+int sta[maxn];
+
+inline void splay(int x)
+{
+	int tx = x;
+	int top = 0;
+	sta[++top] = tx;
+	while(nroot(tx))
+		sta[++top] = (tx = fa[tx]);
+	while(top)
+		push_down(sta[top--]);
+	while(nroot(x))
+	{
+		register int y = fa[x];
+		if(nroot(y))
+		{
+			register int z = fa[y];
+			rotate(((s[z][1] == y) ^ (s[y][1] == x)) ? x : y);
+		}
+		rotate(x);
+	}
+}
+
+int nowcol;
+
+inline void access(int x)
+{
+	for(int y = 0; x; x = fa[y = x])
+	{
+		splay(x);
+		s[x][1] = 0;
+		push_up(x);
+		tr.add(col[x], -siz[x]);
+		tr.add(nowcol, siz[x]);
+		s[x][1] = y;
+		push_up(x);
+	}
+}
+
+inline void make_root(int x)
+{
+	nowcol++;
+	access(x);
+	splay(x);
+	fan(x);
+	col[x] = nowcol;
+}
+
+char opt[23];
+
+inline int query(int x)
+{
+	splay(x);
+	return tr.query(col[x]) - siz[s[x][0]];
+}
+
+int main()
+{
+	scanf("%d%d", &n, &q);
+	nowcol = n;
+	for(int i = 1, f, t; i < n; ++i)
+	{
+		scanf("%d%d", &f, &t);
+		add_edge(f, t);
+	}
+	dfs(n);
+	int _u, _v;
+	for(int i = 1; i <= q; ++i)
+	{
+		scanf("%s", opt);
+		if(opt[0] == 'u')
+		{
+			scanf("%d", &_v);
+			make_root(_v);
+		}
+		else if(opt[0] == 'w')
+		{
+			scanf("%d", &_v);
+			printf("%d\n", query(_v));
+		}
+		else
+		{
+			scanf("%d%d", &_u, &_v);
+			int ans1 = query(_u);
+			int ans2 = query(_v);
+			printf("%d\n", ans1 < ans2 ? _u : _v);
+		}
+	}
+	return 0;
+}
+```
+
+[^1]: 翻译来自[luogu](https://www.luogu.org/problemnew/show/CF1137F)

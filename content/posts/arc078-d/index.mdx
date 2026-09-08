@@ -1,0 +1,96 @@
+---
+title: "ARC078F Mole and Abandoned Mine"
+date: "2019-03-31"
+description: "ARC078F Mole and Abandoned Mine 题解。"
+---
+
+[题目链接](https://arc078.contest.atcoder.jp/tasks/arc078_d)
+
+给一个 $n(n\le 15)$ 个点 $m$ 条边的无向连通图（不存在自环或重边），每条边有一个边权，要求割掉若干条边，使 $1$ 到 $n$ 只有 $1$ 条路径（不经过重复点），问割掉的边权和最小是多少。[^1]
+
+
+
+## 题解
+
+问题其实就是需要保留的边权和最大。
+
+问题是有关点集+路径的，不难想到状态：$f_{i,j}​$ 表示遍历了集合 $i​$，这条唯一的路径的已经是从 $1​$ 到 $j​$ 的答案。
+
+我们考虑选择路径的形状，大概应该应该是这样的：
+
+![](./path.avif)
+
+就是 $1\sim n$ 的一条，然后中间许多分叉，连向一些连通块，而这些联通块中所有的边都连上。
+
+于是我们考虑转移。
+
+当 $j=1$ 时，$f_{i,j}=E_i$，其中 $E_i$ 表示 $i​$ 集合中所有边的权值和。
+
+可以连下一个链上的点：$f_{i\setminus \{j\},k}+d_{k,j}\to f_{i,j}$，就是在 $k$ 后面新增一个点 $j$，当然这个转移的时候 $d_{k,j}$ 应大于 $0$。
+
+还可以从 $j$ 向一个伸出去一个连通块：$f_{i\setminus k,j}+E_{k\bigcup\{j\}}\to f_{i,j}$，当然其中 $j\notin k​$。
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <bitset>
+#include <cstring>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long LL;
+
+const int maxn = 15;
+const int inf = 0x3f3f3f3f;
+
+int mmap[maxn][maxn];
+LL in[1 << maxn];
+LL dp[1 << maxn][maxn];
+int n, m;
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    for (int i = 0, f, t, d; i < m; ++i)
+    {
+        scanf("%d%d%d", &f, &t, &d);
+        mmap[t - 1][f - 1] = mmap[f - 1][t - 1] = d;
+    }
+    for (int i = 0; i < (1 << n); ++i)
+        for (int j = 0; j < n; ++j)
+            if (i & (1 << j))
+                for (int k = j + 1; k < n; ++k)
+                    if (i & (1 << k))
+                        in[i] += mmap[j][k];
+    for (int i = 0; i < (1 << n); ++i)
+        for (int j = 0; j < n; ++j)
+            dp[i][j] = -inf;
+    for (int i = 0; i < (1 << n); ++i)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            if (i & (1 << j))
+            {
+                if (!j)
+                    dp[i][j] = in[i];
+                else
+                {
+                    for (int k = 0; k < n; ++k)
+                        if (j != k && (i & (1 << k)) && mmap[k][j])
+                            dp[i][j] = max(dp[i][j], dp[i ^ (1 << j)][k] + mmap[k][j]);
+                    for (int tmp = (i ^ (1 << j)), k = tmp; k; k = (k - 1) & tmp)
+                        dp[i][j] = max(dp[i][j], dp[i ^ k][j] + in[k | (1 << j)]);
+                }
+            }
+        }
+    }
+    printf("%lld\n", in[(1 << n) - 1] - dp[(1 << n) - 1][n - 1]);
+    return 0;
+}
+
+```
+
+[^1]: 翻译来自[luogu](//www.luogu.org/problemnew/show/AT2657)。

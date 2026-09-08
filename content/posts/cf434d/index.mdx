@@ -1,0 +1,212 @@
+---
+title: "CodeForces 434D Nanami's Power Plant"
+date: "2019-03-17"
+description: "CodeForces 434D Nanami's Power Plant 题解。"
+---
+
+[原题链接](https://codeforces.com/problemset/problem/434/D)
+
+有 $n$ 个二次函数，第 $i$ 个形如 $f_i(x)=a_ix^2+b_ix+c_i$
+
+你的总收益是 $\sum_{i=1}^nf_i(x_i)$，但是有几个限制：
+
+1. $x_i​$ 是 $[l_i,r_i]​$ 中的一个整数
+2. 还给了 $m$ 条额外的限制，每条形如 `u v d`，表示的是 $x_u\leq x_v+d$
+
+求最大的总收益。
+
+$n\le 50; m\le 100; |a_i|\le 10;|b_i|,|c_i|\le1000;-100\le l_i\le r_i\le 100;|d_i|\le 200$。[^1]
+
+
+
+[^1]: 翻译来自[luogu](https://www.luogu.org/problemnew/show/CF434D)，略有改动。
+
+## 题解
+
+感觉和刚刚做过一场模拟赛的一道题很类似……
+
+考虑网络流，对每个函数都建立 $[l_i,r_i]​$ 的点，点 $(i,j)​$ 表示函数 $f_i​$ 当 $x_i=j​$ 时的点。
+
+我们考虑最小损失。设一个极大值 $lim$（大于所有的 $f_i(x)$），将也就是要求 $lim-f_i(x)$ 的最小值。
+
+我们从点 $(i,j)$ 向点 $(i,j+1)$（如果 $j=r_i$ 那就是超汇 $T$）流 $lim - f_i(j)$，从超源 $S$ 向点 $(i,l_i)$ 流 $\infty$。
+
+大概就是这样一张图：
+
+![](./flow1.avif)
+
+如果这些函数的取值互补干涉，那么 $n\times lim-\text{最小割}$ 就是答案。
+
+我们考虑如何加入这些限制。
+
+如果现在有限制 $x_u\le x_v+d$，也就是 $x_v\ge x_u-d$。如果我们割了 $x_u$ 这条边，在 $v$ 这条链上我们只能割 $x_u-d$ 以后的边。那就不妨从 $u$ 这条表上所有的 $x$ 向 $v$ 这条边上所有的 $x-d$ 连一条 $\infty​$ 的边。
+
+如果割绿色的那两条边：
+
+![](/posts/cf434d/flow2.svg)
+
+很开心地测一下样例，炸了……
+
+我们来看这种情形（对样例 1 略有改动）：
+
+```plain
+2 2
+0 1 0
+0 1 1
+2 3
+1 2
+1 2 0
+2 1 0
+```
+
+建出来的图大概是长这样的：
+
+![](./flow3.avif)
+
+最小割是选 $(1,3)\to T$ 和 $(2,3)\to T$。
+
+但显然 $(1,3)\to T​$ 是不能选的。因为由 $x_1\le x_2​$ 和 $x_2\le x_1​$ 可知 $x_1=x_2​$。
+
+于是我们只得再建一个 $(i,r_i+1)$ 点，$(i,r_i)\to (i,r_i+1)$ 流 $f_i(r_i)$，$(i,r_i+1)\to T$ 流 $\infty$。
+
+![](./flow4.avif)
+
+这样就完美了。
+
+```cpp
+#include <cstdio>
+#include <cstring>
+#include <queue>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long LL;
+
+const LL maxn = 10005;
+const LL maxm = 5000005;
+const LL inf = 0x3f3f3f3f3f3f3f3f;
+const LL lim = 1000000000000;
+
+struct Edge
+{
+    LL to, nxt, cap;
+} e[maxm << 1];
+
+LL first[maxn], first_bak[maxn];
+
+inline void add_edge(LL from, LL to, LL cap)
+{
+    static LL cnt = -1;
+    e[++cnt].nxt = first[from];
+    first[from] = cnt;
+    e[cnt].to = to;
+    e[cnt].cap = cap;
+    e[++cnt].nxt = first[to];
+    first[to] = cnt;
+    e[cnt].to = from;
+    e[cnt].cap = 0;
+}
+
+LL n, m, S, T;
+
+LL bh[105][205];
+LL a[maxn], b[maxn], c[maxn];
+LL ll[maxn];
+LL rr[maxn];
+LL dep[maxn];
+
+inline LL getans(LL I, LL x)
+{
+    return a[I] * x * x + b[I] * x + c[I];
+}
+
+inline bool bfs()
+{
+    memset(dep, 0x3f, sizeof(dep));
+    queue<LL> q;
+    q.push(S);
+    dep[S] = 0;
+    for(int i = S; i <= T; ++i)
+        first[i] = first_bak[i];
+    while(!q.empty())
+    {
+        LL now = q.front();
+        q.pop();
+        for(int i = first[now]; ~i; i = e[i].nxt)
+        {
+            LL to = e[i].to;
+            if(dep[to] >= inf && e[i].cap > 0)
+            {
+                dep[to] = dep[now] + 1;
+                q.push(to);
+            }
+        }
+    }
+    return dep[T] < inf;
+}
+
+inline LL dfs(LL now, LL lim)
+{
+    if(!lim || now == T)
+        return lim;
+    LL flow = 0;
+    for(int i = first[now]; ~i; i = e[i].nxt)
+    {
+        first[now] = i;
+        register LL to = e[i].to, f;
+        if(dep[to] == dep[now] + 1 && (f = dfs(to, min(lim, e[i].cap))) > 0)
+        {
+            lim -= f;
+            flow += f;
+            e[i].cap -= f;
+            e[i ^ 1].cap += f;
+            if(lim <= 0)
+                break;
+        }
+    }
+    return flow;
+}
+
+inline LL dinic()
+{
+    LL flow = 0;
+    while(bfs())
+        flow += dfs(S, inf);
+    return flow;
+}
+
+int main()
+{
+    memset(first, 0xff, sizeof(first));
+    scanf("%lld%lld", &n, &m);
+    for(int i = 1; i <= n; ++i)
+        scanf("%lld%lld%lld", &a[i], &b[i], &c[i]);
+    for(int i = 1; i <= n; ++i)
+    {
+        scanf("%lld%lld", &ll[i], &rr[i]);
+        add_edge(S, T + 1, inf);
+        for(LL j = ll[i] + 100; j <= rr[i] + 101; ++j)
+        {
+            bh[i][j] = ++T;
+            if(j != ll[i] + 100)
+                add_edge(bh[i][j - 1], bh[i][j], lim - getans(i, j - 1 - 100));
+        }
+    }
+    T++;
+    for(LL i = 1; i <= n; ++i)
+        add_edge(bh[i][rr[i] + 101], T, inf);
+    for(int i = 1, u, v, d; i <= m; ++i)
+    {
+        scanf("%d%d%d", &u, &v, &d);
+        for(int j = ll[u]; j <= rr[u] + 1; ++j)
+            if(ll[v] <= j - d && j - d <= rr[v] + 1)
+                add_edge(bh[u][j + 100], bh[v][j - d + 100], inf);
+    }
+    for(int i = S; i <= T; ++i)
+        first_bak[i] = first[i];
+    printf("%lld\n", n * lim - dinic());
+    return 0;
+}
+```

@@ -1,0 +1,216 @@
+---
+title: "HEOI2015 公约数数列"
+date: "2019-03-10"
+description: "HEOI2015 公约数数列 题解。"
+---
+
+设计一个数据结构. 给定一个正整数数列 $a_0, a_1, ..., a_{n - 1}$，你需要支持以下两种操作：
+
+1. `MODIFY id x`：将 $a_{id}$ 修改为 $x$。
+2. `QUERY x`：求最小的整数 $p (0 \le p < n)$，使得 $\gcd_{i=0}^pa_i\times \bigotimes_{i=0}^p a_i= x$。无解输出 `no`。
+
+$n \le 100000$，$q \le 10000$，$a_i \le 10^9 (0 \le i < n)$，`QUERY x` 中的 $x \le 10^{18}$，`MODIFY id x` 中的 $0 \le id < n$，$1 \le x \le 10^9$。
+
+
+
+## 题解
+
+前缀 $\gcd$ 序列有一个有趣的性质，那就是后一个数一定是前一个数的因数，所以至少会除 $2$。
+
+于是我们发现前缀 $\gcd$ 序列之多只会有 $\log$ 个不同的数。
+
+考虑到 $\gcd$ 与 $\bigotimes$ 没有什么太大的联系，我们考虑枚举 $\gcd$，然后找出 $\bigotimes_{i=0}^p a_i=\frac{x}{\gcd_{i=0}^pa_i}$。
+
+发现仍然很难维护，于是我们考虑分块。
+
+对于每个块维护块内最后一个元素的前缀 $\gcd$，块内 $\gcd$，以及每个元素的前缀异或和。
+
+首先是修改异或和。修改单点后，要将后面所有的 $\text{xor}$ 值全部修改。直接对每个块打一个标记即可。
+
+修改 $\gcd$ 也很方便，块内 $\gcd$ 与前缀 $\gcd$ 均可暴力维护。
+
+查询某块时，如果其第一个数的前缀 $\gcd$（上一个块最后一个数的前缀 $\gcd$ 与这一个块的第一个数的 $\gcd$）与其最后一个数的前缀 $\gcd$ 不相等，直接暴力修改。由于前缀 $\gcd$ 序列只有 $\log$ 个不同的数。单次复杂度是 $\mathcal{O}(\sqrt n\log n)$。
+
+如果相等，那也就意味着块内所有数的前缀 $\gcd$ 均相等。只要查询前缀 $\text{xor}$ 即可。对每个块开一个 `map/hash` 查一下就可以了。单次操作复杂度 $\mathcal{O}(\sqrt n\log n)$。
+
+所以总复杂度是 $\mathcal{O}(q\sqrt n\log n)$，需要卡常。
+
+<span className="truth" title="你知道得太多了">博主太菜 luogu 过了 bzoj 没卡过去，假装过了的样子。</span>
+
+```cpp
+#include <cstdio>
+#include <cmath>
+#include <map>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 100005;
+
+typedef long long LL;
+
+template <class T>
+inline void writeln(T x)
+{
+    if(!x)
+    {
+        puts("0");
+        return;
+    }
+    if(x < 0)
+    {
+        putchar('-');
+        x = -x;
+    }
+    int bit[20] = {0};
+    while(x)
+    {
+        bit[++(*bit)] = (x % 10) | 48;
+        x /= 10;
+    }
+    do
+        putchar(bit[*bit]);
+    while(--(*bit));
+    puts("");
+}
+
+inline int gcd(int a, int b)
+{
+    int t;
+    while (b)
+    {
+        t = a % b;
+        a = b;
+        b = t;
+    }
+    return a;
+}
+
+int n;
+int kc, ds;
+
+int hgcd[maxn]; // 块后的前缀gcd
+int kgcd[maxn]; // 块内gcd
+int belong[maxn];
+int ll[maxn], rr[maxn];
+map<int, int> mp[maxn];
+int yuan[maxn];
+int qz_xor[maxn];
+int lzy_xor[maxn];
+
+inline void modify(int id, int x)
+{
+    int tx = x;
+
+    // 先改xor
+    x ^= yuan[id];
+    for (register int i = id; i <= rr[belong[id]]; ++i)
+        qz_xor[i] ^= x;
+    mp[belong[id]].clear();
+    for (register int i = ll[belong[id]]; i <= rr[belong[id]]; ++i)
+    {
+        qz_xor[i] ^= lzy_xor[belong[i]];
+        if (!mp[belong[id]][qz_xor[i]])
+            mp[belong[id]][qz_xor[i]] = i;
+    }
+    lzy_xor[belong[id]] = 0;
+    if (rr[belong[id]] != n)
+        for (register int i = belong[id] + 1; i <= ds; ++i)
+            lzy_xor[i] ^= x;
+
+    // 然后是gcd
+    yuan[id] = tx;
+    kgcd[belong[id]] = 0;
+    for (register int i = ll[belong[id]]; i <= rr[belong[id]]; ++i)
+        kgcd[belong[id]] = gcd(kgcd[belong[id]], yuan[i]);
+    for (register int i = belong[id]; i <= ds; ++i)
+    {
+        int tmp = gcd(hgcd[i - 1], kgcd[i]);
+        if (tmp == hgcd[i])
+            break;
+        else
+            hgcd[i] = tmp;
+    }
+}
+
+inline int query(LL x)
+{
+    for (int i = 1; i <= ds; ++i)
+    {
+        if (!(x % (LL) hgcd[i]))
+        {
+            int qiangcd = gcd(hgcd[i - 1], yuan[i]);
+            if (qiangcd != hgcd[i])
+            {
+                for(int j = ll[i], nowg = hgcd[i - 1]; j <= rr[i]; ++j)
+                {
+                    nowg = gcd(nowg, yuan[j]);
+                    if(nowg * (LL) (qz_xor[j] ^ lzy_xor[i]) == x)
+                        return j;
+                }
+            }
+            else
+            {
+                LL xx = (x / (LL) hgcd[i]) ^ lzy_xor[i];
+                if(mp[i][xx])
+                    return mp[i][xx];
+            }
+        }
+    }
+    return -1;
+}
+
+inline void pre()
+{
+    scanf("%d", &n);
+    kc = sqrt(n);
+    ds = n / kc;
+    if (n % kc)
+        ds++;
+    for (int i = 1; i <= ds; ++i)
+    {
+        ll[i] = rr[i - 1] + 1;
+        rr[i] = min(ll[i] + kc - 1, n);
+        for (int j = ll[i]; j <= rr[i]; ++j)
+        {
+            scanf("%d", &yuan[j]);
+            kgcd[i] = gcd(yuan[j], kgcd[i]);
+            qz_xor[j] = qz_xor[j - 1] ^ yuan[j];
+            if (!mp[i][qz_xor[j]])
+                mp[i][qz_xor[j]] = j;
+            belong[j] = i;
+            hgcd[i] = gcd(hgcd[i - 1], kgcd[i]);
+        }
+    }
+}
+
+int main()
+{
+    pre();
+    char s[233];
+    int Q;
+    scanf("%d", &Q);
+    while(Q--)
+    {
+        scanf("%s", s);
+        if(s[0] == 'M')
+        {
+            int id, x;
+            scanf("%d%d", &id, &x);
+            modify(id + 1, x);
+        }
+        else
+        {
+            LL x;
+            scanf("%lld", &x);
+            int ans = query(x);
+            if(~ans)
+                writeln(ans - 1);
+            else
+                puts("no");
+        }
+    }
+    return 0;
+}
+```

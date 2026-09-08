@@ -1,0 +1,59 @@
+---
+title: "SPOJ4063 Sell Pigs"
+date: "2019-03-11"
+description: "SPOJ4063 Sell Pigs 题解。"
+---
+
+[原题链接](https://www.spoj.com/problems/MPIGS/)
+
+有 $m​$ 个猪圈，开始时第 $i​$ 个猪圈有 $a_i​$ 头猪，每个猪圈都是锁门的，要是不相同。管理员没有猪圈的钥匙。依次来了 $m​$ 个顾客，第 $i​$ 个顾客有 $A_i​$ 把猪圈钥匙（哪几个都告诉你）<span className="truth" title="估计是哪儿的顾客都比较强">话说为什么钥匙会在顾客手中啊</span>，需要至多 $B_i​$ 头猪。每个顾客打开这几个猪圈，然后管理员可以把打开门的几个猪圈里的猪进行调整（比如把 $\text{A}​$ 猪圈的其中一头猪带到 $\text{B}​$ 猪圈）。要求的是管理员最多能卖出多少猪。
+
+$n\le 100,m\le 1000$。
+
+
+
+## 题解
+
+一道有趣的网络流建模题……
+
+首先当然要建超源（$S$）和超汇（$T$）。
+
+把每个顾客都看成一个点。
+
+每个顾客向 $T$ 连一条容量为 $B_i$ 的边，表示每个顾客最多买 $B_i$ 头猪。
+
+首先是 $S$ 向每个猪圈第一个打开门的顾客连边，边权为 $a_i$，即猪圈内猪的数量，表示猪圈一开始能供应给顾客的猪。
+
+如果某个顾客打开了猪圈 $\text{X}​$（即有猪圈 $\text{X}​$ 的钥匙），那么他所能“看”到的猪（即如果 $B_i=\infty​$ 时他所能买到的猪）下一个打开 $\text{X}​$ 的顾客也能买到，所以每个顾客都像下一个打开这些门的顾客连边，边权为 $\infty$。
+
+建图代码如下：
+
+```cpp
+inline int solve()
+{
+    memset(first, 0xff, sizeof(first));
+    scanf("%d%d", &m, &n);
+    for(int i = 1; i <= m; ++i)
+        scanf("%d", &yuan[i]); // 原来猪圈里的猪
+    for(int i = 1; i <= n; ++i)
+    {
+        int tn;
+        scanf("%d", &tn);
+        for(int j = 1, x; j <= tn; ++j)
+        {
+            scanf("%d", &x);
+            mmap[lst[x]][i] = lst[x] ? inf : mmap[lst[x]][i] + yuan[x]; // lst数组一开始是0
+            lst[x] = i; // 最近那次打开猪圈的人是i
+        }
+        scanf("%d", &tn);
+        add_edge(i, n + 1, tn); // 向最后的
+    }
+    for(int i = 0; i <= n; ++i)
+        for(int j = 0; j <= n; ++j)
+            if(mmap[i][j])
+                add_edge(i, j, mmap[i][j]); // 由于可能有重边所以先用邻接矩阵暂存一下，然后统一加入
+    for(register int i = 0; i <= n + 1; ++i)
+        first_bak[i] = first[i]; // dinic当前弧优化是用，不用理他
+    return Dinic();
+}
+```

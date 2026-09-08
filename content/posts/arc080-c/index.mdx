@@ -1,0 +1,142 @@
+---
+title: "ARC080E Young Maids"
+date: "2019-04-14"
+description: "ARC080E Young Maids 题解。"
+---
+
+[原题链接](https://arc080.contest.atcoder.jp/tasks/arc080_c)
+
+题意大概就是给你一个排列 $p$，你每次可以找到 $p$ 中相邻两个数并将其移至另一个初始为空的队列的开头，让最终 $p$ 的字典序尽量小。
+
+过程大概就是这样：
+
+![](./sample.avif)
+
+
+
+## 题解
+
+由于字典序大小是从前往后决定的，所以我们考虑从前往后确定这个序列，也就是将题意中的过程倒着做。
+
+我们考虑在某一状态下，选择的两个数在原序列中是 $p_l,p_r$，那么再次之前的选择中，不可能出现选择的数为 $p_{a_l},p_{a_r}$ 使得 $a_l<l<a_r$ 或 $a_l<r<a_r$。
+
+于是我们发现倒着考虑是，选择 $p_l,p_r$ 时就是把序列分成了 $[1,l-1],[l+1,r-1],[r+1,n]$ 这 $3$ 段，这 $3$ 段相互独立。
+
+我们考虑怎样的 $<l,r>$ 是合法的。显然就是 $[1,l-1],[l+1,r-1],[r+1,n]$ 长度均为偶数时（可能为空）。
+
+所以 $l$ 一定为奇数，$r$ 一定为偶数。
+
+我们可以维护出 $p$ 中奇数位于偶数位的最小值，并用一个小根堆维护每一个 $[l,r]$ 的最小值即可，每次选择后将 $[l,r]$ 分成 $3$ 段重新放入堆中。
+
+## 代码
+
+```cpp
+#include <bits/stdc++.h>
+
+using namespace std;
+
+// 读入输出优化略去
+
+const int maxn = 200005;
+const int inf = 0x3f3f3f3f;
+
+int n;
+int xx[maxn]; // 题意中的p
+
+#define ls(x) (x << 1)
+#define rs(x) (x << 1 | 1)
+
+struct Tree
+{
+    struct Node
+    {
+        int jx, ox; // 奇数位的最小值与偶数位的最小值
+    } no[maxn << 2];
+
+    int k;
+
+    inline int minn(int a, int b)
+    {
+        if (!a || !b)
+            return a | b;
+        else
+            return xx[a] < xx[b] ? a : b;
+    }
+
+    inline void push_up(int k)
+    {
+        no[k].jx = minn(no[ls(k)].jx, no[rs(k)].jx);
+        no[k].ox = minn(no[ls(k)].ox, no[rs(k)].ox);
+    }
+
+    inline void build_tree(int n)
+    {
+        for (k = 1; k <= n; k <<= 1);
+        for (int i = 1; i <= n; ++i)
+        {
+            if (i & 1)
+                no[i + k].jx = i;
+            else
+                no[i + k].ox = i;
+        }
+        for (int i = k; i; --i)
+            push_up(i);
+    }
+
+    inline int query(int l, int r, int kk)
+    {
+        int ans = 0;
+        for (l += k - 1, r += k + 1; l ^ r ^ 1; l >>= 1, r >>= 1)
+        {
+            if (~l & 1)
+                ans = minn(kk ? no[l ^ 1].jx : no[l ^ 1].ox, ans);
+            if (r & 1)
+                ans = minn(kk ? no[r ^ 1].jx : no[r ^ 1].ox, ans);
+        }
+        return ans;
+    }
+} tr;
+
+struct QJ
+{
+    int l, r, ansl, ansr; // 现在可选区间为[l,r]，最优是选择p[l]和p[r]
+
+    friend bool operator < (QJ a, QJ b)
+    {
+        return xx[a.ansl] > xx[b.ansl];
+    }
+
+    QJ (int l, int r)
+    {
+        this->l = l;
+        this->r = r;
+        this->ansl = tr.query(l, r, 1);
+        this->ansr = tr.query(ansl + 1, r, 0);
+    }
+};
+
+priority_queue<QJ> q;
+
+int main()
+{
+    read(n);
+    for (int i = 1; i <= n; ++i)
+        read(xx[i]);
+    tr.build_tree(n);
+    q.push(QJ(1, n));
+    while (!q.empty())
+    {
+        QJ now = q.top();
+        q.pop();
+        writesp(xx[now.ansl]);
+        writesp(xx[now.ansr]);
+        if (now.ansl + 1 < now.ansr - 1)
+            q.push(QJ(now.ansl + 1, now.ansr - 1));
+        if (now.l < now.ansl - 1)
+            q.push(QJ(now.l, now.ansl - 1));
+        if (now.ansr + 1 < now.r)
+            q.push(QJ(now.ansr + 1, now.r));
+    }
+    return 0;
+}
+```

@@ -1,0 +1,71 @@
+---
+title: "AGC013C Ants on a Circle"
+date: "2019-03-31"
+description: "AGC013C Ants on a Circle 题解。"
+---
+
+[题目链接](//agc013.contest.atcoder.jp/tasks/agc013_c)
+
+有一个长度为 $L$ 的圆环, 上面有 $n$ 个蚂蚁, 位置分别为 $x_i$，运动方向为 $d_i$，$1$ 表示顺时针，$2$ 表示逆时针。每只蚂蚁将会同时开始以单位速度运动，如果两只蚂蚁相遇，那么它们会改变自己的方向继续运动。求 $T$ 秒之后每只蚂蚁的位置。[^1]
+
+$1\le n\le 10^5;1\le L,T\le 10^9;0\le x_1<x_2<\cdots<x_n\le L - 1$。
+
+
+
+## 题解
+
+显然我们先来看如果没有标号，那么可以把两只蚂蚁的“掉头”无视掉，这样我们就已经知道了蚂蚁的位置。
+
+不难发现每只蚂蚁的相对位置不变，即它左边和右边的蚂蚁是不会变的。
+
+于是我们只要确定其中一只蚂蚁即可。
+
+我们可以记录一下坐标最小的蚂蚁是那只，即越过 $0$ 坐标的蚂蚁有几只，这样就确定了一只蚂蚁。
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 100005;
+
+int n, t, l;
+
+int hou[maxn];
+
+int main()
+{
+    scanf("%d%d%d", &n, &l, &t);
+    int fromm = 0;
+    for (int i = 1, x, fx; i <= n; ++i)
+    {
+        scanf("%d%d", &x, &fx);
+        if (fx == 2)
+        {
+            hou[i] = x - t;
+            (fromm -= (l - hou[i] - 1) / l) %= n;
+            ((hou[i] %= l) += l) %= l;
+        }
+        else
+        {
+            hou[i] = x + t;
+            (fromm += hou[i] / l) %= n;
+            hou[i] %= l;
+        }
+    }
+    (fromm += n) %= n;
+    sort(hou + 1, hou + n + 1);
+    for (int i = fromm + 1; i <= n; ++i)
+        printf("%d\n", hou[i]);
+    for (int i = 1; i <= fromm; ++i)
+        printf("%d\n", hou[i]);
+    return 0;
+}
+
+```
+
+[^1]: 翻译来自[luogu](//www.luogu.org/problemnew/show/AT2369)。

@@ -1,0 +1,132 @@
+---
+title: "AGC012D Colorful Balls"
+date: "2019-03-31"
+description: "AGC012D Colorful Balls 题解。"
+---
+
+[原题链接](//agc012.contest.atcoder.jp/tasks/agc012_d)
+
+$n(n\le 10^5)$ 个球排成一排，第 $i$ 个球有颜色 $c_i(c_i\le n)$ 和重量 $w_i(w_i\le 10^9)$。 Snuke 每次可以选择两个颜色相同，且重量之和不超过 $x$ 的球，交换他们的位置。 Snuke 每次可以选择两个颜色不同，且重量之和不超过 $y$ 的球，交换他们的位置。 问可以得到多少种不同的颜色序列。$1\le x,y\le 10^9$，答案对 $10^9+7$ 取模。[^1]
+
+
+
+## 题解
+
+我们考虑什么时候连个球能进行交换。
+
+显然如果有三个球 $a,b,c$，如果 $a$ 与 $b$ 能交换，$b$ 与 $c$ 能交换，那 $a$ 与 $c$ 一定能通过 $b$ 的“媒介”交换（$a$ 先于 $b$ 交换，$b$ 与 $c$ 交换，$a$ 与 $b$ 交换）。
+
+于是我们可以把 $a,b,c$ 缩在同一个连通块里。
+
+由于不同颜色与相同颜色交换条件是不一样的，我们先考虑相同颜色。
+
+显然只需要用最小值做“媒介”即可。
+
+然后我们考虑跨颜色交换。我们发现只需要用全局最小值做“媒介”，也就是说对于某个点，先通过该颜色最小值换到全局最小值，再通过全局最小值换到其他点。如果与全局最小值颜色相同，那我们就只能用次小值做媒介。
+
+这样我们只需要记录某种颜色的最小值、全局最小值、全局次小值即可。
+
+然后我们不难发现含有不同颜色的连通块只有一个，那就是全局最小值所在的连通块。
+
+而只有一种颜色的连通块对答案没有影响。
+
+于是我们只考虑最小值所在的连通块。首先我们找到全局最小值、全局次小值与每种颜色的最小值。如果他们都不能交换，那显然是凉了（答案为 $1$）。我们对每种颜色数出能与该种颜色最小值交换的点数，然后用每种连通块的最小值与全局最小值（全局次小值）比较，求出这个联通块。我们发现就是求这个联通块排列方案数，其实就是可重集合排列。
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long LL;
+
+const int maxn = 1000005;
+const int inf = 0x3f3f3f3f;
+const int mod = 1000000007;
+
+int n, A, B;
+int fac[maxn], inv[maxn];
+int c[maxn], w[maxn], minci[maxn];
+int Gs[maxn];
+
+inline int pow(int a, int b)
+{
+	int ans = 1;
+	for(; b; b >>= 1, a = (LL) a * a % mod)
+		if(b & 1)
+			ans = (LL) ans * a % mod;
+	return ans;
+}
+
+inline int C(int n, int m)
+{
+	if(!n)
+		return 1;
+	if(m < n)
+		return 0;
+	return (LL) fac[m] * (LL) inv[m - n] % mod * (LL) inv[n] % mod;
+}
+
+int main()
+{
+	scanf("%d%d%d", &n, &A, &B);
+	memset(minci, 0x3f, sizeof(minci));
+	for(int i = 1; i <= n; ++i)
+	{
+		scanf("%d%d", &c[i], &w[i]);
+		minci[c[i]] = min(minci[c[i]], w[i]);
+	}
+	int minn = 0, minnn = 0;
+	for(int i = 1; i <= n; ++i)
+	{
+		if(minci[i] < minci[minn])
+		{
+			minnn = minn;
+			minn = i;
+		}
+		else if(minci[i] < minci[minnn])
+			minnn = i;
+	}
+	int gss = 0;
+	for(int i = 1; i <= n; ++i)
+	{
+		if(w[i] + minci[c[i]] <= A)
+			w[i] = minci[c[i]];
+		if(c[i] == minn && minci[minnn] + w[i] <= B)
+		{
+			Gs[c[i]]++;
+			gss++;
+		}
+		if(c[i] != minn && minci[minn] + w[i] <= B)
+		{
+			Gs[c[i]]++;
+			gss++;
+		}
+	}
+	int ans = 1;
+	fac[0] = 1;
+	for(int i = 1; i <= n; ++i)
+		fac[i] = (LL) i * fac[i - 1] % mod;
+	inv[n] = pow(fac[n], mod - 2);
+	for(int i = n - 1; ~i; --i)
+		inv[i] = (LL) inv[i + 1] * (i + 1) % mod;
+	for(int i = 1; i <= n; ++i)
+	{
+		if(Gs[i])
+		{
+			ans = (LL) ans * (LL) C(Gs[i], gss) % mod;
+			gss -= Gs[i];
+		}
+	}
+	printf("%d\n", ans);
+	return 0;
+}
+```
+
+
+
+[^1]: 翻译来自[luogu](//www.luogu.org/problemnew/show/AT2364)，有删改

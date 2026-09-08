@@ -1,0 +1,110 @@
+---
+title: "AGC014D Black and White Tree"
+date: "2019-03-31"
+description: "AGC014D Black and White Tree 题解。"
+---
+
+[题目链接](https://agc014.contest.atcoder.jp/tasks/agc014_d)
+
+给出一颗 $n(n\le 10^5)$ 个节点组成的树，每个节点都可以被染成白色或者黑色。
+
+有高桥（先手）和青木（后手）两个人，高桥可以把任意某个点染成白色，青木则可以把任意一个点染成黑色，每个点只可染色一次。
+
+当所有点都被染色后，只执行一次执行以下操作：
+
+1. 把所有青木染成黑色的节点的相邻的白点感染成“次黑色”；
+2. 次黑色不能继续感染白点。
+
+若操作完毕后仍还有白点存在，即高桥（先手）胜，反之则青木（后手）胜。
+
+现在给出这棵树，问当前此树是先手必胜 or 后手必胜。[^1]
+
+
+
+## 题解
+
+问题显然就是青木不能让任意一个白点旁边没有黑点。
+
+如果该树有完美匹配，那么显然是后手赢。因为不管先手选什么，后手只要选先手对应的点就可以。
+
+于是我们就来考虑没有完美匹配的情况。
+
+最特殊的应该是叶子节点，因为只有一个点与它相邻。如果叶子节点是白点，那么叶子节点的“父亲”必须是黑点；而如果叶子是黑点，那么叶子节点的“父亲”必须是白点。这里的“父亲”是指它相邻的点。
+
+我们考虑先手先任意一个叶子节点的“父亲”，那后手必须跟着选叶子。然后我们发现我们可以把这两个点删掉，并不会影响结果。
+
+于是我们可以每次这样删下去。由于这棵树没有完美匹配，最后肯定是一些零散的点。而此时先手选择其中的任意一个点即可。
+
+我们考虑如何求出是否存在完美匹配。
+
+我们可以考虑直接模拟上面的游戏过程，因为如果先手按这个策略没有赢，那么肯定没有完美匹配。
+
+我们任选一个节点为根进行 `dfs`，将儿子处理完后如果这个点还没被删，那么把它就已经变成叶子节点了，把它和它父亲一起删掉。
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <cstdlib>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 100005;
+
+struct Edge
+{
+    int to, nxt;
+} e[maxn << 1];
+
+int first[maxn];
+
+inline void add_edge(int from, int to)
+{
+    static int cnt = 0;
+    e[++cnt].nxt = first[from];
+    first[from] = cnt;
+    e[cnt].to = to;
+    e[++cnt].nxt = first[to];
+    first[to] = cnt;
+    e[cnt].to = from;
+}
+
+bool shan[maxn];
+int n;
+
+inline void dfs(int now, int fa)
+{
+    for(int i = first[now]; i; i = e[i].nxt)
+    {
+        register int to = e[i].to;
+        if(to != fa)
+            dfs(to, now);
+    }
+    if(!shan[now])
+    {
+        if(shan[fa])
+        {
+            puts("First");
+            exit(0);
+        }
+        shan[now] = shan[fa] = true;
+    }
+}
+
+int main()
+{
+    shan[0] = true;
+    scanf("%d", &n);
+    for(int i = 1, f, t; i < n; ++i)
+    {
+        scanf("%d%d", &f, &t);
+        add_edge(f, t);
+    }
+    dfs(1, 0);
+    puts("Second");
+    return 0;
+}
+```
+
+[^1]: 翻译来自[luogu](//www.luogu.org/problemnew/show/AT2376)。
