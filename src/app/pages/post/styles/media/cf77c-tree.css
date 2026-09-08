@@ -1,0 +1,73 @@
+.cf77c-tree-figure {
+  max-width: 480px;
+  margin: 1.75rem auto;
+}
+
+.cf77c-tree-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.cf77c-tree-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+.cf77c-tree {
+  display: block;
+  width: 100%;
+  min-width: 280px;
+  height: auto;
+}
+
+.cf77c-tree-edge {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+.cf77c-tree-node circle {
+  fill: var(--paper-bg);
+  stroke: var(--border-color);
+  stroke-width: 1.5;
+}
+
+.cf77c-tree-root circle {
+  fill: var(--accent-bg);
+  stroke: var(--accent-blue);
+  stroke-width: 2.4;
+}
+
+.cf77c-tree-value {
+  fill: var(--text-color);
+  font-family: var(--font-mono);
+  font-size: 23px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.cf77c-tree-index {
+  font-weight: 600;
+}
+
+.cf77c-tree-count {
+  fill: var(--text-secondary);
+}
+
+.cf77c-tree-root-label {
+  fill: var(--accent-blue);
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 500;
+  text-anchor: middle;
+}
+
+.cf77c-tree-figure figcaption {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.8;
+  text-align: center;
+}

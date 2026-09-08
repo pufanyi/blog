@@ -39,7 +39,13 @@ inline double simpson(double l, double r)
 
 然而就是要么 WA（炸精度）要么 T……
 
-有一种叫自适应辛普森的方法解决这个问题，我们用辛普森计算 $\int_l^rF(x)\mathrm{d}x$，$\int_l^{(l+r)/2}F(x)\mathrm{d}x$，$\int_{(l+r)/2}^rF(x)\mathrm{d}x$ 的值，如果 <span style={{ display: "inline-block", maxWidth: "100%", overflowX: "auto", verticalAlign: "middle" }}>$\left|\int_l^rF(x)\mathrm{d}x-\left(\int_l^{(l+r)/2}F(x)\mathrm{d}x+\int_{(l+r)/2}^rF(x)\mathrm{d}x\right)\right|\le \mathrm{eps}$</span>，那么直接返回值，否则递归下去算。
+有一种叫自适应辛普森的方法解决这个问题，我们用辛普森计算 $\int_l^rF(x)\mathrm{d}x$，$\int_l^{(l+r)/2}F(x)\mathrm{d}x$，$\int_{(l+r)/2}^rF(x)\mathrm{d}x$ 的值，如果
+
+$$
+\left|\int_l^rF(x)\mathrm{d}x-\left(\int_l^{(l+r)/2}F(x)\mathrm{d}x+\int_{(l+r)/2}^rF(x)\mathrm{d}x\right)\right|\le \mathrm{eps}
+$$
+
+那么直接返回值，否则递归下去算。
 
 upd：忽然发现我学了个假的 `simpson`。其实 `eps` 应该是相对误差，所以每次递归下去时 $\mathrm{eps}$ 都应该除 $2$。听说最后判定时应该是 $\le 15\cdot \mathrm{eps}$，虽然我并不知道是为什么。<span className="truth" title="你知道的太多了">话说这和 eps 乘上 15 有什么区别吗</span>
 

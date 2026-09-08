@@ -44,6 +44,7 @@ import { COMMENTS_CONFIG } from '../../data/comments-config';
     './styles/media/cf351d-pointers.css',
     './styles/media/cf391f3-trading.css',
     './styles/media/cf434d-flow.css',
+    './styles/media/cf77c-tree.css',
     './styles/layout.css',
   ],
   changeDetection: ChangeDetectionStrategy.Eager,

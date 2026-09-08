@@ -143,6 +143,8 @@ Project guidance for agents working in this repository.
   article sample and code; numbered image files can represent different drafts.
   Route fan-in edges to distinct node ports and place labels clear of curves;
   opaque label backgrounds can hide unintended breaks in a path.
+- Rooted layouts do not make tree edges directed. Preserve undirected sample
+  edges without arrowheads unless the diagram explicitly depicts a traversal.
 - For coordinate geometry, use the same scale on both axes and calculate
   intersections from the equations. Simple Latin point labels can use italic
   SVG text; reserve MathJax containers for actual TeX.
