@@ -1,0 +1,743 @@
+---
+title: "Uva12421 (Jiandan) Mua (I) - Lexical Analyzer"
+date: "2019-02-01"
+description: "UVa12421 词法分析器题解与实现。"
+---
+
+一道毒瘤的大模拟。
+
+
+
+<iframe
+  src="/posts/uva12421/UVa12421.pdf"
+  title="Uva12421 (Jiandan) Mua (I) - Lexical Analyzer：题目 PDF"
+  width="100%"
+  height="800"
+  loading="lazy"
+/>
+
+[查看题目 PDF](/posts/uva12421/UVa12421.pdf)
+
+## 题目大意
+
+题目大概就是让你写一个叫“`Mua` 语言”解释器，这是第一步，就是把输入代码中的每个“token”（词法单元）都分开来。
+
+一共有六种 token（`Mua` 语言严格区分大小写）：
+
+1. `RESERVED`（保留字）：
+
+   下面列出所有保留字（福利：附赠 `c++` 代码）：
+
+   ```cpp
+   string all[21] =
+   {
+   	"and", "break", "do", "else", "elseif",
+   	"end", "false", "for", "function", "if",
+   	"in", "local", "nil", "not", "or",
+   	"repeat", "return", "then", "true", "until", "while"
+   };
+   ```
+
+2. `NUMBER`（数字常量）：
+
+   1. 十进制整数：包含 $0\sim 9$ 的数字，如 `233333`，可以有前导 $0$。
+   2. 十六进制整数：以 `0x` 或 `0X` 开头，然后是一个或多个十六进制数字（$0\sim 9$，$a\sim f$，$A\sim F$），可以有前导 $0$。如 `0X3F3a3f3F`
+   3. 浮点数：浮点数总是十进制的，如 `1.23`，可以用科学记数法表示，方法是在后面加上字符 `e` 或者 `E`，然后是十进制整数（如 `1.23e2`，它等于 `1.230`），小数点和指数不能同时省略，但整数部分可以省略（如 `.2e3` 是合法的）。如果省略可整数部分，则必须要有小数点和至少一位小数（因此 `.e2` 是非法的）。不支持十六进制浮点小数。注意指数的前面可以有一个前缀 `+` 或者 `-`，如 `1e+10` 和 `4e-3` 都是合法的。
+
+   需要注意的是负数包含两个 token，“`-`”是单独的一个 token，下面会说。
+
+3. `STRING`（字符串）：
+
+   由双引号 `""` 或单引号 `''` 包围的字符串常量，只支持四种转义字符：`\"`，`\'`，`\\`，`\n`。字符串内部不能有物理换行符。
+
+4. `SYMBOL`（符号）：
+
+   英文 pdf 假掉了，有几个 `SYMBOL` 没有完全显示。
+
+   直接赠送 `c++` 代码：
+
+   ```cpp
+   string all[26] =
+   {
+   	"+", "-", "*", "/", "%", "^", "#",
+   	"==", "~=", "<=", ">=", "<", ">", "=",
+   	"(", ")", "{", "}", "[", "]",
+   	";", ":", ",", ".", "..", "..."
+   };
+   ```
+
+5. `NAME`（标识符）：
+
+   必须以字母开头，后跟若干个字母、数字或者下划线。注意，保留字不能作为标识符。
+
+6. `EOL`（物理换行符）：
+
+   不多说，都懂。
+
+7. `COMMENT`（注释）：
+
+   以 `--` 开头，换行符结束。注意换行符不是注释中的一部分，而是单独的 `EOL`。
+
+注意，字符串常量外的所有空白字符都应忽略，因此 `1+1` 和 `1 + 1` 对于词法分析器来说没有任何区别。另外，词法分析器应当是贪心的，即总是让第一个 token 尽量长，在此前提下让第二个尽量长，依此类推。比如，`abc123<=123` 应分成 `abc123`，`<=` 和 `123`。
+
+此外，在输出时，注释应当直接忽略，不用输出。
+
+（感觉我的翻译几乎就是抄《训练指南》的……）
+
+## 题解
+
+感觉近期好 tf 于是逼自己刷了道模拟题（虽然没猪国杀那么巨大）。
+
+其实感觉如果能耐心打下去并不会感觉很烦。
+
+下面大致整理一下思路。
+
+为了方便，先把几个 Token 类型变成数字：
+
+```cpp
+string TYPE[] =
+{
+	"RESERVED", //	保留字	1
+	"NUMBER", //	数字	2
+	"STRING", //	字符串	3
+	"SYMBOL", //	符号	4
+	"NAME", //	变量名	5
+	"EOL", //	换行符	6
+	"COMMENT" //	注释	7
+};
+```
+
+还有把 `SYMBOL` 和 `RESERVED` 的几个字符串全塞 `set` 里（由于直接在 `struct` 里定义初始化变量值，所以需要 `c++11`）：
+
+```cpp
+struct SYMBOL
+{
+	string all[26] = // -std=c++11
+	{
+		"+", "-", "*", "/", "%", "^", "#",
+		"==", "~=", "<=", ">=", "<", ">", "=",
+		"(", ")", "{", "}", "[", "]",
+		";", ":", ",", ".", "..", "..."
+	};
+
+	set<string> all_symbol;
+
+	SYMBOL ()
+	{
+		all_symbol.clear();
+		for(int i = 0; i < 26; ++i)
+			all_symbol.insert(all[i]);
+	}
+
+	inline bool is_symbol(string s)
+	{
+		return all_symbol.count(s);
+	}
+} symb;
+
+struct RESERVED
+{
+	string all[21] = // -std=c++11
+	{
+		"and", "break", "do", "else", "elseif",
+		"end", "false", "for", "function", "if",
+		"in", "local", "nil", "not", "or",
+		"repeat", "return", "then", "true", "until", "while"
+	};
+
+	set<string> all_reserved;
+
+	RESERVED ()
+	{
+		all_reserved.clear();
+		for(int i = 0; i < 21; ++i)
+			all_reserved.insert(all[i]);
+	}
+
+	inline bool is_reserved(string s)
+	{
+		return all_reserved.count(s);
+	}
+} rese;
+```
+
+定义一个 Token 类型：
+
+```cpp
+struct Token
+{
+	int typ;
+	string s;
+
+	Token (int tp = 6, string ss = "") // 默认换行符
+	{ typ = tp, s = ss; }
+};
+```
+
+当然先要读入：
+
+```cpp
+if(nowl == s.length())
+{
+	if(!getline(cin, s))
+		return Token(-1);
+	nowl = 0;
+	s.push_back('\n');
+}
+while(s[nowl] == ' ')
+	nowl++;
+```
+
+然后最先判断换行符和注释：
+
+```cpp
+if(s[nowl] == '\n')
+{
+	nowl++;
+	return ans; // ans是个Token类型，初始化就是换行符，下同
+}
+if(s[nowl] == '-' && s[nowl + 1] == '-')
+{
+	nowl = s.length();
+	return ans;
+}
+```
+
+字符串直接分成单引号和双引号两种，复制一下就可以了：
+
+```cpp
+if(s[nowl] == '"') // 用双引号包裹的字符串
+{
+	bool zy = false;
+	ans.s.push_back(s[nowl++]);
+	while(zy || s[nowl] != '"')
+	{
+		if(!zy && s[nowl] == '\\')
+			zy = true;
+		else
+			zy = false;
+		ans.s.push_back(s[nowl++]);
+	}
+	ans.s.push_back(s[nowl++]);
+	ans.typ = 3;
+	return ans;
+}
+if(s[nowl] == '\'') // 用单引号包裹的字符串
+{
+	bool zy = false;
+	ans.s.push_back(s[nowl++]);
+	while(zy || s[nowl] != '\'')
+	{
+		if(!zy && s[nowl] == '\\')
+			zy = true;
+		else
+			zy = false;
+		ans.s.push_back(s[nowl++]);
+	}
+	ans.typ = 3;
+	return ans;
+}
+```
+
+接下来是判断 `NAME` 和 `RESERVED`：
+
+```cpp
+if(isalpha(s[nowl]))
+{
+	while(can_be_a_name(s[nowl]))
+		ans.s.push_back(s[nowl++]);
+	if(rese.is_reserved(ans.s))
+		ans.typ = 1;
+	else
+		ans.typ = 5;
+	return ans;
+}
+```
+
+关于 `can_be_a_name` 和 `can_be_a_number`：
+
+```cpp
+inline bool can_be_a_name(char c)
+{
+	return isalpha(c) || c == '_' || isdigit(c);
+}
+
+inline bool can_be_a_number(char c)
+{
+	return isdigit(c) || c == '.' || c == '-' || c == '+'
+	       || c == 'E' || c == 'e'
+	       || c == 'x' || c == 'X'
+	       || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
+}
+```
+
+最后判断数字了，果断选择先写好一个判断一个 `string` 是不是 `NUMBER` 的函数，然后 $\mathcal{O}(n^3)$ 判断（感觉方法很 zz，但调起来很爽，还顺便把 `SYMBOL` 给判掉了）。
+
+这里是判断 `NUMBER` 的代码：
+
+```cpp
+struct NUMBER
+{
+	inline bool is_zf(char c)
+	{
+		return c == '+' || c == '-';
+	}
+
+	inline bool is_10_int(const register string& s) // 是十进制整型
+	{
+		unsigned l = 0;
+		while(l < s.length() && is_zf(s[l]))
+			l++;
+		if(l >= s.length())
+			return false;
+		while(l < s.length() && isdigit(s[l]))
+			l++;
+		return l == s.length();
+	}
+
+	inline bool is_0x_char(char c)
+	{
+		return isdigit(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
+	}
+
+	inline bool is_0x_int(const register string& s) // 是十六进制整型
+	{
+		unsigned l = 0;
+		while(l < s.length() && is_zf(s[l]))
+			l++;
+		if(l + 1 >= s.length())
+			return false;
+		if(s[l] != '0' || (s[l + 1] != 'x' && s[l + 1] != 'X'))
+			return false;
+		l += 2;
+		while(l < s.length() && is_0x_char(s[l]))
+			l++;
+		return l == s.length();
+	}
+
+	inline bool is_float(const register string& s) // 是浮点型 
+	{
+		unsigned l = 0;
+		while(l < s.length() && is_zf(s[l]))
+			l++;
+		if(l + 1 >= s.length())
+			return false;
+		int hav_e = -1, hav_d = -1; // hav_e记录e的位置，hav_d记录.的位置
+		for(unsigned i = l; i < s.length(); ++i)
+		{
+			if(s[i] == '.')
+			{
+				if(~hav_d)
+					return false;
+				else
+					hav_d = i + 1;
+			}
+			else if(s[i] == 'E' || s[i] == 'e')
+			{
+				if(~hav_e)
+					return false;
+				else
+					hav_e = i + 1;
+			}
+			else if(s[i] != '-' && s[i] != '+' && !isdigit(s[i]))
+				return false;
+		}
+        // 把开始到小数点、小数点到e、e到结尾分开来看
+		if((~hav_e) && (~hav_d))
+		{
+			if(hav_e < hav_d || (hav_d == 1 && hav_e - hav_d == 1))
+				return false;
+			return ((hav_d == 1) || is_10_int(s.substr(0, hav_d - 1)))
+			       && (is_10_int(s.substr(hav_d, hav_e - hav_d - 1))
+			           ||(hav_e - hav_d == 1))
+			       && is_10_int(s.substr(hav_e));
+		}
+		else if(~hav_e)
+		{
+			return is_10_int(s.substr(0, hav_e - 1))
+			       && is_10_int(s.substr(hav_e));
+		}
+		else if(~hav_d)
+		{
+			return ((hav_d == 1) || is_10_int(s.substr(0, hav_d - 1)))
+			       && is_10_int(s.substr(hav_d));
+		}
+		else
+			return false;
+	}
+
+	inline int is_number(const register string& s) // 合并起来 
+	{
+		if(s[0] == '+' || s[0] == '-')
+			return 0;
+		if(is_10_int(s))
+			return 1;
+		else if(is_0x_int(s))
+			return 2;
+		else if(is_float(s))
+			return 3;
+		else
+			return 0;
+	}
+} numb;
+```
+
+然后把 `NUMBER` 读出来，顺便把 `SYMBOL` 也给判掉：
+
+```cpp
+int r = 0;
+if(s[nowl] != '+' && s[nowl] != '-')
+{
+	while(can_be_a_number(s[nowl + r]))
+		r++;
+	while(r && !numb.is_number(s.substr(nowl, r)))
+		r--;
+}
+if(r)
+{
+	ans.s = s.substr(nowl, r);
+	nowl += r;
+	ans.typ = 2;
+}
+else // 如果不可能是数字，那就只能是SYMBOL了
+{
+	string lst = ans.s = "";
+	lst.push_back(s[nowl++]);
+	while(symb.is_symbol(lst))
+	{
+		ans.s.push_back(s[nowl - 1]);
+		lst.push_back(s[nowl++]);
+	}
+	nowl--;
+	ans.typ = 4;
+}
+return ans;
+```
+
+完结撒花。
+
+最后把完整的代码贴一下，毕竟是一道细节题，再加上数据水（交完就把自己 hack 掉了，然后发现过了），如果把我的代码 hack 掉了求在下面留言：
+
+```cpp
+#include <cstdio>
+#include <cctype>
+#include <set>
+#include <string>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+string TYPE[] =
+{
+	"RESERVED", //	保留字	1
+	"NUMBER", //	数字	2
+	"STRING", //	字符串	3
+	"SYMBOL", //	符号	4
+	"NAME", //		变量名	5
+	"EOL", //		换行符	6
+	"COMMENT" //	注释	7
+};
+
+struct SYMBOL
+{
+	string all[26] =
+	{
+		"+", "-", "*", "/", "%", "^", "#",
+		"==", "~=", "<=", ">=", "<", ">", "=",
+		"(", ")", "{", "}", "[", "]",
+		";", ":", ",", ".", "..", "..."
+	};
+
+	set<string> all_symbol;
+
+	SYMBOL ()
+	{
+		all_symbol.clear();
+		for(int i = 0; i < 26; ++i)
+			all_symbol.insert(all[i]);
+	}
+
+	inline bool is_symbol(string s)
+	{
+		return all_symbol.count(s);
+	}
+} symb;
+
+struct RESERVED
+{
+	string all[21] =
+	{
+		"and", "break", "do", "else", "elseif",
+		"end", "false", "for", "function", "if",
+		"in", "local", "nil", "not", "or",
+		"repeat", "return", "then", "true", "until", "while"
+	};
+
+	set<string> all_reserved;
+
+	RESERVED ()
+	{
+		all_reserved.clear();
+		for(int i = 0; i < 21; ++i)
+			all_reserved.insert(all[i]);
+	}
+
+	inline bool is_reserved(string s)
+	{
+		return all_reserved.count(s);
+	}
+} rese;
+
+struct Token
+{
+	int typ;
+	string s;
+
+	Token (int tp = 6, string ss = "")
+	{
+		typ = tp, s = ss;
+	}
+};
+
+struct NUMBER
+{
+	inline bool is_zf(char c)
+	{
+		return c == '+' || c == '-';
+	}
+
+	inline bool is_10_int(const register string& s)
+	{
+		unsigned l = 0;
+		while(l < s.length() && is_zf(s[l]))
+			l++;
+		if(l >= s.length())
+			return false;
+		while(l < s.length() && isdigit(s[l]))
+			l++;
+		return l == s.length();
+	}
+
+	inline bool is_0x_char(char c)
+	{
+		return isdigit(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
+	}
+
+	inline bool is_0x_int(const register string& s)
+	{
+		unsigned l = 0;
+		while(l < s.length() && is_zf(s[l]))
+			l++;
+		if(l + 1 >= s.length())
+			return false;
+		if(s[l] != '0' || (s[l + 1] != 'x' && s[l + 1] != 'X'))
+			return false;
+		l += 2;
+		while(l < s.length() && is_0x_char(s[l]))
+			l++;
+		return l == s.length();
+	}
+
+	inline bool is_float(const register string& s)
+	{
+		unsigned l = 0;
+		while(l < s.length() && is_zf(s[l]))
+			l++;
+		if(l + 1 >= s.length())
+			return false;
+		int hav_e = -1, hav_d = -1;
+		for(unsigned i = l; i < s.length(); ++i)
+		{
+			if(s[i] == '.')
+			{
+				if(~hav_d)
+					return false;
+				else
+					hav_d = i + 1;
+			}
+			else if(s[i] == 'E' || s[i] == 'e')
+			{
+				if(~hav_e)
+					return false;
+				else
+					hav_e = i + 1;
+			}
+			else if(s[i] != '-' && s[i] != '+' && !isdigit(s[i]))
+				return false;
+		}
+		if((~hav_e) && (~hav_d))
+		{
+			if(hav_e < hav_d || (hav_d == 1 && hav_e - hav_d == 1))
+				return false;
+			return ((hav_d == 1) || is_10_int(s.substr(0, hav_d - 1)))
+			       && (is_10_int(s.substr(hav_d, hav_e - hav_d - 1))
+			           ||(hav_e - hav_d == 1))
+			       && is_10_int(s.substr(hav_e));
+		}
+		else if(~hav_e)
+		{
+			return is_10_int(s.substr(0, hav_e - 1))
+			       && is_10_int(s.substr(hav_e));
+		}
+		else if(~hav_d)
+		{
+			return ((hav_d == 1) || is_10_int(s.substr(0, hav_d - 1)))
+			       && is_10_int(s.substr(hav_d));
+		}
+		else
+			return false;
+	}
+
+	inline int is_number(const register string& s)
+	{
+		if(s[0] == '+' || s[0] == '-')
+			return 0;
+		if(is_10_int(s))
+			return 1;
+		else if(is_0x_int(s))
+			return 2;
+		else if(is_float(s))
+			return 3;
+		else
+			return 0;
+	}
+} numb;
+
+class BUF
+{
+	private:
+		string s;
+		unsigned nowl;
+
+		inline bool can_be_a_name(char c)
+		{
+			return isalpha(c) || c == '_' || isdigit(c);
+		}
+
+		inline bool can_be_a_number(char c)
+		{
+			return isdigit(c) || c == '.' || c == '-' || c == '+'
+			       || c == 'E' || c == 'e'
+			       || c == 'x' || c == 'X'
+			       || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
+		}
+
+	public:
+		BUF()
+		{
+			nowl = 0;
+			s = "";
+		}
+
+		inline Token read()
+		{
+			Token ans;
+			if(nowl == s.length())
+			{
+				if(!getline(cin, s))
+					return Token(-1);
+				nowl = 0;
+				s.push_back('\n');
+			}
+			while(s[nowl] == ' ')
+				nowl++;
+			if(s[nowl] == '\n')
+			{
+				nowl++;
+				return ans;
+			}
+			if(s[nowl] == '-' && s[nowl + 1] == '-')
+			{
+				nowl = s.length();
+				return ans;
+			}
+			if(s[nowl] == '"')
+			{
+				bool zy = false;
+				ans.s.push_back(s[nowl++]);
+				while(zy || s[nowl] != '"')
+				{
+					if(!zy && s[nowl] == '\\')
+						zy = true;
+					else
+						zy = false;
+					ans.s.push_back(s[nowl++]);
+				}
+				ans.s.push_back(s[nowl++]);
+				ans.typ = 3;
+				return ans;
+			}
+			if(s[nowl] == '\'')
+			{
+				bool zy = false;
+				ans.s.push_back(s[nowl++]);
+				while(zy || s[nowl] != '\'')
+				{
+					if(!zy && s[nowl] == '\\')
+						zy = true;
+					else
+						zy = false;
+					ans.s.push_back(s[nowl++]);
+				}
+				ans.typ = 3;
+				return ans;
+			}
+			if(isalpha(s[nowl]))
+			{
+				while(can_be_a_name(s[nowl]))
+					ans.s.push_back(s[nowl++]);
+				if(rese.is_reserved(ans.s))
+					ans.typ = 1;
+				else
+					ans.typ = 5;
+				return ans;
+			}
+			else
+			{
+				int r = 0;
+				if(s[nowl] != '+' && s[nowl] != '-')
+				{
+					while(can_be_a_number(s[nowl + r]))
+						r++;
+					while(r && !numb.is_number(s.substr(nowl, r)))
+						r--;
+				}
+				if(r)
+				{
+					ans.s = s.substr(nowl, r);
+					nowl += r;
+					ans.typ = 2;
+				}
+				else
+				{
+					string lst = ans.s = "";
+					lst.push_back(s[nowl++]);
+					while(symb.is_symbol(lst))
+					{
+						ans.s.push_back(s[nowl - 1]);
+						lst.push_back(s[nowl++]);
+					}
+					nowl--;
+					ans.typ = 4;
+				}
+				return ans;
+			}
+		}
+} buf;
+
+int main()
+{
+	Token s;
+	while(s = buf.read(), ~s.typ)
+	{
+		s.typ--;
+		if(s.typ == 5)
+			cout << '[' << TYPE[s.typ] << ']' << '\n';
+		else
+			cout << '[' << TYPE[s.typ] << ']' << ' ' << s.s << '\n';
+	}
+	return 0;
+}
+```

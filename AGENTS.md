@@ -195,10 +195,13 @@ Project guidance for agents working in this repository.
   editorial changes require a separate request.
   Resolve relative images in the asset folder named after the source post;
   prefer original PNGs over derived WebP files when converting to AVIF.
-  Attachment links use `/posts/<slug>/file.pdf`; only image paths are rewritten
-  automatically. Update migrated cross-post links to `/blog/<slug>` and
+  Download links (PDF, ZIP, source code, and text) use `/posts/<slug>/<file>`;
+  only image paths are rewritten automatically. Copy only referenced downloads
+  and preserve their bytes. Update migrated cross-post links to `/blog/<slug>` and
   regenerate heading fragments with `slugifyHeading`; legacy Hexo anchors
-  can differ in case and punctuation.
+  can differ in case and punctuation. Only level-two and level-three headings
+  receive generated IDs; add an explicit ID when preserving links to deeper
+  headings.
 - Inspect PDF embeds with full Chromium (`channel: 'chromium'` in Playwright);
   the default headless shell can leave PDF frames blank without a native viewer.
 - A post can keep BibTeX references in a sibling `references.bib` file and cite

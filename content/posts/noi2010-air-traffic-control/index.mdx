@@ -1,0 +1,246 @@
+---
+title: "NOI2010 航空管制"
+date: "2019-02-17"
+description: "NOI2010 航空管制题解。"
+---
+
+成功抢到 `luogu` 最劣解+`bzoj` 最劣解（至少我提交的时候是这样）……
+
+题意是给你一张拓扑图，求出一个拓扑序使得第 $i$ 个点在第 $k_i$ 个位置之前。先构造一组解，然后输出每个点可以到的最小的位置。
+
+
+
+构造一组解很简单，建个反图之后按 $k_i$ 为关键字排序一下，从小到大一个一个遍历即可。因为如果 $k_i$ 小的航班都没有开出，开 $k_i$ 大的显然没有意义。
+
+```cpp
+inline void shan(int now) // 遍历now点，但在遍历now点时显然先要遍历now之前（即反图之后）的点
+{
+    for(int i = ff[now]; i; i = ee[i].nxt)
+    {
+        int to = ee[i].to; // ee是反图中的边
+        if(!vis[to])
+            shan(to);
+    }
+    printf("%d ", now);
+    vis[now] = true;
+}
+
+int main()
+{
+    for(int i = 1; i <= n; ++i)
+        kkk[i] = mp(k[i], i); // #define mp make_pair
+    sort(kkk + 1, kkk + n + 1);
+    for(int i = 1; i <= n; ++i)
+        if(!vis[kkk[i].second])
+            shan(kkk[i].second);
+}
+```
+
+然后我们发现如果给出的 $k$ 序列无解，那么输出的序列一定不合法（怎么可能合法？），然后我们发现可以二分。
+
+复杂度？$\mathcal{O}(nm\log n)$……显然 T，T 了 4 个点。
+
+然后开始 $\mathcal{O}(\text{松})$ 卡常。
+
+然后发现它过了。
+
+~~虽然我卡了一年……~~
+
+下面是卡完的代码：
+
+```cpp
+// luogu-judger-enable-o2 开O2还是最劣解……
+#include <cstdio>
+#include <cstring>
+#include <queue>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 2005;
+const int maxm = 10005;
+
+int n, m;
+
+// 快读快输显然得加
+
+inline char gc()
+{
+    static char sxd[1 << 16], *sss = sxd, *ttt = sxd;
+    return (sss == ttt) && (ttt = (sss = sxd) + fread(sxd, 1, 1 << 16, stdin), sss == ttt) ? EOF : *sss++;
+}
+
+#define dd c = gc()
+inline int read(int &x)
+{
+    char dd;
+    x = 0;
+    bool f = false;
+    for(; !isdigit(c); dd)
+    {
+        if(c == '-')
+            f = true;
+        if(c == EOF)
+            return -1;
+    }
+    for(; isdigit(c); dd)
+        x = (x << 1) + (x << 3) + (c ^ 48);
+    if(f)
+        x = -x;
+    return 1;
+}
+#undef dd
+
+inline void write(register int x)
+{
+    int c[10];
+    *c = 0;
+    while(x)
+    {
+        c[++(*c)] = x % 10;
+        x /= 10;
+    }
+    if(!(*c))
+        x = 1;
+    while(*c)
+        putchar(c[(*c)--] | 48);
+    putchar(' ');
+}
+
+struct pii // 并不知道手打pair会不会快一点
+{
+    int first, second;
+    inline bool operator < (const pii& other) const
+    {
+        return this->first < other.first;
+    }
+};
+
+pii kkk[maxn];
+
+struct EDGE
+{
+    int to, nxt;
+} ee[maxm]; // 注意是反图的边，原图的边似乎不用建
+
+int du[maxn];
+int first[maxn];
+int ff[maxn];
+int dz[maxn];
+
+inline void add_edge(register int from, register int to)
+{
+    static int cnt = 0;
+    ee[++cnt].nxt = ff[to];
+    ff[to] = cnt;
+    ee[cnt].to = from;
+}
+
+int k[maxn];
+int top;
+int vis[maxn];
+
+inline void shan(register int now) // 回答第一个问题 
+{
+    for(register int i = ff[now]; i; i = ee[i].nxt)
+        if(!vis[ee[i].to])
+            shan(ee[i].to);
+    write(now);
+    dz[now] = ++top; // 记录一下每个点至少可以在那个时刻被遍历，这样缩小的二分的范围 
+    vis[now] = true;
+}
+
+pii kx[maxn];
+bool viss[maxn];
+int X, KK;
+
+inline bool shann(register int now)
+{
+    for(register int i = ff[now]; i; i = ee[i].nxt)
+        if(!viss[ee[i].to])
+            if(!shann(ee[i].to))
+                return false;
+    if(++top > ((now != X) ? k[now] : KK)) // 直接边跑边判断，常数应该会小一点 
+        return false;
+    return viss[now] = true;
+}
+
+inline bool pan(register int x, register int kk)
+{
+    KK = kk;
+    register int now = 0;
+    for(register int i = 1; i <= n; ++i)
+    {
+        kx[i] = kkk[i];
+        if(kx[i].second == x)
+        {
+            kx[i].first = kk;
+            now = i;
+        }
+    }
+    pii T;
+    // 本来下面一段只是一句sort，但那个常数是在太大了，只能插排
+    while(now > 1 && kx[now].first < kx[now - 1].first) 
+    {
+        T = kx[now];
+        kx[now] = kx[now - 1];
+        kx[now - 1] = T;
+        now--;
+    }
+    while(now <= n && kx[now].first > kx[now + 1].first)
+    {
+        T = kx[now];
+        kx[now] = kx[now + 1];
+        kx[now + 1] = T;
+        now++;
+    }
+    memset(viss, 0, sizeof(viss));
+    top = 0;
+    for(register int i = 1; i <= n; ++i)
+        if(!viss[kx[i].second])
+            if(!shann(kx[i].second))
+                return false;
+    return true;
+}
+
+inline int solve(const register int x)
+{
+    X = x;
+    register int l = 1, r = dz[x], mid; // 二分，r直接就是上面的dz了，即第一个问题x在那个位置 
+    while(l < r)
+    {
+        mid = (l + r) >> 1;
+        if(!pan(x, mid))
+            l = mid + 1;
+        else
+            r = mid;
+    }
+    return r;
+}
+
+int main()
+{
+    read(n), read(m);
+    for(register int i = 1; i <= n; ++i)
+    {
+        read(k[i]);
+        kkk[i].first = k[i];
+        kkk[i].second = i;
+    }
+    sort(kkk + 1, kkk + n + 1);
+    int f, t;
+    for(register int i = 1; i <= m; ++i)
+    {
+        read(f), read(t);
+        add_edge(f, t);
+    }
+    for(register int i = 1; i <= n; ++i)
+        if(!vis[kkk[i].second])
+            shan(kkk[i].second);
+    puts("");
+    for(register int i = 1; i <= n; ++i)
+        write(solve(i));
+    return 0;
+}
+```

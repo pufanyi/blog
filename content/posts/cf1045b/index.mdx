@@ -1,0 +1,97 @@
+---
+title: "CodeForces 1045B Space Isaac"
+date: "2018-12-31"
+description: "CodeForces 1045B Space Isaac 题解。"
+---
+
+[原题链接](http://codeforces.com/problemset/problem/1045/B)
+
+$0\sim m-1$ 的数被分成两个集合，你可以分别从两个集合中取一个数相加并对 $m$ 取模，求 $0\sim m-1$ 中不能构造出的数。
+
+
+
+## 题解
+
+感觉如果<strong><a href="https://www.luogu.org/space/show?uid=84156">s<span style={{ color: "var(--accent-red)" }}>xd666</span></a></strong>来做这题肯定能一眼秒，然而他正忙着切其他题。
+
+首先我们发现如果要让 $a + b \equiv x \pmod m​$，如果已知 $a, x​$，那 $b​$ 一定是唯一的。也就是说，假设给定集合是 $A​$，与之对应的集合为 $B​$，如果有 $a\in A​$ 但找不到 $b\in A​$ 使得 $a + b \equiv x\pmod m​$。那么 $x\in A + B​$（定义 $A + B = \{a + b : a\in A, b\in B\}​$）。反过来讲，如果 $x\notin A + B​$，那么一定能把 $A​$ 中所有元素配对（可能两个数相同），也即 $x\notin A + B \iff A = x - A​$（定义 $x - A= \{x - a : a\in A\}​$）。
+
+然后我们如果把小于 $m$ 的整数看成一个环，如果有两个数 $a, b$ 使 $a + b \equiv x \pmod m$，$a$ 顺时针时针移动，$b$ 肯定逆时针移动（即运动方向相反，且移动的长度应该是相等的（$(a + k)\bmod m + (b - k)\bmod m \equiv a + b \pmod m$ 嘛）。
+
+于是我们画两个圆，都表示集合 $\{a_i\}$（假设 $a_i$ 已经排好序），我们要把第一个圆的点与第二个圆的点匹配。
+
+假设 $a_i$ 与 $a_j$ 匹配。我们把 $i$ 移动至 $i+1$，那么根据上面推出的单调性，$j$ 必须移至 $j-1$（因为 $a_i\sim a_{i+1}$ 之间没有数了，所以 $j$ 也只能移动一格），又因为移动距离必须相等，即 $a_{i+1} - a_i = a_j - a_{j-1}$。
+
+所以我们令 $b_i = a_{i} - a_{i-1}$（$b_1 = (a_1 - a_n)\bmod m$），设串 $s_1 = b_nb_{n-1}b_{n-2}\cdots b_1, s_2 = b_1b_2b_3\cdots b_n$，我们要找的是 $s_1$ 与 $s_2$ 成环后相等，并找到一对匹配的数，他们加起来模 $m$ 即为一组解。我们令 $s_3 = s_2 + s_2$，找到 $s_3$ 中所有等于 $s_1$ 的子串，就得到了所有解，这个问题用[KMP](https://pks-loving.blog.luogu.org/zi-fu-chuan-xue-xi-bi-ji-qian-xi-kmp-xuan-xue-di-dan-mu-shi-chuan-pi-post)或是[Z](https://blog.csdn.net/ZJZNKU/article/details/65447695)都能解决。
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <set>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long LL;
+
+const int maxn = 200005;
+
+LL aa[maxn]; // 读入的a
+LL bb[maxn]; // 即上面说的b
+vector<LL> gou;
+int in[maxn << 2];
+LL Z[maxn << 2];
+set<LL> ans;
+
+int main()
+{
+    int n;
+    LL m;
+    scanf("%d%lld", &n, &m);
+    for(int i = 1; i <= n; ++i)
+        scanf("%lld", &aa[i]);
+    bb[1] = ((aa[1] - aa[n]) + m) % m;
+    for(int i = 2; i <= n; ++i)
+        bb[i] = ((aa[i] - aa[i-1]) % m + m) % m;
+    for(int i = n; i; --i) // 这里用的是Z算法，所以合并成了一个串
+    {
+        gou.push_back(bb[i]);
+        in[gou.size() - 1] = i;
+    }
+    gou.push_back(-1LL);
+    for(int i = 1; i <= n; ++i)
+    {
+        gou.push_back(bb[i]);
+        in[gou.size() - 1] = i;
+    }
+    for(int i = 1; i <= n; ++i)
+    {
+        gou.push_back(bb[i]);
+        in[gou.size() - 1] = i;
+    }
+    Z[0] = gou.size();
+    for(int i = 1, j = 1, k; i < (int) gou.size(); i = k) // Z算法
+    {
+        j = max(j, i);
+        while(gou[j] == gou[j - i])
+            ++j;
+        Z[i] = j - i;
+        k = i + 1;
+        while(k + Z[k - i] < j)
+        {
+            Z[k] = Z[k - i];
+            ++k;
+        }
+    }
+    for(int i = 1; i < (int) gou.size(); ++i)
+        if(Z[i] >= n) // 大力记录答案
+            ans.insert((aa[in[i] - 1 ? in[i] - 1 : n] + aa[n]) % m);
+    printf("%d\n", (int) ans.size());
+    for(auto it = ans.begin(); it != ans.end(); ++it)
+        printf("%lld ", *it);
+    return 0;
+}
+```

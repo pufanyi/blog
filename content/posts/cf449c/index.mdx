@@ -1,0 +1,79 @@
+---
+title: "CodeForces 449C Jzzhu and Apples"
+date: "2019-01-05"
+description: "CodeForces 449C Jzzhu and Apples 题解。"
+---
+
+[原题链接](https://codeforces.com/problemset/problem/449/C)
+
+给出正整数 $n$，你要把 $1\sim n$ 之间的正整数两两分组，使得每一组两个数的最大公约数大于 $1$。输出能分成最多个组，并按任意顺序输出每组的两个数。
+
+
+
+## 题解
+
+[官方题解](https://codeforces.com/blog/entry/13112)说得很简单。就是枚举从大到小质因数 $x$（如果 $2x\ge n$ 显然就不用管了），找出所有之前没有匹配过得 $x$ 的倍数，如果是偶数个就两两匹配，否则把 $2x$ 除去即可。
+
+那为什么这样是对的呢？
+
+我们来看最后枚举到 $x=2$ 的情况。如果有偶数个，那正好可以两两匹配，显然最优。如果是奇数个，那我们发现所有**可能被匹配的数**（即所有枚举到的数）有奇数个，即我们至少需要扔掉一个。现在我们只扔掉了一个（因为之前除去的 $2x$ 都在此时被匹配了），所以这种情况是最优的。
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 100005;
+
+int n, prime[maxn >> 1], p[maxn], cnt;
+
+inline void oula(int n)
+{
+    cnt = 0;
+    for(int i = 2; i <= n; ++i)
+    {
+        if(!p[i])
+            prime[++cnt] = i;
+        for(int j = 1; j <= cnt && prime[j] * i <= n; ++j)
+        {
+            p[prime[j] * i] = 1;
+            if(!(i % prime[j]))
+                break;
+        }
+    }
+}
+
+int aa[maxn], cntt, hv[maxn];
+int ans[maxn][2], anss;
+
+int main()
+{
+    scanf("%d", &n);
+    oula(n >> 1);
+    for(int i = cnt; i; --i)
+    {
+        cntt = 0;
+        for(int j = prime[i]; j <= n; j += prime[i])
+            if(!hv[j])
+                aa[++cntt] = j;
+        if(cntt & 1)
+        {
+            swap(aa[cntt], aa[2]);
+            cntt--;
+        }
+        for(int j = 1; j <= cntt; j += 2)
+        {
+            hv[aa[j]] = hv[aa[j + 1]] = 1;
+            ans[++anss][0] = aa[j];
+            ans[anss][1] = aa[j + 1];
+        }
+    }
+    printf("%d\n", anss);
+    for(int i = 1; i <= anss; ++i)
+        printf("%d %d\n", ans[i][0], ans[i][1]);
+    return 0;
+}
+```

@@ -1,0 +1,79 @@
+---
+title: "CodeForces 875E Delivery Club"
+date: "2019-01-12"
+description: "CodeForces 875E Delivery Club 题解。"
+---
+
+有两个快递员，分别在 $s_1, s_2(0\le s_1,s_2\le 10^9)$，现在有 $n(1\le n\le 100000)$ 个任务，每个任务 $x_i$ 表示要将货物送到 $x_i$，让任何一个快递员到 $x_i$ 都可以。由于快递员之间需要有对讲机联系，请你设计一种方案使得两个快递员之间的最长距离最短。
+
+
+
+先输入 $n,s_1,s_2$，在一行 $n$ 个整数 $x_i$。
+
+## 题解
+
+CF 如此多的二分+贪心，但我就是想不出来……
+
+首先二分答案。
+
+难点是在如何判断答案合法。
+
+显然正着做是不行的，所以我们考虑倒着做。
+
+我们考虑现在二分的距离为 $L$，枚举到第 $i$ 步，如果两个快递员中至少有一个的起点出现在 $[l_i,r_i]$ 的范围内，且两个快递员相距不超过 $L$，那么是合法的。
+
+现在考虑从 $[l_{i+1},r_{i+1}]$ 向 $[l_{i},r_{i}]$ 转移。
+
+显然，两个快递员中只有一个快递员动，而不动的那个快递员必须已经在 $[x_i-L,x_i+L]$。
+
+我们考虑下面两种情况：
+
+如果 $x_i\in[l_i,r_i]$，那么只要有一个快递员已经在 $[x_i-L,x_i+L]$ 里即可，我们让另一个快递员走到 $x_i$，而因为 $x_i\in[l_i,r_i]$，所以这位快递员在 $[l_i,r_i]$ 里了，且两个快递员相距不超过 $L$。所以 $l_i=x_i-L, r_i=x_i+L$。
+
+如果 $x_i\notin [l_i,r_i]$，考虑不动的快递员，首先必须在 $[x_i-L,x_i+L]$ 里，又由于 $x_i\notin[l_i,r_i]$，故他也必须在 $[l_i,r_i]$ 里，而到 $x_i$ 的那个快递员没有什么特殊的要求了。所以 $l_i=\max(l_{i+1},x_i-L),r_i=\min(r_{i+1},x_i+L)$。
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 100005;
+const int inf = 0x3f3f3f3f;
+
+int n, s1, s2;
+int aa[maxn];
+
+inline bool check(int x)
+{
+    int l = -inf, r = inf;
+    for(int i = n; i; --i)
+    {
+        if(l <= aa[i] && aa[i] <= r)
+            l = aa[i] - x, r = aa[i] + x;
+        else
+            l = max(l, aa[i] - x), r = min(r, aa[i] + x);
+    }
+    return (l <= s1 && s1 <= r) || (l <= s2 && s2 <= r);
+}
+
+int main()
+{
+    scanf("%d%d%d", &n, &s1, &s2);
+    for(int i = 1; i <= n; ++i)
+        scanf("%d", &aa[i]);
+    int l = abs(s1 - s2), r = inf;
+    while(l < r)
+    {
+        int mid = (l + r) >> 1;
+        if(check(mid))
+            r = mid;
+        else
+            l = mid + 1;
+    }
+    printf("%d\n", l);
+    return 0;
+}
+```
