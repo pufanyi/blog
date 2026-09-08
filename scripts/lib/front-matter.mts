@@ -4,7 +4,7 @@ import type { PostSummary } from '../../src/app/models/post.model';
 export type PostMetadata = Omit<PostSummary, 'slug'> & { draft?: boolean };
 
 const REQUIRED_FIELDS = ['title', 'date', 'description'];
-const OPTIONAL_FIELDS = ['coverImage', 'draft'];
+const OPTIONAL_FIELDS = ['coverImage', 'draft', 'updated'];
 const ALLOWED_FIELDS = new Set([...REQUIRED_FIELDS, ...OPTIONAL_FIELDS]);
 const OPENING_DELIMITER = /^---[ \t]*(?:\r?\n|$)/;
 const CLOSING_DELIMITER = /^---[ \t]*(?:\r?\n|$)/gm;
@@ -17,7 +17,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-function isCalendarDate(value: unknown): value is string {
+export function isCalendarDate(value: unknown): value is string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return false;
   }
@@ -45,6 +45,15 @@ function validateMetadata(
 
   if (!isCalendarDate(metadata['date'])) {
     fail(sourceName, 'front matter field "date" must be a valid YYYY-MM-DD date');
+  }
+
+  if (metadata['updated'] !== undefined) {
+    if (!isCalendarDate(metadata['updated'])) {
+      fail(sourceName, 'front matter field "updated" must be a valid YYYY-MM-DD date');
+    }
+    if (metadata['updated'] < metadata['date']) {
+      fail(sourceName, 'front matter field "updated" must not precede "date"');
+    }
   }
 
   if (

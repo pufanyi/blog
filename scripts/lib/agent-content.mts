@@ -84,6 +84,7 @@ export function buildAgentFiles(
       `<h1>${escapeHtml(post.title)}</h1>`,
       paragraph(`Author: ${site.author.name}`),
       paragraph(`Published: ${post.date}`),
+      ...(post.updated ? [paragraph(`Updated: ${post.updated}`)] : []),
       `<p>Canonical: ${link(canonical, canonical)}</p>`,
       paragraph(post.description),
     ].join('\n');
@@ -91,6 +92,7 @@ export function buildAgentFiles(
     index.push(
       `<h2>${link(post.title, `${canonical}.md`)}</h2>`,
       paragraph(post.date),
+      ...(post.updated ? [paragraph(`Updated: ${post.updated}`)] : []),
       paragraph(post.description),
       `<p>${link('Original article', canonical)}</p>`,
     );
@@ -116,6 +118,8 @@ export function buildAgentFiles(
         '<h2>Blog</h2>',
         list([
           `${link('Article index', `${site.url}/blog/index.md`)}: Titles, descriptions, publication dates, and Markdown links for all published articles.`,
+          `${link('Atom feed', `${site.url}/atom.xml`)}: Published and updated articles, with summaries and links to HTML and Markdown.`,
+          `${link('RSS feed', `${site.url}/feed.xml`)}: Subscribe to article updates.`,
         ]),
       ].join('\n'),
       `${site.url}/`,

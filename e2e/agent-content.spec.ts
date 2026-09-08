@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test';
+import { JSDOM } from 'jsdom';
+import { POSTS } from '../src/app/data/posts';
 
 test('an HTTP-only reader can discover and fetch the complete Markdown collection', async ({ request }) => {
   const home = await request.get('/');
@@ -30,16 +32,103 @@ test('an HTTP-only reader can discover and fetch the complete Markdown collectio
     const response = await request.get(path);
     expect(response.status(), path).toBe(200);
     expect(response.headers()['content-type'], path).toContain('text/markdown');
+    expect(response.headers()['link'], path).toContain(`<https://pufanyi.com${path.slice(0, -3)}>; rel="canonical"`);
     const article = await response.text();
     expect(article, path).toContain(`Canonical: <https://pufanyi.com${path.slice(0, -3)}>`);
     expect(article, path).toMatch(/^# /);
     const negotiated = await request.get(path.slice(0, -3), { headers: { Accept: 'text/markdown' } });
     expect(negotiated.status(), path).toBe(200);
     expect(negotiated.headers()['content-type'], path).toContain('text/markdown');
+    expect(negotiated.headers()['link'], path).toContain(`<https://pufanyi.com${path.slice(0, -3)}>; rel="canonical"`);
     expect(await negotiated.text(), path).toBe(article);
   }
   const missing = await request.get('/blog/nonexistent-export.md');
   expect(missing.status()).toBe(404);
+});
+
+test('profile identity, feeds and authored updates are discoverable in prerendered content', async ({ request }) => {
+  for (const path of ['/', '/cv']) {
+    const dom = new JSDOM(await (await request.get(path)).text());
+    try {
+      const document = dom.window.document;
+      const profile = JSON.parse(document.querySelector('#profile-structured-data')!.textContent!);
+      expect(profile['@type']).toBe('ProfilePage');
+      expect(profile.mainEntity['@id']).toBe('https://pufanyi.com/#person');
+      expect(profile.mainEntity.name).toContain('濮凡轶');
+      expect(profile.mainEntity.sameAs).toContain('https://github.com/pufanyi');
+      expect(document.querySelector('link[type="application/rss+xml"]')?.getAttribute('href')).toBe('https://pufanyi.com/feed.xml');
+      expect(document.querySelector('link[type="application/atom+xml"]')?.getAttribute('href')).toBe('https://pufanyi.com/atom.xml');
+    } finally {
+      dom.window.close();
+    }
+  }
+  const atomResponse = await request.get('/atom.xml');
+  const rssResponse = await request.get('/feed.xml');
+  expect(atomResponse.status()).toBe(200);
+  expect(rssResponse.status()).toBe(200);
+  expect(atomResponse.headers()['content-type']).toContain('application/atom+xml');
+  expect(rssResponse.headers()['content-type']).toContain('application/rss+xml');
+  const atom = new JSDOM(await atomResponse.text(), { contentType: 'application/xml' });
+  const rss = new JSDOM(await rssResponse.text(), { contentType: 'application/xml' });
+  const sitemap = new JSDOM(await (await request.get('/sitemap.xml')).text(), { contentType: 'application/xml' });
+  try {
+    const entries = [...atom.window.document.querySelectorAll('entry')];
+    const items = [...rss.window.document.querySelectorAll('item')];
+    expect(entries).toHaveLength(POSTS.length);
+    expect(items).toHaveLength(POSTS.length);
+    for (const post of POSTS) {
+      const canonical = `https://pufanyi.com/blog/${post.slug}`;
+      const entry = entries.find(item => item.querySelector('id')?.textContent === canonical)!;
+      const item = items.find(item => item.querySelector('guid')?.textContent === canonical)!;
+      expect(entry.querySelector('published')?.textContent).toBe(`${post.date}T00:00:00Z`);
+      expect(entry.querySelector('updated')?.textContent).toBe(`${post.updated ?? post.date}T00:00:00Z`);
+      expect(entry.querySelector('summary')?.textContent).toBe(post.description);
+      expect(item.querySelector('title')?.textContent).toBe(post.title);
+      const sitemapEntry = [...sitemap.window.document.querySelectorAll('url')].find(item => item.querySelector('loc')?.textContent === canonical)!;
+      expect(sitemapEntry.querySelector('lastmod')?.textContent).toBe(post.updated);
+    }
+    for (const post of POSTS.filter(post => post.updated)) {
+      const canonical = `https://pufanyi.com/blog/${post.slug}`;
+      const html = new JSDOM(await (await request.get(`/blog/${post.slug}`)).text());
+      try {
+        const document = html.window.document;
+        const article = JSON.parse(document.querySelector('#article-structured-data')!.textContent!);
+        expect(article.dateModified).toBe(post.updated);
+        expect(article.author[0]['@id']).toBe('https://pufanyi.com/#person');
+        expect(document.querySelector('meta[property="article:modified_time"]')?.getAttribute('content')).toBe(post.updated);
+        expect(document.querySelector(`app-post-header time[datetime="${post.updated}"]`)).not.toBeNull();
+        const markdown = await (await request.get(`/blog/${post.slug}.md`)).text();
+        expect(markdown).toContain(`Updated: ${post.updated}`);
+        expect(markdown).toContain(`Canonical: <${canonical}>`);
+      } finally {
+        html.window.close();
+      }
+    }
+  } finally {
+    atom.window.close(); rss.window.close(); sitemap.window.close();
+  }
+});
+
+test('Cloudflare serves sitemap canonicals directly and redirects HTML slash variants consistently', async ({ request }, testInfo) => {
+  test.skip(testInfo.project.name !== 'cloudflare', 'Cloudflare controls static HTML URL normalization');
+  const dom = new JSDOM(await (await request.get('/sitemap.xml')).text(), { contentType: 'application/xml' });
+  try {
+    for (const loc of dom.window.document.querySelectorAll('loc')) {
+      const path = new URL(loc.textContent!).pathname;
+      const response = await request.get(path, { maxRedirects: 0, headers: { Accept: 'text/html' } });
+      expect(response.status(), path).toBe(200);
+      expect(response.headers()['location'], path).toBeUndefined();
+      if (path !== '/') expect(path).not.toMatch(/\/$/);
+    }
+  } finally {
+    dom.window.close();
+  }
+  for (const path of ['/cv', '/blog', '/blog/page/2', '/blog/cf77c', '/icpc']) {
+    const response = await request.get(`${path}/?ref=search`, { maxRedirects: 0, headers: { Accept: 'text/html' } });
+    expect([301, 307, 308]).toContain(response.status());
+    expect(new URL(response.headers()['location'], response.url()).pathname).toBe(path);
+    expect(new URL(response.headers()['location'], response.url()).search).toBe('?ref=search');
+  }
 });
 
 test('original URLs negotiate Markdown while browsers, HEAD requests and 404s keep correct behavior', async ({ request }, testInfo) => {

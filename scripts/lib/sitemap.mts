@@ -1,22 +1,15 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { JSDOM } from 'jsdom';
-
-function escapeXml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&apos;');
-}
+import { isCalendarDate } from './front-matter.mts';
+import { escapeXml } from './xml.mts';
 
 export function prepareSitemap(browserDirectory: string, siteUrl: string): number {
   const manifest = JSON.parse(
     readFileSync(join(browserDirectory, '..', 'prerendered-routes.json'), 'utf8'),
   ) as { routes: Record<string, unknown> };
   const origin = new URL(siteUrl).origin;
-  const urls = new Set<string>();
+  const urls = new Map<string, string | undefined>();
 
   for (const route of Object.keys(manifest.routes)) {
     const html = readFileSync(join(browserDirectory, route, 'index.html'), 'utf8');
@@ -39,13 +32,28 @@ export function prepareSitemap(browserDirectory: string, siteUrl: string): numbe
       if (url.origin !== origin || url.search || url.hash) {
         throw new Error(`Invalid sitemap canonical for ${route}: ${canonical}`);
       }
-      urls.add(url.href);
+      const updated = head
+        .querySelector('meta[property="article:modified_time"]')
+        ?.getAttribute('content');
+      if (updated !== null && updated !== undefined && !isCalendarDate(updated)) {
+        throw new Error(`Invalid authored modification date for ${route}: ${updated}`);
+      }
+      const previous = urls.get(url.href);
+      if (previous && updated && previous !== updated) {
+        throw new Error(`Conflicting modification dates for ${canonical}`);
+      }
+      urls.set(url.href, updated ?? previous);
     } finally {
       dom.window.close();
     }
   }
 
-  const entries = [...urls].sort().map((url) => `  <url><loc>${escapeXml(url)}</loc></url>`);
+  const entries = [...urls]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(
+      ([url, updated]) =>
+        `  <url><loc>${escapeXml(url)}</loc>${updated ? `<lastmod>${updated}</lastmod>` : ''}</url>`,
+    );
   writeFileSync(
     join(browserDirectory, 'sitemap.xml'),
     [

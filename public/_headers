@@ -6,3 +6,9 @@
 
 /blog/*.md
   Content-Type: text/markdown; charset=utf-8
+
+/feed.xml
+  Content-Type: application/rss+xml; charset=utf-8
+
+/atom.xml
+  Content-Type: application/atom+xml; charset=utf-8

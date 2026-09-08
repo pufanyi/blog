@@ -73,3 +73,14 @@ test('parsePostSource supports boolean draft metadata', () => {
     /field "draft" must be a boolean/,
   );
 });
+
+test('authored updates must be real calendar dates on or after publication', () => {
+  const source = (updated: string) =>
+    VALID_FRONT_MATTER.replace('description:', `updated: ${updated}\ndescription:`);
+  assert.equal(parsePostSource(source('2026-09-08')).metadata.updated, '2026-09-08');
+  assert.equal(parsePostSource(source('2026-08-08')).metadata.updated, '2026-08-08');
+  for (const updated of ['2026-02-30', '2026-09', 'null', 'true', '2026-09-08T12:00:00Z']) {
+    assert.throws(() => parsePostSource(source(updated)), /"updated" must be a valid YYYY-MM-DD/);
+  }
+  assert.throws(() => parsePostSource(source('2026-08-07')), /must not precede "date"/);
+});

@@ -71,3 +71,31 @@ test('sitemap generation fails when indexable pages have missing or invalid cano
     assert.throws(() => prepareSitemap(browserDirectory, 'https://example.com'), /canonical/);
   }
 });
+
+test('sitemap lastmod uses only an explicit authored update and rejects invalid dates', (t) => {
+  const browserDirectory = buildFixture(t, {
+    '/': '<link rel="canonical" href="https://example.com/">',
+    '/blog/updated':
+      '<link rel="canonical" href="https://example.com/blog/updated"><meta property="article:modified_time" content="2026-09-08">',
+    '/blog/unknown':
+      '<link rel="canonical" href="https://example.com/blog/unknown"><meta property="article:published_time" content="2020-01-01">',
+  });
+  prepareSitemap(browserDirectory, 'https://example.com');
+  const dom = new JSDOM(readFileSync(join(browserDirectory, 'sitemap.xml'), 'utf8'), {
+    contentType: 'application/xml',
+  });
+  t.after(() => dom.window.close());
+  const lastmod = dom.window.document.querySelectorAll('lastmod');
+  assert.equal(lastmod.length, 1);
+  assert.equal(lastmod[0].textContent, '2026-09-08');
+  assert.equal(
+    lastmod[0].parentElement?.querySelector('loc')?.textContent,
+    'https://example.com/blog/updated',
+  );
+  for (const value of ['2026-02-30', '', 'today']) {
+    const browser = buildFixture(t, {
+      '/blog/post': `<link rel="canonical" href="https://example.com/blog/post"><meta property="article:modified_time" content="${value}">`,
+    });
+    assert.throws(() => prepareSitemap(browser, 'https://example.com'), /modification date/);
+  }
+});

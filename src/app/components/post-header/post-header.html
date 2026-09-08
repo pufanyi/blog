@@ -4,7 +4,12 @@
     <h1 class="title">{{ title() }}</h1>
     <hr class="title-rule-bottom" />
   </div>
-  <div class="date">{{ date() }}</div>
+  <div class="date">
+    <time [attr.datetime]="date()">{{ date() }}</time>
+    @if (updated()) {
+      <span> · Updated <time [attr.datetime]="updated()">{{ updated() }}</time></span>
+    }
+  </div>
   @if (coverImage()) {
     <app-image-lightbox
       [src]="coverImage()!"

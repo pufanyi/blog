@@ -4,6 +4,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import type { Post } from '../models/post.model';
 import { SITE_CONFIG } from '../data/site-config';
+import { PERSON_DATA } from '../data/person';
 import { blogPagePath, type BlogPage } from '../utils/blog-pagination';
 
 const NOT_FOUND_TITLE = '404: Existence Left as an Exercise';
@@ -71,6 +72,11 @@ export class PageMetadataStrategy extends TitleStrategy {
       this.meta.removeTag('property="article:published_time"');
       this.meta.removeTag('property="article:author"');
     }
+    if (post?.updated) {
+      this.meta.updateTag({ property: 'article:modified_time', content: post.updated });
+    } else {
+      this.meta.removeTag('property="article:modified_time"');
+    }
     this.updateLink('canonical', canonical);
     const markdownPath = missing || route.data['noindex'] ? null
       : post ? `/blog/${post.slug}.md`
@@ -79,6 +85,16 @@ export class PageMetadataStrategy extends TitleStrategy {
     this.updateLink('alternate', markdownPath ? `${SITE_CONFIG.url}${markdownPath}` : null, 'text/markdown');
     this.updateLink('describedby', missing || route.data['noindex'] ? null : `${SITE_CONFIG.url}/llms.txt`, 'text/plain');
     this.updateArticleStructuredData(missing ? null : post, canonical);
+    const indexable = !missing && !route.data['noindex'];
+    this.updateStructuredData('profile-structured-data', indexable && (path === '/' || path === '/cv') ? {
+      '@context': 'https://schema.org',
+      '@type': 'ProfilePage',
+      '@id': `${canonical}#profile`,
+      url: canonical,
+      mainEntity: PERSON_DATA,
+    } : null);
+    this.updateLink('alternate', indexable ? `${SITE_CONFIG.url}/feed.xml` : null, 'application/rss+xml');
+    this.updateLink('alternate', indexable ? `${SITE_CONFIG.url}/atom.xml` : null, 'application/atom+xml');
     this.updateLink(
       'prev',
       blogPage && blogPage.number > 1
@@ -92,9 +108,8 @@ export class PageMetadataStrategy extends TitleStrategy {
   }
 
   private updateArticleStructuredData(post: Post | null | undefined, canonical: string): void {
-    let script = this.document.head.querySelector<HTMLScriptElement>('#article-structured-data');
     if (!post) {
-      script?.remove();
+      this.updateStructuredData('article-structured-data', null);
       return;
     }
     const data = {
@@ -106,16 +121,27 @@ export class PageMetadataStrategy extends TitleStrategy {
       headline: post.title,
       description: post.description,
       datePublished: post.date,
+      ...(post.updated ? { dateModified: post.updated } : {}),
       author: [{
         '@type': 'Person',
+        '@id': PERSON_DATA['@id'],
         name: SITE_CONFIG.author.name,
         url: new URL('/', SITE_CONFIG.url).href,
       }],
       ...(post.coverImage ? { image: [new URL(post.coverImage, SITE_CONFIG.url).href] } : {}),
     };
+    this.updateStructuredData('article-structured-data', data);
+  }
+
+  private updateStructuredData(id: string, data: object | null): void {
+    let script = this.document.head.querySelector<HTMLScriptElement>(`#${id}`);
+    if (data === null) {
+      script?.remove();
+      return;
+    }
     if (!script) {
       script = this.document.createElement('script');
-      script.id = 'article-structured-data';
+      script.id = id;
       script.type = 'application/ld+json';
       this.document.head.appendChild(script);
     }

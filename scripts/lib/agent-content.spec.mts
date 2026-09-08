@@ -168,7 +168,7 @@ test('agent files have canonical metadata, deterministic indexes, and prune unpu
     date: '2026-01-01',
     markdownHtml: '<p>Full article</p>',
   };
-  const older = { ...post, slug: 'older', date: '2025-01-01' };
+  const older = { ...post, slug: 'older', date: '2025-01-01', updated: '2026-09-08' };
   const renderedCv = renderCvMarkdown(cv);
   const files = buildAgentFiles([older, post], renderedCv, site);
   const index = files.get('blog/index.md')!;
@@ -177,6 +177,10 @@ test('agent files have canonical metadata, deterministic indexes, and prune unpu
   assert.ok(files.get('llms.txt')?.includes(`${site.url}/blog/index.md`));
   assert.ok(files.get('blog/example.md')?.includes(`Canonical: <${site.url}/blog/example>`));
   assert.match(files.get('blog/example.md')!, /Published: 2026-01-01/);
+  assert.doesNotMatch(files.get('blog/example.md')!, /Updated:/);
+  assert.match(files.get('blog/older.md')!, /Updated: 2026-09-08/);
+  assert.match(index, /Updated: 2026-09-08/);
+  assert.ok(files.get('llms.txt')?.includes(`${site.url}/atom.xml`));
   writeAgentFiles(directory, files);
   assert.equal(
     readFileSync(join(directory, 'blog/example.md'), 'utf8'),

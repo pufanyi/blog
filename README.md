@@ -79,6 +79,38 @@ Clients must explicitly prefer `text/markdown`; requests without that preference
 receive HTML and HTTP `Link` headers advertising the Markdown and `/llms.txt`.
 Both variants include `Vary: Accept` and prevent shared caching of the negotiated
 URL; the underlying files retain Cloudflare's separate static asset caches.
+Article Markdown responses also provide an HTTP `rel="canonical"` pointing to
+the HTML article. Cloudflare serves canonical HTML URLs without trailing slashes
+directly, matching page metadata and the sitemap.
+
+Homepage and CV pages publish `ProfilePage`/`Person` JSON-LD generated from the
+existing CV, including its bilingual name and external profile links. Article
+authors refer to the same `/#person` identity.
+
+## Article updates and feeds
+
+Use an optional authored `updated` date for substantive article changes:
+
+```yaml
+title: Example article
+date: "2026-08-01"
+updated: "2026-09-08"
+description: An example article.
+```
+
+The generator validates calendar dates and rejects updates before publication.
+The same date appears on the article and in its Markdown, `dateModified`, and
+sitemap `lastmod`. Omit `updated` when the historical modification date is
+unknown; build times and migration commits are not content modification dates.
+
+`/feed.xml` (RSS 2.0) and `/atom.xml` (Atom 1.0) include summaries and links for
+all published articles, sorted by `updated` or the original publication date.
+Entries retain stable article IDs when updated. Both include links to Markdown;
+Atom explicitly distinguishes publication and update dates. The feed timestamp
+uses the latest known article date. Feeds require at least one published post
+with a date and are regenerated with the other content assets.
+Subscribe through the footer links or discover the feeds in HTML metadata and
+`/llms.txt`.
 
 ## Validation
 

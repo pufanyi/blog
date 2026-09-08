@@ -8,7 +8,7 @@
       [readingProgress]="content()?.readingProgress() ?? 0"
       (sectionSelected)="content()?.activateHeading($event)"
     />
-    <app-post-header [title]="article.title" [date]="article.date" [coverImage]="article.coverImage" />
+    <app-post-header [title]="article.title" [date]="article.date" [updated]="article.updated" [coverImage]="article.coverImage" />
     <article class="post-body" [appPostContent]="article"></article>
     @if (showCitation) {
       <app-post-citation [title]="article.title" [date]="article.date" [slug]="article.slug" />

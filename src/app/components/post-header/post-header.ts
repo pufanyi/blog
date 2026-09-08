@@ -12,5 +12,6 @@ import { ImageLightboxComponent } from '../image-lightbox/image-lightbox';
 export class PostHeaderComponent {
   title = input.required<string>();
   date = input.required<string>();
+  updated = input<string>();
   coverImage = input<string>();
 }

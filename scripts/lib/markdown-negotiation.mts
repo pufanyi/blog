@@ -48,13 +48,35 @@ export function prefersMarkdown(accept: string | null): boolean {
 }
 
 export function createMarkdownWorker(routes: MarkdownRoutes) {
+  // Only one-to-one article alternatives are canonicalized. The complete index
+  // and CV exports are shared by several pages with different visible content.
+  const articleCanonicals = new Map(
+    Object.entries(routes).flatMap(([path, markdown]) => {
+      const url = new URL(markdown);
+      return path.startsWith('/blog/') && url.pathname === `${path}.md`
+        ? [[url.pathname, new URL(path, url).href] as const]
+        : [];
+    }),
+  );
   return {
     async fetch(request: Request, env: { ASSETS: AssetBinding }): Promise<Response> {
       const url = new URL(request.url);
       const path = url.pathname === '/' ? '/' : url.pathname.replace(/\/$/, '');
       const markdownUrl = Object.hasOwn(routes, path) ? routes[path] : undefined;
-      if (!markdownUrl || !['GET', 'HEAD'].includes(request.method)) {
+      if (!['GET', 'HEAD'].includes(request.method)) {
         return fetchAsset(request, env.ASSETS);
+      }
+      if (!markdownUrl) {
+        const asset = await fetchAsset(request, env.ASSETS);
+        const canonical = articleCanonicals.get(url.pathname);
+        if (!canonical || (!asset.ok && asset.status !== 304)) return asset;
+        const headers = new Headers(asset.headers);
+        headers.append('Link', `<${canonical}>; rel="canonical"`);
+        return new Response(request.method === 'HEAD' ? null : asset.body, {
+          status: asset.status,
+          statusText: asset.statusText,
+          headers,
+        });
       }
 
       const markdown = prefersMarkdown(request.headers.get('Accept'));
@@ -81,6 +103,8 @@ export function createMarkdownWorker(routes: MarkdownRoutes) {
         if (markdown && (asset.ok || asset.status === 304)) {
           headers.set('Content-Type', 'text/markdown; charset=utf-8');
           headers.set('Content-Location', markdownUrl);
+          const canonical = articleCanonicals.get(assetUrl.pathname);
+          if (canonical) headers.append('Link', `<${canonical}>; rel="canonical"`);
         }
       }
       return new Response(request.method === 'HEAD' ? null : asset.body, {

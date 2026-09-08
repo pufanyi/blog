@@ -47,7 +47,12 @@ const assets = {
     return new Response(request.method === 'HEAD' ? null : data, {
       status,
       headers: {
-        'Content-Type': types[extname(file)] ?? 'application/octet-stream',
+        'Content-Type':
+          status === 200 && pathname === '/feed.xml'
+            ? 'application/rss+xml; charset=utf-8'
+            : status === 200 && pathname === '/atom.xml'
+              ? 'application/atom+xml; charset=utf-8'
+              : (types[extname(file)] ?? 'application/octet-stream'),
         'Cache-Control': 'no-store',
       },
     });

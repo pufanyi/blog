@@ -58,6 +58,9 @@ Project guidance for agents working in this repository.
   Cloudflare applies `_headers` to HTML 404 fallbacks using the requested URL;
   keep `/blog/*.md` within worker-first routing so missing exports receive the
   Worker's MIME correction, and retain its Cloudflare regression test.
+  One-to-one article Markdown exports also send an HTTP canonical pointing to
+  the HTML article, including direct GET/HEAD and conditional 304 responses.
+  Do not canonicalize the full archive or profile exports to partial pages.
 - Site settings live in `configs/{site,blog,comments,redirects}.yaml`. The data
   generator validates them before emitting typed modules under `src/app/data`.
   After editing YAML during development, run `pnpm generate:data` again.
@@ -73,6 +76,17 @@ Project guidance for agents working in this repository.
 - The postbuild step generates `sitemap.xml` and `robots.txt` from Angular's
   prerender manifest and page canonicals. It excludes noindex and redirect
   pages; do not maintain a separate URL list or use build time as `lastmod`.
+- Keep Cloudflare HTML handling aligned with the canonical URL format. Check
+  that sitemap and canonical URLs return 200 directly; asset redirects must not
+  add trailing slashes while page metadata declares the slashless URL canonical.
+  Hosting uses `assets.html_handling: drop-trailing-slash`; verify this in the
+  Cloudflare Playwright project, since the lightweight Node preview does not
+  reproduce every static asset redirect.
+- The generator writes summary feeds at `/feed.xml` (RSS) and `/atom.xml`
+  alongside Markdown exports. Both use stable article URLs and sort by the
+  latest known authored date (`updated ?? date`), never the build clock. Feed
+  discovery lives in page metadata, the footer, and `llms.txt`; keep MIME types
+  correct in both Cloudflare `_headers` and the Node preview.
 - Run unit tests with `pnpm test`; use `pnpm test --watch=false` for a
   noninteractive run. `pnpm check` does not run tests or the production build.
 - Angular's unit-test builder does not support `vi.mock` for relative imports.
@@ -97,6 +111,10 @@ Project guidance for agents working in this repository.
   It also owns article `BlogPosting` JSON-LD: reuse authored dates and article
   covers, omit unknown modification dates and unrelated fallback images, and
   escape `<` when serializing JSON into HTML script elements.
+  Homepage/CV `ProfilePage` data and article authors share the `/#person` ID.
+  Build the compact generated person data from rendered CV content and its
+  external profile links; avoid importing the full CV into the eager metadata
+  service. Clear page-specific structured data when navigating away.
   `PageScrollService` consumes router scroll events and corrects saved positions
   or fragments after fonts/formulas settle, unless the reader has scrolled.
 
@@ -196,7 +214,11 @@ Project guidance for agents working in this repository.
 - Each blog post lives at `content/posts/<slug>/index.mdx`; the directory name is
   the post slug. `index.mdx` starts with YAML front matter delimited by `---`;
   `title`, `date` (`YYYY-MM-DD`), and `description` are required, while
-  `coverImage` is optional.
+  `coverImage` and `updated` are optional. `updated` must be a real `YYYY-MM-DD`
+  date on or after publication and should mark a substantive content change.
+  It drives the visible update date, Markdown metadata, article `dateModified`,
+  sitemap `lastmod`, and feeds. Leave unknown historical update dates unset;
+  do not infer them from migration commits or filesystem/build timestamps.
 - Post-local image/assets live alongside `index.mdx` under
   `content/posts/<slug>/` and are referenced from Markdown with relative image
   paths. The generator rewrites those paths to `/posts/<slug>/...`, and Angular

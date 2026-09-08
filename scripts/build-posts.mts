@@ -19,7 +19,9 @@ import { type AgentPost, buildAgentFiles, writeAgentFiles } from './lib/agent-co
 import { renderCvMarkdown } from './lib/cv-markdown.mts';
 import { parsePostSource } from './lib/front-matter.mts';
 import { normalizePostImageHref, renderMdx } from './lib/mdx-renderer.mts';
+import { buildPersonData } from './lib/person-data.mts';
 import { loadSiteConfiguration } from './lib/site-config.mts';
+import { buildSyndicationFeeds } from './lib/syndication.mts';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const POSTS_DIR = join(ROOT, 'content/posts');
@@ -165,9 +167,16 @@ async function main(): Promise<void> {
     `${GENERATED}import type { CvData } from '../models/cv.model';\n\nexport const CV_DATA: CvData = ${JSON.stringify(cv, null, 2)};\n`,
   );
   console.log('Generated redirects and CV data');
+  writeFileSync(
+    join(DATA_DIR, 'person.ts'),
+    `${GENERATED}import type { PersonStructuredData } from '../models/structured-data.model';\n\nexport const PERSON_DATA: PersonStructuredData = ${JSON.stringify(buildPersonData(cv, configuration.site), null, 2)};\n`,
+  );
   const agentFiles = buildAgentFiles(agentPosts, cv, configuration.site);
+  for (const [path, content] of buildSyndicationFeeds(agentPosts, configuration.site)) {
+    agentFiles.set(path, content);
+  }
   writeAgentFiles(join(ROOT, '.generated/agent-content'), agentFiles);
-  console.log(`Generated ${agentFiles.size} agent-readable Markdown and index files`);
+  console.log(`Generated ${agentFiles.size} Markdown, index, and feed files`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

@@ -132,7 +132,6 @@ test('unmapped paths, direct exports and non-read methods retain static asset be
   for (const path of [
     '/blog/draft',
     '/blog/page/999',
-    '/blog/post.md',
     '/pdf-viewer',
     '/posts/p/a.pdf',
     '/toString',
@@ -198,4 +197,47 @@ test('Cloudflare header rules must not label the HTML 404 fallback as Markdown',
   assert.equal(response.status, 404);
   assert.equal(response.headers.get('Content-Type'), 'text/html; charset=utf-8');
   assert.equal(await response.text(), '<h1>Not found</h1>');
+});
+
+test('direct and negotiated article Markdown identify the HTML canonical, including HEAD and 304', async () => {
+  const worker = createMarkdownWorker(routes);
+  const env = {
+    ASSETS: {
+      async fetch(request: Request) {
+        const unchanged = request.headers.has('If-None-Match');
+        return new Response(unchanged || request.method === 'HEAD' ? null : '# Post', {
+          status: unchanged ? 304 : 200,
+          headers: {
+            'Content-Type': 'text/markdown',
+            ETag: '"md"',
+            'Cache-Control': 'public, max-age=120',
+          },
+        });
+      },
+    },
+  };
+  for (const path of ['/blog/post', '/blog/post.md']) {
+    for (const method of ['GET', 'HEAD']) {
+      for (const unchanged of [false, true]) {
+        const headers = new Headers({ Accept: 'text/markdown' });
+        if (unchanged) headers.set('If-None-Match', '"md"');
+        const response = await worker.fetch(
+          new Request(`${origin}${path}?source=feed`, { method, headers }),
+          env,
+        );
+        assert.equal(response.status, unchanged ? 304 : 200);
+        assert.ok(response.headers.get('Link')?.includes(`<${origin}/blog/post>; rel="canonical"`));
+        assert.equal(response.headers.get('ETag'), '"md"');
+        assert.equal(await response.text(), unchanged || method === 'HEAD' ? '' : '# Post');
+        if (path.endsWith('.md')) {
+          assert.equal(response.headers.get('Cache-Control'), 'public, max-age=120');
+          assert.equal(response.headers.get('Vary'), null);
+        }
+      }
+    }
+  }
+  for (const path of ['/profile.md', '/blog/index.md', '/blog/unpublished.md']) {
+    const response = await worker.fetch(new Request(`${origin}${path}`), env);
+    assert.equal(response.headers.get('Link'), null);
+  }
 });
