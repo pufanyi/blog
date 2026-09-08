@@ -25,3 +25,200 @@ description: "AGC041E Balancing Network 题解。"
 我们考虑加入一个令牌，那只会有两种状态：$f_{i+1,x_{n-i}}=f_{i+1,y_{n-i}}=f_{i,x_{n-i}}$ 或是 $f_{i+1,x_{n-i}}=f_{i+1,y_{n-i}}=f_{i,y_{n-i}}$。而最终的目的是让至少有两个 $f$ 值是不相等的。那么我们考虑 $g_{i,j}$ 表示 $f_{i,k}=j$ 的数量。这样我们只要比较两个 $f$ 的 $g$，看看那个多，让多的给少的一个。考虑到 $n>2$，每次将一个 $g$ 加 $1$，一个 $g$ 减 $1$。不难发现一定有两个 $g$ 是大于 $0$ 的。于是一定有一种方案合法。
 
 [代码](https://atcoder.jp/contests/agc041/submissions/10746815)
+
+```cpp
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <map>
+#include <set>
+#include <stack>
+#include <ctime>
+#include <cmath>
+#include <queue>
+#include <cstdio>
+#include <cctype>
+#include <vector>
+#include <bitset>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+inline char gc() {
+    static const int L = 233333;
+    static char sxd[L], *sss = sxd, *ttt = sxd;
+    if (sss == ttt) {
+        ttt = (sss = sxd) + fread(sxd, 1, L, stdin);
+        if (sss == ttt) {
+            return EOF;
+        }
+    }
+    return *sss++;
+}
+
+#ifndef _AT_HOME
+#define dd c = gc()
+#else
+#define dd c = getchar()
+#endif
+inline char readalpha() {
+    char dd;
+    for (; !isalpha(c); dd);
+    return c;
+}
+
+inline char readchar() {
+    char dd;
+    for (; c == ' '; dd);
+    return c;
+}
+
+template <class T>
+inline bool read(T& x) {
+    bool flg = false;
+    char dd;
+    x = 0;
+    for (; !isdigit(c); dd) {
+        if (c == '-') {
+            flg = true;
+        } else if(c == EOF) {
+            return false;
+        }
+    }
+    for (; isdigit(c); dd) {
+        x = (x * 10) + (c ^ 48);
+    }
+    if (flg) {
+        x = -x;
+    }
+    return true;
+}
+#undef dd
+
+template <class T>
+inline void write(T x) {
+    if (x < 0) {
+        putchar('-');
+        x = -x;
+    }
+    if (x < 10) {
+        putchar(x | 48);
+        return;
+    }
+    write(x / 10);
+    putchar((x % 10) | 48);
+}
+
+template <class T>
+inline void writesp(T x) {
+    write(x);
+    putchar(' ');
+}
+
+template <class T>
+inline void writeln(T x) {
+    write(x);
+    puts("");
+}
+
+#define lowbit(x) (x & -x)
+
+namespace dfcmd {
+    const int maxn = 50005;
+    const int maxm = 100005;
+
+    int n, m, T;
+
+    struct Balancer {
+        int x, y;
+    } bal[maxm];
+
+    char ans[maxm];
+    int ff[maxn];
+
+    namespace solve1 {
+        bitset<maxn> f[maxn];
+
+        inline void solve() {
+            for (int i = 1; i <= n; ++i) {
+                f[i][i] = 1;
+            }
+            for (int i = m; i; --i) {
+                f[bal[i].x] = f[bal[i].y] = f[bal[i].x] | f[bal[i].y];
+            }
+            for (int i = 2; i <= n; ++i) {
+                f[1] &= f[i];
+            }
+            int now = 0;
+            for (int i = 1; i <= n; ++i) {
+                if (f[1][i]) {
+                    now = i;
+                    break;
+                }
+            }
+            if (!now) {
+                puts("-1");
+                return;
+            }
+            ff[now] = 1;
+            for (int i = m; i; --i) {
+                if (ff[bal[i].x]) {
+                    ans[i] = '^';
+                } else {
+                    ans[i] = 'v';
+                }
+                ff[bal[i].x] = ff[bal[i].y] = ff[bal[i].x] | ff[bal[i].y];
+            }
+            puts(ans + 1);
+        }
+    }
+
+    namespace solve2 {
+        int g[maxn];
+
+        inline void solve() {
+            if (n == 2) {
+                puts("-1");
+                return;
+            }
+            for (int i = 1; i <= n; ++i) {
+                ff[i] = i;
+                g[i] = 1;
+            }
+            for (int i = m; i; --i) {
+                if (g[ff[bal[i].x]] < g[ff[bal[i].y]]) {
+                    g[ff[bal[i].x]]++, g[ff[bal[i].y]]--;
+                    ff[bal[i].y] = ff[bal[i].x];
+                    ans[i] = '^';
+                } else {
+                    g[ff[bal[i].x]]--, g[ff[bal[i].y]]++;
+                    ff[bal[i].x] = ff[bal[i].y];
+                    ans[i] = 'v';
+                }
+            }
+            puts(ans + 1);
+        }
+    }
+
+    int Main() {
+        read(n), read(m), read(T);
+        for (int i = 1; i <= m; ++i) {
+            read(bal[i].x), read(bal[i].y);
+        }
+        if (T == 1) {
+            solve1::solve();
+        } else {
+            solve2::solve();
+        }
+        return 0;
+    }
+}
+
+int main() {
+    return dfcmd::Main();
+}
+```
