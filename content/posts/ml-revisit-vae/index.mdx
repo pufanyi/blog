@@ -1,0 +1,30 @@
+---
+title: "Variational Autoencoder (VAE)"
+date: "2026-08-29"
+description: "Notes for Variational Autoencoder"
+---
+
+最开始的文章是 [@kingma2014autoencoding]。
+
+苏神博客亦有记载：[@kexuefm-5253; @kexuefm-5343]。
+
+其他参考资料：[@grover2018vae]。
+
+给定样本 $x_i$，后验分布 $p_{\phi}(z\mid x_i)\sim \mathcal{N}(\mu_i, \sigma^2_i I)$。其中我们希望 $p_\phi(z)\sim\mathcal{N}(0, I)$。
+
+构建网络 $\left<\mu_k, \log \sigma_k^2\right>=\phi(x_i)$。
+
+如果酱紫直接训的话，因为取正态分布的时候会带来噪声，所以模型肯定是希望 $\sigma^2_k$ 越小越好，逐渐的会退化为普通的 autoencoder。
+
+所以我们希望 $p_\phi(z)\sim\mathcal{N}(0, I)$，这样子加上一个
+
+$$
+\begin{aligned}
+\mathcal{L}_{\mu, \sigma^2} &= D_\mathrm{KL}\left(\mathcal{N}(\mu, \sigma^2)\Vert\mathcal{N}(0, 1)\right)\\
+&=\frac{1}{2}(-\log\sigma^2+\mu^2+\sigma^2-1)
+\end{aligned}
+$$
+
+就行。
+
+然后写代码的时候有个 reparameterization trick，其实就是如果我们算出 $\mu_i$ 和 $\sigma_i^2$ 然后采样，那么是不可导的。方法其实就是 $\mathcal{N}(\mu, \sigma^2 I)\sim \sigma\times\mathcal{N}(0, I)+\mu$ 就行。
