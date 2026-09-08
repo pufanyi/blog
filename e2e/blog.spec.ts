@@ -6,6 +6,7 @@ import { JSDOM } from 'jsdom';
 
 const diffusion = POSTS.find(post => post.slug === 'ml-revisit-diffusion')!;
 const autoregressive = POSTS.find(post => post.slug === 'ml-revisit-ar')!;
+const vae = POSTS.find(post => post.slug === 'ml-revisit-vae')!;
 const archivePages = Math.max(1, Math.ceil(POSTS.length / BLOG_CONFIG.postsPerPage));
 
 test('archive pagination supports keyboard navigation, reload, and history', async ({ page }) => {
@@ -171,9 +172,7 @@ test('Chinese search finds words inside prose and keyboard selection navigates',
   const { input } = await openSearch(page);
   await input.fill('模型');
   await expect(page.getByRole('option').filter({ hasText: diffusion.title })).toBeVisible();
-  await expect(
-    page.getByRole('option').filter({ hasText: 'ML Revisit: Autoencoder' }),
-  ).toBeVisible();
+  await expect(page.getByRole('option').filter({ hasText: vae.title })).toBeVisible();
   await input.fill('Diffusion');
   await input.press('Enter');
   await expect(page).toHaveURL(`/blog/${diffusion.slug}`);
