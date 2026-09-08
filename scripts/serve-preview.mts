@@ -2,8 +2,13 @@ import { readFile, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createMarkdownWorker, type MarkdownRoutes } from './lib/markdown-negotiation.mts';
 
 const root = fileURLToPath(new URL('../dist/blog/browser', import.meta.url));
+const routes = JSON.parse(
+  await readFile(resolve(root, '../markdown-routes.json'), 'utf8'),
+) as MarkdownRoutes;
+const worker = createMarkdownWorker(routes);
 const types: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -23,13 +28,12 @@ const types: Record<string, string> = {
   '.md': 'text/markdown; charset=utf-8',
 };
 
-const server = createServer(async (request, response) => {
-  try {
-    const pathname = decodeURIComponent(new URL(request.url ?? '/', 'http://localhost').pathname);
+const assets = {
+  async fetch(request: Request): Promise<Response> {
+    const pathname = decodeURIComponent(new URL(request.url).pathname);
     let file = resolve(root, `.${pathname}`);
     if (file !== root && !file.startsWith(root + sep)) {
-      response.writeHead(400).end();
-      return;
+      return new Response(null, { status: 400 });
     }
     let status = 200;
     try {
@@ -40,11 +44,33 @@ const server = createServer(async (request, response) => {
       status = 404;
     }
     const data = await readFile(file);
-    response.writeHead(status, {
-      'Content-Type': types[extname(file)] ?? 'application/octet-stream',
-      'Cache-Control': 'no-store',
+    return new Response(request.method === 'HEAD' ? null : data, {
+      status,
+      headers: {
+        'Content-Type': types[extname(file)] ?? 'application/octet-stream',
+        'Cache-Control': 'no-store',
+      },
     });
-    response.end(request.method === 'HEAD' ? undefined : data);
+  },
+};
+
+const server = createServer(async (request, response) => {
+  try {
+    const headers = new Headers();
+    for (const [name, value] of Object.entries(request.headers)) {
+      for (const entry of Array.isArray(value) ? value : value ? [value] : []) {
+        headers.append(name, entry);
+      }
+    }
+    const result = await worker.fetch(
+      new Request(new URL(request.url ?? '/', 'http://localhost'), {
+        method: request.method,
+        headers,
+      }),
+      { ASSETS: assets },
+    );
+    response.writeHead(result.status, Object.fromEntries(result.headers));
+    response.end(Buffer.from(await result.arrayBuffer()));
   } catch {
     response.writeHead(500).end('Build the site with pnpm build before starting the preview.');
   }

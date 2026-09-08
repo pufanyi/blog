@@ -46,6 +46,18 @@ Project guidance for agents working in this repository.
   Profile exports reuse rendered CV data. Never maintain a second copy of prose.
   Angular copies these files at the site root; keep Markdown discovery links in
   `PageMetadataStrategy` and Markdown MIME types in hosting/preview configuration.
+- Original page URLs negotiate Markdown only for an explicit, preferred
+  `Accept: text/markdown`. Postbuild derives the Worker route map from prerendered
+  alternate links and validates the corresponding exports; do not duplicate it
+  by hand. The generated Worker entry and map stay outside public assets.
+  Keep `wrangler.jsonc` worker-first patterns covering these page routes, with
+  an `ASSETS` binding for separate HTML/Markdown asset caching. Negotiated
+  responses need `Vary: Accept` and must not enter a shared URL-only cache.
+  `pnpm preview` shares the handler; `pnpm preview:cloudflare` and Playwright's
+  Cloudflare project also exercise actual Worker/static-asset routing locally.
+  Cloudflare applies `_headers` to HTML 404 fallbacks using the requested URL;
+  keep `/blog/*.md` within worker-first routing so missing exports receive the
+  Worker's MIME correction, and retain its Cloudflare regression test.
 - Site settings live in `configs/{site,blog,comments,redirects}.yaml`. The data
   generator validates them before emitting typed modules under `src/app/data`.
   After editing YAML during development, run `pnpm generate:data` again.

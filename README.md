@@ -59,6 +59,27 @@ The preview serves `dist/blog/browser` at `http://127.0.0.1:4173/`, including th
 generated custom `404.html`. The build also generates Cloudflare `_redirects`
 from `configs/redirects.yaml`.
 
+The Cloudflare deployment uses Workers Static Assets. Postbuild derives a
+Markdown route map from prerendered `rel="alternate"` links, validates each
+export, and writes the Worker entry outside the public asset directory.
+`wrangler.jsonc` runs that Worker before the relevant page routes. Use
+`pnpm preview:cloudflare` to test the actual Cloudflare runtime at
+`http://127.0.0.1:8787/` after building.
+
+Agents can request the generated Markdown directly at the original page URL:
+
+```bash
+curl -H 'Accept: text/markdown' http://127.0.0.1:8787/blog/cf77c
+```
+
+Home and CV requests return `/profile.md`, blog archive pages return
+`/blog/index.md`, and article pages return `/blog/<slug>.md`. The response is
+the existing export, including formulas, code, references, and asset links.
+Clients must explicitly prefer `text/markdown`; requests without that preference
+receive HTML and HTTP `Link` headers advertising the Markdown and `/llms.txt`.
+Both variants include `Vary: Accept` and prevent shared caching of the negotiated
+URL; the underlying files retain Cloudflare's separate static asset caches.
+
 ## Validation
 
 ```bash
@@ -73,6 +94,8 @@ Angular lint, and MDX/BibTeX checks. Unit tests cover content rendering and Angu
 behavior. `test:e2e` builds production output and tests desktop/mobile Chromium:
 search keyboard/focus behavior, Chinese queries, route metadata, scroll/history,
 TOC anchors, prerendered 404 behavior, and deferred network loading.
+The Cloudflare project verifies HTTP discovery and content negotiation against
+the local Worker, including all published Markdown exports and missing routes.
 
 Browser tests simulate delayed MathJax layout and stub analytics/comments so
 third-party outages do not determine CI results. Inspect the served site with

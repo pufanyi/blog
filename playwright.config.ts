@@ -18,10 +18,22 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
     },
     { name: 'mobile', use: { ...devices['Pixel 7'], defaultBrowserType: 'chromium' } },
+    {
+      name: 'cloudflare',
+      testMatch: 'agent-content.spec.ts',
+      use: { baseURL: 'http://127.0.0.1:8787' },
+    },
   ],
-  webServer: {
-    command: 'pnpm preview',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env['CI'],
-  },
+  webServer: [
+    {
+      command: 'pnpm preview',
+      url: 'http://127.0.0.1:4173',
+      reuseExistingServer: !process.env['CI'],
+    },
+    {
+      command: 'pnpm preview:cloudflare',
+      url: 'http://127.0.0.1:8787',
+      reuseExistingServer: !process.env['CI'],
+    },
+  ],
 });

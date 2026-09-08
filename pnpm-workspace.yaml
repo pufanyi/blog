@@ -9,6 +9,8 @@ minimumReleaseAgeExclude:
   - node-releases@2.0.53
   - postcss@8.5.26
   - readdirp@5.1.1
+  - miniflare@5.20260907.0-alpha
+  - wrangler@4.129.1
 
 peerDependencyRules:
   allowedVersions:
@@ -22,3 +24,4 @@ allowBuilds:
   esbuild@0.28.1: true
   lmdb@3.5.6: true
   msgpackr-extract@3.0.4: true
+  workerd@1.20260907.1: true

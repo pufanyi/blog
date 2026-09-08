@@ -1,9 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "blog",
+  "main": "./dist/blog/worker.mjs",
   "compatibility_date": "2026-02-18",
   "assets": {
     "directory": "./dist/blog/browser",
+    "binding": "ASSETS",
+    "run_worker_first": ["/", "/cv", "/cv/", "/blog", "/blog/*"],
     "not_found_handling": "404-page"
   }
 }

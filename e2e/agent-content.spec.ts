@@ -4,6 +4,8 @@ test('an HTTP-only reader can discover and fetch the complete Markdown collectio
   const home = await request.get('/');
   expect(home.status()).toBe(200);
   const html = await home.text();
+  expect(home.headers()['link']).toContain('<https://pufanyi.com/profile.md>; rel="alternate"; type="text/markdown"');
+  expect(home.headers()['link']).toContain('<https://pufanyi.com/llms.txt>; rel="describedby"');
   expect(html).toMatch(/<link[^>]+rel="alternate"[^>]+type="text\/markdown"[^>]+href="https:\/\/pufanyi.com\/profile.md"/);
   expect(html).toMatch(/<link[^>]+rel="describedby"[^>]+href="https:\/\/pufanyi.com\/llms.txt"/);
 
@@ -31,9 +33,74 @@ test('an HTTP-only reader can discover and fetch the complete Markdown collectio
     const article = await response.text();
     expect(article, path).toContain(`Canonical: <https://pufanyi.com${path.slice(0, -3)}>`);
     expect(article, path).toMatch(/^# /);
+    const negotiated = await request.get(path.slice(0, -3), { headers: { Accept: 'text/markdown' } });
+    expect(negotiated.status(), path).toBe(200);
+    expect(negotiated.headers()['content-type'], path).toContain('text/markdown');
+    expect(await negotiated.text(), path).toBe(article);
   }
   const missing = await request.get('/blog/nonexistent-export.md');
   expect(missing.status()).toBe(404);
+});
+
+test('original URLs negotiate Markdown while browsers, HEAD requests and 404s keep correct behavior', async ({ request }, testInfo) => {
+  for (const [path, alternate] of [
+    ['/', '/profile.md'],
+    ['/cv', '/profile.md'],
+    ['/blog', '/blog/index.md'],
+    ['/blog/page/2', '/blog/index.md'],
+    ['/blog/cf77c', '/blog/cf77c.md'],
+    ['/blog/cf77c/', '/blog/cf77c.md'],
+  ]) {
+    const direct = await request.get(alternate);
+    for (const accept of ['text/html', 'text/markdown', '*/*', 'text/markdown;q=0', 'text/markdown, text/html', 'text/html']) {
+      const response = await request.get(`${path}?ref=agent`, { headers: { Accept: accept } });
+      const markdown = accept === 'text/markdown' || accept === 'text/markdown, text/html';
+      expect(response.status()).toBe(200);
+      expect(response.headers()['content-type']).toContain(markdown ? 'text/markdown' : 'text/html');
+      expect(response.headers()['vary']).toMatch(/\bAccept\b/i);
+      expect(response.headers()['cache-control']).toContain('private');
+      expect(response.headers()['link']).toContain(`<https://pufanyi.com${alternate}>; rel="alternate"`);
+      if (markdown) {
+        expect(await response.text()).toBe(await direct.text());
+        expect(response.headers()['content-location']).toBe(`https://pufanyi.com${alternate}`);
+      } else {
+        expect(await response.text()).toContain('<app-root');
+      }
+    }
+    const head = await request.head(path, { headers: { Accept: 'text/markdown' } });
+    expect(head.status()).toBe(200);
+    expect(head.headers()['content-type']).toContain('text/markdown');
+    expect(await head.body()).toHaveLength(0);
+  }
+  for (const path of ['/blog/nonexistent-export', '/blog/page/999', '/blog/nonexistent-export.md']) {
+    const response = await request.get(path, { headers: { Accept: 'text/markdown' } });
+    expect(response.status()).toBe(404);
+    expect(response.headers()['content-type']).toContain('text/html');
+  }
+  if (testInfo.project.name === 'cloudflare') {
+    const html = await request.get('/blog/cf77c', { headers: { Accept: 'text/html' } });
+    const markdown = await request.get('/blog/cf77c', { headers: { Accept: 'text/markdown' } });
+    const htmlTag = html.headers()['etag'];
+    const markdownTag = markdown.headers()['etag'];
+    expect(htmlTag).toBeTruthy();
+    expect(markdownTag).toBeTruthy();
+    expect(htmlTag).not.toBe(markdownTag);
+    for (const [accept, previousTag, status] of [
+      ['text/markdown', htmlTag, 200],
+      ['text/html', markdownTag, 200],
+      ['text/markdown', markdownTag, 304],
+      ['text/html', htmlTag, 304],
+    ] as const) {
+      const response = await request.get('/blog/cf77c', {
+        headers: { Accept: accept, 'If-None-Match': previousTag },
+      });
+      expect(response.status()).toBe(status);
+      expect(response.headers()['vary']).toMatch(/\bAccept\b/i);
+      if (status === 200) {
+        expect(await response.text()).toBe(await (accept === 'text/markdown' ? markdown : html).text());
+      }
+    }
+  }
 });
 
 test('published Markdown keeps technical content and HTML advertises the corresponding article', async ({ request }) => {
