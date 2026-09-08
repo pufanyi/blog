@@ -1,0 +1,93 @@
+---
+title: "zkw 线段树优化 dijkstra"
+date: "2018-12-23"
+description: "用 zkw 线段树替换堆来优化 Dijkstra 算法。"
+---
+
+听说 `zkw` 线段树优化 `dijkstra` 跑得很快呢，洛谷最优解都是用这个的。
+
+然后我就自己打了一发。
+
+确实快了许多，但还是被最优解吊着打……
+
+但至少能过 [bzoj3040](https://www.lydsy.com/JudgeOnline/problem.php?id=3040)。
+
+
+
+把普通堆优 `dij` 的堆改成线段树就可以了。
+
+```cpp
+struct Edge
+{
+    int to, dist, nxt;
+} e[maxm << 1];
+
+int first[maxn];
+
+inline void add_edge(int from, int to, int dist)
+{
+    static int cnt = 0;
+    e[++cnt].nxt = first[from];
+    first[from] = cnt;
+    e[cnt].dist = dist;
+    e[cnt].to = to;
+}
+
+int dist[maxn];
+
+struct DIJKSTRA
+{
+#define ls(x) (x << 1)
+#define rs(x) (x << 1 | 1)
+    struct Tree
+    {
+        int no[maxn << 2];
+        int t;
+
+        inline void build_tree()
+        {
+            for(t = 1; t <= n; t <<= 1);
+            for(register int i = 1; i <= n; ++i)
+                no[i + t] = i;
+        }
+
+        inline void change(int k)
+        {
+            for(k += t, k >>= 1; k; k >>= 1)
+                no[k] = dist[no[ls(k)]] < dist[no[rs(k)]]
+                        ? no[ls(k)] : no[rs(k)];
+        }
+
+        inline void del(int k)
+        {
+            for(no[k += t] = 0, k >>= 1; k; k >>= 1)
+                no[k] = dist[no[ls(k)]] < dist[no[rs(k)]]
+                        ? no[ls(k)] : no[rs(k)];
+        }
+    } tr;
+
+    inline void dijkstra(int s)
+    {
+        memset(dist, 0x3f, sizeof(dist));
+        dist[s] = 0;
+        tr.build_tree();
+        tr.change(s);
+        for(int i = 1; i <= n; ++i)
+        {
+            register int now = tr.no[1];
+            if(!now || dist[now] >= inf)
+                break;
+            tr.del(now);
+            for(int j = first[now]; j; j = e[j].nxt)
+            {
+                register int to = e[j].to;
+                if(dist[to] > dist[now] + e[j].dist)
+                {
+                    dist[to] = dist[now] + e[j].dist;
+                    tr.change(to);
+                }
+            }
+        }
+    }
+}
+```

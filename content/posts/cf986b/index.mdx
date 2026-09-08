@@ -1,0 +1,65 @@
+---
+title: "CodeForces 986B Petr and Permutations"
+date: "2018-12-31"
+description: "CodeForces 986B Petr and Permutations 题解。"
+---
+
+[原题链接](http://codeforces.com/problemset/problem/986/B)
+
+Petr 要打乱排列。他首先有一个从 $1$ 到 $n$ 的顺序排列，然后进行 $3n$ 次操作，每次选两个数并交换它们。
+
+Alex 也要打乱排列。他与 Petr 唯一的不同是他进行 $7n+1$ 次操作。
+
+给定一个 $1$ 到 $n$ 的排列。问是由谁打乱的。如果是 Petr，输出"Petr"，否则**输出"Um_nik"（不是 Alex）**。
+
+
+
+（by  <strong><a href="https://www.luogu.com.cn/user/31264" style={{ color: "var(--accent-red)" }}>AKEE</a></strong>）
+
+## 题解
+
+首先我们考虑怎么快速还原这个序列。
+
+很显然的一个贪心策略就是假设序列为 $\{a_i\}$，不断把 $a_{a_i}$ 与 $a_i$ 交换直到 $a_i=i$。
+
+这样做我们发现交换次数是 $\mathcal{O}(n)$ 级别的，因为 $a_{a_i}$ 最多被选 $n$ 次。
+
+然后我们发现要一个序列交换后形成交换前的序列交换次数只能是偶数。所以该交换次数与 `Petr` 或 `Alex` 的奇偶性相同。
+
+于是只要判一下奇偶即可。
+
+## 代码
+
+```cpp
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 1000005;
+
+int aa[maxn];
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    for(int i = 1; i <= n; ++i)
+        scanf("%d", &aa[i]);
+    int ans = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        while(aa[i] != i)
+        {
+            swap(aa[aa[i]], aa[i]);
+            ans++;
+        }
+    }
+    if((n & 1) == (ans & 1)) // 判断奇偶性相同
+        puts("Petr");
+    else
+        puts("Um_nik");
+    return 0;
+}
+```
