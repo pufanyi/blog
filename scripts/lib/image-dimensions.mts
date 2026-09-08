@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { extname } from 'node:path';
 import { imageSize } from 'image-size';
+import { HEIF } from 'image-size/types/heif';
 
 export interface ImageDimensions {
   width: number;
@@ -11,7 +12,11 @@ export function getImageDimensions(file: string): ImageDimensions | null {
   try {
     if (extname(file).toLowerCase() === '.svg') return getSvgDimensions(file);
 
-    const { width, height } = imageSize(readFileSync(file));
+    const data = readFileSync(file);
+    // image-size 2.x omits the animated AVIF brand from its detector, but its
+    // exported HEIF parser can read the sequence's primary image dimensions.
+    const { width, height } =
+      data.toString('ascii', 4, 12) === 'ftypavis' ? HEIF.calculate(data) : imageSize(data);
     return Number.isFinite(width) && width > 0 && Number.isFinite(height) && height > 0
       ? { width, height }
       : null;

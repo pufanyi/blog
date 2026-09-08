@@ -44,7 +44,10 @@ export class PageMetadataStrategy extends TitleStrategy {
 
     this.title.setTitle(title);
     this.meta.updateTag({ name: 'description', content: description });
-    this.meta.updateTag({ name: 'robots', content: missing ? 'noindex, follow' : 'index, follow' });
+    this.meta.updateTag({
+      name: 'robots',
+      content: missing || route.data['noindex'] ? 'noindex, follow' : 'index, follow',
+    });
     for (const [property, content] of Object.entries({
       'og:title': title,
       'og:description': description,

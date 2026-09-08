@@ -64,6 +64,9 @@ importers:
       modern-normalize:
         specifier: ^3.0.1
         version: 3.0.1
+      ngx-extended-pdf-viewer:
+        specifier: ^30.0.0
+        version: 30.0.0(@angular/common@22.1.0(@angular/core@22.1.0(@angular/compiler@22.1.0)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.0(@angular/compiler@22.1.0)(rxjs@7.8.2))
       rxjs:
         specifier: ~7.8.2
         version: 7.8.2
@@ -3320,6 +3323,12 @@ packages:
   negotiator@1.0.0:
     resolution: {integrity: sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==}
     engines: {node: '>= 0.6'}
+
+  ngx-extended-pdf-viewer@30.0.0:
+    resolution: {integrity: sha512-FI1TQ5Fhu9WtFGURmBXgS20P0iYtvaAhtXqKTD0Wsg9MYIJyLkKDt0EvpG49UrL15PVaLStzM+cTk83vjXUwPg==}
+    peerDependencies:
+      '@angular/common': '>=19.0.0 <23.0.0 || 22.0.0-rc'
+      '@angular/core': '>=19.0.0 <23.0.0 || 22.0.0-rc'
 
   node-addon-api@6.1.0:
     resolution: {integrity: sha512-+eawOlIgy680F0kBzPUNFhMZGtJ1YmqM6l4+Crf4IkImjYrO/mqPwRMh352g23uIaQKFItcQ64I7KMaJxHgAVA==}
@@ -7775,6 +7784,12 @@ snapshots:
   natural-compare@1.4.0: {}
 
   negotiator@1.0.0: {}
+
+  ngx-extended-pdf-viewer@30.0.0(@angular/common@22.1.0(@angular/core@22.1.0(@angular/compiler@22.1.0)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.1.0(@angular/compiler@22.1.0)(rxjs@7.8.2)):
+    dependencies:
+      '@angular/common': 22.1.0(@angular/core@22.1.0(@angular/compiler@22.1.0)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@angular/core': 22.1.0(@angular/compiler@22.1.0)(rxjs@7.8.2)
+      tslib: 2.8.1
 
   node-addon-api@6.1.0:
     optional: true

@@ -203,8 +203,16 @@ Project guidance for agents working in this repository.
   can differ in case and punctuation. Only level-two and level-three headings
   receive generated IDs; add an explicit ID when preserving links to deeper
   headings.
-- Inspect PDF embeds with full Chromium (`channel: 'chromium'` in Playwright);
-  the default headless shell can leave PDF frames blank without a native viewer.
+- Post PDF iframes targeting `/posts/...pdf` or `/assets/...pdf` are rewritten
+  at build time to the lazy `/pdf-viewer` route using `ngx-extended-pdf-viewer`.
+  Keep one reader per iframe: the library uses global DOM IDs and cannot share
+  one document between simultaneous instances. Preserve direct PDF links.
+  Prerender this shell for static hosting, keep it noindex, and copy the viewer's
+  assets through `angular.json`. Keep `pdfDefaultOptions.assetsFolder` relative
+  to the base href to avoid doubled slashes. Preview must serve `.mjs` as
+  JavaScript and `.wasm` as WebAssembly. Version 30 omits PDF.js's CMYK ICC
+  profile; `public/assets/web/iccs` supplies it at the engine's default path.
+  Verify actual canvases and asset requests in desktop/mobile browser tests.
 - A post can keep BibTeX references in a sibling `references.bib` file and cite
   them with Pandoc-style keys such as `[@key]`. Citations use the APA CSL
   style. When a bibliography is rendered, the generator appends it with a
@@ -237,6 +245,14 @@ Project guidance for agents working in this repository.
   link.
 - When adding or touching image assets, manually convert any non-AVIF images to
   AVIF and reference the converted files instead.
+  Inspect GIF/WebP frame counts before converting: animations must become AVIF
+  sequences with all composited frames, original dimensions, per-frame durations,
+  and loop counts preserved. Verify decoded metadata and playback on the served
+  page; a successful conversion can still silently retain only the first frame.
+  Original Hexo sources and assets are in `../blog-src/source/_posts`.
+  `image-size` omits the animated `avis` brand from its detector; our dimension
+  helper routes it through the exported HEIF parser so image hydration still
+  receives width and height.
 - Rich-text fields in `content/cv.yaml` support inline Markdown while retaining
   compatibility with authored HTML. This applies to abstract paragraphs, entry
   details and items, subsection items, and section content; structural fields

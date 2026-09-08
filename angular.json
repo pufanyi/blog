@@ -29,6 +29,11 @@
               },
               {
                 "glob": "**/*",
+                "input": "node_modules/ngx-extended-pdf-viewer/assets",
+                "output": "assets/pdf-viewer"
+              },
+              {
+                "glob": "**/*",
                 "input": "content/posts",
                 "output": "posts",
                 "ignore": [

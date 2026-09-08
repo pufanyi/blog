@@ -5,6 +5,10 @@ import { blogPageCount } from './utils/blog-pagination';
 
 export const serverRoutes: ServerRoute[] = [
   {
+    path: 'pdf-viewer',
+    renderMode: RenderMode.Prerender,
+  },
+  {
     path: '',
     renderMode: RenderMode.Prerender,
   },

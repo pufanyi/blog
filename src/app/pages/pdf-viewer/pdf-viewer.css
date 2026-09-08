@@ -1,0 +1,53 @@
+app-pdf-viewer {
+  display: block;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--background);
+  --pdf-text: var(--text-color);
+  --pdf-border: var(--border-color);
+}
+
+app-pdf-viewer .pdf-message {
+  position: absolute;
+  inset: 3rem 1rem auto;
+  z-index: 10;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--paper-bg);
+  color: var(--text-color);
+}
+
+app-pdf-viewer ngx-extended-pdf-viewer .html,
+app-pdf-viewer ngx-extended-pdf-viewer .body {
+  --main-color: var(--pdf-text);
+  --toolbar-icon-bg-color: var(--pdf-text);
+  --header-bg: var(--paper-bg);
+  --sidebar-bg-color: var(--paper-bg);
+  --sidebar-border-color: var(--pdf-border);
+  --field-bg-color: var(--paper-bg);
+  --button-hover-color: var(--accent-bg);
+  --button-active-bg: var(--selection-bg);
+  --dropdown-btn-bg-color: var(--paper-bg);
+  --dropdown-btn-border: var(--pdf-border);
+  --doorhanger-bg-color: var(--paper-bg);
+  --doorhanger-border-color: var(--pdf-border);
+  --indicator-color: var(--accent-sage);
+}
+
+app-pdf-viewer ngx-extended-pdf-viewer #toolbarContainer,
+app-pdf-viewer ngx-extended-pdf-viewer #toolbarSidebar,
+app-pdf-viewer ngx-extended-pdf-viewer .findbar,
+app-pdf-viewer ngx-extended-pdf-viewer .secondaryToolbar {
+  background: var(--paper-bg);
+  color: var(--pdf-text);
+  border-color: var(--pdf-border);
+}
+
+app-pdf-viewer ngx-extended-pdf-viewer #outerContainer .toolbarField,
+app-pdf-viewer ngx-extended-pdf-viewer #outerContainer .dropdownToolbarButton > select {
+  background: var(--paper-bg);
+  color: var(--pdf-text);
+  border-color: var(--pdf-border);
+}

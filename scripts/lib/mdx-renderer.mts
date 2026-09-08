@@ -319,6 +319,15 @@ function postprocessMdxHtml(
   }
 
   const postPath = `/blog/${encodeURIComponent(slug)}`;
+  // Each PDF gets its own document because the viewer uses global DOM IDs.
+  for (const frame of document.querySelectorAll('iframe[src]')) {
+    const src = frame.getAttribute('src')?.trim();
+    if (!src || !/^\/(?:posts|assets)\/[^?#]+\.pdf$/i.test(src)) continue;
+    frame.setAttribute('src', `/pdf-viewer?${new URLSearchParams({ file: src })}`);
+    frame.setAttribute('loading', 'lazy');
+    frame.classList.add('post-pdf');
+  }
+
   for (const anchor of document.querySelectorAll('a[href^="#"]')) {
     const href = anchor.getAttribute('href');
     if (href) {

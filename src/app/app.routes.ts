@@ -31,6 +31,12 @@ const redirectRoutes: Routes = REDIRECTS.map(r => ({
 
 export const routes: Routes = [
   {
+    path: 'pdf-viewer',
+    title: 'PDF viewer',
+    data: { noindex: true, description: 'Embedded PDF reader.' },
+    loadComponent: () => import('./pages/pdf-viewer/pdf-viewer').then(m => m.PdfViewerComponent),
+  },
+  {
     path: '',
     loadComponent: () =>
       import('./components/blog-shell/blog-shell').then(m => m.BlogShellComponent),

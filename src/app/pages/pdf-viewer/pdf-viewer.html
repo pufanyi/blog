@@ -1,0 +1,30 @@
+@if (ready()) {
+  @if (source(); as source) {
+    <ngx-extended-pdf-viewer
+      [src]="source"
+      height="100dvh"
+      zoom="page-width"
+      [theme]="theme()"
+      backgroundColor="var(--background)"
+      [showOpenFileButton]="false"
+      [showEditorButtons]="false"
+      [showPresentationModeButton]="false"
+      [enableDragAndDrop]="false"
+      [textLayer]="true"
+      showPagingButtons="always-visible"
+      showPageNumber="always-visible"
+      [showFirstAndLastPageButtons]="false"
+      (pdfLoadingStarts)="failed.set(false)"
+      (pdfLoadingFailed)="failed.set(true)"
+    />
+    @if (failed()) {
+      <p class="pdf-message" role="alert">
+        无法加载 PDF。<a [href]="source" target="_blank" rel="noopener">打开原文件</a>
+      </p>
+    }
+  } @else {
+    <p class="pdf-message" role="status">未找到 PDF 文件。</p>
+  }
+} @else {
+  <p class="pdf-message" role="status">正在加载 PDF…</p>
+}

@@ -30,6 +30,13 @@ test('reads AVIF dimensions without an external image program', () => {
   assert.deepEqual(getImageDimensions(file), { width: 16, height: 10 });
 });
 
+test('reads animated AVIF dimensions for post image hydration', () => {
+  const file = fileURLToPath(
+    new URL('../../content/posts/cfdpproblems/gugugu.avif', import.meta.url),
+  );
+  assert.deepEqual(getImageDimensions(file), { width: 400, height: 218 });
+});
+
 test('returns null for missing or invalid images', (t) => {
   const file = join(tmpdir(), `image-dimensions-invalid-${process.pid}-${Date.now()}.avif`);
   assert.equal(getImageDimensions(file), null);

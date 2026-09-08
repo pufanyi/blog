@@ -96,3 +96,36 @@ const value = 42;
     children: [],
   });
 });
+
+test('PDF embeds use isolated readers while preserving titles, sizes and download links', async (t) => {
+  const highlighter = await createHighlighter({ themes: [], langs: [] });
+  t.after(() => highlighter.dispose());
+  const sourcePath = fileURLToPath(
+    new URL('../../content/posts/example/index.mdx', import.meta.url),
+  );
+  const result = await renderMdx(
+    `<iframe src="/posts/example/problem.pdf" title="题面 PDF" width="100%" height="800" />
+<iframe src="/posts/example/solution.pdf" title="题解 PDF" height="600" />
+<iframe src="https://example.com/video" title="Video" />
+
+[查看题目 PDF](/posts/example/problem.pdf)`,
+    'example',
+    sourcePath,
+    highlighter,
+  );
+  const { document } = new JSDOM(result.html).window;
+  const frames = [...document.querySelectorAll('iframe')];
+  assert.equal(frames[0]?.getAttribute('src'), '/pdf-viewer?file=%2Fposts%2Fexample%2Fproblem.pdf');
+  assert.equal(
+    frames[1]?.getAttribute('src'),
+    '/pdf-viewer?file=%2Fposts%2Fexample%2Fsolution.pdf',
+  );
+  assert.equal(frames[0]?.title, '题面 PDF');
+  assert.equal(frames[0]?.width, '100%');
+  assert.equal(frames[0]?.height, '800');
+  assert.equal(frames[1]?.height, '600');
+  assert.equal(frames[0]?.getAttribute('loading'), 'lazy');
+  assert.equal(document.querySelectorAll('.post-pdf').length, 2);
+  assert.equal(frames[2]?.getAttribute('src'), 'https://example.com/video');
+  assert.equal(document.querySelector('a')?.getAttribute('href'), '/posts/example/problem.pdf');
+});
