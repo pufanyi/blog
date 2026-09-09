@@ -36,3 +36,30 @@
   primaryclass  = {cs.DC},
   url           = {https://arxiv.org/abs/2304.11277}
 }
+
+@misc{rajbhandari2020zeromemoryoptimizationstraining,
+      title={ZeRO: Memory Optimizations Toward Training Trillion Parameter Models}, 
+      author={Samyam Rajbhandari and Jeff Rasley and Olatunji Ruwase and Yuxiong He},
+      year={2020},
+      eprint={1910.02054},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/1910.02054}, 
+}
+@inproceedings{10.1145/3394486.3406703,
+author = {Rasley, Jeff and Rajbhandari, Samyam and Ruwase, Olatunji and He, Yuxiong},
+title = {DeepSpeed: System Optimizations Enable Training Deep Learning Models with Over 100 Billion Parameters},
+year = {2020},
+isbn = {9781450379984},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3394486.3406703},
+doi = {10.1145/3394486.3406703},
+abstract = {Explore new techniques in Microsoft's open source library called DeepSpeed, which advances large model training by improving scale, speed, cost, and usability, unlocking the ability to train 100-billion-parameter models. DeepSpeed is compatible with PyTorch. One piece of our library, called ZeRO, is a new parallelized optimizer that greatly reduces the resources needed for model and data parallelism while massively increasing the number of parameters that can be trained. Researchers have used these breakthroughs to create Turing Natural Language Generation (Turing-NLG), which at the time of its release was the largest publicly known language model at 17 billion parameters. In addition we will also go over our latest transformer kernel advancements that led the DeepSpeed team to achieve the world fastest BERT pretraining record.The Zero Redundancy Optimizer (ZeRO) is a novel memory optimization technology for large-scale distributed deep learning. ZeRO can train deep learning models with over 100 billion parameters on the current generation of GPU clusters at three to five times the throughput of the current best system. It also presents a clear path to training models with trillions of parameters, demonstrating an unprecedented leap in deep learning system technology.DeepSpeed brings state-of-the-art training techniques, such as ZeRO, optimized kernels, distributed training, mixed precision, and checkpointing, through lightweight APIs compatible with PyTorch. With just a few lines of code changes to your PyTorch model, you can leverage DeepSpeed to address underlying performance challenges and boost the speed and scale of your training.},
+booktitle = {Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining},
+pages = {3505–3506},
+numpages = {2},
+keywords = {distributed deep learning, machine learning},
+location = {Virtual Event, CA, USA},
+series = {KDD '20}
+}

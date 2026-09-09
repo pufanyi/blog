@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const ciBrowser = process.env['CI'] ? { channel: 'chrome' as const } : {};
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -9,6 +11,7 @@ export default defineConfig({
   reporter: process.env['CI'] ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: 'http://127.0.0.1:4173',
+    ...ciBrowser,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },

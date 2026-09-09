@@ -22,6 +22,9 @@ Project guidance for agents working in this repository.
   tests (`pnpm test --watch=false`) before every push, after the final code or
   content change. Note that `pnpm check` does not run tests. Do not push unless
   both pass; if anything changes afterward, run them again before pushing.
+- The code-quality workflow runs checks/unit tests and browser tests in parallel.
+  Its `check` job generates content once, then uses the `*:generated` scripts;
+  keep those scripts aligned with their normal lifecycle-hooked counterparts.
 
 ## Development
 

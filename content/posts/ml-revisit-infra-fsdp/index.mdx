@@ -16,6 +16,8 @@ description: "Notes for Data Parallel"
 
 ## Zero Redundancy Optimizer (ZeRO)
 
+ZeRO 最初是在 [@rajbhandari2020zeromemoryoptimizationstraining] 中提出的，一开始是的 implementation 是 DeepSpeed [@10.1145/3394486.3406703]。
+
 <ZeroShardingDiagram />
 
 我们计算一下通信量。我们就不管 $\frac{N_d-1}{N_d}$ 的系数了，假设一次 Reduce-Scatter 或者一次 All-Gather 是 $2\Psi$，一次 All-Reduce 是 $4\Psi$。
