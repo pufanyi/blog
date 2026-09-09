@@ -23,8 +23,11 @@ Project guidance for agents working in this repository.
   content change. Note that `pnpm check` does not run tests. Do not push unless
   both pass; if anything changes afterward, run them again before pushing.
 - The code-quality workflow runs checks/unit tests and browser tests in parallel.
-  Its `check` job generates content once, then uses the `*:generated` scripts;
+  Its `quality` job generates content once, then uses the `*:generated` scripts;
   keep those scripts aligned with their normal lifecycle-hooked counterparts.
+  The final `check` job must require both jobs to succeed, preserving the existing
+  required status check. CI installs Playwright's matching Chromium headless shell
+  with `--only-shell`; keep its default channel so that shell is actually used.
 
 ## Development
 

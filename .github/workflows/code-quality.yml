@@ -11,8 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check:
-    runs-on: ubuntu-24.04
+  quality:
+    runs-on: ubuntu-latest
     timeout-minutes: 10
 
     permissions:
@@ -44,7 +44,7 @@ jobs:
         run: pnpm test:generated --watch=false
 
   browser:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
 
     permissions:
@@ -66,8 +66,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build production site and run browser tests
-        run: pnpm test:e2e
+      - name: Install Chromium headless shell
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+
+      - name: Build production site
+        run: pnpm build
+
+      - name: Run browser tests
+        run: pnpm exec playwright test
 
       - name: Upload browser failure diagnostics
         if: failure()
@@ -79,3 +85,19 @@ jobs:
             test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  check:
+    if: always()
+    needs: [quality, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Require all quality checks
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+        run: test "$QUALITY_RESULT" = success && test "$BROWSER_RESULT" = success
