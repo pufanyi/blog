@@ -201,7 +201,6 @@ function FlowPanel({ stage }: { stage: Stage }) {
 function ZeroFlowComparison() {
   return (
     <figure id="zero-flow" className="infra-zero-flow-figure">
-      <div className="infra-zero-flow-intro">同一个训练步，从上到下对比</div>
       <div className="infra-zero-flow-scroll" role="region" aria-label="ZeRO 三种方法的训练流程对比，可横向滚动" tabIndex={0}>
         <div className="infra-zero-flow-grid">
           {METHODS.map(({ stage, partition }) => (
