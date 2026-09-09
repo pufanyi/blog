@@ -1,6 +1,7 @@
 ---
 title: "Infra: Data Parallel"
 date: "2026-09-08"
+updated: "2026-09-09"
 description: "Notes for Data Parallel"
 ---
 
@@ -8,36 +9,80 @@ description: "Notes for Data Parallel"
 
 ## Naïve Data Parallelism
 
-最拿衣服的 DP 大概就是每张卡存个模型，每张卡然后算出 gradient 然后 All-Reduce。但 All-Reduce 的时候 GPU 也没啥别的事情做。一个简单的优化方法是，反向传播的时候，我们每经过一个 block 就 async 地触发那一层地 All-Reduce。使用 [`torch.Tensor.register_post_accumulate_grad_hook`](https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.register_post_accumulate_grad_hook.html) 就可以做。
+最拿衣服的 DP，大概就是每张卡存一份相同的模型，分别处理不同的数据，算出自己的 gradient，然后通过 All-Reduce 得到平均梯度。这样每张卡用同样的梯度更新参数，模型就能保持一致。但如果等整个 backward 结束才开始通信，通信就没法和这次 backward 的计算重叠。
 
-然后如果每个小 block 都触发一次 All-Reduce，就比较零散。所以优化方案是几个 block bucket 起来做一次 All-Reduce。
+一个简单的优化是：某些参数的梯度算好之后，就 async 地触发它们的 All-Reduce，同时继续计算其他梯度。不过，每个小 tensor 都单独通信会比较零散，所以可以把多个参数的梯度放进一个 bucket，等这个 bucket 的梯度都就绪后再一起通信。[PyTorch DDP](https://docs.pytorch.org/docs/2.14/notes/ddp.html) 已经实现了这套机制。
 
-然后对于 gradient accumulation 的时候，`optimizer.step()` 的前一步才需要执行 All-Reduce。
+如果自己实现，可以用 [`torch.Tensor.register_post_accumulate_grad_hook`](https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.register_post_accumulate_grad_hook.html) 在某个参数的 `.grad` 就绪后收到通知。注意这是参数级的 hook，不是 block 级的；还需要自己管理 bucket，保证各张卡的通信顺序一致，并在 `optimizer.step()` 使用梯度前等待相关通信完成。
+
+对于 gradient accumulation，可以先在本地累积几个 micro-batch 的梯度，只在最后一个 micro-batch 的 backward 中同步。在 DDP 中，可以把前几个 micro-batch 的 forward 和 backward 都放进 [`no_sync()`](https://docs.pytorch.org/docs/2.14/generated/torch.nn.parallel.DistributedDataParallel.html#torch.nn.parallel.DistributedDataParallel.no_sync)，最后一次则正常执行。这里推迟的是梯度同步，不是由 `optimizer.step()` 自动触发通信。loss 的归一化也不能忘：例如 4 个等大的 micro-batch，每个 loss 都是样本均值，就可以先除以 4 再 backward。
 
 ## Zero Redundancy Optimizer (ZeRO)
 
-ZeRO 最初是在 [@rajbhandari2020zeromemoryoptimizationstraining] 中提出的，一开始是的 implementation 是 DeepSpeed [@10.1145/3394486.3406703]。
+ZeRO 最初是在 [@rajbhandari2020zeromemoryoptimizationstraining] 中提出的，最初的实现来自 DeepSpeed [@10.1145/3394486.3406703]。它的思路是：每张卡没必要一直保存一模一样的模型状态，可以把这些状态分给不同的卡保管，需要时再通信。
 
 <ZeroShardingDiagram />
 
-我们计算一下通信量。我们就不管 $\frac{N_d-1}{N_d}$ 的系数了，假设一次 Reduce-Scatter 或者一次 All-Gather 是 $2\Psi$，一次 All-Reduce 是 $4\Psi$。
+我们计算一下通信量。这里 $\Psi$ 是整个模型的参数量，$N_d$ 是 data parallel 的卡数；参数和梯度都按 16-bit，也就是每个元素 2 bytes 来算。先只看一次 forward 和 backward，不考虑 gradient accumulation 或 hybrid parallelism。
+
+按 ring 通信模型估算每张卡发送的数据量，忽略 $\frac{N_d-1}{N_d}$ 的系数，对整个模型做一遍 Reduce-Scatter 或者 All-Gather，通信量约为 $2\Psi$ bytes；一遍 All-Reduce 则约为 $4\Psi$ bytes。这里的“一遍”是把所有层或 bucket 的通信量加起来，不是说只调用一次通信 API，也不把接收量再加一遍。
 
 对于 Naïve DP，最后需要 All-Reduce gradient 也就是 $4\Psi$。
 
-对于 ZeRO-1，切分了 optimizer states。首先单张卡走 forward 和 backward。这里有一个小技巧，就是对于 AdamW，如果知道一部分梯度，就可以算出那部分的一阶和二阶 moment 从而来更新模型参数。因此我们可以直接一个 Reduce-Scatter 计算平均并分发梯度，每张卡只负责更新自己那一小部分模型。最终把更新好的模型 All-Gather 起来。于是通信量是 $2\Psi+2\Psi=4\Psi$，其实相比于 Naïve DP 没有特别多损失。对于 Muon [@jordan2024muon] 就比较复杂，因为他没有 AdamW 的性质，具体地，[@liu2025muonscalablellmtraining] 有讨论，这边先不展开。
+对于 ZeRO-1，只切分 optimizer states，模型参数仍然每张卡都有一份。这里有一个小技巧：AdamW 是逐元素更新的，只要有某部分参数、对应的平均梯度和历史 moment，就能更新这部分参数，不需要知道其他部分的梯度。因此可以通过 Reduce-Scatter 配合求平均，把梯度交给各自负责的卡；每张卡只更新自己的参数分片和 optimizer states，最后再 All-Gather 更新后的参数，让所有卡重新拿到同一份完整模型。通信量是 $2\Psi+2\Psi=4\Psi$，和 Naïve DP 一样。
 
-对于 ZeRO-2，切分了 optimizer states 和 gradient。事实上和 ZeRO-1 是一样的。因为我们不难观察到 ZeRO-1 中，backward reduce-scatter 之后，每张卡只需要保存部分梯度，别的梯度可以立刻释放掉。所以通信仍然是一次 Reduce-Scatter 一次 All-Gather，也就是 $4\Psi$。
+对于 Muon [@jordan2024muon] 就比较复杂，因为它的矩阵更新不能像 AdamW 那样，任意切成若干元素后各算各的。如何额外通信、还原所需的矩阵，[@liu2025muonscalablellmtraining] 有讨论，这边先不展开。
 
-对于 ZeRO-3，把模型参数也给切分了。这时候每次 forward 我们需要按层 All-Gather 聚合模型参数，用完就释放完整参数，所以 backward 前还需要再次 All-Gather 本层参数。梯度做 Reduce-Scatter 后，每张卡更新并保留自己的参数分片，等下次 forward 时再聚合。于是通信量是两次参数 All-Gather 加一次梯度 Reduce-Scatter，也就是 $2\Psi+2\Psi+2\Psi=6\Psi$。
+对于 ZeRO-2，进一步切分 gradient。它和 ZeRO-1 可以有相同的通信量，但梯度的保存方式不同：在 backward 过程中，一个 bucket 的梯度就绪后，就归约并只保留本卡负责的部分，其他部分及时释放。这样就不需要一直保留完整模型的梯度缓冲区。如果等整个 backward 结束、完整梯度都存下来了才释放，就已经承担了完整梯度的峰值显存。通信仍然是一遍 Reduce-Scatter 加一遍参数 All-Gather，也就是 $4\Psi$。
+
+对于 ZeRO-3，把模型参数也给切分了。可以理解成每张卡平时只保管一部分参数，算到哪一层，再临时把那一层的完整参数借过来。下面按“用完就释放完整参数”的策略来算：forward 前按层 All-Gather 参数，算完就释放；backward 需要用到本层参数时，再次 All-Gather。梯度做 Reduce-Scatter 后，每张卡更新并保留自己的参数分片，等下次 forward 时再聚合。于是通信量是两遍参数 All-Gather 加一遍梯度 Reduce-Scatter，也就是 $2\Psi+2\Psi+2\Psi=6\Psi$。
 
 <ZeroFlowComparison />
 
 ## Fully Sharded Data Parallel (FSDP)
 
-FSDP 其实就是 ZeRO-3，不过这边主要讨论 PyTorch FSDP [@zhao2023pytorchfsdpexperiencesscaling]。
+FSDP 的全分片模式和 ZeRO-3 的核心思路一样：把参数、梯度和 optimizer states 分给不同的卡，需要完整参数时再聚合。这边主要讨论 PyTorch FSDP [@zhao2023pytorchfsdpexperiencesscaling]。不过，FSDP 也支持其他分片策略，不能把所有配置都当成上面那套固定流程。
 
-FSDP 的一个重要设计理念是只负责参数 sharding 和相关通信，尽量保持 PyTorch 原生的 training loop；DeepSpeed 则更偏完整 training engine，因此做高度定制的训练算法时，FSDP 通常更容易组合。
+FSDP 主要接管参数、梯度的 sharding 和相关通信，尽量保持 PyTorch 原生的 training loop；DeepSpeed 则更偏完整的 training engine，因此做定制训练时，FSDP 通常更容易组合。但这不代表任意单卡代码都能原样运行，例如自定义 optimizer 仍要能正确处理分片参数。
 
-为了方便管理参数，FSDP1 把所有参数给摊平，变成 `FlatParameter`。每个 `FlatParameter` 维护对应的模型参数、梯度和优化器参数。但这样带来一个问题是，parameter 的 shape/identity 与底层 storage 脱节，导致各种困难。
+### FSDP1：先打包，再切分
 
-FSDP2 [@feng2025fsdp2; @huggingfacefsdp1vsfsdp2] 将 `Parameter` 使用 `DTensor` 管理，使得 Shard 之后模型仍然保持原始架构。在 checkpointing 的时候，也可以直接使用 Distributed Checkpoint (DCP) [@zhang2025distributedcheckpoint] 直接进行存储。
+FSDP1 会把一个 FSDP unit 管理的参数摊平、拼成一个一维的 `FlatParameter`，再把它切给不同的卡。这里的 unit 是一组一起管理、一起通信的参数，例如一个 Transformer block；不是必须把整个模型打包成一个 `FlatParameter`。嵌套包装时，子 unit 已经管理的参数也不会再算进父 unit。分组小一些，临时聚合的参数就少一些，但通信次数也会更多 [@zhao2023pytorchfsdpexperiencesscaling]。
+
+梯度按对应的布局分片。AdamW 的一、二阶 moment 则仍由 optimizer 维护，不是存在 `FlatParameter` 里面；因为 optimizer 只更新本卡负责的参数分片，对应的 moment 也只需要保存这一部分。
+
+“先打包再切分”的代价是：某张卡分到的一段连续数据，可能跨过多个原始参数的边界，不再对应一个完整的权重矩阵。FSDP1 用 [`use_orig_params`](https://docs.pytorch.org/docs/2.14/fsdp.html#torch.distributed.fsdp.FullyShardedDataParallel) 控制向用户和 optimizer 暴露什么：
+
+- `False`：暴露打包后的 `FlatParameter`。
+- `True`：保留原始 `Parameter` 对象，但底层数据仍是 flat buffer 的 view，与它共享 storage。处于分片状态时，一个原始参数在本卡上可能只剩一段一维数据，甚至是空 tensor。
+
+所以问题不是参数和 storage 没有对应关系，而是“原来这是哪个形状的参数”和“本卡实际拿到哪些数据”不再能只看本地 tensor 的 shape 就知道。按原始参数做检查或自定义操作时，就要额外处理这些情况。
+
+### FSDP2：分别记录每个参数的分片
+
+FSDP2 [@feng2025fsdp2; @huggingfacefsdp1vsfsdp2] 不再跨参数拼成一个 `FlatParameter` 后切分，而是给每个参数分别用 `DTensor` 表示分片。可以把 `DTensor` 理解成“本卡的数据，加上这份数据在完整 tensor 中的位置说明”。
+
+例如，一个 shape 为 `(8, 4)` 的权重矩阵，沿第 0 维平均切给 4 张卡，每张卡保存 2 行。在分片状态下，`param.shape` 仍然是全局的 `(8, 4)`，而 `param.to_local().shape` 是本地的 `(2, 4)`。保留的是完整参数的形状信息，不是每张卡仍然保存着完整参数。
+
+另一个变化在 API 上：FSDP2 的 `fully_shard` 在原来的 module 上注册 hooks，不额外套一层 wrapper，所以参数的 FQN 保持不变。每个参数仍能按原来的名字找到，并带着自己的分片信息，这让参数操作和 checkpoint 更容易组合 [@pytorchfsdp2api]。
+
+不过，分别记录参数不等于每个参数都单独发一次通信。一次 `fully_shard` 调用会建立一个通信分组；同组参数一起 All-Gather，梯度一起 Reduce-Scatter。通常先对各个 block 调用 `fully_shard`，再对整个模型调用一次，接管剩余参数。这样仍然能合并通信，也能按组临时聚合参数 [@pytorchfsdp2api]。
+
+在纯 FSDP 场景下，真正做 forward 或 backward 时，仍然要先聚合当前分组的完整参数；不是直接拿本地那 2 行权重就完成整个矩阵的计算。算完之后再按策略释放完整参数，梯度归约后，optimizer 更新本地分片。optimizer 应在 `fully_shard` 之后创建，让它拿到分片后的参数 [@feng2025fsdp2]。
+
+### 通信量也要看配置
+
+前面的 $6\Psi$ 是帮助理解的基准，不是所有 FSDP 配置的固定通信量：
+
+- 如果 forward 后释放完整参数，backward 就需要再 All-Gather。如果设置 `reshard_after_forward=False`，则保留它们，省去这次聚合，代价是占用更多显存。在 PyTorch 2.14 中，默认情况下 root module 管理的剩余参数就采用后者，非 root 分组则在 forward 后 reshard [@pytorchfsdp2api]。
+- 参数通信和梯度归约也不一定用同一种精度。例如，参数用 BF16 做 All-Gather，梯度用 FP32 做 Reduce-Scatter，那么在仍需两遍参数聚合的假设下，按前面的口径算就是 $2\Psi+2\Psi+4\Psi=8\Psi$，不是 $6\Psi$ [@feng2025fsdp2]。
+
+Gradient accumulation 也有显存和通信的取舍。例如 FSDP1 使用 [`no_sync()`](https://docs.pytorch.org/docs/2.14/fsdp.html#torch.distributed.fsdp.FullyShardedDataParallel.no_sync) 推迟同步时，累积的是完整梯度，而不是 gradient shards，可能明显增加显存；不能直接把 DDP 中“最后一次再同步”的做法当成 FSDP 下总是最合适的选择。
+
+### Checkpoint：让各张卡保存自己的分片
+
+既然模型状态已经分散在不同的卡上，保存 checkpoint 时也不必先拼成完整模型。FSDP2 的 sharded state dict 用 `DTensor` 表示各个参数，可以交给 Distributed Checkpoint (DCP) 保存 [@zhang2025distributedcheckpoint]。
+
+保存时，各 rank 共同参与，写出各自负责的 shards 和恢复所需的 metadata。加载时，DCP 根据目标模型的 sharding layout 读取数据，因此可以支持保存和恢复时使用不同的卡数。要恢复训练，还应保存 optimizer states 等训练状态，而不只是模型权重。
+
+这不是 FSDP2 独有的能力，[FSDP1 也支持 DCP](https://docs.pytorch.org/docs/2.14/distributed.checkpoint.html)。FSDP2 的便利在于逐参数的 `DTensor` 表示更容易操作。如果需要导出普通的完整 state dict，仍可以聚合参数后保存；这和直接保存分片 checkpoint 是两条不同的路径 [@feng2025fsdp2]。

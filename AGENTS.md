@@ -212,6 +212,9 @@ Project guidance for agents working in this repository.
 - Treat existing prose as author-owned. Preserve its wording, tone, and
   structure unless the user asks for a rewrite; make the smallest correction
   needed for genuine factual or rendering errors.
+- In technical posts, prefer established English terminology without routine
+  Chinese parenthetical translations. Improve clarity by explaining mechanisms
+  and tradeoffs, not by translating basic terms such as gradient accumulation.
 - When migrating legacy posts, add spaces between Chinese text and Latin
   words, numbers, or inline math without changing the formulas or prose.
   Keep original code blocks verbatim; typography cleanup applies to prose only.
