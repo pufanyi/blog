@@ -212,6 +212,8 @@ Project guidance for agents working in this repository.
 - Treat existing prose as author-owned. Preserve its wording, tone, and
   structure unless the user asks for a rewrite; make the smallest correction
   needed for genuine factual or rendering errors.
+  Write revised posts as standalone explanations for readers, without carrying
+  review rebuttals or draft-correction framing into the prose.
 - In technical posts, prefer established English terminology without routine
   Chinese parenthetical translations. Improve clarity by explaining mechanisms
   and tradeoffs, not by translating basic terms such as gradient accumulation.
@@ -243,6 +245,12 @@ Project guidance for agents working in this repository.
 - Posts are compiled as standard MDX with GFM and math support. Prefer native
   MDX syntax and semantic HTML elements such as `<details>` for authored
   interactive content; imported build-time components are also supported.
+- Embed Lichess games with native MDX iframes using a descriptive `title`,
+  `loading="lazy"`, `width="100%"`, and an explicit height. The `/black` URL
+  suffix sets the viewpoint; the hash selects the initial ply (for example,
+  `#101` shows the position after White's 51st move). Keep a direct game link.
+  Persistent authored arrows and variations require a Study chapter embed.
+  `bg=system` follows the reader's OS theme, independently of the site toggle.
 - For legacy Jekyll imports, replace Liquid includes with Markdown or native
   MDX and remove theme-only front matter. Keep original exports and ZIP archives
   outside `content/posts`; files not excluded by the asset rules are published.

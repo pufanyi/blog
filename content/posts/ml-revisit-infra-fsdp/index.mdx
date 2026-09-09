@@ -47,16 +47,15 @@ FSDP 主要接管参数、梯度的 sharding 和相关通信，尽量保持 PyTo
 
 ### FSDP1：先打包，再切分
 
-FSDP1 会把一个 FSDP unit 管理的参数摊平、拼成一个一维的 `FlatParameter`，再把它切给不同的卡。这里的 unit 是一组一起管理、一起通信的参数，例如一个 Transformer block；不是必须把整个模型打包成一个 `FlatParameter`。嵌套包装时，子 unit 已经管理的参数也不会再算进父 unit。分组小一些，临时聚合的参数就少一些，但通信次数也会更多 [@zhao2023pytorchfsdpexperiencesscaling]。
+为了减少零散的小通信，FSDP1 会把一组参数一起管理，这一组就叫一个 FSDP unit。例如，我们可以把每个 Transformer block 划成一个 unit，将其中的参数 flatten、拼成一维的 `FlatParameter`，再平均切给不同的卡。这样，组内参数的 All-Gather 和梯度的 Reduce-Scatter 都可以合并进行 [@zhao2023pytorchfsdpexperiencesscaling]。
 
-梯度按对应的布局分片。AdamW 的一、二阶 moment 则仍由 optimizer 维护，不是存在 `FlatParameter` 里面；因为 optimizer 只更新本卡负责的参数分片，对应的 moment 也只需要保存这一部分。
+unit 的大小决定了显存和通信之间的取舍：unit 越小，每次需要临时聚合的完整参数就越少，但通信次数也越多。Backward 之后，每张卡拿到自己负责的 gradient shard，再由 AdamW 使用本地的一、二阶 moment 更新对应的参数分片。每张卡的 optimizer 只需维护这一部分的 states。
 
-“先打包再切分”的代价是：某张卡分到的一段连续数据，可能跨过多个原始参数的边界，不再对应一个完整的权重矩阵。FSDP1 用 [`use_orig_params`](https://docs.pytorch.org/docs/2.14/fsdp.html#torch.distributed.fsdp.FullyShardedDataParallel) 控制向用户和 optimizer 暴露什么：
+这种“先打包再切分”的方式让通信布局很规整，但也把原始参数的边界打散了：一个 shard 可能包含几个参数的片段，而一个权重矩阵也可能被切到不同的卡上。因此，本地拿到的往往是一段一维数据，而不是原来形状的矩阵。
 
-- `False`：暴露打包后的 `FlatParameter`。
-- `True`：保留原始 `Parameter` 对象，但底层数据仍是 flat buffer 的 view，与它共享 storage。处于分片状态时，一个原始参数在本卡上可能只剩一段一维数据，甚至是空 tensor。
+FSDP1 提供了两种访问这些参数的方式。[`use_orig_params=False`](https://docs.pytorch.org/docs/2.14/fsdp.html#torch.distributed.fsdp.FullyShardedDataParallel) 时，用户和 optimizer 直接看到 `FlatParameter`；设为 `True` 时，则保留原始 `Parameter` 对象，让它们的数据指向 flat buffer 中对应的部分。在 sharded 状态下，这些 view 可能只有原始参数的一截；某个 rank 没分到该参数的数据时，对应的 view 就是空 tensor。计算前，FSDP 再聚合参数并恢复原始 shape。
 
-所以问题不是参数和 storage 没有对应关系，而是“原来这是哪个形状的参数”和“本卡实际拿到哪些数据”不再能只看本地 tensor 的 shape 就知道。按原始参数做检查或自定义操作时，就要额外处理这些情况。
+所以，FSDP1 很适合把一组参数打包后高效通信，但如果想按原始参数的 shape 做自定义操作，就需要处理这层 flat buffer 到原始参数的映射。FSDP2 的逐参数分片表示，让这件事更直接。
 
 ### FSDP2：分别记录每个参数的分片
 
