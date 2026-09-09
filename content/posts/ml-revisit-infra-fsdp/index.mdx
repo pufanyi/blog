@@ -87,7 +87,7 @@ print(model)
 
 FSDP2 提供了 `reshard_after_forward`，控制一个 module 的 forward 结束后，是否立即释放 All-Gather 得到的完整参数。设为 `True` 时，算完就释放，回到只持有本地 shard 的状态，等 backward 需要这些参数时再 All-Gather。这里原来的 local shard 一直保留着，reshard 只是释放临时的完整参数并切回已有的 shard，本身不需要额外通信。
 
-设为 `False` 时，则把完整参数留到 backward 继续使用，以更多显存换掉一次参数 All-Gather。在上面的默认用法中，非 root 分组会在 forward 后 reshard，而 root module 管理的剩余参数会保留到 backward。
+设为 `False` 时，则把完整参数留到 backward 继续使用，以更多显存换掉一次参数 All-Gather。在上面的默认用法中，各个 Transformer block 会在 forward 后 reshard，而最外层 `model` 管理的剩余参数会保留到 backward。
 
 ### Checkpoint：让各张卡保存自己的分片
 
