@@ -282,6 +282,8 @@ Project guidance for agents working in this repository.
      work. If none exists, use the direct document URL rather than a generic
      index or syllabus page. Do not add abstracts; citation previews
      intentionally show bibliographic metadata only.
+     Undated documentation uses `year = {n.d.}`; do not infer a publication
+     year from the current year or a copyright footer.
   2. Cite an entry in `index.mdx` with `[@key]`. Multiple references can be
      written as `[@key1; @key2]`. The References section is generated at the
      end of the post automatically.
