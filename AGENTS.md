@@ -131,6 +131,10 @@ Project guidance for agents working in this repository.
 - For Linux browser screenshots, verify a CJK fallback font is available. On
   WSL, a temporary Fontconfig configuration can load Windows fonts without
   changing the site's typography.
+- In minimal Linux environments, missing Playwright shared libraries can be
+  supplied by extracting matching distro packages into a temporary directory
+  and setting a process-scoped `LD_LIBRARY_PATH`. Use `FONTCONFIG_FILE` for
+  temporary fonts; keep these host workarounds out of project dependencies.
 - Disable animations when capturing theme changes so SVG strokes and animated
   page backgrounds are captured in the same theme state.
 - The shared 404 experience lives in `src/app/pages/not-found` and is also used

@@ -127,3 +127,7 @@
 @container (max-width: 739px) {
   .infra-fsdp-scroll-hint { display: block; }
 }
+
+@container (max-width: 380px) {
+  .infra-fsdp-grid { min-width: calc(200% + 0.8rem); }
+}
