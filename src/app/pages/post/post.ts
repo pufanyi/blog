@@ -43,6 +43,7 @@ import { COMMENTS_CONFIG } from '../../data/comments-config';
     './styles/media/collectives.css',
     './styles/media/zero.css',
     './styles/media/zero-flow.css',
+    './styles/media/fsdp.css',
     './styles/media/cf351d-pointers.css',
     './styles/media/cf391f3-trading.css',
     './styles/media/cf434d-flow.css',

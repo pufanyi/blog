@@ -45,6 +45,8 @@ FSDP 的全分片模式和 ZeRO-3 的核心思路一样：把参数、梯度和 
 
 FSDP 主要接管参数、梯度的 sharding 和相关通信，尽量保持 PyTorch 原生的 training loop；DeepSpeed 则更偏完整的 training engine，因此做定制训练时，FSDP 通常更容易组合。但这不代表任意单卡代码都能原样运行，例如自定义 optimizer 仍要能正确处理分片参数。
 
+<FsdpLayoutComparison />
+
 ### FSDP1：先打包，再切分
 
 为了减少零散的小通信，FSDP1 会把一组参数一起管理，这一组就叫一个 FSDP unit。例如，我们可以把每个 Transformer block 划成一个 unit，将其中的参数 flatten、拼成一维的 `FlatParameter`，再平均切给不同的卡。这样，组内参数的 All-Gather 和梯度的 Reduce-Scatter 都可以合并进行 [@zhao2023pytorchfsdpexperiencesscaling]。
