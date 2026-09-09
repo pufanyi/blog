@@ -35,3 +35,9 @@ ZeRO 最初是在 [@rajbhandari2020zeromemoryoptimizationstraining] 中提出的
 ## Fully Sharded Data Parallel (FSDP)
 
 FSDP 其实就是 ZeRO-3，不过这边主要讨论 PyTorch FSDP [@zhao2023pytorchfsdpexperiencesscaling]。
+
+FSDP 的一个重要设计理念是只负责参数 sharding 和相关通信，尽量保持 PyTorch 原生的 training loop；DeepSpeed 则更偏完整 training engine，因此做高度定制的训练算法时，FSDP 通常更容易组合。
+
+为了方便管理参数，FSDP1 把所有参数给摊平，变成 `FlatParameter`。每个 `FlatParameter` 维护对应的模型参数、梯度和优化器参数。但这样带来一个问题是，parameter 的 shape/identity 与底层 storage 脱节，导致各种困难。
+
+FSDP2 [@cite https://docs.pytorch.org/tutorials/intermediate/FSDP_tutorial.html https://huggingface.co/docs/accelerate/en/concept_guides/fsdp1_vs_fsdp2] 将 `Parameter` 使用 `DTensor` 管理，使得 Shard 之后模型仍然保持原始架构。在 checkpointing 的时候，也可以直接使用 Distributed Checkpoint (DCP) [@cite https://docs.pytorch.org/tutorials/recipes/distributed_checkpoint_recipe.html] 直接进行存储。
