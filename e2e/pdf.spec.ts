@@ -15,6 +15,7 @@ test('two embedded PDFs render independently and follow the article theme', asyn
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/blog');
   await page.goto('/blog/mock-contest-20190307');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   const embeds = page.locator('iframe.post-pdf');
   await expect(embeds).toHaveCount(2);
   const problems = embeds.nth(0).contentFrame();
@@ -49,6 +50,7 @@ test('two embedded PDFs render independently and follow the article theme', asyn
   await expect(embeds).toHaveCount(0);
   await page.goForward();
   await expect(page).toHaveURL('/blog/mock-contest-20190307');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   await expect(problems.locator('.page canvas').first()).toBeVisible({ timeout: 30_000 });
   await embeds.nth(0).scrollIntoViewIfNeeded();
 });

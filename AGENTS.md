@@ -113,6 +113,10 @@ Project guidance for agents working in this repository.
 - Keep article presentation in `PostComponent`, DOM enhancement and cleanup
   in `PostContentDirective`, and TOC interaction in `PostNavigationComponent`.
   Use render hooks and cleanup callbacks rather than retrying DOM queries.
+  `PostContentDirective` marks `.post-body` with `data-rendered="true"` after
+  client DOM enhancements attach; browser tests asserting on client elements
+  (such as embedded PDF readers) should wait for this attribute before querying
+  or scrolling iframes to ensure hydration has settled.
 - `PageMetadataStrategy` handles browser and prerendered metadata.
   It also owns article `BlogPosting` JSON-LD: reuse authored dates and article
   covers, omit unknown modification dates and unrelated fallback images, and

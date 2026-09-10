@@ -47,6 +47,7 @@ export class PostContentDirective {
       const container = this.host.nativeElement;
       const abort = new AbortController();
       let settleFrame: number | undefined;
+      container.dataset['rendered'] = 'true';
       optimizeContentImages(container);
       const cleanups = [
         initCodeCopyButtons(container),
@@ -72,6 +73,7 @@ export class PostContentDirective {
         if (settleFrame !== undefined) cancelAnimationFrame(settleFrame);
         this.spy.disconnect();
         clearMath(container);
+        delete container.dataset['rendered'];
         for (const cleanup of cleanups.reverse()) cleanup();
       });
     });
