@@ -47,6 +47,8 @@ Project guidance for agents working in this repository.
 - Generate derived content data with `pnpm generate:data`.
 - The same generator writes `/llms.txt`, `/profile.md`, `/blog/index.md`, and
   `/blog/<slug>.md` to the ignored `.generated/agent-content` asset directory.
+  Directory indexes are exported at `/blog/contents/index.md` and
+  `/blog/contents/<category>/index.md`.
   Export expanded MDX before syntax highlighting so code annotations remain
   intact; retain math, citation links, diagram descriptions, and direct PDF URLs.
   Profile exports reuse rendered CV data. Never maintain a second copy of prose.
@@ -74,6 +76,16 @@ Project guidance for agents working in this repository.
   prerendered page count, metadata, and navigation on the same pagination helpers
   and configured page size. Keep search over all posts and avoid list removal
   animations that interfere with the router's saved scroll positions.
+- Blog categories follow the nested directories under `content/posts`.
+  `blog.routes.ts` lazily loads the archive, category pages, and full article
+  paths; prerender every article and ancestor category with the same data.
+  `/blog/contents` is the root directory, with category pages under
+  `/blog/contents/<category>`; article URLs remain `/blog/<slug>`.
+  Directory pages list immediate children, folders first, with dates equal to
+  the latest descendant publication `date`, ignoring `updated`. Keep `/blog`
+  as the paginated archive and preserve the contents root even with no posts.
+  Use full path strings for router navigation; encoding an entire slug or passing
+  it as a single noninitial router command turns `/` into `%2F`.
 - Start the local development server with `pnpm start`.
 - Build with `pnpm build`.
 - Production builds promote the prerendered `/404` route to `404.html` for
@@ -139,6 +151,10 @@ Project guidance for agents working in this repository.
   supplied by extracting matching distro packages into a temporary directory
   and setting a process-scoped `LD_LIBRARY_PATH`. Use `FONTCONFIG_FILE` for
   temporary fonts; keep these host workarounds out of project dependencies.
+  On older glibc hosts, point `MINIFLARE_WORKERD_PATH` at a temporary wrapper
+  that launches the installed workerd through a newer extracted glibc loader.
+  Verify actual CJK glyph rendering: a previous task's subset font may omit
+  characters even when Fontconfig reports a CJK family.
 - Disable animations when capturing theme changes so SVG strokes and animated
   page backgrounds are captured in the same theme state.
 - The shared 404 experience lives in `src/app/pages/not-found` and is also used
@@ -234,8 +250,14 @@ Project guidance for agents working in this repository.
   commands as well as `mjx-merror`; unsupported macros can render without
   producing an error node.
 
-- Each blog post lives at `content/posts/<slug>/index.mdx`; the directory name is
-  the post slug. `index.mdx` starts with YAML front matter delimited by `---`;
+- Each blog post lives at `content/posts/<slug>/index.mdx`; the slug is its full
+  relative directory path, such as `oi-icpc/codeforces/cf551c`. The generator and
+  BibTeX checker share recursive discovery, stopping at article roots so asset
+  folders are not treated as categories. Empty/draft-only categories are omitted.
+  Top-level `page` and `contents`, and article basename `index`, are reserved
+  for navigation and Markdown indexes. Directory segments use letters, digits,
+  `_`, and `-`.
+  `index.mdx` starts with YAML front matter delimited by `---`;
   `title`, `date` (`YYYY-MM-DD`), and `description` are required, while
   `coverImage` and `updated` are optional. `updated` must be a real `YYYY-MM-DD`
   date on or after publication and should mark a substantive content change.

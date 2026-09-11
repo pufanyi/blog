@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import {
   createExampleGraph,
   example,
-} from '../../content/posts/cf434d/scripts/flow.post-component.tsx';
+} from '../../content/posts/oi-icpc/codeforces/cf434d/scripts/flow.post-component.tsx';
 
 function minimumCut(sentinels: boolean): number {
   const graph = createExampleGraph(sentinels);

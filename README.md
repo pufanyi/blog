@@ -13,7 +13,13 @@ pnpm start
 ```
 
 The development server runs at `http://localhost:4200/`. Posts live in
-`content/posts/<slug>/index.mdx`; see `AGENTS.md` for content conventions.
+`content/posts/<slug>/index.mdx`, where `<slug>` is the full relative path (for
+example, `oi-icpc/codeforces/cf551c`). Articles use `/blog/<slug>`; ancestor
+directories such as `/blog/contents/oi-icpc` list their immediate folders and
+posts. `/blog/contents` is the root directory. Folder dates use the latest
+descendant article's publication `date`, ignoring `updated`.
+`/blog` remains the paginated archive.
+See `AGENTS.md` for content conventions.
 `pnpm generate:data` rebuilds derived data, and also runs before start, build,
 test, and check commands.
 

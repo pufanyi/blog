@@ -1,6 +1,7 @@
 @if (post(); as post) {
   <!-- Each article owns its DOM subtree, including MathJax and image lifetimes. -->
   @for (article of [post]; track article.slug) {
+    <app-blog-breadcrumbs [slug]="parentSlug()" [current]="false" />
     <app-post-navigation
       [items]="article.toc"
       [postPath]="postPath()"

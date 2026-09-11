@@ -37,7 +37,7 @@ const value = 42;
 `;
 
   const sourcePath = fileURLToPath(new URL('./fixtures/citation-post/index.mdx', import.meta.url));
-  const result = await renderMdx(source, 'example', sourcePath, highlighter);
+  const result = await renderMdx(source, 'category/nested/example', sourcePath, highlighter);
   const { document } = new JSDOM(`<body>${result.html}</body>`).window;
 
   assert.equal(document.querySelector('h2')?.textContent, 'Native MDX 42');
@@ -45,7 +45,7 @@ const value = 42;
   assert.equal(document.querySelector('.math-inline')?.textContent, '\\(x_i\\)');
   assert.equal(
     document.querySelector('[id^="citation--"] a')?.getAttribute('href'),
-    '/blog/example#bib-example2026',
+    '/blog/category/nested/example#bib-example2026',
   );
   const collapsedCitation = document.querySelector(
     '[id^="citation--collapsed2025--collapsed2026--"]',
@@ -57,8 +57,8 @@ const value = 42;
       text: anchor.textContent,
     })),
     [
-      { href: '/blog/example#bib-collapsed2025', text: '2025' },
-      { href: '/blog/example#bib-collapsed2026', text: '2026' },
+      { href: '/blog/category/nested/example#bib-collapsed2025', text: '2025' },
+      { href: '/blog/category/nested/example#bib-collapsed2026', text: '2026' },
     ],
   );
   assert.match(document.querySelector('#bib-example2026')?.textContent ?? '', /Example Reference/);
@@ -87,7 +87,7 @@ const value = 42;
   assert.ok(referencesHeading?.nextElementSibling?.matches('#refs.references.csl-bib-body'));
   assert.equal(
     referencesHeading?.querySelector('.heading-permalink')?.getAttribute('href'),
-    '/blog/example#references',
+    '/blog/category/nested/example#references',
   );
   assert.deepEqual(result.toc.at(-1), {
     id: 'references',

@@ -1,0 +1,129 @@
+.directory-header {
+  margin-bottom: 2rem;
+}
+
+h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.85rem;
+  color: var(--text-color);
+  font-family: var(--font-heading);
+  font-size: clamp(1.6rem, 5vw, 2.1rem);
+  overflow-wrap: anywhere;
+}
+
+h1 i {
+  color: var(--accent-blue);
+  font-weight: normal;
+}
+
+.directory-summary, .directory-columns {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+}
+
+.directory-columns {
+  padding: 0 0.75rem 0.6rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.directory-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.directory-list li {
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
+}
+
+.directory-entry {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.85rem;
+  padding: 1rem 0.75rem;
+  color: var(--text-color);
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.directory-entry:hover {
+  background: var(--accent-bg);
+}
+
+.directory-entry:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.directory-entry > i {
+  margin-top: 0.2rem;
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+}
+
+.directory-entry[data-kind="directory"] > i {
+  color: var(--accent-blue);
+}
+
+.entry-copy {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.entry-title {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.folder-slash {
+  color: var(--text-secondary);
+  margin-left: 0.12em;
+}
+
+.entry-description {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+time {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.directory-entry time {
+  padding-top: 0.2rem;
+}
+
+@media (max-width: 480px) {
+  .directory-columns {
+    display: none;
+  }
+
+  .directory-list {
+    border-top: 1px solid var(--border-color);
+  }
+
+  .directory-entry {
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    gap: 0.4rem 0.75rem;
+  }
+
+  .directory-entry time {
+    grid-column: 2;
+    padding: 0;
+  }
+
+}

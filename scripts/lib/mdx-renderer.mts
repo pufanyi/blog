@@ -309,7 +309,7 @@ function postprocessMdxHtml(
     image.setAttribute('data-zoom-src', src);
   }
 
-  const postPath = `/blog/${encodeURIComponent(slug)}`;
+  const postPath = `/blog/${slug.split('/').map(encodeURIComponent).join('/')}`;
   // Each PDF gets its own document because the viewer uses global DOM IDs.
   for (const frame of document.querySelectorAll('iframe[src]')) {
     const src = frame.getAttribute('src')?.trim();

@@ -1,5 +1,12 @@
 import type { PostSummary } from '../models/post.model';
 
+/** Moving an article between categories must not reorder same-day archive entries. */
+export function comparePostsByPublication(a: PostSummary, b: PostSummary): number {
+  return b.date.localeCompare(a.date) ||
+    a.slug.split('/').at(-1)!.localeCompare(b.slug.split('/').at(-1)!) ||
+    a.slug.localeCompare(b.slug);
+}
+
 export interface BlogPage {
   number: number;
   totalPages: number;

@@ -5,8 +5,23 @@ import { serverRoutes } from './app.routes.server';
 import { BLOG_CONFIG } from './data/blog-config';
 import { POSTS } from './data/posts';
 import { blogPageCount } from './utils/blog-pagination';
+import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directories';
+import { blogRoutes } from './blog.routes';
 
 describe('application routes', () => {
+  it('routes and prerenders every published article and ancestor directory at its full path', () => {
+    const paths = [
+      ...POSTS.map(post => `/blog/${post.slug}`),
+      ...buildBlogDirectories(POSTS).map(directory => blogDirectoryPath(directory.slug)),
+    ];
+    for (const path of paths) {
+      expect(blogRoutes.find(route => route.path === path.slice('/blog/'.length))?.pathMatch).toBe('full');
+      expect(serverRoutes).toContainEqual({ path: path.slice(1), renderMode: RenderMode.Prerender });
+    }
+    expect(blogRoutes.find(route => route.path === 'contents')?.data?.['directory'].name).toBe('Contents');
+    expect(blogRoutes.find(route => route.path === 'oi-icpc/codeforces/cf551c')?.data?.['slug']).toBe('oi-icpc/codeforces/cf551c');
+    expect(blogRoutes.at(-1)?.path).toBe('**');
+  });
   it('prerenders every archive page using the configured page size', async () => {
     const route = serverRoutes.find(route => route.path === 'blog/page/:page');
     if (!route || !('getPrerenderParams' in route)) throw new Error('Missing paginated archive route');

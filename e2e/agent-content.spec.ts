@@ -2,6 +2,49 @@ import { expect, test } from '@playwright/test';
 import { JSDOM } from 'jsdom';
 import { POSTS } from '../src/app/data/posts';
 
+test('contents directories are prerendered with immediate children and publication dates', async ({ request }) => {
+  for (const slug of ['', 'oi-icpc', 'oi-icpc/codeforces', 'ml/ml-revisit', 'ml/ml-revisit/infra']) {
+    const path = `/blog/contents${slug ? `/${slug}` : ''}`;
+    const response = await request.get(path, { maxRedirects: 0 });
+    expect(response.status(), path).toBe(200);
+    const dom = new JSDOM(await response.text());
+    try {
+      const document = dom.window.document;
+      const prefix = slug ? `${slug}/` : '';
+      const descendants = POSTS.filter(post => post.slug.startsWith(prefix));
+      const children = new Map<string, string[]>();
+      for (const post of descendants) {
+        const child = `${prefix}${post.slug.slice(prefix.length).split('/')[0]}`;
+        children.set(child, [...(children.get(child) ?? []), post.date]);
+      }
+      const entries = [...document.querySelectorAll('.directory-entry')];
+      expect(entries).toHaveLength(children.size);
+      for (const [child, dates] of children) {
+        const entryPath = POSTS.some(post => post.slug === child) ? `/blog/${child}` : `/blog/contents/${child}`;
+        const entry = document.querySelector(`.directory-entry[href="${entryPath}"]`);
+        expect(entry).not.toBeNull();
+        expect(entry?.querySelector('time')?.getAttribute('datetime')).toBe(dates.sort().at(-1));
+      }
+      expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`https://pufanyi.com${path}`);
+      expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('index, follow');
+      expect(document.querySelector('#article-structured-data')).toBeNull();
+      const markdown = await request.get(path, { headers: { Accept: 'text/markdown' } });
+      expect(markdown.headers()['content-type']).toContain('text/markdown');
+      const text = await markdown.text();
+      expect(text).toContain(`Latest post: ${descendants.map(post => post.date).sort().at(-1)}`);
+      expect(text).not.toContain('Updated:');
+      for (const child of children.keys()) {
+        expect(text).toContain(POSTS.some(post => post.slug === child) ? `/blog/${child}.md` : `/blog/contents/${child}/index.md`);
+      }
+    } finally {
+      dom.window.close();
+    }
+  }
+  const missing = await request.get('/blog/oi-icpc/codeforces/missing.md', { headers: { Accept: 'text/markdown' } });
+  expect(missing.status()).toBe(404);
+  expect(missing.headers()['content-type']).toContain('text/html');
+});
+
 test('an HTTP-only reader can discover and fetch the complete Markdown collection', async ({ request }) => {
   const home = await request.get('/');
   expect(home.status()).toBe(200);
@@ -123,7 +166,7 @@ test('Cloudflare serves sitemap canonicals directly and redirects HTML slash var
   } finally {
     dom.window.close();
   }
-  for (const path of ['/cv', '/blog', '/blog/page/2', '/blog/cf77c', '/icpc']) {
+  for (const path of ['/cv', '/blog', '/blog/contents', '/blog/contents/oi-icpc', '/blog/page/2', '/blog/oi-icpc/codeforces/cf77c', '/icpc']) {
     const response = await request.get(`${path}/?ref=search`, { maxRedirects: 0, headers: { Accept: 'text/html' } });
     expect([301, 307, 308]).toContain(response.status());
     expect(new URL(response.headers()['location'], response.url()).pathname).toBe(path);
@@ -137,8 +180,8 @@ test('original URLs negotiate Markdown while browsers, HEAD requests and 404s ke
     ['/cv', '/profile.md'],
     ['/blog', '/blog/index.md'],
     ['/blog/page/2', '/blog/index.md'],
-    ['/blog/cf77c', '/blog/cf77c.md'],
-    ['/blog/cf77c/', '/blog/cf77c.md'],
+    ['/blog/oi-icpc/codeforces/cf77c', '/blog/oi-icpc/codeforces/cf77c.md'],
+    ['/blog/oi-icpc/codeforces/cf77c/', '/blog/oi-icpc/codeforces/cf77c.md'],
   ]) {
     const direct = await request.get(alternate);
     for (const accept of ['text/html', 'text/markdown', '*/*', 'text/markdown;q=0', 'text/markdown, text/html', 'text/html']) {
@@ -167,8 +210,8 @@ test('original URLs negotiate Markdown while browsers, HEAD requests and 404s ke
     expect(response.headers()['content-type']).toContain('text/html');
   }
   if (testInfo.project.name === 'cloudflare') {
-    const html = await request.get('/blog/cf77c', { headers: { Accept: 'text/html' } });
-    const markdown = await request.get('/blog/cf77c', { headers: { Accept: 'text/markdown' } });
+    const html = await request.get('/blog/oi-icpc/codeforces/cf77c', { headers: { Accept: 'text/html' } });
+    const markdown = await request.get('/blog/oi-icpc/codeforces/cf77c', { headers: { Accept: 'text/markdown' } });
     const htmlTag = html.headers()['etag'];
     const markdownTag = markdown.headers()['etag'];
     expect(htmlTag).toBeTruthy();
@@ -180,7 +223,7 @@ test('original URLs negotiate Markdown while browsers, HEAD requests and 404s ke
       ['text/markdown', markdownTag, 304],
       ['text/html', htmlTag, 304],
     ] as const) {
-      const response = await request.get('/blog/cf77c', {
+      const response = await request.get('/blog/oi-icpc/codeforces/cf77c', {
         headers: { Accept: accept, 'If-None-Match': previousTag },
       });
       expect(response.status()).toBe(status);
@@ -193,17 +236,17 @@ test('original URLs negotiate Markdown while browsers, HEAD requests and 404s ke
 });
 
 test('published Markdown keeps technical content and HTML advertises the corresponding article', async ({ request }) => {
-  const html = await (await request.get('/blog/cf77c')).text();
-  expect(html).toMatch(/<link[^>]+rel="alternate"[^>]+href="https:\/\/pufanyi.com\/blog\/cf77c.md"/);
-  const tree = await (await request.get('/blog/cf77c.md')).text();
+  const html = await (await request.get('/blog/oi-icpc/codeforces/cf77c')).text();
+  expect(html).toMatch(/<link[^>]+rel="alternate"[^>]+href="https:\/\/pufanyi.com\/blog\/oi-icpc\/codeforces\/cf77c.md"/);
+  const tree = await (await request.get('/blog/oi-icpc/codeforces/cf77c.md')).text();
   expect(tree).toContain('无向边为 2—5、3—4、4—5、1—5');
   expect(tree).toContain('$i(k_i)$');
   expect(tree).toContain('```cpp');
-  const attention = await (await request.get('/blog/ml-revisit-attention.md')).text();
+  const attention = await (await request.get('/blog/ml/ml-revisit/attention.md')).text();
   expect(attention).toContain('\\begin{bmatrix}');
   expect(attention).toContain('## References');
-  expect(attention).toContain('https://pufanyi.com/blog/ml-revisit-attention#bib-');
-  const contest = await (await request.get('/blog/mock-contest-20190307.md')).text();
-  expect(contest).toContain('https://pufanyi.com/posts/mock-contest-20190307/problem.pdf');
+  expect(attention).toContain('https://pufanyi.com/blog/ml/ml-revisit/attention#bib-');
+  const contest = await (await request.get('/blog/oi-icpc/other-problems/mock-contest-20190307.md')).text();
+  expect(contest).toContain('https://pufanyi.com/posts/oi-icpc/other-problems/mock-contest-20190307/problem.pdf');
   expect(contest).not.toContain('pdf-viewer');
 });

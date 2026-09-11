@@ -4,10 +4,47 @@ import { BLOG_CONFIG } from '../src/app/data/blog-config';
 import { SITE_CONFIG } from '../src/app/data/site-config';
 import { JSDOM } from 'jsdom';
 
-const diffusion = POSTS.find(post => post.slug === 'ml-revisit-diffusion')!;
-const autoregressive = POSTS.find(post => post.slug === 'ml-revisit-ar')!;
-const vae = POSTS.find(post => post.slug === 'ml-revisit-vae')!;
+const diffusion = POSTS.find(post => post.slug === 'ml/ml-revisit/diffusion')!;
+const autoregressive = POSTS.find(post => post.slug === 'ml/ml-revisit/ar')!;
+const vae = POSTS.find(post => post.slug === 'ml/ml-revisit/ae/ml-revisit-vae')!;
 const archivePages = Math.max(1, Math.ceil(POSTS.length / BLOG_CONFIG.postsPerPage));
+
+test('folder navigation opens nested articles and returns through their breadcrumbs', async ({ page }) => {
+  await page.goto('/blog/contents');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Contents');
+  await expect(page.locator('.directory-entry')).toHaveCount(new Set(POSTS.map(post => post.slug.split('/')[0])).size);
+  await page.locator('a.directory-entry[href="/blog/contents/oi-icpc"]').click();
+  await expect(page).toHaveURL('/blog/contents/oi-icpc');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('oi-icpc');
+  const folder = page.locator('a.directory-entry[href="/blog/contents/oi-icpc/codeforces"]');
+  const codeforcesPosts = POSTS.filter(post => post.slug.startsWith('oi-icpc/codeforces/'));
+  const date = codeforcesPosts.map(post => post.date).sort().at(-1)!;
+  await expect(folder.locator('time')).toHaveAttribute('datetime', date);
+  await folder.scrollIntoViewIfNeeded();
+  await folder.focus();
+  await folder.press('Enter');
+  await expect(page).toHaveURL('/blog/contents/oi-icpc/codeforces');
+  await expect(page.locator('.directory-entry')).toHaveCount(codeforcesPosts.length);
+  await page.locator('a.directory-entry[href="/blog/oi-icpc/codeforces/cf551c"]').click();
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  await expect(page).toHaveURL('/blog/oi-icpc/codeforces/cf551c');
+  await expect(page.locator('app-post-header h1')).toContainText('551');
+  const breadcrumbs = page.getByRole('navigation', { name: 'Blog directory breadcrumb' });
+  await breadcrumbs.getByRole('link', { name: 'oi-icpc', exact: true }).click();
+  await expect(page).toHaveURL('/blog/contents/oi-icpc');
+  await expect(page.locator('#article-structured-data')).toHaveCount(0);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `${SITE_CONFIG.url}/blog/contents/oi-icpc`);
+  await page.reload();
+  await expect(page.locator('a.directory-entry[href="/blog/contents/oi-icpc/codeforces"] time')).toHaveAttribute('datetime', date);
+  await breadcrumbs.getByRole('link', { name: 'Contents', exact: true }).click();
+  await expect(page).toHaveURL('/blog/contents');
+  await expect(breadcrumbs.locator('[aria-current="page"]')).toHaveText('Contents');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.goto('/blog/contents/ml/ml-revisit/infra');
+  await expect(page.locator('.directory-entry')).toHaveCount(3);
+  await page.goto('/blog/contents/ml/ml-revisit/infra/does-not-exist');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('404: Existence Left as an Exercise');
+});
 
 test('archive pagination supports keyboard navigation, reload, and history', async ({ page }) => {
   test.skip(archivePages < 2, 'The configured archive fits on one page');

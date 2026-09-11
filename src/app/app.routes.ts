@@ -1,18 +1,6 @@
-import { ResolveFn, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { REDIRECTS } from './data/redirects';
-import type { Post } from './models/post.model';
-import { BLOG_CONFIG } from './data/blog-config';
 import { SITE_CONFIG } from './data/site-config';
-import type { BlogPage } from './utils/blog-pagination';
-
-const resolveBlogPage: ResolveFn<BlogPage | null> = route =>
-  import('./services/blog-repository').then(module => module.loadBlogPage(route.paramMap.get('page')));
-const loadBlogComponent = () => import('./pages/home/home').then(m => m.HomeComponent);
-
-const resolvePost: ResolveFn<Post | null> = route =>
-  import('./services/post-repository').then(module =>
-    module.loadPost(route.paramMap.get('slug') ?? ''),
-  );
 
 const NOT_FOUND_TITLE = '404: Existence Left as an Exercise';
 const loadNotFoundComponent = () =>
@@ -62,27 +50,7 @@ export const routes: Routes = [
       },
       {
         path: 'blog',
-        title: SITE_CONFIG.title,
-        data: { description: BLOG_CONFIG.description },
-        resolve: { blogPage: resolveBlogPage },
-        loadComponent: loadBlogComponent,
-      },
-      {
-        path: 'blog/page/1',
-        pathMatch: 'full',
-        redirectTo: '/blog',
-      },
-      {
-        path: 'blog/page/:page',
-        title: SITE_CONFIG.title,
-        data: { description: BLOG_CONFIG.description },
-        resolve: { blogPage: resolveBlogPage },
-        loadComponent: loadBlogComponent,
-      },
-      {
-        path: 'blog/:slug',
-        resolve: { post: resolvePost },
-        loadComponent: () => import('./pages/post/post').then(m => m.PostComponent),
+        loadChildren: () => import('./blog.routes').then(m => m.blogRoutes),
       },
       {
         path: '404',

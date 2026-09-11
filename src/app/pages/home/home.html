@@ -13,7 +13,7 @@
   </div>
   <section class="post-list" aria-label="Blog posts" [style.counter-reset]="'post ' + (page.start ? page.start - 1 : 0)">
     @for (post of page.posts; track post.slug) {
-      <a class="post-entry" [routerLink]="['/blog', post.slug]">
+      <a class="post-entry" [routerLink]="'/blog/' + post.slug">
         @if (config.showCoverImages && post.coverImage) {
           <app-image-lightbox
             [src]="post.coverImage"

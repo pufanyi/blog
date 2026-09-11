@@ -17,5 +17,7 @@ describe('PostCitationComponent', () => {
   month  = {9},
   url    = {${SITE_CONFIG.url}/blog/hello-world}
 }`);
+    fixture.componentRef.setInput('slug', 'topic/nested/hello-world');
+    expect(fixture.componentInstance.bibtex()).toContain(`${SITE_CONFIG.url}/blog/topic/nested/hello-world`);
   });
 });

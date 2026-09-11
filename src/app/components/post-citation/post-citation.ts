@@ -27,7 +27,7 @@ export class PostCitationComponent {
   title  = {${escapeBibtex(this.title())}},
   year   = {${year}},
   month  = {${Number(month)}},
-  url    = {${SITE_CONFIG.url}/blog/${encodeURIComponent(this.slug())}}
+  url    = {${SITE_CONFIG.url}/blog/${this.slug().split('/').map(encodeURIComponent).join('/')}}
 }`;
   });
 

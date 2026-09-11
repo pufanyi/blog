@@ -32,7 +32,7 @@ test('reads AVIF dimensions without an external image program', () => {
 
 test('reads animated AVIF dimensions for post image hydration', () => {
   const file = fileURLToPath(
-    new URL('../../content/posts/cfdpproblems/gugugu.avif', import.meta.url),
+    new URL('../../content/posts/oi-icpc/codeforces/cfdpproblems/gugugu.avif', import.meta.url),
   );
   assert.deepEqual(getImageDimensions(file), { width: 400, height: 218 });
 });

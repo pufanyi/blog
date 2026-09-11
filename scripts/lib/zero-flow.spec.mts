@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { zeroTransfers } from '../../content/posts/ml-revisit-infra-fsdp/scripts/zero-flow.post-component.tsx';
+import { zeroTransfers } from '../../content/posts/ml/ml-revisit/infra/infra-fsdp/scripts/zero-flow.post-component.tsx';
 
 test('ZeRO flow arrows reduce matching gradient shards and replicate the updated model', () => {
   const gradients = [

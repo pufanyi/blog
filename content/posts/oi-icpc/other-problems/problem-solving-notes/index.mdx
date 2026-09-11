@@ -1,0 +1,89 @@
+---
+title: "做题记录"
+date: "2019-01-12"
+description: "CodeForces 与 UVa 做题记录及代码。"
+---
+
+本想没做一道题写一篇题解。刚立下这个 flag 我就后悔了。于是就写一句话题解吧。~~事实证明旗子不能随便插啊。~~
+
+
+
+如果有题目我专门开一篇文章我会加上链接。
+
+以前做过的觉得有趣的题目也会一点点地加上来。
+
+如果有 CE 的，可以试试 `-std=c++11`。
+
+## Codeforces
+
+【CF3D】将每个问号变成左括号和有括号都有一个代价，求是最终串匹配的最小代价。用堆贪心，括号匹配问题。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF3D.cpp)
+
+【CF6E】单调队列。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF6E.cpp)
+
+【CF7D】字符串哈希。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF7D.cpp)
+
+【CF7E】dp，大细节题。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF7E.cpp)
+
+【CF9D】dp 题，询问 $n$ 个点组成二叉树，高度大于等于 $h$ 的有多少个。令 $f[i][j]$ 表示 $i$ 个节点高度小于等于 $j$ 的二叉树有几个。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF9D.cpp)
+
+【CF10D】经典的 dp 题。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF10D.cpp)
+
+【CF13C】$\mathcal{O}(n^2)$ dp 可过，但有 $\mathcal{O}(n\log n)$ 的贪心。[dp code](/posts/oi-icpc/other-problems/problem-solving-notes/CF13C_dp.cpp) [greedy code](/posts/oi-icpc/other-problems/problem-solving-notes/CF13C_greedy.cpp)
+
+【CF14D】树上问题，树形 dp+分类讨论。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF14D.cpp)
+
+【CF22E】求让该图变成强联通图至少增加多少边并输出边。图构造。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF22E.cpp)
+
+【CF57E】打表找规律好题。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF57E.cpp)
+
+【[CF77C](/blog/oi-icpc/codeforces/cf77c)】树形 dp+贪心。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF77C.cpp)
+
+【[CF351D](/blog/oi-icpc/codeforces/cf351d)】树状数组，HH 的项链的升级版。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF351D.cpp)
+
+【CF434D】网络流，建图。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF434D.cpp)
+
+【[CF449C](/blog/oi-icpc/codeforces/cf449c)】数论+构造。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF449C.cpp)
+
+【CF505E】二分答案+贪心。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF505E.cpp)
+
+【[CF551C](/blog/oi-icpc/codeforces/cf551c)】二分答案+贪心。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF551C.cpp)
+
+【CF675E】树状数组/线段树优化基于贪心的 dp。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF675E.cpp)
+
+【[CF875E](/blog/oi-icpc/codeforces/cf875e)】二分答案+贪心。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF875E.cpp)
+
+【[CF933B](/blog/oi-icpc/notes/fft-notes#codeforces-933b-a-determined-cleanup)】有关多项式的构造题。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF933B.cpp)
+
+【[CF986B](/blog/oi-icpc/codeforces/cf986b)】贪心+数学。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF986B.cpp)
+
+【CF1037D】大力模拟 BFS。 [code](/posts/oi-icpc/other-problems/problem-solving-notes/CF1037D.cpp)
+
+【[CF1045B](/blog/oi-icpc/codeforces/cf1045b)】一道有趣的数学+字符串题。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF1045B.cpp)
+
+【CF1096D】打完才发现开错题目了……dp，每个状态是一个类似矩阵的二维数组。先定义 $0, 1, 2, 3$ 四个状态，然后每个二维数组记录的是像邻接表一样的：从 $1$ 状态向 $2$ 状态需要花费多少，然后大力转移。其实可以加强一下支持区间查询（套一只线段树即可），单点修改。[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF1096D.cpp)
+
+【CF1103B】交互题。需要发现结论：当 $x<a$ 时，$x \le 2x\pmod a\Leftrightarrow x\le a\le 2x$，然后先倍增枚举 $x$ 再定范围，最后二分。还有 $1$ 需要特判。话说这询问次数卡得好紧啊……[code](/posts/oi-icpc/other-problems/problem-solving-notes/CF1103B.cpp)
+
+## UVa
+
+【UVa11292】贪心。[code](/posts/oi-icpc/other-problems/problem-solving-notes/UVa11292.cpp)
+
+【UVa11729】贪心。[code](/posts/oi-icpc/other-problems/problem-solving-notes/UVa11729.cpp)
+
+【Uva11300】贪心，需要一点数学分析。[code](/posts/oi-icpc/other-problems/problem-solving-notes/Uva11300.cpp)
+
+【UVa1388】贪心，感觉是假题，结论需要暴搜验证。[code](/posts/oi-icpc/other-problems/problem-solving-notes/UVa1388.cpp)
+
+【UVa10881】挺有趣的题，需要发现一些结论。[code](/posts/oi-icpc/other-problems/problem-solving-notes/UVa10881.cpp)
+
+【UVa1030】留坑，还没打。
+
+【UVa11464】状压。[code](/posts/oi-icpc/other-problems/problem-solving-notes/UVa11464.cpp)
+
+【UVa1352】暴搜。书上说要打表，但似乎有点多此一举……[code](/posts/oi-icpc/other-problems/problem-solving-notes/UVa1352.cpp)
+
+【UVa11210】留坑吧，看不懂题意啊……
+
+【UVa11384】二进制分解。[code](/posts/oi-icpc/other-problems/problem-solving-notes/UVa11384.cpp)
+
+【UVa10795】udebug 上标程好像是假的……被[这组数据](/posts/oi-icpc/other-problems/problem-solving-notes/UVa10795_hack.txt)卡了。理所当然错误的程序也过了，<span className="truth" title="正解留坑吧">于是我的代码也过了……</span>[code(wrong)](/posts/oi-icpc/other-problems/problem-solving-notes/UVa10795_wrong.cpp)

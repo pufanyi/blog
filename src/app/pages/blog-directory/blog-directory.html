@@ -1,0 +1,31 @@
+@if (directory(); as directory) {
+  <app-blog-breadcrumbs [slug]="directory.slug" />
+  <header class="directory-header">
+    <h1><i class="ph ph-folder-open" aria-hidden="true"></i>{{ directory.name }}</h1>
+    <div class="directory-summary">
+      <span>{{ directory.postCount }} posts</span>
+      @if (directory.date) {
+        <span>Latest post <time [attr.datetime]="directory.date">{{ directory.date }}</time></span>
+      }
+    </div>
+  </header>
+  <div class="directory-columns" aria-hidden="true"><span>Name</span><span>Date</span></div>
+  <ul class="directory-list" aria-label="Directory contents">
+    @for (entry of directory.entries; track entry.slug) {
+      <li>
+        <a class="directory-entry" [attr.data-kind]="entry.kind" [routerLink]="entry.kind === 'directory' ? directoryPath(entry.slug) : '/blog/' + entry.slug">
+          <i [class]="entry.kind === 'directory' ? 'ph ph-folder' : 'ph ph-file-text'" aria-hidden="true"></i>
+          <div class="entry-copy">
+            <span class="entry-title">{{ entry.title }}@if (entry.kind === 'directory') {<span class="folder-slash">/</span>}</span>
+            @if (entry.kind === 'directory') {
+              <span class="entry-description">{{ entry.postCount }} posts</span>
+            } @else {
+              <span class="entry-description">{{ entry.description }}</span>
+            }
+          </div>
+          <time [attr.datetime]="entry.date">{{ entry.date }}</time>
+        </a>
+      </li>
+    }
+  </ul>
+}

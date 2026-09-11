@@ -1,12 +1,5 @@
-import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs';
-import { join } from 'node:path';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { load as loadYaml } from 'js-yaml';
 import { JSDOM } from 'jsdom';
@@ -14,12 +7,14 @@ import { createHighlighter } from 'shiki';
 import type { CvData } from '../src/app/models/cv.model';
 import type { Post } from '../src/app/models/post.model';
 import type { SearchDocument, SerializedSearchIndex } from '../src/app/models/search.model';
+import { comparePostsByPublication } from '../src/app/utils/blog-pagination';
 import { createSearchIndex } from '../src/app/utils/search-index';
 import { type AgentPost, buildAgentFiles, writeAgentFiles } from './lib/agent-content.mts';
 import { renderCvMarkdown } from './lib/cv-markdown.mts';
 import { parsePostSource } from './lib/front-matter.mts';
 import { normalizePostImageHref, renderMdx } from './lib/mdx-renderer.mts';
 import { buildPersonData } from './lib/person-data.mts';
+import { discoverPostSources } from './lib/post-sources.mts';
 import { loadSiteConfiguration } from './lib/site-config.mts';
 import { buildSyndicationFeeds } from './lib/syndication.mts';
 
@@ -43,6 +38,7 @@ function searchableText(html: string): string {
 }
 
 async function writePosts(posts: Post[]): Promise<void> {
+  rmSync(CONTENT_DIR, { recursive: true, force: true });
   mkdirSync(CONTENT_DIR, { recursive: true });
   const summaries = posts.map(({ contentHtml: _html, toc: _toc, ...summary }) => summary);
   writeFileSync(
@@ -50,14 +46,13 @@ async function writePosts(posts: Post[]): Promise<void> {
     `${GENERATED}import type { PostSummary } from '../models/post.model';\n\nexport const POSTS: PostSummary[] = ${JSON.stringify(summaries, null, 2)};\n`,
   );
 
-  const filenames = new Set(posts.map((post) => `${post.slug}.ts`));
-  for (const file of readdirSync(CONTENT_DIR)) {
-    if (file.endsWith('.ts') && !filenames.has(file)) unlinkSync(join(CONTENT_DIR, file));
-  }
   for (const { slug, contentHtml, toc } of posts) {
+    const filename = join(CONTENT_DIR, `${slug}.ts`);
+    mkdirSync(dirname(filename), { recursive: true });
+    const modelPath = `${'../'.repeat(slug.split('/').length + 1)}models/post.model`;
     writeFileSync(
-      join(CONTENT_DIR, `${slug}.ts`),
-      `${GENERATED}import type { PostContent } from '../../models/post.model';\n\nexport const POST_CONTENT: PostContent = ${JSON.stringify({ contentHtml, toc }, null, 2)};\n`,
+      filename,
+      `${GENERATED}import type { PostContent } from '${modelPath}';\n\nexport const POST_CONTENT: PostContent = ${JSON.stringify({ contentHtml, toc }, null, 2)};\n`,
     );
   }
   const loaders = posts
@@ -105,23 +100,9 @@ async function main(): Promise<void> {
       `${GENERATED}import type { ${type} } from '../models/config.model';\n\nexport const ${name}: ${type} = ${JSON.stringify(value, null, 2)};\n`,
     );
   }
-  const entries = readdirSync(POSTS_DIR, { withFileTypes: true });
-  const unexpected = entries.filter((entry) => !entry.isDirectory());
-  if (unexpected.length) {
-    throw new Error(
-      `content/posts must contain only <slug>/index.mdx directories; unexpected entries: ${unexpected
-        .map((entry) => entry.name)
-        .sort()
-        .join(', ')}`,
-    );
-  }
-  const rawPosts = entries
-    .map((entry) => entry.name)
-    .sort()
-    .map((slug) => {
+  const rawPosts = discoverPostSources(POSTS_DIR)
+    .map(({ slug, sourcePath }) => {
       const relativeSource = `content/posts/${slug}/index.mdx`;
-      const sourcePath = join(POSTS_DIR, slug, 'index.mdx');
-      if (!existsSync(sourcePath)) throw new Error(`${relativeSource}: file does not exist`);
       const { metadata, body } = parsePostSource(readFileSync(sourcePath, 'utf-8'), relativeSource);
       return { slug, sourcePath, meta: metadata, mdx: body };
     })
@@ -148,7 +129,7 @@ async function main(): Promise<void> {
         return { ...summary, slug, contentHtml: rendered.html, toc: rendered.toc };
       }),
     );
-    posts.sort((a, b) => b.date.localeCompare(a.date));
+    posts.sort(comparePostsByPublication);
     await writePosts(posts);
   } finally {
     highlighter.dispose();

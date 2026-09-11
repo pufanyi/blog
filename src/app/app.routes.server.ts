@@ -2,6 +2,7 @@ import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
 import { POSTS } from './data/posts';
 import { BLOG_CONFIG } from './data/blog-config';
 import { blogPageCount } from './utils/blog-pagination';
+import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directories';
 
 export const serverRoutes: ServerRoute[] = [
   {
@@ -39,14 +40,13 @@ export const serverRoutes: ServerRoute[] = [
       );
     },
   },
-  {
-    path: 'blog/:slug',
-    renderMode: RenderMode.Prerender,
-    fallback: PrerenderFallback.None,
-    async getPrerenderParams() {
-      return POSTS.map(post => ({ slug: post.slug }));
-    },
-  },
+  ...[
+    ...buildBlogDirectories(POSTS).map(directory => blogDirectoryPath(directory.slug).slice(1)),
+    ...POSTS.map(post => `blog/${post.slug}`),
+  ].map(path => ({
+    path,
+    renderMode: RenderMode.Prerender as const,
+  })),
   {
     path: '404',
     renderMode: RenderMode.Prerender,

@@ -32,7 +32,7 @@ describe('generated content data', () => {
         const permalink = heading.querySelector<HTMLAnchorElement>('.heading-permalink');
         expect(permalink, post.slug).not.toBeNull();
         expect(permalink?.getAttribute('href'), post.slug).toBe(
-          `/blog/${encodeURIComponent(post.slug)}#${encodeURIComponent(heading.id)}`,
+          `/blog/${post.slug}#${encodeURIComponent(heading.id)}`,
         );
       }
     }

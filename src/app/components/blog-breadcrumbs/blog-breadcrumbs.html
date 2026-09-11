@@ -1,0 +1,15 @@
+<nav aria-label="Blog directory breadcrumb">
+  <ol>
+    <li><a routerLink="/blog">Blog</a></li>
+    @for (item of items(); track item.path) {
+      <li>
+        <span class="separator" aria-hidden="true">/</span>
+        @if ($last && current()) {
+          <span aria-current="page">{{ item.label }}</span>
+        } @else {
+          <a [routerLink]="item.path">{{ item.label }}</a>
+        }
+      </li>
+    }
+  </ol>
+</nav>

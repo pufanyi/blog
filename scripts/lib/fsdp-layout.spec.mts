@@ -7,7 +7,7 @@ import {
   FSDP_PARAMETERS,
   fsdpLocalElements,
   POST_COMPONENTS,
-} from '../../content/posts/ml-revisit-infra-fsdp/scripts/fsdp.post-component.tsx';
+} from '../../content/posts/ml/ml-revisit/infra/infra-fsdp/scripts/fsdp.post-component.tsx';
 
 test('FSDP layouts partition the same parameters without losing or duplicating elements', () => {
   const expected = FSDP_PARAMETERS.flatMap((parameter) =>

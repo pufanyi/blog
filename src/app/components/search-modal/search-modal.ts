@@ -84,7 +84,7 @@ export class SearchModalComponent implements OnDestroy {
   goTo(result: SearchResult): void {
     this.restoreFocus = false;
     this.close();
-    void this.router.navigate(['/blog', result.slug]);
+    void this.router.navigateByUrl(`/blog/${result.slug}`);
   }
 
   onCancel(event: Event): void {

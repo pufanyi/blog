@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { discoverPostSources } from './lib/post-sources.mts';
 
 // bibtex-tidy bundles this proposal for its CLI but not its library build.
 // Remove this compatibility shim once Node provides Map#getOrInsert natively.
@@ -19,17 +20,9 @@ for (const prototype of [Map.prototype, WeakMap.prototype]) {
 const { tidy } = await import('bibtex-tidy');
 const POSTS_DIR = fileURLToPath(new URL('../content/posts/', import.meta.url));
 const write = process.argv.includes('--write');
-const files = readdirSync(POSTS_DIR, { withFileTypes: true })
-  .filter((entry) => entry.isDirectory())
-  .map((entry) => join(POSTS_DIR, entry.name, 'references.bib'))
-  .filter((file) => {
-    try {
-      readFileSync(file);
-      return true;
-    } catch {
-      return false;
-    }
-  });
+const files = discoverPostSources(POSTS_DIR)
+  .map(({ sourcePath }) => join(dirname(sourcePath), 'references.bib'))
+  .filter(existsSync);
 
 let failed = false;
 for (const file of files) {

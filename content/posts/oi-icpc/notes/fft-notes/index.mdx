@@ -1,0 +1,890 @@
+---
+title: "FFT 小小结"
+date: "2019-01-12"
+description: "多项式、复数、FFT 与 NTT 的学习小结。"
+---
+
+未完待续……
+
+upd: 虽然未完，但是不想续了。
+
+听说现在全人类都会 FFT 了？
+
+这里做个小小结。
+
+
+
+## 多项式
+
+大概就是这样的一个东西：
+
+$$
+A(x) = \sum_{i=0}^{n-1}a_ix^i
+$$
+**系数**：$a_0, a_1, a_2,\cdots, a_{n-1}$。
+
+**次数**：如果最高位非 $0$ 系数是 $a_k$，那就称 $A(x)$ 的次数为 $k$。
+
+### 多项式运算
+
+**多项式加法**：若 $A(x) = \sum_{i=0}^{n-1}a_ix^i, B(x) = \sum_{i=0}^{n-1}b_ix^i, C(x) = \sum_{i=0}^{n-1}c_ix^i$，$A(x) + B(x) = C(x)$，那么 $c_i=a_i+b_i$。
+
+**多项式乘法**：用乘法结合率算一下即可。如 $A(x) =-10x+9,B(x) = 4x-5$，则
+$$
+A(x)\cdot B(x)=(-10x+9)\cdot(4x-5)=-40x^2+86x-45
+$$
+
+**离散卷积**：我们常说“$A(x)$ 与 $B(x)$ 的卷积”其实可以**简单理解为**$A(x)$ 和 $B(x)$ 的乘积，记作 $a\otimes b$。[^1]
+
+#### 系数表达
+
+就是把 $A(x) = \sum_{i=0}^{n-1}a_ix^i$ 记录为 $(a_1,a_2,\cdots,a_{n-1})$。朴素算法需要 $\mathcal{O}(n^2)$ 进行乘法。
+
+#### 点值表达
+
+随便代 $n$ 个不同的值进去，可以得到 $\{(x_0,y_0),(x_1,y_1),\cdots,(x_{n-1},y_{n-1})\}$。这就是点值表达。
+
+如果两个多项式有 $2n$ 个不同值的答案一直，那么把它们的 $y$ 乘起来，就可以的到这两个多项式相乘后的多项式点值表达，复杂度 $\mathcal{O}(n)$。
+
+#### 两种表达方式的转化
+
+从系数表达到点值表达，我们常使用**秦九韶算法**（或称为**霍纳法则**）
+
+$$
+A(x_0)=a_0+x_0(a_1+x_0(a_2+\cdots+(x_0(a_{n-2}+x_0a_{n-1}))\cdots))
+$$
+
+从点值表达到系数表达，我们叫做**插值**，常使用**拉格朗日公式**：
+$$
+A(x)=\sum_{k=0}^{n-1}y_k\prod_{j\neq k}\frac{(x-x_j)}{(x_k-x_j)}
+$$
+
+如果你把 $x_i$ 代进去，就会发现仅有当 $k$ 枚举到 $i$ 时 $\prod_{j\neq k}\frac{(x-x_j)}{(x_k-x_j)}=1$，其余情况都为 $\prod_{j\neq k}\frac{(x-x_j)}{(x_k-x_j)}=0$（因为分子的 $x_j-x_j=0$）。[^2]
+
+~~那就假装它是对的吧。~~[^3]。
+
+### 几道有趣的题
+
+<h4 id="codeforces-933b-a-determined-cleanup">
+  <a href="https://codeforces.com/problemset/problem/933/B">Codeforces 933B A Determined Cleanup</a>
+</h4>
+
+给定两个整数 $p, k (1\le p\le 10^{18},2\le k\le 2000)$，求构造多项式 $f(x)=\sum_{i=0}^{d-1}a_ix^i$，使得存在多项式 $p(x)$ 满足 $f(x)=q(x)\cdot(x+k)+p$，且 $a_i\in[0,k),i\in[0,d)$。[^4]
+
+##### 题解
+
+假设 $q(x)=\sum_{i=0}^{d-2}b_ix^i$，那么有：
+$$
+a_i =
+\begin{cases}
+p + kb_i && i=0\\
+b_{i-1} + kb_i && i \ge 1
+\end{cases}
+$$
+我们把上式反过来：
+$$
+\begin{cases}
+p=a_0-kb_0\\
+b_{i-1}=a_i-kb_i
+\end{cases}
+$$
+往上迭代上去，我们就发现这个式子很像上面秦九韶算法的那个式子，所以我们得到：$p=\overline{a_na_{n-1}\cdots a_{1}}_{(-k)}$。
+
+所以我们只要对 $p$ 进行 $-k$ 进制分解即可。
+
+##### 代码
+
+```cpp
+#include <cstdio>
+
+typedef long long LL;
+
+const int maxn = 2333;
+
+LL ans[maxn];
+LL p, k;
+
+int main()
+{
+    scanf("%lld%lld", &p, &k);
+    int top = 0;
+    while(p)
+    {
+        ans[++top] = p % (-k);
+        p /= -k;
+        if(ans[top] < 0)
+            p++, ans[top] += k;
+    }
+    printf("%d\n", top);
+    for(int i = 1; i <= top; ++i)
+        printf("%d ", ans[i]);
+    return 0;
+}
+```
+
+## 复数
+
+为解决复数开方问题，我们引入新数 $i$，叫做**虚数单位**，定义 $i^2+1=0$。又把形如 $a+bi(a, b\in \mathbb{R})$ 的数叫做**复数**，复数集用 $\mathbb{C}$ 表示。
+
+### 复平面
+
+先把坐标轴画出来，横的叫实轴，竖的叫虚轴，然后确定 $0$ 的位置，$z=a+bi$ 可以用二维空间来表示出来。
+
+大概就是这样[^5]：
+
+![](./Complex_conjugate_picture.avif)
+
+**模长**：上图中的 $r$。
+
+**辐角**：上图中的 $\varphi$。
+
+### 复数运算
+
+**加减法**：$(a+bi)+(c+di)=(a+c)+(b+d)i$。与向量一样，可以使用三角形定则。
+
+**乘法**：$(a+bi)(c+di)=ac+bci+adi+bdi^{2}=(ac-bd)+(bc+ad)i$。复数相乘，模长相乘，幅角相加。
+
+考虑模长为 $1$ 的复数 $\omega$。一个复数 $x$ 与它相乘，得到的答案 $y$ 与 $x$ 模长相等，辐角是 $x$ 加上了 $\omega$ 的辐角。想到什么？**旋转**？
+
+### 欧拉公式
+
+$$
+e^{iu}=\cos u+i\sin u
+$$
+
+<span className="truth" title="真实">我才不会告诉你我不会证。</span>[^6]
+
+### 单位根
+
+考虑方程 $x^n-1=0\,(n\in \mathbb{N_+})$，考虑到复数旋转的性质，我们发现就是将单位圆划分成 $n$ 等分。所得的解就叫**单位根**，记为 $\omega_n$。
+
+画成图大概就是这样的[^8]：
+
+![](./omega.avif)
+
+显然，$l=1, \theta=\frac{2\pi}{n}$。
+
+所以 $\omega_n=\cos \theta+i\sin\theta=\cos\frac{2\pi}{n}+i\sin\frac{2\pi}{n}=e^{\frac{2\pi}{n}}$。
+
+#### 消去引理
+
+$$
+\omega_{dn}^{dk}={(e^{\frac{2\pi}{dn}})}^{dk}=(e^{\frac{2\pi}{n}})^k=\omega_n^k
+$$
+
+#### 折半引理
+
+$$
+\omega_n^{k+\frac{n}{2}}=\omega_n^k\cdot\omega_n^\frac{n}{2}=-\omega_n^k
+$$
+
+所以：
+$$
+(\omega_n^{k+\frac{n}{2}})^2=(\omega_n^k)^2
+$$
+也就是说，如果我们要算 $f(\omega^k_n)$ 的值（$k\in\mathbb{Z},k\in[0, n)$），我们只需要计算 $k\in[0,\frac{n}{2})$ 时的值即可。
+
+#### 求和引理
+
+由：
+$$
+x\cdot\sum_{i=0}^{n-1}x^i=\sum_{i=1}^{n}x^i
+$$
+
+两边同减去 $\sum_{i=0}^{n-1}x^i$ 得：
+$$
+(x-1)\sum_{i=0}^{n-1}x^i=x^n-x^0=x^n-1
+$$
+故当 $x\neq 1$ 时：
+$$
+\sum_{i=0}^{n-1}x^i=\frac{x^n-1}{x-1}
+$$
+所以当 $\omega_n^k\neq 1$，即 $n\nmid k$ 时：
+$$
+\sum_{i=0}^{n-1}(\omega_n^k)^i=\frac{(\omega_n^k)^n-1}{\omega_n^k-1}=0
+$$
+而当 $\omega_n^k=1$，即 $n\mid k$ 时：
+$$
+\sum_{i=0}^{n-1}(\omega_n^k)^i=n
+$$
+
+综上：
+
+$$
+\sum_{i=0}^{n-1}(\omega_n^k)^i =
+\begin{cases}
+0& n\nmid k\\
+n& n\mid k
+\end{cases}
+$$
+
+或者我们可以写成：
+
+$$
+\sum_{i=0}^{n-1}(\omega_n^k)^i = [n\mid k]\times n
+$$
+
+其中 $[\text{命题a}]$ 表示如果命题 a 成立，那么该值为 $1$，否则为 $0$。
+
+### 板子
+
+```cpp
+struct Complex
+{
+    double x, y;
+    Complex(double x = 0, double y = 0) { this->x = x, this->y = y; }
+    friend Complex operator + (Complex a, Complex b)
+    { return Complex(a.x + b.x, a.y + b.y); }
+    friend Complex operator - (Complex a, Complex b)
+    { return Complex(a.x - b.x, a.y - b.y); }
+    friend Complex operator * (Complex a, Complex b)
+    { return Complex(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x); }
+};
+```
+
+## 多项式乘法的基本原理
+
+首先，我们所说的多项式乘法显然是两个用系数表达的多项式之间的算法。
+
+我们发现朴素算法的复杂度是 $\mathcal{O}(n^2)$。
+
+然后我们发现用系数表达好像很难优化，但多项式乘法有一个天然的优化方案，也就是如果多项式是用点值表示的，那么乘起来是 $\mathcal{O}(n)$ 的。
+
+所以能不能先把它们转化为点值表达，然后乘起来之后把它们插值回去呢？
+
+很高兴的是我们有 FFT。
+
+所以，多项式乘法就是这样完成的。[^11]
+
+![](./poly.avif)
+
+## DFT 与 FFT
+
+对于多项式 $A(x)=\sum_{i=0}^na_ix^i$，我们记 $a=(a_0, a_1, \cdots, a_{n-1})$，$y=(A(\omega_n^0), A(\omega_n^1), \cdots, A(\omega_n^{n-1}))$。则称 $y$ 是 $a$ 的**离散傅里叶变换**（**DFT**），记作 $y=\operatorname{DFT}_n(a)$。求一个多项式的 $\operatorname{DFT}$，朴素算法的复杂度为 $\mathcal{O}(n^2)$，而如果用一种称为**快速傅里叶变换**（**FFT**）的方法，利用上面所介绍的几个单位根的性质，可以将该过程优化到 $\mathcal{O}(n\log n)$。~~（感觉终于进入正题了）~~
+
+### 分治！
+
+折半引理使单位有了其他数没有的优势——它可以分治。
+
+为了让分治能顺利进行，下面所涉及到的多项式的长度都可以表示为 $2^k(k\in \mathbb{Z})$。如果多项式长度不足 $2^k$，我们就用 $0$ 将它补齐。
+
+我们把需要计算的多项式 $A(x)=\sum_{i=0}^na_ix^i$ 按系数编号的奇偶分成两部分，即 $A_0(x)=\sum_{i=0}^{n/2}a_{2i}x^i$ 和 $A_1(x)=\sum_{i=0}^{n/2}a_{2i+1}x^i$。我们不难发现：
+$$
+A(x) = A_0(x^2) + xA_1(x^2)
+$$
+平方出现了！
+
+我们仅需计算 $x=\omega_n^k(k=0\sim \frac{n}{2})$，然后我们就会发现：
+$$
+A(\omega_n^k) =
+\begin{cases}
+A_0((\omega_n^k)^2) + \omega_n^kA_1((\omega_n^k)^2) && k<\frac{n}{2}\\
+A_0((\omega_n^{k-n/2})^2) - \omega_n^{k/2}A_1((\omega_n^{k/2})^2) && k \ge \frac{n}{2}
+\end{cases}
+$$
+又 $x^2=(\omega_n^k)^2=\omega_{n/2}^k$，所以递归下去是我们使用的单位根其实是 $\omega_{n/2}$。
+
+具体可以看代码。
+
+#### 代码实现
+
+```cpp
+inline void FFT(Complex* a, int n)
+{
+    if(n == 1)
+        return;
+    Complex *a0 = new Complex[n >> 1];
+    Complex *a1 = new Complex[n >> 1];
+    for(int i = 0; i < n; i += 2) // 奇偶分类 
+    {
+        a0[i >> 1] = a[i];
+        a1[i >> 1] = a[i ^ 1];
+    }
+    FFT(a0, n >> 1);
+    FFT(a1, n >> 1); // 分治
+    Complex w(1., 0.), w1(cos(pi2 / n), sin(pi2 / n)); // w1是1次单位根，w是k次单位根
+    for(int i = 0; (i << 1) < n; ++i)
+    {
+        a[i] = a0[i] + a1[i] * w;
+        a[i + (n >> 1)] = a0[i] - a1[i] * w;
+        w = w * w1;
+    }
+}
+```
+
+### IDFT？
+
+这样就完了吗？不是的。
+
+现在我们所的到的是点值表示，而我们所需要的是把系数表达。所以我们需要把它插值回去。
+
+我们把这个操作叫做**离散傅里叶变换的逆变换**（**IDFT**）。
+
+拉格朗日公式？$\mathcal{O}(n^2)$
+
+我们假设得到 $y=\operatorname{DFT}(a)$，我们构造向量 $c$：
+$$
+\begin{aligned}
+c_k&=\sum_{i=0}^{n-1}y_i(\omega_n^{-k})^i\\
+&=\sum_{i=0}^{n-1}\sum_{j=0}^{n-1}\omega_n^{-ki}a_j\omega_n^{ij}\\
+&=\sum_{i=0}^{n-1}\sum_{j=0}^{n-1}\omega_n^{i(j-k)}a_j\\
+&=\sum_{j=0}^{n-1}\sum_{i=0}^{n-1}\omega_n^{i(j-k)}a_j\\
+&=\sum_{j=0}^{n-1}a_j\sum_{i=0}^{n-1}(\omega_n^{(j-k)})^i
+\end{aligned}
+$$
+然后根据求和引理我们就可以得到：
+$$
+\begin{aligned}
+c_k&=\sum_{j=0}^{n-1}a_j\sum_{i=0}^{n-1}(\omega_n^{(j-k)})^i\\
+&=\sum_{j=0}^{n-1}[j-k\mid n]na_j
+\end{aligned}
+$$
+
+由于 $0\le j,k<n$，所以 $j-k\mid n$ 当且仅当 $j-k=0$ 即 $j=k$。
+
+故我们可以把等式写成
+$$
+c_k=\sum_{j=0}^{n-1}[j=k]na_j=na_k
+$$
+所以：
+$$
+a_k=\frac{1}{n}c_k
+$$
+所以我们只需计算 $c_k$ 即可。[^7]
+
+我们发现我们就是把普通的 FFT 单位根 $\omega_n$ 改成了 $\omega_n^{-1}$。
+
+回顾上面那幅图：
+
+![](./omega.avif)
+
+我们发现让 $\theta$ 到这转，也就是把图上下翻转一下就可以了。
+
+其中的单位根 $\omega_n^{-1}=\cos\frac{2\pi}{n}-i\sin\frac{2\pi}{n}$。
+
+具体可以看代码实现。
+
+### 代码实现
+
+```cpp
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+
+using namespace std;
+
+const double pi = acos(-1.);
+const double pi2 = 2. * pi;
+
+struct Complex
+{
+    double x, y;
+    Complex(double x = 0, double y = 0) { this->x = x, this->y = y; }
+    friend Complex operator + (Complex a, Complex b)
+    { return Complex(a.x + b.x, a.y + b.y); }
+    friend Complex operator - (Complex a, Complex b)
+    { return Complex(a.x - b.x, a.y - b.y); }
+    friend Complex operator * (Complex a, Complex b)
+    { return Complex(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x); }
+};
+
+inline void FFT(Complex* a, int n, int tp) // 加了个tp，表示单位根的幂次是否为正
+{
+    if(n == 1)
+        return;
+    Complex *a0 = new Complex[n >> 1];
+    Complex *a1 = new Complex[n >> 1];
+    for(int i = 0; i < n; i += 2)
+    {
+        a0[i >> 1] = a[i];
+        a1[i >> 1] = a[i ^ 1];
+    }
+    FFT(a0, n >> 1, tp);
+    FFT(a1, n >> 1, tp);
+    Complex w(1., 0.), w1(cos(pi2 / n), tp * sin(pi2 / n)); // 如果单位根的幂次为负那么sin的值应取负
+    for(int i = 0; (i << 1) < n; ++i)
+    {
+        a[i] = a0[i] + a1[i] * w;
+        a[i + (n >> 1)] = a0[i] - a1[i] * w;
+        w = w * w1;
+    }
+}
+
+const int maxn = 1000005;
+
+Complex aa[maxn << 2], bb[maxn << 2];
+
+int main()
+{
+    int n, m, k;
+    scanf("%d%d", &n, &m);
+    for(k = 1; k <= n + m; k <<= 1);
+    for(int i = 0; i <= n; ++i)
+        scanf("%lf", &aa[i].x);
+    for(int i = 0; i <= m; ++i)
+        scanf("%lf", &bb[i].x);
+    FFT(aa, k, 1);
+    FFT(bb, k, 1);
+    for(int i = 0; i < k; ++i)
+        aa[i] = aa[i] * bb[i];
+    FFT(aa, k, -1);
+    for(int i = 0; i <= n + m; ++i)
+        printf("%d ", (int) (aa[i].x / k + .5));
+    return 0;
+}
+```
+
+## 卡常大法好
+
+### 蝴蝶操作
+
+我们来看这段代码：
+
+```cpp
+for(int i = 0; (i << 1) < n; ++i)
+{
+    a[i] = a0[i] + a1[i] * w;
+    a[i + (n >> 1)] = a0[i] - a1[i] * w;
+    w = w * w1;
+}
+```
+
+由于复杂度主要集中在复数运算上，所以我们可以把它优化：
+
+```cpp
+for(int i = 0; (i << 1) < n; ++i)
+{
+    t = a1[i] * w;
+    a[i] = a0[i] + t;
+    a[i + (n >> 1)] = a0[i] - t;
+    w = w * w1;
+}
+```
+
+~~虽然也不知道这有什么用。~~
+
+我们把上面这段代码叫做**蝴蝶操作**。
+
+### 从递归到迭代
+
+我们来看一下 FFT 递归的全过程[^10]：
+
+![](./递归树.avif)
+
+第一次递归时，我们把下标二进制最后一位为 $0$ 的放在左边，最后一位为 $1$ 的放在右边。接着，我们把下标倒数第二位为 $0$ 的放在坐标，倒数第二位为 $1$ 的放在右边……
+
+我们把下标二进制分解来看看：
+
+![](./tree.avif)
+
+不知道大家有没有发现一个特点：这棵树从下往上好像做了一个二进制下的基数排序：先比较最后一位，在比较倒数第二位……也就是说，如果我们把这些数的二进制串倒过来，比如 `110` 就变成了 `011`，`001` 就变成了 `100`，我们其实是对它进行了一遍排序。
+
+于是我们把一个数的下标倒过来就是递归树底层的位置了。
+
+$\mathcal{O}(n\log n)$ 暴力？
+
+当然我们还可以 $\mathcal{O}(n)$ 解决，有一个很显然的 dp：`rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << cs)`，`rev[i]` 表示 $i$ 翻转后的数字，`cs` 表示这个二进制数字的长度（含前导 $0$）。`(i & 1) << cs` 表示 `i` 最后一位翻转后的数字，`rev[i >> 1] >> 1` 是 `i` 出最后一位外翻转得到的数字。比如 `0101101`，`(i & 1) << cs` 是 `1000000`，而 `i >> 1` 是 `0010110`，翻转之后得到 `0110100`，右移 `1` 之后是 `0011010`，在或上前面的 `1000000`，得到的是 `1011010`。
+
+### 代码实现
+
+```cpp
+#include <cmath>
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 1000005;
+const double pi2 = 2. * acos(-1.);
+
+struct Complex
+{
+    double x, y;
+    Complex(double x = 0, double y = 0) { this->x = x, this->y = y; }
+    friend Complex operator + (Complex a, Complex b)
+    { return Complex(a.x + b.x, a.y + b.y); }
+    friend Complex operator - (Complex a, Complex b)
+    { return Complex(a.x - b.x, a.y - b.y); }
+    friend Complex operator * (Complex a, Complex b)
+    { return Complex(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x); }
+};
+
+int rev[maxn << 2];
+Complex aa[maxn << 2], bb[maxn << 2];
+
+inline void FFT(Complex* a, int n, int tp)
+{
+    for(int i = 0; i < n; ++i)
+        if(i < rev[i])
+            swap(a[i], a[rev[i]]);
+    for(int s = 2; s <= n; s <<= 1)
+    {
+        Complex w1(cos(pi2 / s), tp * sin(pi2 / s)), w, tmp;
+        for(int i = 0; i < n; i += s)
+        {
+            w = Complex(1., 0.);
+            for(int j = 0; (j << 1) < s; ++j, w = w * w1)
+            {
+                tmp = w * a[i + j + (s >> 1)];
+                a[i + j + (s >> 1)] = a[i + j] - tmp;
+                a[i + j] = a[i + j] + tmp;
+            }
+        }
+    }
+}
+
+int main()
+{
+    int n, m;
+    scanf("%d%d", &n, &m);
+    for(int i = 0; i <= n; ++i)
+        scanf("%lf", &aa[i].x);
+    for(int i = 0; i <= m; ++i)
+        scanf("%lf", &bb[i].x);
+    int l = 1, cs = 0;
+    while(l <= n + m)
+    {
+        l <<= 1;
+        cs++;
+    }
+    for(int i = 0; i < l; ++i)
+        rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (cs - 1));
+    FFT(aa, l, 1);
+    FFT(bb, l, 1);
+    for(int i = 0; i < l; ++i)
+        aa[i] = aa[i] * bb[i];
+    FFT(aa, l, -1);
+    for(int i = 0; i <= n + m; ++i)
+        printf("%d ", (int) (aa[i].x / l + .5));
+    return 0;
+}
+```
+
+代码长度差不多（上面的是迭代实现），但速度和内存上的差距是很大的。
+
+![](./差距.avif)
+
+## FFT 优化高精乘法
+
+高精乘法就是把两个大数当成多项式乘起来，其实就是普通 FFT，就直接上代码了。
+
+```cpp
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long LL;
+
+const int maxn = 60005;
+const double pi2 = 2. * acos(-1);
+
+struct Complex
+{
+    double x, y;
+    Complex(double x = 0, double y = 0) { this->x = x, this->y = y; }
+    friend Complex operator + (Complex a, Complex b)
+    { return Complex(a.x + b.x, a.y + b.y); }
+    friend Complex operator - (Complex a, Complex b)
+    { return Complex(a.x - b.x, a.y - b.y); }
+    friend Complex operator * (Complex a, Complex b)
+    { return Complex(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x); }
+};
+
+int rev[maxn << 2];
+
+inline void FFT(Complex* a, int n, int tp)
+{
+    for(int i = 0; i < n; ++i)
+        if(i < rev[i])
+            swap(a[i], a[rev[i]]);
+    for(int s = 2; s <= n; s <<= 1)
+    {
+        Complex w1(cos(pi2 / s), tp * sin(pi2 / s)), w, t;
+        for(int i = 0; i < n; i += s)
+        {
+            w = Complex(1., 0.);
+            for(int j = 0; (j << 1) < s; ++j, w = w1 * w)
+            {
+                t = a[i + j + (s >> 1)] * w;
+                a[i + j + (s >> 1)] = a[i + j] - t;
+                a[i + j] = a[i + j] + t;
+            }
+        }
+    }
+}
+
+Complex aa[maxn << 2], bb[maxn << 2];
+LL ans[maxn << 2];
+char s[maxn];
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    scanf("%s", s);
+    for(int i = 0; i < n; ++i)
+        aa[i].x = s[n - i - 1] ^ 48;
+    scanf("%s", s);
+    for(int i = 0; i < n; ++i)
+        bb[i].x = s[n - i - 1] ^ 48;
+    int l = 1, cs = 0;
+    while(l < (n << 1))
+    {
+        l <<= 1;
+        cs++;
+    }
+    for(int i = 0; i < l; ++i)
+        rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (cs - 1));
+    FFT(aa, l, 1);
+    FFT(bb, l, 1);
+    for(int i = 0; i < l; ++i)
+        aa[i] = aa[i] * bb[i];
+    FFT(aa, l, -1);
+    for(int i = 0; i < l; ++i)
+    {
+        ans[i] += (LL) (aa[i].x / l + .5);
+        ans[i + 1] += ans[i] / 10;
+        ans[i] %= 10;
+    }
+    while(!ans[l] && l)
+        --l;
+    while(~l)
+        printf("%lld", ans[l--]);
+    return 0;
+}
+```
+
+## 一些简单的题
+
+### [UVa 12298 Super Poker II](https://uva.onlinejudge.org/index.php?option=com_onlinejudge&Itemid=8&page=show_problem&problem=3719)
+
+按照国际惯例，uva 的题是一定要放 pdf 的：
+
+<iframe
+  src="/posts/oi-icpc/notes/fft-notes/UVa12298.pdf"
+  title="FFT 小小结：题目 PDF"
+  width="100%"
+  height="800"
+  loading="lazy"
+/>
+
+[查看题目 PDF](/posts/oi-icpc/notes/fft-notes/UVa12298.pdf)
+
+#### 题目大意
+
+有一副扑克，对于每个正合数 $p$，恰好有 $4$ 张不同花色的牌。其中有一些牌丢失（题目会提供已经丢失牌的列表，四种花色分别用 $\text{S,H,C,D}$ 表示）。从四种不同花色牌中分别取出一张牌，求这四张牌构成点数为 $n$ 的方案数。
+
+多组数据，每组数据输入 $a, b, c$，$c$ 为丢失牌的数量，分别输出 $n=a,n=a+1,\cdots,n=b$ 时的答案。[^11]
+
+#### 题解
+
+我们令 $f[i]$ 表示用现有的牌组成 $i$ 的方案数。正常的 $dp$ 加入每种花色的复杂度都是 $\mathcal{O}(n^2)$，但是我们发现对两种花色的合并，如果我们有 $f_1[i],f_2[i]$ 两种花色，那么得到的 $f[i]$ 其实就是 $f_1$ 与 $f_2$ 的卷积，因为根据乘法原理与加法原理，我们可以得到 $f[i] = \sum_{j+k=i} f_1[j]+f_2[k]$。
+
+然后大力 FFT。
+
+对了这题要开 `long double`。
+
+#### 代码
+
+```cpp
+#include <cmath>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
+#include <bitset>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+typedef long double LD;
+typedef long long LL;
+
+inline char gc()
+{
+    static const int L = 23333;
+    static char sxd[L], *sss = sxd, *ttt = sxd;
+    if(sss == ttt)
+    {
+        ttt = (sss = sxd) + fread(sxd, 1, L, stdin);
+        if(sss == ttt)
+            return EOF;
+    }
+    return *sss++;
+}
+
+#define dd c = gc()
+inline char read(int& x)
+{
+    x = 0;
+    char dd;
+    for(; !isdigit(c); dd)
+        if(c == EOF)
+            return EOF;
+    for(; isdigit(c); dd)
+        x = (x << 1) + (x << 3) + (c ^ 48);
+    return c;
+}
+#undef dd
+
+const int maxn = 50005 << 2;
+const LD pi2 = acos(-1.) * (LD) 2.;
+
+int pp[maxn << 2];
+
+inline void pre()
+{
+    int n = 50000;
+    for(int i = 2; i <= n; ++i)
+    {
+        if(!pp[i])
+        {
+            for(int j = i << 1; j <= n; j += i)
+                pp[j] = 1;
+        }
+    }
+}
+
+struct Complex
+{
+    LD x, y;
+    Complex(LD a = 0., LD b = 0.) { x = a, y = b; }
+    friend Complex operator + (Complex a, Complex b)
+    { return Complex(a.x + b.x, a.y + b.y); }
+    friend Complex operator - (Complex a, Complex b)
+    { return Complex(a.x - b.x, a.y - b.y); }
+    friend Complex operator * (Complex a, Complex b)
+    { return Complex(a.x * b.x - a.y * b.y, a.x * b.y + b.x * a.y); }
+};
+
+int rev[maxn << 2];
+
+inline void FFT(Complex* a, int n, int tp)
+{
+    for(int i = 0; i < n; ++i)
+        if(i < rev[i])
+            swap(a[i], a[rev[i]]);
+    for(int s = 2; s <= n; s <<= 1)
+    {
+        Complex w, w1 = Complex(cos(pi2 / s), tp * sin(pi2 / s)), tmp;
+        for(int i = 0; i < n; i += s)
+        {
+            w = Complex(1., 0.);
+            for(int l = 0; (l << 1) < s; ++l, w = w * w1)
+            {
+                tmp = a[i + l + (s >> 1)] * w;
+                a[i + l + (s >> 1)] = a[i + l] - tmp;
+                a[i + l] = a[i + l] + tmp;
+            }
+        }
+    }
+}
+
+Complex aa[maxn << 2], bb[maxn << 2], cc[maxn << 2], dd[maxn << 2];
+
+inline void solve(int n, int l, int r)
+{
+    int L = r + 1;
+    int len = 1, cs = -1;
+    while(len <= (L << 2)) // 4个多项式相乘，长度当然要乘4了
+    {
+        len <<= 1;
+        cs++;
+    }
+    memset(aa, 0, sizeof(aa));
+    memset(bb, 0, sizeof(bb));
+    memset(cc, 0, sizeof(cc));
+    memset(dd, 0, sizeof(dd));
+     for(int i = 0; i < len; ++i)
+         rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << cs);
+    for(int i = 1; i < r; ++i)
+        aa[i] = bb[i] = cc[i] = dd[i] = Complex((LD) pp[i], 0.);
+    for(int i = 1, t; i <= n; ++i)
+    {
+        char c = read(t);
+        switch(c)
+        {
+            case 'S':
+                aa[t].x = 0.;
+                break;
+            case 'H':
+                bb[t].x = 0.;
+                break;
+            case 'C':
+                cc[t].x = 0.;
+                break;
+            case 'D':
+                dd[t].x = 0.;
+                break;
+        }
+    }
+    FFT(aa, len, 1), FFT(bb, len, 1), FFT(cc, len, 1), FFT(dd, len, 1);
+    for(int i = 0; i < len; ++i)
+        aa[i] = aa[i] * bb[i] * cc[i] * dd[i];
+    FFT(aa, len, -1);
+    for(int i = l; i <= r; ++i)
+        printf("%lld\n", (LL) ((aa[i].x / len) + .5));
+    puts("");
+}
+
+signed main()
+{
+    pre();
+    int x, y, z;
+    while(read(x) != EOF && read(y) != EOF && read(z) != EOF && (x || y || z))
+        solve(z, x, y);
+    return 0;
+}
+```
+
+## NTT
+
+我们发现 FFT 的复杂度很优秀，然而不能取模。
+
+那我们有没有什么办法让它能取模呢？
+
+我们考虑从单位根下手。
+
+我们看单位根的定义：
+$$
+\omega_n^n=1
+$$
+有没有关于取模等于 $1$ 的式子？
+
+相信大家都想到了费马小定理：
+$$
+a^{p-1}\equiv 1\pmod p
+$$
+当然 $p$ 得是素数。
+
+于是我们可以联立方程：
+$$
+a^{p-1}\equiv\omega^n_n\pmod p
+$$
+两边同开 $n$ 次根号：
+$$
+a^{\frac{p-1}{n}}\equiv \omega_n\pmod p
+$$
+如果 $n\mid p-1$ 的话，那这式子就有趣了：我们可以把 $\omega_n$ 换成 $a^{\frac{p-1}{n}}$，就可以完成取模操作了。
+
+我们发现在做 FFT 时，$n$ 一定是 $2$ 的幂次，所以 $p$ 只要表示成 $2^k\times t-1(k,t\in \mathbb{N})$，且 $2^k\ge n$ 就可以了。
+
+主要用的是 $998244353=119\times2^{23}+1$。[^9]
+
+[^1]: [这](https://zh.wikipedia.org/zh/%E5%8D%B7%E7%A7%AF)才是真的定义。
+[^2]: 感谢[majun 大佬](https://ricardoni.coding.me/Blog/)的口胡证明。
+[^3]: 戳[这里](https://www.zhihu.com/question/58333118)看真的证明。
+[^4]: 翻译来自[NaVi_Awson](https://www.luogu.org/space/show?uid=11773)大佬的[blog](https://www.cnblogs.com/NaVi-Awson/p/8451912.html)，略有改动。
+[^5]: 图片来自[Wikipedia](https://zh.wikipedia.org/wiki/File:Complex_conjugate_picture.svg)。
+[^6]: 具体可以去看看[luojinyao 大佬的 blog](https://blog.luojinyao.top/post/9401e9ac.html)。
+[^7]: 感谢[sxd666 巨佬](https://www.luogu.org/blog/sxd666888/)的口胡。
+[^8]: 图片来自《算法导论》，有改动。
+[^9]: 其它的数可以参考[这里](http://blog.miskcoo.com/2014/07/fft-prime-table)。
+[^10]: 图片来自《算法导论》。
+[^11]: 翻译摘自《算法竞赛入门经典 训练指南》，有改动。

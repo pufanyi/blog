@@ -6,6 +6,7 @@ import type { Post } from '../models/post.model';
 import { SITE_CONFIG } from '../data/site-config';
 import { PERSON_DATA } from '../data/person';
 import { blogPagePath, type BlogPage } from '../utils/blog-pagination';
+import { blogDirectoryPath, type BlogDirectory } from '../utils/blog-directories';
 
 const NOT_FOUND_TITLE = '404: Existence Left as an Exercise';
 
@@ -20,11 +21,12 @@ export class PageMetadataStrategy extends TitleStrategy {
     while (route.firstChild) route = route.firstChild;
     const post = route.data['post'] as Post | null | undefined;
     const blogPage = route.data['blogPage'] as BlogPage | null | undefined;
+    const directory = route.data['directory'] as BlogDirectory | undefined;
     const missing =
       route.routeConfig?.path === '404' ||
       route.routeConfig?.path === '**' ||
-      (route.routeConfig?.path === 'blog/:slug' && !post) ||
-      (route.routeConfig?.path === 'blog/page/:page' && !blogPage);
+      ('post' in route.data && !post) ||
+      ('blogPage' in route.data && !blogPage);
     const title = missing
       ? NOT_FOUND_TITLE
       : post
@@ -80,6 +82,7 @@ export class PageMetadataStrategy extends TitleStrategy {
     this.updateLink('canonical', canonical);
     const markdownPath = missing || route.data['noindex'] ? null
       : post ? `/blog/${post.slug}.md`
+        : directory ? `${blogDirectoryPath(directory.slug)}/index.md`
         : path === '/' || path === '/cv' ? '/profile.md'
           : blogPage || path === '/blog' ? '/blog/index.md' : null;
     this.updateLink('alternate', markdownPath ? `${SITE_CONFIG.url}${markdownPath}` : null, 'text/markdown');

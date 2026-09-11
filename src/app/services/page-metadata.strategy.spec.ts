@@ -44,6 +44,15 @@ describe('article structured data', () => {
           { path: 'pdf-viewer', component: MetadataTestPage, data: { noindex: true } },
           { path: 'blog', component: MetadataTestPage },
           {
+            path: 'blog/contents/topic/nested', component: MetadataTestPage,
+            title: 'nested — Example',
+            data: { directory: { slug: 'topic/nested' }, description: 'Browse nested posts.' },
+          },
+          {
+            path: 'blog/contents', component: MetadataTestPage, title: 'Contents — Example',
+            data: { directory: { slug: '' } },
+          },
+          {
             path: 'blog/:slug',
             component: MetadataTestPage,
             resolve: {
@@ -58,6 +67,23 @@ describe('article structured data', () => {
   });
 
   afterEach(() => document.head.querySelectorAll('#article-structured-data, #profile-structured-data').forEach(node => node.remove()));
+
+  it('replaces article metadata with indexable directory metadata and its Markdown index', async () => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/blog/first');
+    await harness.navigateByUrl('/blog/contents/topic/nested');
+    expect(document.title).toBe('nested — Example');
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('index, follow');
+    expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe('Browse nested posts.');
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/blog/contents/topic/nested`);
+    expect(document.querySelector('link[type="text/markdown"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/blog/contents/topic/nested/index.md`);
+    expect(document.querySelector('#article-structured-data')).toBeNull();
+    expect(document.querySelector('meta[property="article:modified_time"]')).toBeNull();
+    await harness.navigateByUrl('/blog/contents');
+    expect(document.title).toBe('Contents — Example');
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/blog/contents`);
+    expect(document.querySelector('link[type="text/markdown"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/blog/contents/index.md`);
+  });
 
   it('describes the article and preserves authored text when HTML is serialized and parsed again', async () => {
     const harness = await RouterTestingHarness.create();

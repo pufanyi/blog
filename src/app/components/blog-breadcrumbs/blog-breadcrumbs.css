@@ -1,0 +1,48 @@
+:host {
+  display: block;
+  margin-bottom: 1.75rem;
+}
+
+ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--link-color);
+  text-decoration: underline;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.separator {
+  color: var(--border-color);
+}
+
+[aria-current] {
+  color: var(--text-color);
+}

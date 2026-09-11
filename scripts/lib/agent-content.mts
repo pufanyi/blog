@@ -1,8 +1,10 @@
-import { mkdirSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import type { SiteConfig } from '../../src/app/models/config.model';
 import type { CvData } from '../../src/app/models/cv.model';
 import type { PostSummary } from '../../src/app/models/post.model';
+import { blogDirectoryPath, buildBlogDirectories } from '../../src/app/utils/blog-directories';
+import { comparePostsByPublication } from '../../src/app/utils/blog-pagination';
 import { htmlToAgentMarkdown } from './agent-markdown.mts';
 
 export interface AgentPost extends PostSummary {
@@ -65,16 +67,17 @@ export function buildAgentFiles(
   site: SiteConfig,
 ): Map<string, string> {
   const files = new Map<string, string>();
-  const sorted = [...posts].sort(
-    (a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug),
-  );
+  const sorted = [...posts].sort(comparePostsByPublication);
   const index = [
     `<h1>${escapeHtml(site.title)} — Article index</h1>`,
     paragraph(`${sorted.length} published articles, newest first.`),
     `<p>${link('Browse the blog', `${site.url}/blog`)}</p>`,
   ];
   for (const post of sorted) {
-    if (!/^[a-z\d][a-z\d_-]*$/i.test(post.slug) || post.slug === 'index') {
+    if (
+      !/^[a-z\d][a-z\d_-]*(?:\/[a-z\d][a-z\d_-]*)*$/i.test(post.slug) ||
+      post.slug.split('/').at(-1) === 'index'
+    ) {
       throw new Error(`Post slug cannot be exported as Markdown: ${post.slug}`);
     }
     const canonical = `${site.url}/blog/${post.slug}`;
@@ -98,6 +101,24 @@ export function buildAgentFiles(
     );
   }
   files.set('blog/index.md', htmlToAgentMarkdown(index.join('\n'), `${site.url}/blog`));
+  for (const directory of buildBlogDirectories(posts)) {
+    const path = blogDirectoryPath(directory.slug);
+    const canonical = `${site.url}${path}`;
+    const html = [
+      `<h1>${escapeHtml(directory.name)}</h1>`,
+      paragraph(
+        `${directory.postCount} posts${directory.date ? ` · Latest post: ${directory.date}` : ''}`,
+      ),
+      `<p>${link('Browse directory', canonical)}</p>`,
+      list(
+        directory.entries.map(
+          (entry) =>
+            `${link(entry.title + (entry.kind === 'directory' ? '/' : ''), `${site.url}${entry.kind === 'directory' ? `${blogDirectoryPath(entry.slug)}/index.md` : `/blog/${entry.slug}.md`}`)} — Date: ${entry.date}`,
+        ),
+      ),
+    ].join('\n');
+    files.set(`${path.slice(1)}/index.md`, htmlToAgentMarkdown(html, canonical));
+  }
   files.set('profile.md', renderProfileMarkdown(cv, site));
   files.set(
     'llms.txt',
@@ -118,6 +139,7 @@ export function buildAgentFiles(
         '<h2>Blog</h2>',
         list([
           `${link('Article index', `${site.url}/blog/index.md`)}: Titles, descriptions, publication dates, and Markdown links for all published articles.`,
+          `${link('Contents', `${site.url}/blog/contents/index.md`)}: Browse articles by directory.`,
           `${link('Atom feed', `${site.url}/atom.xml`)}: Published and updated articles, with summaries and links to HTML and Markdown.`,
           `${link('RSS feed', `${site.url}/feed.xml`)}: Subscribe to article updates.`,
         ]),
@@ -130,11 +152,10 @@ export function buildAgentFiles(
 
 /** Write only into the dedicated generated asset directory, pruning removed/draft posts. */
 export function writeAgentFiles(directory: string, files: Map<string, string>): void {
-  mkdirSync(join(directory, 'blog'), { recursive: true });
-  for (const filename of readdirSync(join(directory, 'blog'))) {
-    if (filename.endsWith('.md') && !files.has(`blog/${filename}`)) {
-      unlinkSync(join(directory, 'blog', filename));
-    }
+  rmSync(join(directory, 'blog'), { recursive: true, force: true });
+  for (const [path, content] of files) {
+    const filename = join(directory, path);
+    mkdirSync(dirname(filename), { recursive: true });
+    writeFileSync(filename, content);
   }
-  for (const [path, content] of files) writeFileSync(join(directory, path), content);
 }

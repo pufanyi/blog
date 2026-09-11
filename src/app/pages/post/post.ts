@@ -19,6 +19,8 @@ import { PostContentDirective } from '../../directives/post-content';
 import { NotFoundComponent } from '../not-found/not-found';
 import { BLOG_CONFIG } from '../../data/blog-config';
 import { COMMENTS_CONFIG } from '../../data/comments-config';
+import { BlogBreadcrumbsComponent } from '../../components/blog-breadcrumbs/blog-breadcrumbs';
+import { parentBlogSlug } from '../../utils/blog-directories';
 
 @Component({
   selector: 'app-post',
@@ -31,6 +33,7 @@ import { COMMENTS_CONFIG } from '../../data/comments-config';
     PostCitationComponent,
     PostContentDirective,
     NotFoundComponent,
+    BlogBreadcrumbsComponent,
   ],
   templateUrl: './post.html',
   styleUrls: [
@@ -61,5 +64,6 @@ export class PostComponent {
     initialValue: null,
   });
   readonly content = viewChild(PostContentDirective);
-  readonly postPath = computed(() => `/blog/${encodeURIComponent(this.post()?.slug ?? '')}`);
+  readonly postPath = computed(() => `/blog/${this.post()?.slug ?? ''}`);
+  readonly parentSlug = computed(() => parentBlogSlug(this.post()?.slug ?? ''));
 }

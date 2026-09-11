@@ -192,3 +192,54 @@ test('agent files have canonical metadata, deterministic indexes, and prune unpu
   assert.match(readFileSync(join(directory, 'blog/index.md'), 'utf8'), /0 published articles/);
   assert.throws(() => buildAgentFiles([{ ...post, slug: 'index' }], renderedCv, site), /slug/);
 });
+
+test('nested Markdown exports include directory indexes and remove obsolete subtrees', (t) => {
+  const directory = mkdtempSync(join(tmpdir(), 'blog-agent-nested-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const post: AgentPost = {
+    slug: 'oi/codeforces/example',
+    title: 'Example',
+    description: 'Example',
+    date: '2019-01-01',
+    updated: '2026-09-10',
+    markdownHtml: '<p>Article</p>',
+  };
+  const renderedCv = renderCvMarkdown(cv);
+  const files = buildAgentFiles([post], renderedCv, site);
+  assert.ok(
+    files
+      .get('blog/oi/codeforces/example.md')
+      ?.includes(`Canonical: <${site.url}/blog/oi/codeforces/example>`),
+  );
+  assert.ok(files.get('blog/contents/index.md')?.includes(`${site.url}/blog/contents/oi/index.md`));
+  assert.ok(
+    files
+      .get('blog/contents/oi/index.md')
+      ?.includes(`${site.url}/blog/contents/oi/codeforces/index.md`),
+  );
+  assert.ok(
+    files
+      .get('blog/contents/oi/codeforces/index.md')
+      ?.includes(`${site.url}/blog/oi/codeforces/example.md`),
+  );
+  assert.match(files.get('blog/contents/oi/index.md')!, /Latest post: 2019-01-01/);
+  assert.doesNotMatch(files.get('blog/contents/oi/index.md')!, /2026-09-10|Updated:/);
+  assert.match(files.get('blog/oi/codeforces/example.md')!, /Updated: 2026-09-10/);
+  assert.equal(files.has('blog/oi/index.md'), false);
+  writeAgentFiles(directory, files);
+  assert.equal(
+    readFileSync(join(directory, 'blog/oi/codeforces/example.md'), 'utf8'),
+    files.get('blog/oi/codeforces/example.md'),
+  );
+  writeAgentFiles(directory, buildAgentFiles([], renderedCv, site));
+  assert.equal(existsSync(join(directory, 'blog/oi')), false);
+  assert.equal(existsSync(join(directory, 'blog/contents/oi')), false);
+  assert.match(readFileSync(join(directory, 'blog/contents/index.md'), 'utf8'), /0 posts/);
+  assert.doesNotMatch(
+    readFileSync(join(directory, 'blog/contents/index.md'), 'utf8'),
+    /undefined|Latest post:/,
+  );
+  for (const slug of ['oi/../example', 'oi//example', '/example', 'oi/index']) {
+    assert.throws(() => buildAgentFiles([{ ...post, slug }], renderedCv, site), /slug/);
+  }
+});

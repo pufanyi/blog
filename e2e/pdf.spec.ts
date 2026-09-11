@@ -14,7 +14,7 @@ test.afterEach(async ({ page }) => {
 test('two embedded PDFs render independently and follow the article theme', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/blog');
-  await page.goto('/blog/mock-contest-20190307');
+  await page.goto('/blog/oi-icpc/other-problems/mock-contest-20190307');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   const embeds = page.locator('iframe.post-pdf');
   await expect(embeds).toHaveCount(2);
@@ -42,14 +42,14 @@ test('two embedded PDFs render independently and follow the article theme', asyn
   await expect(problems.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(solutions.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(problems.locator('#pageNumber')).toHaveValue('2');
-  await expect(page.getByRole('link', { name: '查看题目 PDF', exact: true })).toHaveAttribute('href', '/posts/mock-contest-20190307/problem.pdf');
+  await expect(page.getByRole('link', { name: '查看题目 PDF', exact: true })).toHaveAttribute('href', '/posts/oi-icpc/other-problems/mock-contest-20190307/problem.pdf');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
   await page.goBack();
   await expect(page).toHaveURL('/blog');
   await expect(embeds).toHaveCount(0);
   await page.goForward();
-  await expect(page).toHaveURL('/blog/mock-contest-20190307');
+  await expect(page).toHaveURL('/blog/oi-icpc/other-problems/mock-contest-20190307');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   await expect(problems.locator('.page canvas').first()).toBeVisible({ timeout: 30_000 });
   await embeds.nth(0).scrollIntoViewIfNeeded();
@@ -76,7 +76,7 @@ test('failed PDF loads retain a direct file link', async ({ page }) => {
 
 test('CMYK PDFs load their color profile from the static deployment', async ({ page }) => {
   const profile = page.waitForResponse(response => response.url().endsWith('/CGATS001Compat-v2-micro.icc'));
-  await page.goto('/pdf-viewer?file=%2Fposts%2Fwf2019-a%2Fa.pdf');
+  await page.goto('/pdf-viewer?file=%2Fposts%2Foi-icpc%2Fother-problems%2Fwf2019-a%2Fa.pdf');
   expect((await profile).status()).toBe(200);
   await expect(page.locator('.page canvas').first()).toBeVisible();
 });
