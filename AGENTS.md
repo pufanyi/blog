@@ -359,3 +359,19 @@ Project guidance for agents working in this repository.
   the main generator, its TypeScript helpers, and post-local components.
 - Files under `src/app/data` are generated from `content` and ignored by Git.
   Do not edit or commit them directly; update the source content files instead.
+
+### ML Revisited Editorial Principles
+
+These principles apply to the series under `content/posts/ml/ml-revisit/`.
+
+- Write for experienced practitioners who train large language models. The
+  series primarily serves as a refresher: readers may already know the topic.
+  Assume familiarity with core concepts and briefly recall prerequisites when
+  needed to understand the specific mechanism being discussed.
+- Keep explanations concise. Focus on the central idea, essential equations,
+  and useful distinctions; keep background and repetition to a minimum while
+  preserving technical accuracy.
+- Use illustrations generously when they make an idea clear at a glance.
+  Prefer diagrams for architectures, data flows, tensor layouts, and comparisons.
+  Keep captions and accompanying prose short and focused on how to read the
+  visual. Follow the existing Post Diagrams conventions for implementation.
