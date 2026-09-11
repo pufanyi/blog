@@ -428,6 +428,8 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   easier to follow through clear explanations and visual support.
 - Keep prose concise and focused. Remove repetition and unnecessary background
   while retaining the intermediate reasoning a first-time reader needs.
+  For wording corrections, fix the specific ambiguity without expanding
+  familiar basics into a tutorial or adding redundant examples.
 - Use illustrations generously when they make an idea clear at a glance.
   Prefer diagrams for architectures, data flows, tensor layouts, and comparisons.
   Keep captions and accompanying prose short and focused on how to read the
