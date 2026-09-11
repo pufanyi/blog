@@ -10,7 +10,7 @@ description: "Notes for PagedAttention and vLLM"
 
 Serving 要同时处理许多请求，而每个请求会生成多长，事先并不知道。一种朴素做法是按最大长度预留一整段连续空间，避免 cache 增长时放不下。但这些还没存入 KV 的空间也被占住了，无法交给其他请求。
 
-假设一个请求已缓存 3 个 token，最终只需缓存 5 个，却一开始就分配了 8 个 slot；一个 slot 表示存放一个 token 的 KV 所需的空间。按 CSE 291 讲义中的分类，浪费有三种：[@jain2026kvcache]
+假设一个请求已缓存 3 个 token，最终只需缓存 5 个，却一开始就分配了 8 个 slot；一个 slot 表示存放一个 token 的 KV 所需的空间。按 CSE 291 讲义 [@jain2026kvcache] 的分类，浪费有三种：
 
 - **Reservation**：之后会用到、现在还空着的 2 个 slot。即使事先知道最终长度，过早占住这部分空间，也会挤掉其他请求。
 - **Internal fragmentation**：分配区内最终用不上的 3 个 slot，来自按最大可能长度过量分配。
@@ -22,7 +22,7 @@ Serving 要同时处理许多请求，而每个请求会生成多长，事先并
 
 ## 按 Block 分配
 
-**PagedAttention** 是 vLLM 的核心设计之一。它把 KV cache 拆成固定大小的 block，每个 block 容纳 $B$ 个 token 的 KV。vLLM 预先建立 GPU block pool，请求需要增长时，再从 pool 中领取空闲 block。这样就不用为每个请求预留最大长度。[@kwon2023pagedattention]
+**PagedAttention** [@kwon2023pagedattention] 是 vLLM 的核心设计之一。它把 KV cache 拆成固定大小的 block，每个 block 容纳 $B$ 个 token 的 KV。vLLM 预先建立 GPU block pool，请求需要增长时，再从 pool 中领取空闲 block。这样就不用为每个请求预留最大长度。
 
 为了让 attention 找到拆开的 KV，每个请求维护一张 **block table**，连接两种编号：
 
@@ -32,6 +32,16 @@ Serving 要同时处理许多请求，而每个请求会生成多长，事先并
 <PagedKvLayout />
 
 图中 A 的 block table 是 `[3, 0, 4]`：前三个 logical block 分别放在 P3、P0、P4。比如读取位置 8 的 token，就先找到 logical block 2，再查表到 P4，读取块内位置 0。Attention kernel 直接按这张表读取 KV，无须先把它们复制成连续的一整段。
+
+跨 block 计算时，**softmax 仍要对当前 query 可见的全部 token 归一化**。以两个 block 为例，对同一个 query $q$，token $i$ 的分数为 $s_i=q^\top k_i/\sqrt{d}$，其中 $d$ 是 head dimension。设第 $r$ 块内所有有效 token 的 $e^{s_i}$ 之和为 $Z_r$，该块单独做 softmax 得到的加权输出为 $o_r$，则全局输出为：
+
+$$
+o=\frac{Z_1o_1+Z_2o_2}{Z_1+Z_2}.
+$$
+
+$Z_1/(Z_1+Z_2)$ 就是第一块在全局 softmax 中占的权重。例如两块的 $Z$ 分别为 3 和 1，最终输出就是 $0.75o_1+0.25o_2$。这样只需归并局部输出向量和归一化信息，KV 可以留在原地；更多块也可以用同样的方式逐步或并行合并。
+
+实际计算还会记录每块的最大 score，将局部统计量重缩放到同一基准，避免直接计算 $e^{s_i}$ 溢出。计算分段也不必与物理 block 一一对应。高性能 kernel 需要把查表、KV 读取和 attention 计算组织在一起，让相邻线程尽量读取相邻数据，并减少归并时的同步开销。
 
 在不共享、按需分配的简单情形下，长度 $T$ 需要 $\lceil T/B\rceil$ 个 block，占用 $B\lceil T/B\rceil$ 个 slot。图中 9 个 token 占 3 块、共 12 个 slot，只有尾块的 3 个 slot 空着。新增 token 先填尾块，填满后再领一块；请求结束时释放引用，无人使用的块就能交给其他请求。
 
@@ -45,7 +55,7 @@ Serving 要同时处理许多请求，而每个请求会生成多长，事先并
 
 <PagedKvSharing />
 
-后来的 **Automatic Prefix Caching** 把复用扩展到不同时间到达的请求。例如，多个请求以相同的 system prompt 开头，就可以复用仍在缓存中的完整前缀块，省去这部分的 prefill 计算。[@vllmprefixcaching]
+后来的 **Automatic Prefix Caching** [@vllmprefixcaching] 把复用扩展到不同时间到达的请求。例如，多个请求以相同的 system prompt 开头，就可以复用仍在缓存中的完整前缀块，省去这部分的 prefill 计算。
 
 这里必须匹配**整个前缀**：同一句话接在不同的上文之后，其 KV 通常也不同。因此 vLLM 用于查找缓存的 hash 包含前序 block 的 hash、当前块的 token，以及 LoRA ID 等必要的上下文标识。当前这套设计只缓存完整 block；命中前缀省下的是重复计算，这些 KV 仍要参与后续的 attention。
 
@@ -53,7 +63,7 @@ Serving 要同时处理许多请求，而每个请求会生成多长，事先并
 
 显存容得下更多请求，还需要调度把它们用起来。在普通 decode 中，一轮计算为 batch 中每个活跃序列生成一个 token。各序列需要的轮数不同：如果固定整个 batch 的成员，短请求结束后，新请求仍要等最长的请求完成才能加入。
 
-**Continuous batching** 每轮重新组织 batch：完成的请求退出，资源允许时接纳等待中的请求。这种 **iteration-level scheduling** 在 Orca 中已有，Stanford CS336 的 inference lecture 也将它与 PagedAttention 放在一起讨论。[@yu2022orca; @liang2025inference]
+**Continuous batching** 每轮重新组织 batch：完成的请求退出，资源允许时接纳等待中的请求。这种 **iteration-level scheduling** 在 Orca [@yu2022orca] 中已有，Stanford CS336 的 inference lecture [@liang2026inference] 也将它与 PagedAttention 放在一起讨论。
 
 <PagedContinuousBatching />
 
