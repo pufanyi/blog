@@ -109,6 +109,8 @@ Project guidance for agents working in this repository.
   correct in both Cloudflare `_headers` and the Node preview.
 - Run unit tests with `pnpm test`; use `pnpm test --watch=false` for a
   noninteractive run. `pnpm check` does not run tests or the production build.
+  If Vitest workers exit unexpectedly on a host reporting many CPUs, retry with
+  `VITEST_MAX_WORKERS=2 pnpm test --watch=false` to limit local concurrency.
 - Angular's unit-test builder does not support `vi.mock` for relative imports.
   Override injectable dependencies through `TestBed` when testing configuration.
 - Run browser regressions with `pnpm test:e2e`; its pre-hook builds the site
