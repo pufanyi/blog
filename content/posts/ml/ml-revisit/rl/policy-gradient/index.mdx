@@ -1,6 +1,7 @@
 ---
 title: "Policy Gradient Algorithms"
 date: "2024-10-16"
+updated: "2026-09-11"
 ---
 
 ## Direct policy differentiation
@@ -22,6 +23,80 @@ $$
 $$
 
 所以说 $r(\tau)\cdot\nabla_\theta\log\pi_\theta(\tau)$ 是 $\nabla_\theta\mathcal{J}(\theta)$ 的无偏估计，可惜这玩意儿的 variance 很高。
+
+<details>
+<summary>为什么代码里用 reward 乘 log probability？</summary>
+
+既然目标是让高 reward 的结果更容易出现，直接对 $r(\tau)\pi_\theta(\tau)$ 求导不就行了吗？为什么要变成 $r(\tau)\log\pi_\theta(\tau)$？关键在于：**枚举所有结果求和，和按策略采样后取平均，是两种不同的计算。采样频率本身已经包含了概率权重。**
+
+考虑一个只需选择一次动作就结束的游戏：
+
+| 动作 | 奖励 $r(a)$ | 当前概率 $\pi_\theta(a)$ |
+| --- | --- | --- |
+| A | $100$ | $0.01$ |
+| B | $1$ | $0.99$ |
+
+我们真正想最大化的是期望奖励：
+
+$$
+\begin{aligned}
+\mathcal{J}(\theta)&=100\pi_\theta(A)+\pi_\theta(B),\\
+\nabla_\theta\mathcal{J}(\theta)&=100\nabla_\theta\pi_\theta(A)+\nabla_\theta\pi_\theta(B).
+\end{aligned}
+$$
+
+如果能枚举全部动作及其奖励，直接对上面的加权和求导完全没问题。但在复杂环境里，我们通常只能按当前策略采样，再用样本估计梯度。为了把数算清楚，假设采样 $100$ 次，恰好得到 $1$ 次 A 和 $99$ 次 B。
+
+如果对每个采到的动作计算 $r(a)\pi_\theta(a)$，把动作和奖励视为固定样本，再对 batch 取平均，得到的上升方向是
+
+$$
+\begin{aligned}
+\widehat g_{\mathrm{prob}}
+&=\frac1{100}\left[
+1\cdot100\nabla_\theta\pi_\theta(A)
++99\cdot1\nabla_\theta\pi_\theta(B)
+\right]\\
+&=\nabla_\theta\pi_\theta(A)+0.99\nabla_\theta\pi_\theta(B).
+\end{aligned}
+$$
+
+它和目标梯度的系数不一样：A 的奖励虽然高，但只出现了一次；B 的奖励低，却反复出现。按策略采样后直接平均 $r(a)\nabla_\theta\pi_\theta(a)$，会比我们想要的 $\sum_a r(a)\nabla_\theta\pi_\theta(a)$ 多出一层采样概率权重。
+
+换成 $r(a)\log\pi_\theta(a)$，单个样本的梯度就是
+
+$$
+r(a)\nabla_\theta\log\pi_\theta(a)
+=r(a)\frac{\nabla_\theta\pi_\theta(a)}{\pi_\theta(a)}.
+$$
+
+同样这 $100$ 个样本，现在给出
+
+$$
+\begin{aligned}
+\widehat g_{\log}
+&=\frac1{100}\left[
+1\cdot\frac{100}{0.01}\nabla_\theta\pi_\theta(A)
++99\cdot\frac1{0.99}\nabla_\theta\pi_\theta(B)
+\right]\\
+&=100\nabla_\theta\pi_\theta(A)+\nabla_\theta\pi_\theta(B).
+\end{aligned}
+$$
+
+A 的出现频率是 $0.01$，它的单次贡献里就除以 $0.01$；B 同理。**Log 的导数恰好提供 $1/\pi_\theta(a)$，抵消采样频率带来的那一次概率权重。** 这就是上面把积分改写成期望时，乘除 $\pi_\theta(\tau)$ 的直观含义。
+
+两个动作的概率还满足 $\pi_\theta(B)=1-\pi_\theta(A)$，所以它们的梯度方向相反。本例正确的目标梯度是 $99\nabla_\theta\pi_\theta(A)$，而直接平均 $r(a)\nabla_\theta\pi_\theta(a)$ 得到的只有 $0.01\nabla_\theta\pi_\theta(A)$。
+
+对应这个单步例子，代码可以写成：
+
+```python
+loss = -(rewards.detach() * log_probs).mean()
+```
+
+`rewards` 和 `log_probs` 对应同一批采样动作；求导时奖励固定，梯度只通过 `log_probs` 传播，负号则把最大化奖励转成梯度下降。这个 loss 用来让自动微分生成所需的梯度，它的数值并不等于负的期望奖励。Spinning Up [@SpinningUp2018] 也强调了这一点：只有在采样所用的策略参数处，这个 batch loss 的梯度才是负 policy gradient 的无偏估计；更新参数后，一直复用旧 batch 最小化它，并没有同样的保证。
+
+这里恰好抽到 $1$ 次 A、$99$ 次 B，所以算出来正好等于目标梯度。一般情况下，**无偏指重复采样后取平均会得到目标梯度**，并不保证每个 batch 都准确。某个 batch 可能一次 A 都没抽到，梯度估计仍然可能有很高的 variance。
+
+</details>
 
 ## Reduce Variance
 
