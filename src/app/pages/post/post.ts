@@ -48,6 +48,7 @@ import { parentBlogSlug } from '../../utils/blog-directories';
     './styles/media/zero-flow.css',
     './styles/media/fsdp.css',
     './styles/media/paged-attention.css',
+    './styles/media/flash-attention.css',
     './styles/media/cf351d-pointers.css',
     './styles/media/cf391f3-trading.css',
     './styles/media/cf434d-flow.css',
