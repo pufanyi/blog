@@ -30,6 +30,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender,
   },
   {
+    path: 'blog/ml/ml-revisit/muon',
+    renderMode: RenderMode.Prerender,
+  },
+  {
     path: 'blog/page/:page',
     renderMode: RenderMode.Prerender,
     fallback: PrerenderFallback.None,

@@ -19,6 +19,7 @@ export const blogRoutes: Routes = [
     resolve: { blogPage: resolveBlogPage }, loadComponent: loadBlogComponent,
   },
   { path: 'page/1', pathMatch: 'full', redirectTo: '/blog' },
+  { path: 'ml/ml-revisit/muon', pathMatch: 'full', redirectTo: '/blog/ml/ml-revisit/optm/muon' },
   {
     path: 'page/:page', title: SITE_CONFIG.title,
     data: { description: BLOG_CONFIG.description },

@@ -58,7 +58,41 @@ $$
 
 如果 $M$ 秩亏，上面的 compact SVD 只保留非零奇异值，$UV^\top$ 是一个 partial isometry，不能声称它的所有行或所有列都正交。多项式迭代也不会凭空生成缺失的方向：在精确算术下，零奇异值始终为零。
 
+<details>
+<summary>和 sign、向量归一化有什么关系？</summary>
+
+苏剑林在《Muon 优化器赏析》[@su2024muon] 中将这个 polar 变换记作 $\operatorname{msign}$。对非零标量 $z$，$\operatorname{sign}(z)=z/\sqrt{z^2}$；矩阵也有类似的表达式：
+
+$$
+\operatorname{Polar}(M)
+=M(M^\top M)^{-1/2}.
+$$
+
+这里的逆平方根作用于矩阵的特征值；遇到零特征值时采用伪逆约定，将对应值保留为零。因此它一般不同于逐元素取 $\operatorname{sign}$。两个特例能说明矩阵形状的意义：
+
+$$
+\begin{aligned}
+\operatorname{Polar}(\operatorname{diag}(z_1,\ldots,z_n))
+&=\operatorname{diag}(\operatorname{sign}(z_1),\ldots,\operatorname{sign}(z_n)),\\
+\operatorname{Polar}(v)&=\frac{v}{\lVert v\rVert_2},
+\qquad v\in\mathbb{R}^{n\times1},\ v\ne0.
+\end{aligned}
+$$
+
+同一组数值，作为对角矩阵中的独立缩放系数，结果是逐元素取符号；作为一个列向量，结果是整体归一化。参数在计算中扮演什么角色，会影响合适的更新方式。这里的 $\operatorname{msign}$ 指基于奇异值的变换，不是一般数值线性代数中基于特征值定义的 matrix sign function。
+
+</details>
+
 为什么这种更新可能有用？如果小奇异值对应的方向也包含学习信号，拉平谱就能提高它们相对于主导方向的更新强度。不过，小方向也可能包含噪声；这种直觉本身并不保证泛化更好。Momentum 能平滑输入给变换的梯度，实际收益仍然需要实验验证。
+
+另一个出发点是约束特征的变化。《为什么我们选择尝试 Muon？》[@su2025muon] 从这个角度解释了谱范数：固定这一层的输入 $x$，更新权重后有 $\Delta y=\Delta W x$，而
+
+$$
+\max_{x\ne0}\frac{\lVert\Delta y\rVert_2}{\lVert x\rVert_2}
+=\lVert\Delta W\rVert_2.
+$$
+
+所以，限制谱范数就是限制这个线性层的输出变化相对于输入的最大幅度，再在这个范围内尽量降低 loss。“下降最快”需要先说明怎样衡量一步的大小；Frobenius norm 和 spectral norm 给出的最优方向不同。
 
 <details>
 <summary>为什么 spectral norm 约束会给出这个方向？</summary>
@@ -88,7 +122,7 @@ $$
 
 而 $-\eta UV^\top$ 能取到等号。这里 $\sum_i\sigma_i$ 也叫 nuclear norm。
 
-对 $y=Wx$ 来说，$\lVert\Delta W x\rVert_2\le\lVert\Delta W\rVert_2\lVert x\rVert_2$。因此 spectral norm 约束限制的是任意单位输入方向上输出变化的最大幅度。这给出了一个利用 linear layer 结构的解释；带 momentum、有限步近似的实际 Muon，并不等于每一步都精确求解当前 loss 的这个问题。
+这解释了单层、固定输入下的更新方向。整个网络同时更新时，输入特征也会改变；带 momentum、有限步近似的实际 Muon，也不等于每一步都精确求解当前 loss 的这个问题。
 
 </details>
 
@@ -128,6 +162,8 @@ $$
 
 对应的标量变换是 $f(x)=ax+bx^3+cx^5$。它在零附近的斜率更大，可以更快放大小奇异值；代价是它并不精确收敛到 $1$，例如 $f(1)=0.701$。所以实际输出是 $U\widetilde\Sigma V^\top$，把奇异值拉到相近尺度，而非严格得到 $UV^\top$。前图的第三栏正是这个有限步计算，不能把更多迭代简单理解为更精确的正交化。
 
+极小的非零奇异值在有限步后也可能仍然很小。苏剑林在 Newton–Schulz 专文 [@su2025newtonschulz] 中讨论了另一种改进：每一步采用不同的 $(a_k,b_k,c_k)$，针对剩余的奇异值区间设计后续变换。同样的迭代步数不必共享系数；上面的固定系数五步法只是一个具体实现，计算近似更准确也不自动意味着训练效果更好。
+
 <MuonIteration />
 
 计算时可以先转置高矩阵，让参与 $X_kX_k^\top$ 的行数为 $\min(m,n)$，最后再转置回来。这样临时方阵更小。矩阵乘法可以在 BF16 下进行；上图用 FP64 演示标量递推，实际低精度结果会有差异。
@@ -162,7 +198,60 @@ $$
 
 让理想更新的 RMS 为 $0.2$，方便与 AdamW 的更新尺度对齐。$0.2$ 来自该工作的经验选择，不是 AdamW 更新 RMS 的普适定理；有限步近似、秩亏也会使实际 RMS 偏离它。Weight decay 直接作用于 $W_t$，不放进正交化，也不乘这个形状系数。
 
-作者仓库还使用 $s_{m,n}=\sqrt{\max(1,m/n)}$，其中这里按 $W$ 的存储形状 $[\text{out},\text{in}]$ 定义 $m,n$。这与上面的 RMS 对齐规则不同，同一个 learning rate 数值不能脱离缩放约定比较。PyTorch 的 Muon 文档 [@pytorchmuon] 将两者分别称为 `original` 和 `match_rms_adamw`；使用现成实现时应明确选择哪套约定。
+苏剑林的《Muon 优化器指南》[@su2025muonguide] 将常见缩放整理为四种约定。沿用本文 $y=Wx$ 的记号，$m$ 是输出维度，$n$ 是输入维度：
+
+| 约定 | $s_{m,n}$ | 缩放方式 |
+| --- | --- | --- |
+| 朴素版 | $1$ | 直接使用近似 polar 结果 |
+| KellerJordan 版 | $\sqrt{\max(1,m/n)}$ | 输出维度大于输入维度时放大更新 |
+| MuP 版 | $\sqrt{m/n}$ | 按输出与输入的维度比缩放 |
+| Moonlight 版 | $0.2\sqrt{\max(m,n)}$ | 将理想更新的元素 RMS 对齐到 $0.2$ |
+
+同一个 learning rate 数值不能脱离缩放约定比较。PyTorch 的 Muon 文档 [@pytorchmuon] 将 KellerJordan 版和 Moonlight 版分别称为 `original` 和 `match_rms_adamw`。维度比要按线性层的实际输入、输出判断：如果代码写成行向量形式的 `x @ W`，权重的存储形状就是 $[\text{in},\text{out}]$，不能照搬 PyTorch `Linear` 的轴顺序。为降低 Newton–Schulz 成本而临时转置矩阵，也不应改变缩放因子。
+
+<details>
+<summary>MuP 版与官方版的 max(1, ·) 分别在控制什么？</summary>
+
+MuP 关注模型宽度改变时的更新尺度。对 $v\in\mathbb{R}^d$，$\operatorname{RMS}(v)=\lVert v\rVert_2/\sqrt d$。用这个量衡量每个特征分量的变化，有
+
+$$
+\max_{x\ne0}
+\frac{\operatorname{RMS}(\Delta W x)}{\operatorname{RMS}(x)}
+=\sqrt{\frac{n}{m}}\lVert\Delta W\rVert_2.
+$$
+
+对非零矩阵的理想 polar 更新，$\Delta W=-\eta s_{m,n}O$ 且 $\lVert O\rVert_2=1$。取 $s_{m,n}=\sqrt{m/n}$，上式就等于 $\eta$，不随输入、输出维度改变。这给出了 MuP 版的尺度直觉；它控制特征扰动，Moonlight 版则对齐更新矩阵本身的元素 RMS。
+
+苏剑林在 2026 年的文章 [@su2026muonscaling] 中进一步用各向同性输入解释官方版的截断，下面假设待处理的矩阵满秩。当 $m<n$ 时，理想 $O$ 会丢掉输入在其行空间之外的分量；若固定 $O$，并假设输入满足 $\mathbb{E}[xx^\top]=I_n$，就有
+
+$$
+\mathbb{E}[\operatorname{RMS}(Ox)^2]
+=\frac{\operatorname{tr}(OO^\top)}m=1
+=\mathbb{E}[\operatorname{RMS}(x)^2].
+$$
+
+按这种平均尺度，取 $s_{m,n}=1$ 就够了；当 $m\ge n$ 时，相同计算则给出 $s_{m,n}=\sqrt{m/n}$，合起来正是官方版的 $\max(1,\cdot)$。这是一种依赖输入分布的解释。训练中输入与更新方向可能相关，不能据此认定该缩放在所有阶段都更优。
+
+</details>
+
+<details>
+<summary>Weight decay 为什么能限制权重谱范数？</summary>
+
+《为什么我们选择尝试 Muon？》[@su2025muon] 还给出了一个简单的范数界。设 $\lambda>0$、$0\le\eta_t\lambda\le1$，矩阵形状和缩放 $s_{m,n}$ 固定。对理想 polar 更新，由三角不等式得到
+
+$$
+\begin{aligned}
+\lVert W_{t+1}\rVert_2
+&\le(1-\eta_t\lambda)\lVert W_t\rVert_2+\eta_t s_{m,n}\\
+&\le\max\left(\lVert W_t\rVert_2,\frac{s_{m,n}}\lambda\right).
+\end{aligned}
+$$
+
+逐步使用这个关系，就有 $\lVert W_t\rVert_2\le\max(\lVert W_0\rVert_2,s_{m,n}/\lambda)$。因此，限制每步更新的谱范数，再配合 weight decay，可以限制权重谱范数的累积增长。
+
+实际近似若满足统一的界 $\lVert O_t\rVert_2\le C$，则将上界中的 $s_{m,n}$ 换成 $Cs_{m,n}$。这个界通常很宽松，也没有同时约束整个网络的输入特征，不能把它当作 attention logits 必然稳定的保证。
+
+</details>
 
 ## 实际训练中的取舍
 

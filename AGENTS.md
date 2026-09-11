@@ -141,6 +141,9 @@ Project guidance for agents working in this repository.
   their own readiness attribute; `data-rendered` does not await their lazy imports.
   Mark transient playback UI with `data-agent-omit` and provide a static explanation
   or numeric transcript outside it for Markdown exports and noninteractive reading.
+  Give each animation a teaching focus that complements the surrounding prose.
+  For tiling, keep the full sequence, current block, and accumulated coverage visible
+  together; avoid repeating an already-explained scalar merge derivation.
 - `PageMetadataStrategy` handles browser and prerendered metadata.
   It also owns article `BlogPosting` JSON-LD: reuse authored dates and article
   covers, omit unknown modification dates and unrelated fallback images, and
@@ -297,6 +300,8 @@ Project guidance for agents working in this repository.
 - When renaming a post slug, update absolute `/posts/<slug>/...` references in
   post-local components and shared styles; unlike Markdown image paths, code
   and CSS URLs are not rewritten automatically.
+  Prerender legacy Angular redirect routes as well, so static hosting can serve
+  their immediate redirect pages on direct visits.
 - Posts are compiled as standard MDX with GFM and math support. Prefer native
   MDX syntax and semantic HTML elements such as `<details>` for authored
   interactive content; imported build-time components are also supported.
@@ -315,6 +320,10 @@ Project guidance for agents working in this repository.
 - For legacy Jekyll imports, replace Liquid includes with Markdown or native
   MDX and remove theme-only front matter. Keep original exports and ZIP archives
   outside `content/posts`; files not excluded by the asset rules are published.
+- For Typst imports, translate math into standard TeX, preserve display equations
+  and heading relationships, and resolve `@key` citations through a post-local
+  `references.bib`. Keep the original `.typ` outside `content/posts`, since the
+  asset copy rules would otherwise publish it.
 - For Hexo imports, remove `<!--more-->` and replace plugin tags with equivalent
   embeds, such as a PDF iframe with a direct link. Apart from the prose spacing
   above, preserve original prose, math placement, links, and code; further
@@ -418,6 +427,8 @@ Project guidance for agents working in this repository.
   When concurrent tasks share the checkout, use an isolated validation snapshot
   with its own generated directories and dependencies; a shared `node_modules`
   symlink can disappear or change during another task's installation.
+  Seed the snapshot from a committed base and overlay only the task's changes;
+  copying a live worktree can capture another task's incomplete edits.
 - Files under `src/app/data` are generated from `content` and ignored by Git.
   Do not edit or commit them directly; update the source content files instead.
 
