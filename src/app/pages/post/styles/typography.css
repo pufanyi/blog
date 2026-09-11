@@ -167,7 +167,7 @@
   overflow: hidden;
 }
 
-.post-body details summary {
+.post-body details > summary {
   font-family: var(--font-heading);
   font-weight: 500;
   font-size: 0.95rem;
@@ -183,11 +183,11 @@
   user-select: none;
 }
 
-.post-body details summary::-webkit-details-marker {
+.post-body details > summary::-webkit-details-marker {
   display: none;
 }
 
-.post-body details summary::before {
+.post-body details > summary::before {
   font-family: "Phosphor";
   content: "\e13a";
   font-size: 1em;
@@ -197,25 +197,26 @@
   line-height: 1;
 }
 
-.post-body details[open] summary::before {
+.post-body details[open] > summary::before {
   transform: rotate(90deg);
 }
 
-.post-body details summary:hover {
+.post-body details > summary:hover {
   background: color-mix(in srgb, var(--border-color) 14%, transparent);
 }
 
-.post-body details > :not(summary) {
-  padding: 0 1rem;
-}
-
-.post-body details > :nth-child(2) {
-  padding-top: 0.75rem;
+.post-body details > .details-content {
+  display: flow-root;
+  padding: 0.75rem 1rem;
   border-top: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
 }
 
-.post-body details > :last-child {
-  padding-bottom: 0.75rem;
+.post-body .details-content > :first-child {
+  margin-top: 0;
+}
+
+.post-body .details-content > :last-child {
+  margin-bottom: 0;
 }
 
 .post-body .references {

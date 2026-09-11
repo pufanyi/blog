@@ -3,6 +3,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { createHighlighter } from 'shiki';
+import { htmlToAgentMarkdown } from './agent-markdown.mts';
 import { renderMdx } from './mdx-renderer.mts';
 
 test('renderMdx compiles native MDX while preserving post enhancements', async (t) => {
@@ -95,6 +96,58 @@ const value = 42;
     level: 2,
     children: [],
   });
+});
+
+test('disclosures preserve nested code, native summaries and Markdown exports', async (t) => {
+  const highlighter = await createHighlighter({
+    themes: ['catppuccin-latte', 'catppuccin-mocha'],
+    langs: ['js'],
+  });
+  t.after(() => highlighter.dispose());
+  const sourcePath = fileURLToPath(
+    new URL('../../content/posts/example/index.mdx', import.meta.url),
+  );
+  const code = 'if (ready) {\n  answer();\n}\n';
+  const result = await renderMdx(
+    `<details open name="implementation">
+<summary>Implementation</summary>
+
+\`\`\`js
+${code}\`\`\`
+
+<details>
+<summary>Fallback</summary>
+
+\`\`\`text
+<unavailable>
+\`\`\`
+
+</details>
+</details>`,
+    'example',
+    sourcePath,
+    highlighter,
+  );
+  const { document } = new JSDOM(result.html).window;
+  const outer = document.querySelector('details');
+  assert.ok(outer && outer.hasAttribute('open'));
+  assert.equal(outer.getAttribute('name'), 'implementation');
+  assert.equal(outer.firstElementChild?.tagName, 'SUMMARY');
+  const content = outer.querySelector(':scope > .details-content');
+  assert.equal(content?.firstElementChild?.querySelector('pre > code')?.textContent, code);
+  const nested = content?.querySelector('details');
+  assert.ok(nested && !nested.hasAttribute('open'));
+  assert.equal(nested.firstElementChild?.textContent, 'Fallback');
+  assert.equal(
+    nested.querySelector(':scope > .details-content > .code-block pre > code')?.textContent,
+    '<unavailable>\n',
+  );
+  assert.equal(document.querySelectorAll('.code-copy').length, 2);
+  const markdown = htmlToAgentMarkdown(result.markdownHtml, 'https://example.com/blog/example');
+  assert.ok(markdown.includes(`\`\`\`js\n${code}\`\`\``));
+  assert.ok(markdown.includes('```text\n<unavailable>\n```'));
+  assert.ok(markdown.includes('Implementation') && markdown.includes('Fallback'));
+  assert.ok(!markdown.includes('details-content'));
 });
 
 test('PDF embeds use isolated readers while preserving titles, sizes and download links', async (t) => {

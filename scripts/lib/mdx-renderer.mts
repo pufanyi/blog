@@ -294,6 +294,18 @@ function postprocessMdxHtml(
     wrapper.append(table);
   }
 
+  // Keep disclosure spacing off its children: code blocks, tables and nested
+  // disclosures each own their internal padding and borders.
+  for (const details of document.querySelectorAll('details')) {
+    const summary = details.querySelector(':scope > summary');
+    const content = document.createElement('div');
+    content.className = 'details-content';
+    for (const child of Array.from(details.childNodes)) {
+      if (child !== summary) content.append(child);
+    }
+    details.append(content);
+  }
+
   for (const image of Array.from(document.querySelectorAll('img'))) {
     const authoredSrc = image.getAttribute('src')?.trim();
     if (!authoredSrc) continue;

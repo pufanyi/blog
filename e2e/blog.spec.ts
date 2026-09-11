@@ -172,6 +172,58 @@ test.afterEach(async ({ page }) => {
   expect(await page.pageErrors()).toEqual([]);
 });
 
+test('code inside details keeps its layout, scrolling and copy behavior', async ({ page, context, isMobile }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('/blog/ml/ml-revisit/rl/policy-gradient');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
+  await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }' });
+  const details = page.locator('.post-body details').filter({ has: page.locator('.code-block') }).first();
+  const summary = details.locator(':scope > summary');
+  const block = details.locator('.code-block').first();
+  const pre = block.locator('pre');
+  const source = await pre.locator('code').textContent();
+  await expect(block).toBeHidden();
+  await summary.scrollIntoViewIfNeeded();
+  await summary.focus();
+  await summary.press('Enter');
+  await expect(block).toBeVisible();
+
+  for (const theme of ['light', 'dark']) {
+    if (await page.locator('html').getAttribute('data-theme') !== theme) {
+      await page.getByRole('button', { name: 'Toggle theme' }).click();
+    }
+    await block.scrollIntoViewIfNeeded();
+    // The header and code background should meet the frame, with the disclosure
+    // providing space outside that frame instead of inserting strips inside it.
+    const gaps = await block.evaluate(element => {
+      const bounds = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      const left = bounds.left + parseFloat(style.borderLeftWidth);
+      const right = bounds.right - parseFloat(style.borderRightWidth);
+      const header = element.querySelector('.code-header')!.getBoundingClientRect();
+      const code = element.querySelector('pre')!.getBoundingClientRect();
+      return [header.left - left, right - header.right, code.left - left, right - code.right, code.top - header.bottom];
+    });
+    for (const gap of gaps) expect(Math.abs(gap)).toBeLessThan(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (isMobile) {
+      await pre.evaluate(element => { element.scrollLeft = element.scrollWidth; });
+      expect(await pre.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+      await pre.evaluate(element => { element.scrollLeft = 0; });
+    }
+  }
+  await block.getByRole('button', { name: 'Copy code' }).click();
+  await expect(block.getByRole('button', { name: 'Copy code' })).toHaveText('Copied');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(source);
+  await summary.scrollIntoViewIfNeeded();
+  await summary.click();
+  await expect(block).toBeHidden();
+  await summary.click();
+  await expect(block).toBeVisible();
+  await expect(pre.locator('code')).toHaveText(source!);
+});
+
 test('search moves one result per key and keeps focus inside the dialog', async ({ page }) => {
   await page.goto('/blog');
   const { trigger, input } = await openSearch(page);

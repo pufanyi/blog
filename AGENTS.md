@@ -305,6 +305,10 @@ Project guidance for agents working in this repository.
 - Posts are compiled as standard MDX with GFM and math support. Prefer native
   MDX syntax and semantic HTML elements such as `<details>` for authored
   interactive content; imported build-time components are also supported.
+  The generator wraps disclosure bodies in `.details-content`; apply disclosure
+  spacing there, not to arbitrary children whose code/table padding and borders
+  must remain intact. Keep each native `summary` a direct child of its `details`
+  and scope open-state styles to that summary so nested disclosures stay independent.
 - For mathematical pseudocode, use post-local semantic HTML with the existing
   MathJax renderer so formulas match the prose. Keep the complete algorithm
   visible, use native `<details>` for supplementary notes, and verify that the
