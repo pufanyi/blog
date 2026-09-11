@@ -125,7 +125,7 @@ test('profile identity, feeds and authored updates are discoverable in prerender
       const item = items.find(item => item.querySelector('guid')?.textContent === canonical)!;
       expect(entry.querySelector('published')?.textContent).toBe(`${post.date}T00:00:00Z`);
       expect(entry.querySelector('updated')?.textContent).toBe(`${post.updated ?? post.date}T00:00:00Z`);
-      expect(entry.querySelector('summary')?.textContent).toBe(post.description);
+      expect(entry.querySelector('summary')?.textContent).toBe(post.description ?? '');
       expect(item.querySelector('title')?.textContent).toBe(post.title);
       const sitemapEntry = [...sitemap.window.document.querySelectorAll('url')].find(item => item.querySelector('loc')?.textContent === canonical)!;
       expect(sitemapEntry.querySelector('lastmod')?.textContent).toBe(post.updated);

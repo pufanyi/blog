@@ -25,7 +25,6 @@ const first: Post = {
 const second: Post = {
   slug: 'second',
   title: 'Another article',
-  description: 'An article without a cover',
   date: '2026-09-08',
   contentHtml: '<p>Another example</p>',
   toc: [],
@@ -130,6 +129,10 @@ describe('article structured data', () => {
     expect(data.url).toBe(`${SITE_CONFIG.url}/blog/second`);
     expect(data).not.toHaveProperty('image');
     expect(data).not.toHaveProperty('dateModified');
+    expect(data).not.toHaveProperty('description');
+    for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
+      expect(document.head.querySelector(selector)?.getAttribute('content')).toBe(SITE_CONFIG.description);
+    }
     expect(document.head.querySelector('meta[property="article:modified_time"]')).toBeNull();
 
     await harness.navigateByUrl('/blog');

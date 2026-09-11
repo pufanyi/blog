@@ -44,8 +44,8 @@ test('parsePostSource requires a complete front matter block', () => {
 
 test('parsePostSource validates supported metadata and calendar dates', () => {
   assert.throws(
-    () => parsePostSource('---\ntitle: Example\ndate: 2026-08-08\n---\nBody', 'missing.md'),
-    /field "description" must be a non-empty string/,
+    () => parsePostSource('---\ndate: 2026-08-08\n---\nBody', 'missing.md'),
+    /field "title" must be a non-empty string/,
   );
   assert.throws(
     () =>
@@ -55,6 +55,20 @@ test('parsePostSource validates supported metadata and calendar dates', () => {
       ),
     /field "date" must be a valid YYYY-MM-DD date/,
   );
+});
+
+test('parsePostSource allows omitted descriptions and validates them when supplied', () => {
+  const source = '---\ntitle: Example\ndate: 2026-08-08\n---\nBody';
+  assert.deepEqual(parsePostSource(source), {
+    metadata: { title: 'Example', date: '2026-08-08' },
+    body: 'Body',
+  });
+  for (const description of ['null', 'true', '123', '[]', '""', '"   "']) {
+    assert.throws(
+      () => parsePostSource(source.replace('date:', `description: ${description}\ndate:`)),
+      /field "description" must be a non-empty string/,
+    );
+  }
 });
 
 test('parsePostSource supports boolean draft metadata', () => {

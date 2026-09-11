@@ -11,7 +11,7 @@
     <span>{{ page.totalPosts }} posts</span>
     <span>{{ page.start }}–{{ page.end }} · Page {{ page.number }} of {{ page.totalPages }}</span>
   </div>
-  <section class="post-list" aria-label="Blog posts" [style.counter-reset]="'post ' + (page.start ? page.start - 1 : 0)">
+  <section #postList class="post-list" aria-label="Blog posts" [style.counter-reset]="'post ' + (page.start ? page.start - 1 : 0)">
     @for (post of page.posts; track post.slug) {
       <a class="post-entry" [routerLink]="'/blog/' + post.slug">
         @if (config.showCoverImages && post.coverImage) {
@@ -35,8 +35,8 @@
             <time class="post-date" [attr.datetime]="post.date">{{ post.date }}</time>
           }
         </div>
-        @if (config.showDescriptions) {
-          <div class="post-description">{{ post.description }}</div>
+        @if (config.showExcerpts && post.excerptHtml) {
+          <div class="post-excerpt" [innerHTML]="post.excerptHtml"></div>
         }
       </a>
     } @empty {

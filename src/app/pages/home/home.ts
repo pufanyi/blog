@@ -15,6 +15,8 @@ import { BLOG_CONFIG } from '../../data/blog-config';
 import { SITE_CONFIG } from '../../data/site-config';
 import { NotFoundComponent } from '../not-found/not-found';
 import { blogPagePath, paginationItems, type BlogPage } from '../../utils/blog-pagination';
+import { clearMath, typesetMath } from '../../utils/mathjax';
+import { PageScrollService } from '../../services/page-scroll.service';
 
 @Component({
   selector: 'app-home',
@@ -27,7 +29,9 @@ import { blogPagePath, paginationItems, type BlogPage } from '../../utils/blog-p
 export class HomeComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly scroll = inject(PageScrollService);
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
+  private readonly postList = viewChild<ElementRef<HTMLElement>>('postList');
   private focusedNavigation = -1;
   readonly config = BLOG_CONFIG;
   readonly title = SITE_CONFIG.title;
@@ -42,6 +46,19 @@ export class HomeComponent {
   readonly paginationState = { blogPagination: true };
 
   constructor() {
+    afterRenderEffect(onCleanup => {
+      this.page();
+      const container = this.postList()?.nativeElement;
+      if (!container) return;
+      const abort = new AbortController();
+      void Promise.all([typesetMath(container, abort.signal), container.ownerDocument.fonts?.ready]).then(() => {
+        if (!abort.signal.aborted) this.scroll.contentSettled(container);
+      });
+      onCleanup(() => {
+        abort.abort();
+        clearMath(container);
+      });
+    });
     afterRenderEffect(() => {
       const page = this.page();
       const navigation = this.router.lastSuccessfulNavigation();

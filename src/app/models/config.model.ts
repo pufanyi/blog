@@ -17,7 +17,7 @@ export interface SiteConfig {
 export interface BlogConfig {
   postsPerPage: number;
   description: string;
-  showDescriptions: boolean;
+  showExcerpts: boolean;
   showCoverImages: boolean;
   showDates: boolean;
   showCitation: boolean;

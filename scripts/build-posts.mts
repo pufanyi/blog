@@ -14,6 +14,7 @@ import { renderCvMarkdown } from './lib/cv-markdown.mts';
 import { parsePostSource } from './lib/front-matter.mts';
 import { normalizePostImageHref, renderMdx } from './lib/mdx-renderer.mts';
 import { buildPersonData } from './lib/person-data.mts';
+import { buildPostExcerpt } from './lib/post-excerpt.mts';
 import { discoverPostSources } from './lib/post-sources.mts';
 import { loadSiteConfiguration } from './lib/site-config.mts';
 import { buildSyndicationFeeds } from './lib/syndication.mts';
@@ -71,7 +72,7 @@ async function writePosts(posts: Post[]): Promise<void> {
     slug: post.slug,
     title: post.title,
     date: post.date,
-    description: post.description,
+    description: post.description ?? '',
     content: searchableText(post.contentHtml),
   }));
   const index = createSearchIndex();
@@ -126,7 +127,13 @@ async function main(): Promise<void> {
           summary.coverImage = normalizePostImageHref(summary.coverImage, slug);
         const rendered = await renderMdx(mdx, slug, sourcePath, highlighter);
         agentPosts.push({ ...summary, slug, markdownHtml: rendered.markdownHtml });
-        return { ...summary, slug, contentHtml: rendered.html, toc: rendered.toc };
+        return {
+          ...summary,
+          slug,
+          excerptHtml: buildPostExcerpt(rendered.markdownHtml),
+          contentHtml: rendered.html,
+          toc: rendered.toc,
+        };
       }),
     );
     posts.sort(comparePostsByPublication);

@@ -90,7 +90,7 @@ h1 i {
   margin-left: 0.12em;
 }
 
-.entry-description {
+.entry-count {
   color: var(--text-secondary);
   font-size: 0.85rem;
   overflow-wrap: anywhere;

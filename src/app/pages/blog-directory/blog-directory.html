@@ -18,9 +18,7 @@
           <div class="entry-copy">
             <span class="entry-title">{{ entry.title }}@if (entry.kind === 'directory') {<span class="folder-slash">/</span>}</span>
             @if (entry.kind === 'directory') {
-              <span class="entry-description">{{ entry.postCount }} posts</span>
-            } @else {
-              <span class="entry-description">{{ entry.description }}</span>
+              <span class="entry-count">{{ entry.postCount }} posts</span>
             }
           </div>
           <time [attr.datetime]="entry.date">{{ entry.date }}</time>

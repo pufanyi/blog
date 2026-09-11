@@ -1,10 +1,10 @@
 import { JSON_SCHEMA, load as loadYaml } from 'js-yaml';
 import type { PostSummary } from '../../src/app/models/post.model';
 
-export type PostMetadata = Omit<PostSummary, 'slug'> & { draft?: boolean };
+export type PostMetadata = Omit<PostSummary, 'slug' | 'excerptHtml'> & { draft?: boolean };
 
-const REQUIRED_FIELDS = ['title', 'date', 'description'];
-const OPTIONAL_FIELDS = ['coverImage', 'draft', 'updated'];
+const REQUIRED_FIELDS = ['title', 'date'];
+const OPTIONAL_FIELDS = ['description', 'coverImage', 'draft', 'updated'];
 const ALLOWED_FIELDS = new Set([...REQUIRED_FIELDS, ...OPTIONAL_FIELDS]);
 const OPENING_DELIMITER = /^---[ \t]*(?:\r?\n|$)/;
 const CLOSING_DELIMITER = /^---[ \t]*(?:\r?\n|$)/gm;
@@ -56,11 +56,11 @@ function validateMetadata(
     }
   }
 
-  if (
-    metadata['coverImage'] !== undefined &&
-    (typeof metadata['coverImage'] !== 'string' || !metadata['coverImage'].trim())
-  ) {
-    fail(sourceName, 'front matter field "coverImage" must be a non-empty string');
+  for (const field of ['description', 'coverImage']) {
+    const value = metadata[field];
+    if (value !== undefined && (typeof value !== 'string' || !value.trim())) {
+      fail(sourceName, `front matter field "${field}" must be a non-empty string`);
+    }
   }
 
   if (metadata['draft'] !== undefined && typeof metadata['draft'] !== 'boolean') {

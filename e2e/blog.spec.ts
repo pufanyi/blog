@@ -25,6 +25,7 @@ test('folder navigation opens nested articles and returns through their breadcru
   await folder.press('Enter');
   await expect(page).toHaveURL('/blog/contents/oi-icpc/codeforces');
   await expect(page.locator('.directory-entry')).toHaveCount(codeforcesPosts.length);
+  await expect(page.locator('.directory-entry[data-kind="post"] .entry-copy')).toHaveText(codeforcesPosts.map(post => post.title));
   await page.locator('a.directory-entry[href="/blog/oi-icpc/codeforces/cf551c"]').click();
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   await expect(page).toHaveURL('/blog/oi-icpc/codeforces/cf551c');
@@ -98,6 +99,12 @@ test('archive pages contain their own posts and metadata before JavaScript runs'
     const entries = Array.from(document.querySelectorAll('.post-entry'));
     const expected = POSTS.slice((number - 1) * BLOG_CONFIG.postsPerPage, number * BLOG_CONFIG.postsPerPage);
     expect(entries.map(entry => entry.querySelector('.post-title span')?.textContent)).toEqual(expected.map(post => post.title));
+    expect(document.querySelectorAll('.post-excerpt').length).toBe(BLOG_CONFIG.showExcerpts ? expected.filter(post => post.excerptHtml).length : 0);
+    for (const [index, entry] of entries.entries()) {
+      const excerpt = document.createElement('div');
+      excerpt.innerHTML = BLOG_CONFIG.showExcerpts ? expected[index]!.excerptHtml ?? '' : '';
+      expect(entry.querySelector('.post-excerpt')?.innerHTML ?? '').toBe(excerpt.innerHTML);
+    }
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}${path}`);
     expect(document.title).toBe(`${SITE_CONFIG.title}${number > 1 ? ` — Page ${number}` : ''}`);
     expect(document.querySelectorAll('link[rel="prev"]').length).toBe(number > 1 ? 1 : 0);
@@ -218,7 +225,7 @@ test('Chinese search finds words inside prose and keyboard selection navigates',
   await expect(page.locator('.toolbar-mobile-title')).toHaveText('Reading');
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     'content',
-    diffusion.description,
+    diffusion.description ?? SITE_CONFIG.description,
   );
   await expect(page.locator('meta[property="og:type"]')).toHaveAttribute('content', 'article');
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
@@ -292,7 +299,7 @@ test('prerendered HTML contains article metadata and missing routes return the 4
     expect(response.status()).toBe(200);
     const html = await response.text();
     expect(html).toContain(`<title>${post.title} — ${SITE_CONFIG.author.name}</title>`);
-    expect(html).toContain(`content="${post.description}"`);
+    expect(html).toContain(`content="${post.description ?? SITE_CONFIG.description}"`);
     expect(html).toContain(`href="${SITE_CONFIG.url}/blog/${post.slug}"`);
     expect(html).toContain('property="og:type" content="article"');
     expect(html).not.toContain('<script id="MathJax-script"');
@@ -303,7 +310,7 @@ test('prerendered HTML contains article metadata and missing routes return the 4
       '@context': 'https://schema.org',
       '@type': 'BlogPosting',
       headline: post.title,
-      description: post.description,
+      ...(post.description ? { description: post.description } : {}),
       datePublished: post.date,
       author: [{ '@type': 'Person', name: SITE_CONFIG.author.name, url: `${SITE_CONFIG.url}/` }],
       mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_CONFIG.url}/blog/${post.slug}` },

@@ -89,14 +89,14 @@ export function buildAgentFiles(
       paragraph(`Published: ${post.date}`),
       ...(post.updated ? [paragraph(`Updated: ${post.updated}`)] : []),
       `<p>Canonical: ${link(canonical, canonical)}</p>`,
-      paragraph(post.description),
+      ...(post.description ? [paragraph(post.description)] : []),
     ].join('\n');
     files.set(path, htmlToAgentMarkdown(`${header}\n${post.markdownHtml}`, canonical));
     index.push(
       `<h2>${link(post.title, `${canonical}.md`)}</h2>`,
       paragraph(post.date),
       ...(post.updated ? [paragraph(`Updated: ${post.updated}`)] : []),
-      paragraph(post.description),
+      ...(post.description ? [paragraph(post.description)] : []),
       `<p>${link('Original article', canonical)}</p>`,
     );
   }

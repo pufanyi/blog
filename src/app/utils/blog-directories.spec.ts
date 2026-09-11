@@ -44,7 +44,7 @@ describe('blog directories', () => {
     expect(buildBlogDirectories([])).toEqual([{ slug: '', name: 'Contents', postCount: 0, entries: [] }]);
     const directories = buildBlogDirectories([post('flat', '2026-01-01')]);
     expect(directories).toHaveLength(1);
-    expect(directories[0].entries).toEqual([{ kind: 'post', slug: 'flat', title: 'flat', description: 'Description', date: '2026-01-01' }]);
+    expect(directories[0].entries).toEqual([{ kind: 'post', slug: 'flat', title: 'flat', date: '2026-01-01' }]);
     expect(blogDirectoryPath('')).toBe('/blog/contents');
     expect(blogDirectoryPath('oi/codeforces')).toBe('/blog/contents/oi/codeforces');
     expect(parentBlogSlug('oi/codeforces/post')).toBe('oi/codeforces');

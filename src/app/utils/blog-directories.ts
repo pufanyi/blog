@@ -6,7 +6,6 @@ export interface BlogDirectoryEntry {
   title: string;
   date: string;
   postCount?: number;
-  description?: string;
 }
 
 export interface BlogDirectory {
@@ -43,7 +42,7 @@ export function buildBlogDirectories(posts: readonly PostSummary[]): BlogDirecto
       directory.postCount++;
       if (!directory.date || date > directory.date) directory.date = date;
       if (depth === segments.length - 1) {
-        directory.entries.push({ kind: 'post', slug: post.slug, title: post.title, date, description: post.description });
+        directory.entries.push({ kind: 'post', slug: post.slug, title: post.title, date });
       }
     }
   }

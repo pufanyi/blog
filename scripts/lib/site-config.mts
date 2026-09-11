@@ -82,14 +82,7 @@ export function parseSiteConfig(value: unknown, path = 'configs/site.yaml'): Sit
 export function parseBlogConfig(value: unknown, path = 'configs/blog.yaml'): BlogConfig {
   const data = record(
     value,
-    [
-      'postsPerPage',
-      'description',
-      'showDescriptions',
-      'showCoverImages',
-      'showDates',
-      'showCitation',
-    ],
+    ['postsPerPage', 'description', 'showExcerpts', 'showCoverImages', 'showDates', 'showCitation'],
     path,
   );
   const pageSize = data['postsPerPage'];
@@ -99,7 +92,7 @@ export function parseBlogConfig(value: unknown, path = 'configs/blog.yaml'): Blo
   return {
     postsPerPage: pageSize,
     description: string(data['description'], `${path}.description`),
-    showDescriptions: boolean(data['showDescriptions'], `${path}.showDescriptions`),
+    showExcerpts: boolean(data['showExcerpts'], `${path}.showExcerpts`),
     showCoverImages: boolean(data['showCoverImages'], `${path}.showCoverImages`),
     showDates: boolean(data['showDates'], `${path}.showDates`),
     showCitation: boolean(data['showCitation'], `${path}.showCitation`),

@@ -16,7 +16,7 @@ test('RSS and Atom preserve dates, escape authored text and resurface updates wi
       date: '2020-01-01',
       updated: '2026-09-08',
     },
-    { slug: 'recent', title: 'Recent', description: 'Recent post', date: '2026-09-01' },
+    { slug: 'recent', title: 'Recent', date: '2026-09-01' },
   ];
   const feeds = buildSyndicationFeeds(posts, site);
   assert.deepEqual(feeds, buildSyndicationFeeds([...posts].reverse(), site));
@@ -30,6 +30,7 @@ test('RSS and Atom preserve dates, escape authored text and resurface updates wi
   assert.equal(items.length, 2);
   assert.equal(items[0].querySelector('title')?.textContent, posts[0].title);
   assert.equal(items[0].querySelector('description')?.textContent, posts[0].description);
+  assert.equal(items[1].querySelector('description')?.textContent, '');
   assert.equal(items[0].querySelector('guid')?.textContent, `${site.url}/blog/old`);
   assert.equal(items[0].querySelector('pubDate')?.textContent, 'Wed, 01 Jan 2020 00:00:00 GMT');
   assert.equal(
@@ -43,6 +44,7 @@ test('RSS and Atom preserve dates, escape authored text and resurface updates wi
   assert.equal(entries[0].querySelector('updated')?.textContent, '2026-09-08T00:00:00Z');
   assert.equal(entries[1].querySelector('updated')?.textContent, '2026-09-01T00:00:00Z');
   assert.equal(entries[0].querySelector('summary')?.textContent, posts[0].description);
+  assert.equal(entries[1].querySelector('summary')?.textContent, '');
   assert.equal(
     entries[0].querySelector('link[type="text/markdown"]')?.getAttribute('href'),
     `${site.url}/blog/old.md`,

@@ -1,7 +1,7 @@
 # Posts are sorted newest first; pages use /blog, /blog/page/2, and so on.
 postsPerPage: 10
 description: Notes, derivations, and contest scraps by Fanyi Pu.
-showDescriptions: true
+showExcerpts: true
 showCoverImages: true
 showDates: true
 # Show the BibTeX citation card at the end of each article.

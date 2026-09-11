@@ -5,7 +5,7 @@ lives in `content/cv.yaml`.
 
 | File | Settings |
 | --- | --- |
-| [blog.yaml](./blog.yaml) | Posts per page, blog description, visibility of list descriptions/covers/dates, article BibTeX cards |
+| [blog.yaml](./blog.yaml) | Posts per page, blog description, visibility of list excerpts/covers/dates, article BibTeX cards |
 | [site.yaml](./site.yaml) | Site URL and title, default description and sharing image, metadata author, citation author and key prefix, footer |
 | [comments.yaml](./comments.yaml) | Comments toggle, Giscus repository and category, language, reactions, input position |
 | [redirects.yaml](./redirects.yaml) | Redirect destinations and titles for old paths (previously `content/redirects.yaml`) |
@@ -25,7 +25,10 @@ Each page has its own static HTML, title, and canonical link. Changing the page
 size recalculates all pages during the next build. Invalid or out-of-range page
 numbers show a 404 page. Search covers all published posts.
 
-`showDescriptions`, `showCoverImages`, and `showDates` control the archive list.
+`showExcerpts`, `showCoverImages`, and `showDates` control the archive list.
+Excerpts are generated from the opening paragraphs and shown in up to three lines.
+Post front matter may omit `description`; it is metadata and does not supply the
+visible excerpt. Category directory entries show titles and dates without excerpts.
 `showCitation` controls the BibTeX card at the end of each article, independently
 of references cited within the article.
 

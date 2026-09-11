@@ -199,13 +199,15 @@ test('nested Markdown exports include directory indexes and remove obsolete subt
   const post: AgentPost = {
     slug: 'oi/codeforces/example',
     title: 'Example',
-    description: 'Example',
     date: '2019-01-01',
     updated: '2026-09-10',
     markdownHtml: '<p>Article</p>',
   };
   const renderedCv = renderCvMarkdown(cv);
   const files = buildAgentFiles([post], renderedCv, site);
+  assert.doesNotMatch(files.get('blog/index.md')!, /undefined/);
+  assert.doesNotMatch(files.get('blog/oi/codeforces/example.md')!, /undefined/);
+  assert.match(files.get('blog/oi/codeforces/example.md')!, /Article/);
   assert.ok(
     files
       .get('blog/oi/codeforces/example.md')
