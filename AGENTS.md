@@ -212,6 +212,9 @@ Project guidance for agents working in this repository.
   from total per-step communication and show temporary states being released.
 - Match diagram symbols, head indices, and matrix/vector conventions to the
   surrounding post; adapt reference figures to the author's notation.
+  Typeset mathematical diagram labels with the same TeX/MathJax notation as
+  the prose, including subscripts, transposes, fractions, and tensor shapes;
+  do not substitute Unicode approximations or code-like expressions for them.
 - When redrawing legacy graphs, validate nodes and capacities against the
   article sample and code; numbered image files can represent different drafts.
   Route fan-in edges to distinct node ports and place labels clear of curves;
@@ -260,8 +263,15 @@ Project guidance for agents working in this repository.
   for navigation and Markdown indexes. Directory segments use letters, digits,
   `_`, and `-`.
   `index.mdx` starts with YAML front matter delimited by `---`;
-  `title`, `date` (`YYYY-MM-DD`), and `description` are required, while
-  `coverImage` and `updated` are optional. `updated` must be a real `YYYY-MM-DD`
+  `title` and `date` (`YYYY-MM-DD`) are required; `description`, `coverImage`,
+  and `updated` are optional. The archive shows generated opening-paragraph
+  excerpts, controlled by `showExcerpts`, rather than authored descriptions.
+  Build excerpts from rendered prose, omit non-prose blocks, and preserve whole
+  inline formulas for MathJax. Keep excerpt HTML bounded in generated summaries;
+  never load full articles or the search index for list previews. Category
+  directory entries show neither descriptions nor excerpts. Supplied descriptions
+  remain available for metadata, search, Markdown exports, and feeds; these must also
+  support posts without descriptions. `updated` must be a real `YYYY-MM-DD`
   date on or after publication and should mark a substantive content change.
   It drives the visible update date, Markdown metadata, article `dateModified`,
   sitemap `lastmod`, and feeds. Leave unknown historical update dates unset;
@@ -277,6 +287,12 @@ Project guidance for agents working in this repository.
 - Posts are compiled as standard MDX with GFM and math support. Prefer native
   MDX syntax and semantic HTML elements such as `<details>` for authored
   interactive content; imported build-time components are also supported.
+- For mathematical pseudocode, use post-local semantic HTML with the existing
+  MathJax renderer so formulas match the prose. Keep the complete algorithm
+  visible, use native `<details>` for supplementary notes, and verify that the
+  generated Markdown preserves every step and formula. TeX in TSX string
+  literals should use `String.raw` or escaped backslashes; code blocks are not
+  MathJax containers.
 - Embed Lichess games with native MDX iframes using a descriptive `title`,
   `loading="lazy"`, `width="100%"`, and an explicit height. The `/black` URL
   suffix sets the viewpoint; the hash selects the initial ply (for example,
@@ -309,6 +325,10 @@ Project guidance for agents working in this repository.
   JavaScript and `.wasm` as WebAssembly. Version 30 omits PDF.js's CMYK ICC
   profile; `public/assets/web/iccs` supplies it at the engine's default path.
   Verify actual canvases and asset requests in desktop/mobile browser tests.
+  Start embedded readers with the sidebar closed: a PDF's authored outline
+  preference can otherwise squeeze slide pages into thumbnails on mobile.
+  Slide decks can repeat PDF page labels across overlays. The page-number input
+  uses those labels; `.page[data-page-number]` uses physical page indexes.
 - A post can keep BibTeX references in a sibling `references.bib` file and cite
   them with Pandoc-style keys such as `[@key]`. Citations use the APA CSL
   style. When a bibliography is rendered, the generator appends it with a
@@ -316,11 +336,24 @@ Project guidance for agents working in this repository.
   marker to the MDX source.
 - Citation keys resolve only against the current post's `references.bib`;
   entries in another post's bibliography are not shared automatically.
-- Use citations selectively. Group them around a coherent idea or section when
-  source attribution remains clear. Avoid mechanically citing every paragraph
-  or repeating the same source throughout one explanation. Keep citations close
-  to specific results, quotations, empirical claims, and adapted figures that
-  need attribution.
+- Prefer the latest publicly available offering of a course when consulting
+  lecture notes. Check the official course site and schedule first, then read
+  the relevant lecture to verify that it supports the cited claim. Update the
+  citation key, year, term, lecturer, and URL together when changing editions.
+  Use an older offering when the relevant newer material is unavailable or
+  omits needed content, and identify the edition accurately. Continue citing
+  original papers for attribution of methods and results.
+  When summarizing a method's evolution, also check the authors' current papers
+  and official implementation for later versions; recent lecture notes alone
+  do not establish a complete release history.
+- Use citations selectively and place them at the point of attribution: next to
+  the named paper, lecture, method, or specific claim they support, including
+  within a sentence. Cite distinct named sources separately instead of bundling
+  them at the paragraph's end. Group citations only when they support the same
+  claim; use a paragraph-end citation only when its scope is clear. Avoid
+  mechanically citing every paragraph or repeating the same source throughout
+  one explanation. Keep specific results, quotations, empirical claims, and
+  adapted figures attributable.
 - Citation workflow:
   1. Create or update `content/posts/<slug>/references.bib`. Use readable,
      stable keys such as `kingma2014autoencoding`; write authors as
@@ -353,6 +386,9 @@ Project guidance for agents working in this repository.
   and loop counts preserved. Verify decoded metadata and playback on the served
   page; a successful conversion can still silently retain only the first frame.
   Original Hexo sources and assets are in `../blog-src/source/_posts`.
+  Compare original GIFs with derived WebP files before choosing animation
+  sources: legacy WebP conversions can omit frames or change pause durations.
+  Prefer the complete original animation when the versions differ.
   `image-size` omits the animated `avis` brand from its detector; our dimension
   helper routes it through the exported HEIF parser so image hydration still
   receives width and height.
@@ -364,6 +400,11 @@ Project guidance for agents working in this repository.
   post metadata and generated content are refreshed before `pnpm build`,
   `pnpm start`, `pnpm test`, or `pnpm check`. The content typecheck includes
   the main generator, its TypeScript helpers, and post-local components.
+  Run these lifecycle-hooked commands sequentially: they write shared generated
+  files, and pnpm's dependency verification can also relink `node_modules`.
+  When concurrent tasks share the checkout, use an isolated validation snapshot
+  with its own generated directories and dependencies; a shared `node_modules`
+  symlink can disappear or change during another task's installation.
 - Files under `src/app/data` are generated from `content` and ignored by Git.
   Do not edit or commit them directly; update the source content files instead.
 
@@ -378,6 +419,10 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
 - Use plain language, concrete examples, and intuition to explain the problem
   and how the mechanism works. Connect the reasoning steps and explain what
   equations mean, so a first-time reader can follow the argument.
+  Establish the problem, then introduce each prerequisite before using it in
+  the mechanism. Do not add a heading for every reasoning step. Keep long
+  derivations and implementation refinements in native `<details>` when they
+  would interrupt the main explanation.
 - Preserve substantial technical content and rigor: mechanisms, assumptions,
   essential equations, tradeoffs, and practical implications. Make this content
   easier to follow through clear explanations and visual support.
