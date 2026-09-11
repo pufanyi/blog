@@ -55,6 +55,24 @@ test('two embedded PDFs render independently and follow the article theme', asyn
   await embeds.nth(0).scrollIntoViewIfNeeded();
 });
 
+test('a slide deck with an outline starts with the sidebar closed', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/blog/oi-icpc/notes/segment-tree-intro');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  const embed = page.locator('iframe.post-pdf');
+  await embed.scrollIntoViewIfNeeded();
+  const reader = embed.contentFrame();
+  await expect(reader.locator('.page[data-page-number="1"] canvas').first()).toBeVisible({ timeout: 30_000 });
+  const container = reader.locator('#outerContainer');
+  await expect(container).not.toHaveClass(/viewsManagerOpen/);
+
+  const toggle = reader.locator('#viewsManagerToggleButton');
+  await toggle.click();
+  await expect(container).toHaveClass(/viewsManagerOpen/);
+  await toggle.click();
+  await expect(container).not.toHaveClass(/viewsManagerOpen/);
+});
+
 test('the static reader is noindex and rejects non-asset sources', async ({ page, request }) => {
   const response = await request.get('/pdf-viewer');
   expect(response.status()).toBe(200);
