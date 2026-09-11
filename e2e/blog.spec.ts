@@ -41,7 +41,8 @@ test('folder navigation opens nested articles and returns through their breadcru
   await expect(breadcrumbs.locator('[aria-current="page"]')).toHaveText('Contents');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.goto('/blog/contents/ml/ml-revisit/infra');
-  await expect(page.locator('.directory-entry')).toHaveCount(3);
+  const infraEntries = new Set(POSTS.filter(post => post.slug.startsWith('ml/ml-revisit/infra/')).map(post => post.slug.split('/')[3]));
+  await expect(page.locator('.directory-entry')).toHaveCount(infraEntries.size);
   await page.goto('/blog/contents/ml/ml-revisit/infra/does-not-exist');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('404: Existence Left as an Exercise');
 });

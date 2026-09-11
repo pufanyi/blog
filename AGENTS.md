@@ -84,6 +84,8 @@ Project guidance for agents working in this repository.
   Directory pages list immediate children, folders first, with dates equal to
   the latest descendant publication `date`, ignoring `updated`. Keep `/blog`
   as the paginated archive and preserve the contents root even with no posts.
+  Derive browser-test directory counts from generated post paths so adding a
+  post does not require updating unrelated navigation assertions.
   Use full path strings for router navigation; encoding an entire slug or passing
   it as a single noninitial router command turns `/` into `%2F`.
 - Start the local development server with `pnpm start`.

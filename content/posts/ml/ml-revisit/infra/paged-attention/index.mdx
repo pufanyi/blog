@@ -1,0 +1,55 @@
+---
+title: "Infra: PagedAttention"
+date: "2026-09-11"
+description: "vLLM 的三个关键机制：KV cache 分页、前缀共享与 continuous batching。"
+---
+
+## KV Cache 的显存账
+
+Prefill 为 prompt 建立 KV cache，decode 再逐步追加。Serving 时，请求的到达时间、长度和结束时间都不同；给每个请求预留最大长度的连续空间，会把本可用于其他请求的显存占住。PagedAttention 把 KV cache 的分配单位缩小到 block，让 vLLM 能在同一显存预算下容纳更多活跃请求。[@jain2026kvcache]
+
+对于各层结构相同的 MHA / GQA，未分片、未共享的 KV cache 大小为
+
+$$
+M_{\mathrm{KV}} = 2 L H_{\mathrm{KV}} d_h b \sum_i T_i.
+$$
+
+这里 $L$ 是层数，$H_{\mathrm{KV}}$ 是 KV head 数，$d_h$ 是 head dimension，$b$ 是每个元素的字节数，$T_i$ 包括第 $i$ 个请求已缓存的 prompt 和生成 token。例如，$L=32$、$H_{\mathrm{KV}}=8$、$d_h=128$、BF16（$b=2$）时，每个 token 要 128 KiB，8,192 个 token 就是 1 GiB。这里只计 KV tensor，不含模型权重、block table、padding 和临时 workspace。
+
+### 三种显存浪费
+
+假设一个请求已缓存 3 个 token，最终会增长到 5 个，却一开始就分配了 8 个 slot。讲义和原论文将浪费拆成三类：[@jain2026kvcache; @kwon2023pagedattention]
+
+- **Reservation**：之后会用到、现在还空着的 2 个 slot。即使事先知道最终长度，过早占住这部分空间，也会挤掉其他请求。
+- **Internal fragmentation**：分配区内最终用不上的 3 个 slot，来自按最大可能长度过量分配。
+- **External fragmentation**：分配区之间的空闲空间太零散，无法满足新请求的连续分配要求；总空闲量足够，也可能放不下。
+
+<PagedKvWaste />
+
+前两类是按最终长度回看的划分；在线调度时，还不知道请求会在 5 个 token 后结束。PagedAttention 用按需分配减少提前预留，把过量分配限制在小的尾块内，再用等大小、可不连续的 physical block 避免 pool 内的 external fragmentation。
+
+## 按 Block 分配
+
+每个 block 容纳 $B$ 个 token 的 KV。每个请求维护一张 **block table**，把连续的 logical block 编号映射到 GPU pool 中任意可用的 physical block；长出一个 block 时再分配，请求结束后释放引用。这里的 paging 是软件管理的 KV 布局，attention kernel 根据 block table 直接读取 KV。[@kwon2023pagedattention]
+
+<PagedKvLayout />
+
+在不共享、按需分配的简单情形下，长度 $T$ 占用 $B\lceil T/B\rceil$ 个 token slot，每个序列尾块的空位少于 $B$；等大小的 block pool 也避免了不同大小请求之间的 external fragmentation。Block 越小，尾部浪费越少，但 block table 和寻址开销越大。[@jain2026kvcache; @kwon2023pagedattention]
+
+## 共享前缀，分叉时 Copy-on-write
+
+同一 prompt 采样多条输出时，各序列的 block table 可以指向同一份 prompt KV。原论文用 reference count 管理共享：若要写入仍被其他序列引用的尾块，就先复制该块，再修改映射；已经填满的前缀块继续共享。[@kwon2023pagedattention]
+
+<PagedKvSharing />
+
+后来的 **Automatic Prefix Caching** 把复用扩展到不同时间到达的请求：命中缓存的完整前缀块可直接复用，省去对应的 prefill 计算。vLLM 的 hash 同时包含前序 block 的 hash、当前 token 和必要的上下文标识（如 LoRA ID），因为 KV 依赖整个前缀；只有中间一段文字相同并不足以复用。当前这套缓存设计只缓存完整 block。[@vllmprefixcaching]
+
+## Continuous Batching
+
+显存容得下更多请求，还需要调度把它们用起来。**Iteration-level scheduling** 每轮重新组织 batch：完成的请求退出，资源允许时接纳等待中的请求，无须等整个 batch 中最长的序列结束。这一思路在 Orca 中已有，Stanford CS336 的 inference lecture 也将它与 PagedAttention 放在一起讨论。[@yu2022orca; @liang2025inference]
+
+<PagedContinuousBatching />
+
+两者配合：分页减少显存浪费，continuous batching 及时补入工作，提高 serving throughput。它并不保证单个请求的每一步 decode 都更快；并发量仍受 KV 容量、计算预算和延迟目标约束。
+
+PagedAttention 与 FlashAttention 也可以配合：前者让 attention 读取分页的 KV，后者通过 tiling 和融合减少 attention 中间结果的 HBM 读写。两者都保留原来的 dense attention 语义，分页本身不会缩短需要关注的上下文。[@jain2026kvcache; @liang2025inference]
