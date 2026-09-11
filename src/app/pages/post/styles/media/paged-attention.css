@@ -33,13 +33,6 @@
 .paged-ochre { color: var(--accent-ochre); }
 .paged-clay { color: var(--accent-clay); }
 
-.paged-waste-hatch {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 0.8;
-  opacity: 0.5;
-}
-
 .paged-cell {
   fill: color-mix(in srgb, currentColor 16%, var(--paper-bg));
   stroke: currentColor;
@@ -81,6 +74,15 @@
 .paged-label,
 .paged-token { font-family: var(--font-mono); }
 .paged-note { fill: var(--text-secondary); font-size: 12px; }
+
+.paged-waste-cell { stroke: var(--border-color); }
+.paged-waste-generated { fill: color-mix(in srgb, currentColor 32%, var(--paper-bg)); }
+.paged-waste-reserved { stroke: currentColor; stroke-dasharray: 4 2; }
+.paged-waste-internal { fill: color-mix(in srgb, currentColor 25%, var(--paper-bg)); }
+.paged-waste-external { fill: var(--surface-soft); }
+.paged-waste-token { font-size: 11px; }
+.paged-waste-bracket { stroke-width: 0.9; }
+.paged-waste-annotation { fill: var(--text-color); }
 
 .paged-scroll-hint {
   display: none;

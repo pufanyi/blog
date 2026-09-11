@@ -316,6 +316,11 @@ Project guidance for agents working in this repository.
   marker to the MDX source.
 - Citation keys resolve only against the current post's `references.bib`;
   entries in another post's bibliography are not shared automatically.
+- Use citations selectively. Group them around a coherent idea or section when
+  source attribution remains clear. Avoid mechanically citing every paragraph
+  or repeating the same source throughout one explanation. Keep citations close
+  to specific results, quotations, empirical claims, and adapted figures that
+  need attribution.
 - Citation workflow:
   1. Create or update `content/posts/<slug>/references.bib`. Use readable,
      stable keys such as `kingma2014autoencoding`; write authors as
@@ -366,13 +371,18 @@ Project guidance for agents working in this repository.
 
 These principles apply to the series under `content/posts/ml/ml-revisit/`.
 
-- Write for experienced practitioners who train large language models. The
-  series primarily serves as a refresher: readers may already know the topic.
-  Assume familiarity with core concepts and briefly recall prerequisites when
-  needed to understand the specific mechanism being discussed.
-- Keep explanations concise. Focus on the central idea, essential equations,
-  and useful distinctions; keep background and repetition to a minimum while
-  preserving technical accuracy.
+- Write for readers with some machine-learning or LLM background who may be
+  encountering the specific topic for the first time. The series should support
+  both initial learning and review. Briefly establish necessary prerequisites
+  and introduce the terms needed to follow the explanation.
+- Use plain language, concrete examples, and intuition to explain the problem
+  and how the mechanism works. Connect the reasoning steps and explain what
+  equations mean, so a first-time reader can follow the argument.
+- Preserve substantial technical content and rigor: mechanisms, assumptions,
+  essential equations, tradeoffs, and practical implications. Make this content
+  easier to follow through clear explanations and visual support.
+- Keep prose concise and focused. Remove repetition and unnecessary background
+  while retaining the intermediate reasoning a first-time reader needs.
 - Use illustrations generously when they make an idea clear at a glance.
   Prefer diagrams for architectures, data flows, tensor layouts, and comparisons.
   Keep captions and accompanying prose short and focused on how to read the

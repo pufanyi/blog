@@ -102,69 +102,65 @@ function PagedKvLayout() {
   );
 }
 
-const NAIVE_ALLOCATION = { current: 3, final: 5, capacity: 8 };
-const FRAGMENTED_POOL = [
-  { slots: 2, free: true },
-  { slots: 4, free: false },
-  { slots: 2, free: true },
-];
-const NEW_REQUEST_SLOTS = 3;
+const NAIVE_KV_REGIONS = [
+  { kind: 'prompt', tokens: ['Large', 'models'], tone: 'blue', above: false },
+  { kind: 'generated', tokens: ['learn'], tone: 'blue', above: true },
+  { kind: 'reserved', tokens: ['from', 'data'], tone: 'ochre', above: true },
+  { kind: 'internal', tokens: ['<resv>', '<resv>', '<resv>'], tone: 'clay', above: false },
+  { kind: 'external', tokens: ['…', '…'], tone: 'neutral', above: true },
+  { kind: 'peer', tokens: ['LLM', 'is', '…'], tone: 'teal', above: false },
+] as const;
+
+function WasteBracket({ x, width, above }: { x: number; width: number; above: boolean }) {
+  const y = above ? 81 : 131;
+  const bend = above ? -7 : 7;
+  const center = x + width / 2;
+  const end = x + width;
+  return <path d={`M ${x} ${y} Q ${x} ${y + bend} ${x + 7} ${y + bend} H ${center - 7} Q ${center} ${y + bend} ${center} ${y + 2 * bend} Q ${center} ${y + bend} ${center + 7} ${y + bend} H ${end - 7} Q ${end} ${y + bend} ${end} ${y}`} className="paged-line paged-waste-bracket" />;
+}
 
 function PagedKvWaste() {
-  const { current, final, capacity } = NAIVE_ALLOCATION;
-  const regions = [
-    { name: 'Used', start: 0, end: current, tone: 'blue', fill: undefined },
-    { name: 'Reservation', start: current, end: final, tone: 'ochre', fill: 'paged-reservation-pattern' },
-    { name: 'Internal', start: final, end: capacity, tone: 'clay', fill: 'paged-internal-pattern' },
-  ];
-  const x = 60;
-  const cell = 560 / capacity;
-  const free = FRAGMENTED_POOL.filter((region) => region.free).map((region) => region.slots);
-  const totalFree = free.reduce((sum, slots) => sum + slots, 0);
-  const poolCell = 560 / FRAGMENTED_POOL.reduce((sum, region) => sum + region.slots, 0);
+  const count = (kind: (typeof NAIVE_KV_REGIONS)[number]['kind']) => NAIVE_KV_REGIONS.find((region) => region.kind === kind)!.tokens.length;
+  const current = count('prompt') + count('generated');
+  const final = current + count('reserved');
+  const capacity = final + count('internal');
+  const origin = 28;
+  const cell = 624 / NAIVE_KV_REGIONS.reduce((sum, region) => sum + region.tokens.length, 0);
+  const currentX = origin + (current - 0.5) * cell;
   return (
-    <Diagram id="paged-kv-waste" title="Three forms of KV cache memory waste" height={348}
-      description={`第一行是一个请求已分配的 ${capacity} 个 slot：${current} 个已有 KV，${final - current} 个预留给未来 token，${capacity - final} 个直到结束也用不到。第二行是独立的 external fragmentation 示例：两段各 ${free[0]} 个 slot 的空闲区域被请求 B 隔开，总空闲量 ${totalFree} 足够，但放不下需要 ${NEW_REQUEST_SLOTS} 个连续 slot 的新请求。`}
-      caption="每格代表一个 token 的 BF16 KV 容量，只画 KV 区域，不含权重或 workspace。斜线表示之后才用到的 reservation，交叉线表示最终用不到的 internal fragmentation；第二行的虚线格是分配区外的空闲空间。两行是独立示例。">
-      <defs>
-        <pattern id="paged-reservation-pattern" width="8" height="8" patternUnits="userSpaceOnUse">
-          <path d="M -2 2 L 2 -2 M 0 8 L 8 0 M 6 10 L 10 6" className="paged-waste-hatch paged-ochre" />
-        </pattern>
-        <pattern id="paged-internal-pattern" width="8" height="8" patternUnits="userSpaceOnUse">
-          <path d="M 0 0 L 8 8 M 0 8 L 8 0" className="paged-waste-hatch paged-clay" />
-        </pattern>
-      </defs>
-      <text x="340" y="26" className="paged-heading">{`Inside request A · ${capacity} allocated slots`}</text>
-      {regions.map(({ name, start, end, tone, fill }) => (
-        <g key={name} className={`paged-${tone}`}>
-          {Array.from({ length: end - start }, (_, offset) => (
-            <g key={offset}>
-              <rect x={x + (start + offset) * cell} y="57" width={cell - 2} height="40" rx="3" className="paged-cell" />
-              {fill
-                ? <rect x={x + (start + offset) * cell} y="57" width={cell - 2} height="40" rx="3" fill={`url(#${fill})`} />
-                : <text x={x + (start + offset + 0.5) * cell - 1} y="83" className="paged-token">KV</text>}
-            </g>
-          ))}
-          <text x={x + (start + end) * cell / 2 - 1} y="124" className="paged-label">{`${name} · ${end - start}`}</text>
-        </g>
-      ))}
-      <text x="340" y="158" className="paged-note">{`Current length: ${current} · eventual length: ${final} (known in hindsight)`}</text>
-      <text x="340" y="206" className="paged-heading">External fragmentation · between allocations</text>
-      {FRAGMENTED_POOL.map((region, index) => {
-        const start = FRAGMENTED_POOL.slice(0, index).reduce((sum, previous) => sum + previous.slots, 0);
+    <Diagram id="paged-kv-waste" title="KV cache memory: prompt, generated tokens, and three forms of waste" height={202}
+      description={`从左到右是同一段 GPU KV 内存：请求 A 的 ${count('prompt')} 个 prompt token、${count('generated')} 个已生成 token、${count('reserved')} 个之后才用到的 slot，以及 ${count('internal')} 个直到结束也用不到的 slot。A 共分配 ${capacity} 格，目前用了 ${current} 格，最终用到 ${final} 格。箭头指向当前生成位置。A 与请求 B 之间的 ${count('external')} 格空隙属于 external fragmentation；B 占据右侧区域。`}
+      caption="按 CSE 291 讲义 Figure 2 的横向布局重绘，数值沿用正文的 3／5／8 示例。每格代表一个 token 的 BF16 KV 容量，只画 KV 区域，不含权重或 workspace。词仅作示意；虚线 reservation 区的词是按最终输出回填的，其 KV 此时尚不存在。">
+      {NAIVE_KV_REGIONS.map((region, index) => {
+        const start = NAIVE_KV_REGIONS.slice(0, index).reduce((sum, previous) => sum + previous.tokens.length, 0);
+        const x = origin + start * cell;
+        const width = region.tokens.length * cell;
+        const labels = {
+          prompt: [`${region.tokens.length} prompt`, 'tokens'],
+          generated: ['Generated', `${region.tokens.length} token`],
+          reserved: [`${region.tokens.length} future slots`, '(reservation)'],
+          internal: [`${region.tokens.length} slots never used`, '(internal fragmentation)'],
+          external: ['External', 'fragmentation'],
+          peer: ['Request B', ''],
+        }[region.kind];
         return (
-          <g key={index} className="paged-teal">
-            {Array.from({ length: region.slots }, (_, offset) => (
+          <g key={region.kind} className={`paged-${region.tone}`}>
+            {region.tokens.map((token, offset) => (
               <g key={offset}>
-                <rect x={x + (start + offset) * poolCell} y="233" width={poolCell - 2} height="40" rx="3" className={region.free ? 'paged-empty' : 'paged-cell'} />
-                <text x={x + (start + offset + 0.5) * poolCell - 1} y="259" className="paged-token">{region.free ? 'free' : 'B'}</text>
+                <rect x={x + offset * cell} y="86" width={cell} height="40" className={`paged-cell paged-waste-cell paged-waste-${region.kind}`} />
+                <text x={x + (offset + 0.5) * cell} y="111" className="paged-token paged-waste-token">{token}</text>
               </g>
+            ))}
+            <WasteBracket x={x + 1} width={width - 2} above={region.above} />
+            {labels.map((label, line) => (
+              <text key={line} x={x + width / 2} y={(region.above ? 42 : 166) + line * 17} className="paged-note paged-waste-annotation">{label}</text>
             ))}
           </g>
         );
       })}
-      <text x="340" y="307" className="paged-note">{`Free: ${free.join(' + ')} = ${totalFree} slots · largest gap: ${Math.max(...free)}`}</text>
-      <text x="340" y="333" className="paged-note">{`New request needs ${NEW_REQUEST_SLOTS} contiguous slots → cannot fit`}</text>
+      <path d={`M ${currentX} 152 V 131`} className="paged-line" markerEnd="url(#paged-kv-waste-arrow)" />
+      <text x={currentX} y="166" className="paged-note">Request A</text>
+      <text x={currentX} y="183" className="paged-note">current step</text>
     </Diagram>
   );
 }
