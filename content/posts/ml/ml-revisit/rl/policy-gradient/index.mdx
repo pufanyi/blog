@@ -1,7 +1,7 @@
 ---
 title: "Policy Gradient Algorithms"
 date: "2024-10-16"
-updated: "2026-09-11"
+updated: "2026-09-12"
 ---
 
 ## Direct policy differentiation
@@ -39,71 +39,76 @@ $$
 
 $$
 \begin{aligned}
-\widehat{\mathcal{J}}&=\frac1N\sum_{i=1}^N r(\tau_i),\\
-\widehat g&=\frac1N\sum_{i=1}^N r(\tau_i)\nabla_\theta\log\pi_\theta(\tau_i).
+\hat{\mathcal{J}}&=\frac1N\sum_{i=1}^N r(\tau_i),\\
+\hat g&=\frac1N\sum_{i=1}^N r(\tau_i)\nabla_\theta\log\pi_\theta(\tau_i).
 \end{aligned}
 $$
 
 所以说 $r(\tau)\cdot\nabla_\theta\log\pi_\theta(\tau)$ 是 $\nabla_\theta\mathcal{J}(\theta)$ 的无偏估计，可惜这玩意儿的 variance 很高。
 
 <details>
-<summary>用同一批样本算两个期望，以及代码里的 loss</summary>
+<summary>从轨迹积分到代码里的 loss</summary>
 
-考虑一个只需选择一次动作就结束的游戏，把选择 A 的概率 $p$ 直接作为待优化的参数：
+采到一条轨迹 $\tau$ 后，我们知道它的总奖励 $r(\tau)$，也能计算策略赋予它的概率。一个很自然的想法是：既然希望高 reward 的轨迹更容易出现，就把 $\pi_\theta(\tau)r(\tau)$ 当作这条样本要最大化的量。
 
-| 动作 | 奖励 $r(a)$ | 当前概率 $\pi_p(a)$ |
-| --- | --- | --- |
-| A | $100$ | $p=0.01$ |
-| B | $1$ | $1-p=0.99$ |
+这里容易混淆的是**积分中的一项**和**采样后应当平均的量**。目标 $\mathcal{J}(\theta)=\int\pi_\theta(\tau)r(\tau)\,\mathrm{d}\tau$ 包含所有轨迹。如果能完整计算这个积分，直接对它求 $\theta$ 的梯度完全正确。但代码里只采到了部分轨迹，而且它们是按 $\pi_\theta$ 出现的：概率大的轨迹，本来就更容易进入样本。
 
-目标值和它的导数分别是
+因此，按策略采样后，直接平均 $r(\tau)$ 就能估计 $\mathcal{J}(\theta)$。如果又给每条样本乘一次 $\pi_\theta(\tau)$，平均值的期望就变成
+
+$$
+\mathbb{E}_{\tau\sim\pi_\theta}[\pi_\theta(\tau)r(\tau)]
+=\int\pi_\theta(\tau)^2r(\tau)\,\mathrm{d}\tau,
+$$
+
+通常不再等于 $\mathcal{J}(\theta)$。**积分里的概率权重，已经由采样频率体现了；不能把被积函数直接当作按该概率采样后的单样本目标。**
+
+接下来考虑怎样更新参数。先对完整目标求导，得到
+
+$$
+\nabla_\theta\mathcal{J}(\theta)
+=\int r(\tau)\nabla_\theta\pi_\theta(\tau)\,\mathrm{d}\tau.
+$$
+
+对被积函数 $\pi_\theta(\tau)r(\tau)$ 求 $\theta$ 的导数，本身没有问题。问题仍然在于如何用采样估计这个积分：如果对采到的每条轨迹直接计算 $r(\tau)\nabla_\theta\pi_\theta(\tau)$ 再平均，采样频率又会带来一个额外的 $\pi_\theta(\tau)$。
+
+为了使用 $\tau\sim\pi_\theta$ 的样本，需要把这个梯度积分重新写成对 $\pi_\theta$ 的期望：
 
 $$
 \begin{aligned}
-\mathcal{J}(p)&=\mathbb{E}_{a\sim\pi_p}[r(a)]
-=100p+(1-p)=1+99p,\\
-\frac{\mathrm{d}\mathcal{J}}{\mathrm{d}p}&=99.
+\nabla_\theta\mathcal{J}(\theta)
+&=\int\pi_\theta(\tau)\left[
+r(\tau)\frac{\nabla_\theta\pi_\theta(\tau)}{\pi_\theta(\tau)}
+\right]\,\mathrm{d}\tau\\
+&=\mathbb{E}_{\tau\sim\pi_\theta}\left[
+r(\tau)\nabla_\theta\log\pi_\theta(\tau)
+\right].
 \end{aligned}
 $$
 
-在 $p=0.01$ 时，$\mathcal{J}(p)=1.99$：这是当前每次游戏的平均奖励。导数 $99$ 则表示，$p$ 每增加 $\Delta p$，平均奖励就增加 $99\Delta p$。
+外面的 $\pi_\theta(\tau)$ 由采样频率提供，所以每条样本应当贡献括号里的量。Log 在这里出现，是因为 $\nabla_\theta\pi_\theta/\pi_\theta=\nabla_\theta\log\pi_\theta$，它让我们能用按策略采到的轨迹估计正确的目标梯度。
 
-现在假设采样 $100$ 次，恰好得到 $1$ 次 A 和 $99$ 次 B。直接平均奖励，就得到目标值的估计：
-
-$$
-\widehat{\mathcal{J}}=\frac{1\cdot100+99\cdot1}{100}=1.99.
-$$
-
-要估计导数，则把每个样本换成它的梯度贡献。A 和 B 的贡献分别为
+最后才是代码里的 loss：我们需要一个标量，对固定的样本和奖励求导后，能产生上述梯度贡献。因此可以构造
 
 $$
 \begin{aligned}
-r(A)\frac{\mathrm{d}}{\mathrm{d}p}\log\pi_p(A)&=\frac{100}{p},\\
-r(B)\frac{\mathrm{d}}{\mathrm{d}p}\log\pi_p(B)&=-\frac1{1-p}.
+\ell_\theta(\tau)&=-r(\tau)\log\pi_\theta(\tau),\\
+-\nabla_\theta\ell_\theta(\tau)
+&=r(\tau)\nabla_\theta\log\pi_\theta(\tau).
 \end{aligned}
 $$
 
-对同样的 $100$ 个样本取平均：
+**Reward 始终是 $r(\tau)$；$-r(\tau)\log\pi_\theta(\tau)$ 是为了得到所需梯度而构造的 loss。** 它的数值不等于负的期望奖励。Spinning Up [@SpinningUp2018] 也强调了这一点：在采样所用的策略参数处，这个 loss 的梯度是负 policy gradient 的无偏估计；更新参数后，一直复用旧 batch 最小化它，并没有同样的保证。
 
-$$
-\widehat g
-=\frac1{100}\left(1\cdot\frac{100}{0.01}-99\cdot\frac1{0.99}\right)
-=99.
-$$
-
-同一批数据，平均奖励得到 $1.99$，平均梯度贡献得到 $99$。这两个期望分别回答了“当前策略有多好”和“改变参数会让它变好多少”。Log 的导数提供了 $1/\pi_p(a)$，抵消样本出现频率里的概率权重，让第二个平均能估计正确的导数。
-
-但为什么不能直接对 $\widehat{\mathcal{J}}$ 求导？因为采样结束后，这批奖励就是固定的数据。对记录下来的 $1.99$ 做普通反向传播，没有一条通向 $p$ 的计算路径。真正改变 $p$ 后，下一批样本中 A、B 的出现频率也会改变；这个变化包含在 $\mathcal{J}(p)$ 的分布 $\pi_p$ 中，却没有记录在固定的奖励数组里。因此，**能用样本均值估计目标值，并不意味着对这份固定样本的均值做自动微分，就能估计目标梯度。**
-
-这也解释了代码为什么构造下面这个 loss：
+对一条轨迹，代码中把各步实际采到的 action 的 log probability 相加：
 
 ```python
-loss = -(rewards.detach() * log_probs).mean()
+trajectory_log_prob = action_log_probs.sum()
+loss = -trajectory_return.detach() * trajectory_log_prob
 ```
 
-`rewards` 和 `log_probs` 对应同一批采样动作；求导时奖励固定，梯度只通过 `log_probs` 传播，负号则把最大化奖励转成梯度下降。这个 loss 用来让自动微分生成所需的梯度，它的数值并不等于负的期望奖励。Spinning Up [@SpinningUp2018] 也强调了这一点：只有在采样所用的策略参数处，这个 batch loss 的梯度才是负 policy gradient 的无偏估计；更新参数后，一直复用旧 batch 最小化它，并没有同样的保证。
+这里 `trajectory_return` 是这条轨迹的总奖励，求导时作为常量；`action_log_probs` 保留策略参数的计算图。对一个 batch，再平均各条轨迹的 loss。严格来说，完整轨迹概率还包含初始状态和环境转移的概率；它们在本文的假设下与 $\theta$ 无关，所以计算 log probability 的梯度时，只需保留各步的 action log probability。
 
-这里恰好抽到 $1$ 次 A、$99$ 次 B，所以两种估计都正好等于各自的期望。一般情况下，**无偏指估计量的期望等于被估计的量**，并不保证每个 batch 都准确。某个 batch 可能一次 A 都没抽到，梯度估计仍然可能有很高的 variance。
+直接平均 reward 可以评估策略，但采样完成后的奖励数组是固定数据，普通反向传播无法从中得到采样分布随参数变化的影响。上面的 loss 正是把这个影响写进了计算图。
 
 </details>
 
