@@ -1,0 +1,322 @@
+---
+title: "生成树入门"
+date: "2020-01-29"
+description: "生成树算法、分数规划、wqs 二分与 Matrix-Tree 定理的学习笔记。"
+---
+
+万年不更了，随便写点什么吧。
+
+首先最小生成树的两种求法 Kruskal 和 Prim，强行丢[链接](https://oi-wiki.org/graph/mst/)。
+
+其他还有一个 Borůvka 算法，大概思路就是每次将每个集合伸出去的最短的那条边选入，选入后将两个集合合并成一个新的集合，考虑到每次集合个数减半，所以复杂度 $\mathcal{O}(m\log n)$。偷了张 Wikipedia 的图：
+
+![Borůvka 算法逐轮合并连通分量的动画](./Boruvka.avif)
+
+那这东西有什么用呢？有[这么一道题](http://codeforces.com/problemset/problem/888/G)，大概是有一个 $n\,(n\le 200000)$ 个点的完全图，每个节点的编号为 $a_i\,(0\le a_i<2^{30})$，$i$ 与 $j$ 的边的权值是 $a_i\bigotimes a_j$，$\bigotimes$ 是按位异或，求该图的最小生成树。
+
+这道题大概用到了 Borůvka 的思想，先用所有点权建一棵 Trie 树，考虑 Trie 树上一棵子树，显然一开始肯定是他们自己连成一棵 MST，然后再和其兄弟连一条边，因为跨越子树像兄弟连一条边需要 $2^d$ 的代价，$d$ 是节点深度，显然自己连更优，于是建出 Trie 树之后分治（其实就是 `dfs`）下去即可。
+
+具体代码可以[戳这里](https://codeforces.com/contest/888/submission/69594456)。
+
+有一道叫[最小 mex 生成树](https://www.luogu.com.cn/problem/P5631)的题目，题目大意是给定 $n$ 个点 $m$ 条边的无向连通图，求一棵生成树，使得其边权集合的 $\mathrm{mex}$ 尽可能小。$1\le n\le 10^6,\,1\le m\le 10^5,\,0\le w\le 10^5$。
+
+考虑一个做法：枚举答案 $x$，把边权为 $x$ 的所有边全部删掉，看看能不能构成一棵生成树。
+
+建一棵以边权为下标的线段树，对于每条边权为 $w$ 的边将其放到 $[0,w-1]$ 和 $[w+1,10^5]$ 上。然后在线段树上遍历，遍历到一个节点就将它上面挂着的边连上，这样子到叶结点时就连上了所有不包含该边权的边，用可撤销并查集判断图是否连通即可。
+
+用可撤销按秩合并并查集，复杂度 $\mathcal{O}(n\log^2n)$。并不是很懂为什么两只 $\log$ 能过 $10^6$。
+
+最小比率生成树，也就是给你一张图，每条边有一个非负权值 $a_i,b_i$，求一棵生成树 $T$，使得 $\frac{\sum_{e\in T}a_e}{\sum_{e\in T}b_e}$ 最小。
+
+大概就是一个 01 分数规划问题，我们可以考虑二分答案 $l$，条件是 $\frac{\sum_{e\in T}a_e}{\sum_{e\in T}b_e}\le l$，也就是 $\sum_{e\in T}a_e-l\cdot b_e\le 0$。
+
+考虑到 $a_i\ge 0,b_i\ge 0$，所以左边的东西肯定随 $l$ 递减。
+
+以 $a_i-l\cdot b_i$ 为边权建树二分即可。
+
+模板题大概是[这道](http://poj.org/problem?id=2728)，代码可以[戳这里](/posts/oi-icpc/notes/spanning-tree-intro/POJ2728.cpp)。
+
+接下来是那到经典的 [wqs 二分好题](https://www.luogu.com.cn/problem/P2619)，题目大意就是给你一个无向带权连通图，每条边是黑色或白色。让你求一棵最小权的恰好有 $x$ 条白色边的生成树。$V\le 50000,\,E\le 100000$，边权为 $[1,100]$ 中的整数。
+
+首先我们先要知道 wqs 二分是什么，那就先说一道题吧，大概就是有一个长度为 $n\,(n\le 10^5)$ 的正整数序列 $\{a\}$，要分成 $K$ 段，第 $i$ 段之和记为 $s_i$，求最小的 $\sum_{i=1}^Ks_i^2$。
+
+我们令 $f_k$ 表示分成 $k$ 段的最小值，有一个显然的结论就是 $f_k$ 是递减的，因为 $\left(a+b\right)^2> a^2+b^2$，把一段给拆开来肯定更优。
+
+我们来考虑 $f$ 的差分数列，我们发现 $f$ 的差分数列是单调不增的。感觉我的证明比较口胡，大家意会一下就可以了。如果大家对证明没什么兴趣，也可以不跳过这一段，反正只要意会一下这是单调的就可以了。我们考虑从分成 $k$ 段到分成 $k-1$ 段的情况，也就是说，要把段数减 $1$。此时，有两种办法，一种是合并其中的两段，另一种是拆掉原有的一些段。首先看合并两段。考虑到如果合并这两段所假的量比 $f_{k+1}-f_k$ 要小，那么 $k+1\to k$ 的时候就应该合并这两段。当然可能这两段可能是 $k+1\to k$ 的时候出现的，这时候我们考虑到 $a\cdot(b+c)\ge ab$ 即可。还有一种方法就是拆掉一些段然后合并。不难发现这其实只有和二分图增广一样的情况，就是 `0101010` 变成 `1010101`。如果 $k+1\to k$ 所生成的段和这些段无关，那显然这样操作的代价比 $k+1\to k$ 的代价劣，如果有关，我们考虑这一段，如果 $k\to k-1$ 的代价比 $k+1\to k$ 优，考虑 $k\to k-1$ 这一次“增广”时该块所断开的那个位置，我们考虑 $k+1\to k$ 时不将那一段合并，而是将我们刚才找到的那个位置向左侧或右侧跟 $k\to k-1$ 这样的样子的方向进行“增广”，不难证明这样做的代价优于 $f_{k+1}-f_k$，而由于我们之前认为 $f_{k+1}-f_k$ 是最优的，矛盾了，所以不合。综上，我们可以发现 $f$ 的差分数列是单调不增的，也就是说，是一个凸壳。
+
+那我们既然我们得到了一个凸壳，但是我们并不知道凸壳上具体点的纵坐标，我们考虑一个做法：考虑用一条直线 $y=kx+b$ 去切这个凸壳，我们二分 $k$，如果能快速求出 $b$ 和具体切到了凸壳上的那一个点，那么就能得出答案。
+
+对于这道题，我们发现二分的 $k$ 其实就是给每段增加了一个代价，也就是说，每段的代价不再是 $s_i^2$，而是 $s_i^2-k$（显然，这里需要二分的 $k$ 是负数）。这样做有一个好处，就是我们不必考虑需要选 $K$ 段的限制，而是只要求出最优解分成了几段（也就是切到了那个点），以及最优解的答案（也就是 $b$）即可。
+
+这个东西我们可以考虑一个朴素的 `dp`，令 $g_i$ 表示以 $i$ 结尾的答案，显然我们有：
+$$
+g_i=\min_{j=1}^{i-1}\left(g_j+\left(\sum_{t=j}^ia_t\right)^2\right)-k
+$$
+
+我们令 $S_i=\sum_{j=1}^ia_j$，不难得到：
+$$
+g_i=\min_{j=1}^{i-1}\left(g_j+s_j^2-2s_is_j\right)-k-s_i^2
+$$
+
+不难发现这个东西可以斜率优化，于是我们就可以顺利地解决这道题。
+
+我们回过头来看之前那道题：给你一个无向带权连通图，每条边是黑色或白色。让你求一棵最小权的恰好有 $x$ 条白色边的生成树。
+
+这道题的答案似乎并不是随 $x$ 单调的，应该是一个单峰的函数，但是我们考虑其差分数列，发现其也是单调的。因为想象如果你必须扔掉一条边而去选择另一种颜色一条边，那一定是有很多中选择（如弃 $a$ 选 $b$，弃 $c$ 选 $d$），而这些决策是独立的，我们可以选择任意一个，而显然是会去选择最小的一个。于是这仍然是一个凸壳。我们仍然能用刚才的思路，用一条直线去卡，二分斜率，发现斜率就是给每条白色边加一个权值，然后就可以直接做了。如果先将黑白边分别排序，最后每次二分是归并一下，那么排序的复杂度变成了 $\mathcal{O}(E)$，于是复杂度 $\mathcal{O}(E\log C\,\alpha(V))$，$C$ 是二分范围。
+
+接着应该是[严格次小生成树](https://www.luogu.com.cn/problem/P4180)，题目就是让你求一棵严格次小生成树吧。其实也很简单，首先发现任意一棵最小生成树都可以通过加一条边再删一条边变成一棵严格次小生成树，于是就可以建出一棵最小生成树，用倍增、树剖或是 `LCT` 维护链最大值，每次枚举一条非树边尝试删除一条树边，复杂度 $\mathcal{O}(n\log^2n)/\mathcal{O}(n\log n)$。代码看[这里](/posts/oi-icpc/notes/spanning-tree-intro/luoguP4180.cpp)。
+
+最小权值生成树？就是要求 $\sum w_is_i$ 最小。$w_i$ 是 $i$ 以 $1$ 为根时与父亲边权的大小，$w_1=0$，$s_i$ 是以 $1$ 为根时 $i$ 的子树大小。$1\le n,m\le 10^5,\,w_i\ge 0$。
+
+发现 $\sum w_is_i=\sum d_i$，$d_i$ 表示 $i$ 到 $1$ 的距离，于是最短路径树即是答案。
+
+最小极差生成树？首先有一个 $\mathcal{O}(m^2)$ 的做法，就是枚举最小边，然后就是最小瓶颈生成树了，直接 `Kruskal`。
+
+然后我们发现我们可以倒着枚举边，每次加入一个最小的，形成一个环，显然是删去环中最大的，这个我们可以直接用 `LCT` 维护，维护边权的时候将边变成一个虚点即可。时间复杂度 $\mathcal{O}(m\log (n+m))$。
+
+模板题可以看[这道](https://www.luogu.com.cn/problem/P4234)，代码可以看[这里](/posts/oi-icpc/notes/spanning-tree-intro/最小差值生成树.cpp)。有一个大坑就是这道题有自环。
+
+还有最小乘积生成树。就是每条边有两个权值 $a_i,b_i$，求一棵生成树 $T$，最小化 $\sum_{e\in T}a_e\times\sum_{e\in T}b_e$。数据范围 $1\le n\le 200,\,1\le m\le 10000,\,0\le a_i\le b_i\le 255$。
+
+考虑将每棵最小生成树 $T$ 都映射到一个点 $\left(\sum_{e\in T} a_e,\sum_{e\in T} b_e\right)$。也就是求其与 $(0,0)$ 所围成的面积最小。
+
+然后就不难发现答案一定在凸壳上，我们考虑找到这个凸壳。
+
+有一种叫做 `Quick-Hull` 的找凸包的方法，就是选取两个凸包上的点，连成一条线，找到距离这条线最远的点（一侧），然后分治下去（继续偷一张 Wikipedia 上的图）：
+
+![Quickhull 算法递归构造凸包的动画](./Animation_depicting_the_quickhull_algorithm.avif)
+
+这种方法可以用在这道题目上，我们考虑先找到两个点，最好找的就是左上角和右下角了，一个是以 $a$ 建一棵最小生成树，另一个以 $b$ 建最小生成树。
+
+然后我们考虑找最远的点，那显然就是面积最大的点，也就是说，如果我们找到左上角的点 $A(x_a,y_a)$，右下角 $B(x_b,y_b)$，我们要找一个点 $C(x_c,y_c)$，我们要最大化 $\overrightarrow{AC}\times \overrightarrow{AB}$。
+
+我们考虑到：
+$$
+\begin{aligned}
+\overrightarrow{AC}\times \overrightarrow{AB}&=\left(x_c-x_a,y_c-y_a\right)\times\left(x_b-x_a,y_b-y_a\right)\\
+&=(x_c-x_a)\cdot(y_b-y_a)-(x_b-x_a)\cdot(y_c-y_a)\\
+&=x_cy_b-x_cy_a-x_ay_b+x_ay_a-x_by_c+x_ay_c+x_by_a-x_ay_a\\
+&=x_c(y_b-y_a)+y_c(x_a-x_b)+x_by_a-x_ay_b
+\end{aligned}
+$$
+
+考虑到 $x_by_a-x_ay_b$ 是一个定值，我们只要最大化 $x_c(y_b-y_a)+y_c(x_a-x_b)$，即最小化 $x_c(y_a-y_b)+y_c(x_b-x_a)$ 即可。
+
+于是我们只要将边权定为 $a_c(y_a-y_b)+b_c(x_b-x_a)$，然后就一遍最小生成树即可。
+
+复杂度？大概口胡一下：决策点应该是有 $\mathcal{O}\left(n^{n-2}\right)$ 个。关于其会使凸包上的点期望有多少个，自己[实测](/posts/oi-icpc/notes/spanning-tree-intro/hull.7z)了一下感觉像是 $\mathcal{O}(\log n)$ 的，后来在[知乎](https://zhuanlan.zhihu.com/p/63260925)上看到了一篇奇怪的证明，说确实是 $\mathcal{O}(\log n)$，但是听说这个证明有点锅，然后有找到了一篇[论文](/posts/oi-icpc/notes/spanning-tree-intro/rand_hull.pdf)，并不是很懂里面的内容，有兴趣的可以看一下。于是凸包上的期望点数应该是 $\mathcal{O}\left(\log \left(n^{n-2}\right)\right)=\mathcal{O}(n\log n)$ 的。每次找一个点的复杂度是 $\mathcal{O}(m\log m)$ 的，所以期望复杂度应该是 $\mathcal{O}(nm\log n\log m)$。
+
+模板题在[这里](https://www.luogu.com.cn/problem/P5540)，代码在[这里](/posts/oi-icpc/notes/spanning-tree-intro/最小乘积生成树.cpp)。
+
+关于这个问题的复杂度在知乎上翻到了一个奇怪的讨论，大家可以[去看看](https://www.zhihu.com/question/26086333)。
+
+然后是 Matrix-Tree 定理。关于这部分内容的很多东西均偷自[这篇论文](/posts/oi-icpc/notes/spanning-tree-intro/生成树的计数及其应用.pdf)。
+
+在此之前先需要介绍一下行列式是什么，首先我们来先介绍一下置换。关于置换，记为
+$$
+\begin{pmatrix}
+1 & 2 & \cdots & n\\
+a_1 & a_2 & \cdots & a_n
+\end{pmatrix}
+$$
+其中 $a$ 是 $1\sim n$ 的一个排列。
+
+显然对于任意一个排列，要将其排序的话，其交换次数的奇偶性与交换方式无关，我们令最小交换次数为 $t$，我们定义：
+$$
+\delta\begin{pmatrix}
+1 & 2 & \cdots & n\\
+a_1 & a_2 & \cdots & a_n
+\end{pmatrix}=(-1)^t
+$$
+
+然后是行列式，其实说白了他是一个函数，将一个 $n\times n$ 的矩阵映射到了一个标量，我们记为 $\det A$ 或 $\left|A\right|$。我们定义：
+
+$$
+\det A=\sum_{\begin{pmatrix}
+1 & 2 & \cdots & n\\
+i_1 & i_2 & \cdots & i_n
+\end{pmatrix}}\delta\begin{pmatrix}
+1 & 2 & \cdots & n\\
+i_1 & i_2 & \cdots & i_n
+\end{pmatrix}\prod_{j=1}^na_{j,i_j}
+$$
+
+观察上式，我们可以得到一些性质，考虑到这些性质都可以直接由定义得到，证明就不再一一展开。
+
+首先，我们有：
+$$
+\det A^{\mathrm{T}}=\det A
+$$
+
+$A^{\mathrm{T}}$ 是 $A$ 的转置，大概就是这样子吧：
+
+![矩阵转置时行与列交换的动画](./Matrix_transpose.avif)
+
+这暗示着我们，行列式中行和列是等价的，下面在讨论行的问题时，列都是一样的。
+
+然后是如果将行列式中的两行互换，那么行列式变号。于是我们有一个推论，那就是如果矩阵 $A$ 中两行相同，那么交换这两行不会改变 $A$，于是我们有 $\det A=-\det A$，即 $\det A=0$。
+
+在行列式中，某一行的每个元素是两数之和，则此行列式可拆分为两个相加的行列式。
+
+$$
+{\begin{vmatrix}a_{11}&a_{12}&\dots &a_{1n}\\\vdots &\vdots &\dots &\vdots \\{\color {blue}a_{i1}}+{\color {green}b_{i1}}&{\color {blue}a_{i2}}+{\color {green}b_{i2}}&\dots &{\color {blue}a_{in}}+{\color {green}b_{in}}\\\vdots &\vdots &\ddots &\vdots \\a_{n1}&a_{n2}&\dots &a_{nn}\end{vmatrix}}={\begin{vmatrix}a_{11}&a_{12}&\dots &a_{1n}\\\vdots &\vdots &\dots &\vdots \\{\color {blue}a_{i1}}&{\color {blue}a_{i2}}&\dots &{\color {blue}a_{in}}\\\vdots &\vdots &\ddots &\vdots \\a_{n1}&a_{n2}&\dots &a_{nn}\end{vmatrix}}+{\begin{vmatrix}a_{11}&a_{12}&\dots &a_{1n}\\\vdots &\vdots &\dots &\vdots \\{\color {green}b_{i1}}&{\color {green}b_{i2}}&\dots &{\color {green}b_{in}}\\\vdots &\vdots &\ddots &\vdots \\a_{n1}&a_{n2}&\dots &a_{nn}\end{vmatrix}}
+$$
+
+根据上面一条，我们可以得到，如果将矩阵的一行或是一列都乘以一个数 $\lambda$，那么该矩阵的行列式也将乘以 $\lambda$。结合上面那个性质的推论，我们不难发现如果矩阵中有两行或两列成比例，那么该矩阵的行列式为 $0$。
+
+$$
+{\begin{vmatrix}a_{11}&a_{12}&\dots &a_{1n}\\\vdots &\vdots &\dots &\vdots \\{\color {blue}k}a_{i1}&{\color {blue}k}a_{i2}&\dots &{\color {blue}k}a_{in}\\\vdots &\vdots &\ddots &\vdots \\a_{n1}&a_{n2}&\dots &a_{nn}\end{vmatrix}}={\color {blue}k}{\begin{vmatrix}a_{11}&a_{12}&\dots &a_{1n}\\\vdots &\vdots &\dots &\vdots \\a_{i1}&a_{i2}&\dots &a_{in}\\\vdots &\vdots &\ddots &\vdots \\a_{n1}&a_{n2}&\dots &a_{nn}\end{vmatrix}}
+$$
+
+根据上面的东西，我们就可以发现：
+
+$$
+\begin{aligned}
+{\begin{vmatrix}\vdots &\vdots &\vdots &\vdots \\a_{i1}&a_{i2}&\dots &a_{in}\\a_{j1}&a_{j2}&\dots &a_{jn}\\\vdots &\vdots &\vdots &\vdots \\\end{vmatrix}}&={\begin{vmatrix}\vdots &\vdots &\vdots &\vdots \\a_{i1}&a_{i2}&\dots &a_{in}\\a_{j1}&a_{j2}&\dots &a_{jn}\\\vdots &\vdots &\vdots &\vdots \\\end{vmatrix}}+{\begin{vmatrix}\vdots &\vdots &\vdots &\vdots \\a_{i1}&a_{i2}&\dots &a_{in}\\{\color {blue}ka_{i1}}&{\color {blue}ka_{i2}}&\dots &{\color {blue}ka_{in}}\\\vdots &\vdots &\vdots &\vdots \\\end{vmatrix}}\\&={\begin{vmatrix}\vdots &\vdots &\vdots &\vdots \\a_{i1}&a_{i2}&\dots &a_{in}\\a_{j1}{\color {blue}+ka_{i1}}&a_{j2}{\color {blue}+ka_{i2}}&\dots &a_{jn}{\color {blue}+ka_{in}}\\\vdots &\vdots &\vdots &\vdots \\\end{vmatrix}}
+\end{aligned}
+$$
+
+也就是说，我们可以把行列式中的某行的每个环诉乘上一个常数 $k$，加到另一行上去。
+
+根据这一个性质，我们不难使用类似高斯消元的做法吧行列式转换成上三角的形式：
+$$
+{\begin{vmatrix}a_{1,1}&a_{1,2}&a_{1,3}&\ldots &a_{1,n}\\&a_{2,2}&a_{2,3}&\ldots &a_{2,n}\\\vdots &&\ddots &\ddots &\vdots \\&(0)&&\ddots &a_{n-1,n}\\0&&\cdots &&a_{n,n}\end{vmatrix}}=\prod_{i=1}^na_{i,i}
+$$
+
+于是我们就可以 $\mathcal{O}(n^3)$ 计算行列式啦！
+
+这里有一道[模板题](http://www.spoj.com/problems/DETER3/)，其中有模数 $p$，不保证是质数。
+
+由于不是质数，所以可能不存在逆元。我们考虑在消元的时候，使用类似辗转相除的方法。这样时间复杂度 $\mathcal{O}(n^3\log n)$。代码在[这儿](/posts/oi-icpc/notes/spanning-tree-intro/SPOJ_DETER3.cpp)。
+
+当然，我们还有能发现，如果矩阵 $A$ 中每一行和为 $0$，那么我们可以把矩阵中的第一列加上其余各列，这样子第一列就全 $0$ 了，于是 $\det A=0$。
+
+接下来是一个非常牛逼的东西叫做柯西-比内公式，大概就是假设 $A$ 是一个 $m\times n$ 的矩阵，$B$ 是一个 $n\times n$ 的矩阵，如果 $S$ 是 ${1, \dots, n}$ 中具有 $m$ 个元素的子集，我们记 $A_S$ 为 $A$ 中列下标位于 $S$ 中的 $m\times m$ 子矩阵。类似地，记 $B_S$ 为 $B$ 中行下标位于 $S$ 中的 $m\times m$ 子矩阵。Binet-Cauchy 公式说：
+
+$$
+\det(AB)=\sum\det A_{S}\cdot \det B_{S}
+$$
+
+这个东西我太菜了不会证啊，如果有兴趣的同学可以自己看[论文](/posts/oi-icpc/notes/spanning-tree-intro/The_Cauchy-Binet_formula.pdf)~~或是[水知乎](https://www.zhihu.com/question/338686326)~~。
+
+根据上面的公式，当 $n=m$ 时，$\det(AB)=\det A\det B$
+
+然后我们会到生成树上来，问题大概就是让你求一张无向图的生成树个数，$n\le 100$。
+
+先说结论，假设给出图为 $G$，定义一个 $n\times n$ 的矩阵 $D(G)$ 表示 $G$ 个点的度数，当 $i\neq j$ 时，$d_{i,j}=0$，当 $i=j$ 时，$d_{i,j}$ 等于节点 $i$ 的度数。再定义一个 $n\times n$ 的矩阵 $A_G$ 表示 $G$ 的邻接矩阵，$A_{i,j}$ 表示 $i$ 到 $j$ 的边数。然后我们定义基尔霍夫矩阵 $C(G)=D(G)-A(G)$。则 $G$ 中生成树个数等于 $C(G)$ 中任意一个 $n-1$ 阶主子式的行列式的绝对值。所谓一个矩阵 $M$ 的 $n-1$ 阶主子式就是对于两个整数 $r\,(1\le r\le n)$，将 $M$ 去掉第 $r$ 行和第 $r$ 列后形成的 $n-1$ 阶的矩阵，记作 $M_{r}$。
+
+举个栗子，比如说现在有这样张图，其生成树有 $8$ 个（直接偷 Wikipedia 上的图了）：
+
+![一个无向图及其全部八棵生成树](./Graph_with_all_its_spanning_trees.avif)
+
+其度数矩阵
+
+$$
+D(G)=\begin{bmatrix}2&0&0&0\\0&3&0&0\\0&0&3&0\\0&0&0&2\end{bmatrix}
+$$
+
+其邻接矩阵
+
+$$
+A(G)=\begin{bmatrix}0&1&1&0\\1&0&1&1\\1&1&0&1\\0&1&1&0\end{bmatrix}
+$$
+
+于是其基尔霍夫矩阵
+
+$$
+C(G)=\begin{bmatrix}2&-1&-1&0\\-1&3&-1&-1\\-1&-1&3&-1\\0&-1&-1&2\end{bmatrix}
+$$
+
+我们取 $r=2$，得到其主子式
+
+$$
+C_2(G)=\begin{bmatrix}2&-1&0\\-1&3&-1\\0&-1&2\end{bmatrix}
+$$
+
+得到的行列式
+
+$$
+\det C_2(G)=\begin{vmatrix}2&-1&0\\-1&3&-1\\0&-1&2\end{vmatrix}=\begin{vmatrix}2&-1&0\\0&\frac{5}{2}&-1\\0&0&\frac{8}{5}\end{vmatrix}=2\times\frac{5}{2}\times \frac{8}{5}=8
+$$
+
+那为什么是这样呢？
+
+首先我们来观察一下 $C(G)$ 的性质。我们考虑如果我们把两个点在矩阵中的出现顺序交换，其实就是把行交换一次，列交换一次，一共交换偶数次，所以行列式不变。于是我们发现，$C(G)$ 和 $C_r(G)$ 的行列式与其顶点的顺序无关。
+
+我们考虑构造一个 $n\times m$（$n$ 是点数，$m$ 是边数）的矩阵 $B$，如果对于第 $i$ 条边，如果连接 $\left<u,v\right>$，那么我们就令 $b_{u,i}=1,b_{v,i}=-1$，其余都是 $0$。其实谁是 $1$ 谁是 $-1$ 不重要，因为是无向图，只要一个是 $-1$ 一个是 $1$ 即可。
+
+接下来，我们考虑 $BB^{\mathrm T}$。我们发现对于 $(BB^{\mathrm T})_{i,j}$，如果 $i=j$，那么 $(BB^{\mathrm T})_{i,j}=\sum_{k=1}^mB_{i,k}^2$，也就是 $i$ 的度数；如果 $i\neq j$，那么 $(BB^{\mathrm T})_{i,j}=\sum_{k=1}^mB_{i,k}B_{j,k}$，也就是 $i$ 到 $j$ 的边数的相反数。于是我们发现，$BB^{\mathrm T}$ 就是基尔霍夫矩阵，即 $C(G)=BB^\mathrm{T}$。
+
+令 $H$ 表示 $B$ 去掉 $r$ 行后的矩阵，易得 $C(G)_r=HH^\mathrm{T}$。于是根据 Binet-Cauchy 公
+式，我们可以得到：
+
+$$
+\det C(G)=\det (HH^\mathrm{T})=\sum_{S}\det H_S\det H_S^\mathrm{T}=\sum_{S}\left(\det H_S\right)^2=\sum_{S}\det H_S^2
+$$
+
+我们观察这只式子，发现他其实就是在干这样一件事情：每次在这 $m$ 条边中取出 $n-1$ 条，并对答案计入 $\det H_S^2$ 的贡献。
+
+那我们来看这个 $\det H_S^2$。我们将 $S$ 中选出的这些边组合成一个集合，和 $n$ 个点组合成一张图，记为 $G'$，不难发现 $C(G')=H_S^2$，于是 $\det H_S^2=\det C(G')$。
+
+然后我们考虑一个基尔霍夫矩阵 $C(G)$，由于其各行各列之和均为 $0$，$\det C(G)=0$。如果 $G$ 是一个非连通图，那么我们发现 $C(G)$ 一定可以通过调整点的编号变成这样：
+
+$$
+\begin{bmatrix}
+a_{1,1}&\ldots&a_{1,k}&0&\ldots&0\\
+\vdots&\ddots&\vdots&\vdots&\ddots&\vdots\\
+a_{k,1}&\ldots&a_{k,k}&0&\ldots&0\\
+0&\ldots&0&a_{k+1,k+1}&\ldots&a_{k+1,n}\\
+\vdots&\ddots&\vdots&\vdots&\ddots&\vdots\\
+0&\ldots&0&a_{n,k+1}&\ldots&a_{n,n}\\
+\end{bmatrix}
+$$
+
+不难发现这两个连通块都可以独立地变成一个上三角。由于 $C_r(G)$ 只抽走了一行和一列，那也就是说肯定有一个块最后对角线上有一个 $0$，于是行列式的值为 $0$。
+
+所以说，如果 $G'$ 不是连通图，那其对答案的贡献是 $0$，考虑到 $G'$ 只有 $n-1$ 条边，如果联通，那肯定只能是棵树了。于是我们来考虑数的情况。
+
+不要忘了我们扔出去了一个 $r$，我们以 $r$ 为根对这棵树进行 `dfs`，将节点重新按照 `dfs` 序标号。然后我们从大往小倒着来。考虑对每个点，用他去消他的父亲。也就是说，将它父亲的每那一行减去自己的那一行。不难发现，如果这样做，主对角线都是 $1$，因为只有它与它父亲的那条边没被减，其他边都被儿子减掉了。这样就形成了一个下三角矩阵，我们把它转置一下就变成了上三角，其贡献就是对角线的乘积，也就是 $1$。于是他对答案的贡献就是 $1$。
+
+我们再来回顾一下这只式子：
+
+$$
+\det C(G)=\sum_{S}\det H_S^2
+$$
+
+经过上面的论证，如果 $G'$ 是棵树，那么 $\det H_S^2=1$，否则 $\det H_S^2=0$。也就是说，这个式子在枚举所有 $n-1$ 条边的子集，如果这个子集是一棵生成树，那么就将答案加 $1$，于是我们成功在 $\mathcal{O}(n^3)$ 的时间复杂度内完成了生成树计数问题。
+
+那就让我们来做一下这道[模板题](https://www.spoj.com/problems/HIGHWAYS/)，代码在[这里](/posts/oi-icpc/notes/spanning-tree-intro/SPOJ_HIGH.cpp)。
+
+然后是最小生成树计数。这个大概就是发现每个最小生成树每种边权的边数应该是一样的，且将这些边去掉后所得的连通块相同。
+
+于是我们考虑建出一棵最小生成树，枚举边权然后把原来最小生成树上该边权的边删掉，然后跑矩阵树。
+
+复杂度？假设离散之后边权 $i$ 共有 $a_i$ 条边，那么显然 $\sum a_i=m$。如果图没有重边，则 Kruscal 复杂度 $\mathcal{O}(m\log m)$，矩阵树复杂度为 $\mathcal{O}\left(\sum \left(n+m+\min(n, a_i)^3\right)\right)$，由于没有重边，前面的 $n+m$ 那一项卡满不过 $\mathcal{O}(m\times (n+m))=\mathcal{O}(m^2)=\mathcal{O}(n^2m)$，而后面那一项当每个 $a_i$ 取到 $n$ 时最大，即 $\mathcal{O}\left(\frac{m}{n}\times n^3\right)=\mathcal{O}(n^2m)$，所以总复杂度 $\mathcal{O}(n^2m)$。
+
+模板题在[这儿](https://www.luogu.com.cn/problem/P4208)，代码在[这儿](/posts/oi-icpc/notes/spanning-tree-intro/最小生成树计数.cpp)。
+
+那如何计算树形图呢？我们先考虑树是叶子向根的情况。我们考虑刚才的证明，不难构造出树形图的解。大概就是将原来的度数矩阵改成出度矩阵，然后定义基尔霍夫矩阵。这样一棵树已经可以直接变成一个上三角了。我们考虑枚举 $r$，对每个 $r$ 都做一遍矩阵树，最后求和即可。
+
+那从根向叶子呢？把边反一反就可以了。具体直接把出度矩阵改成入度矩阵即可。
+
+矩阵树就暂时到这儿吧。
+
+未完待续……
+
+列几篇写这篇博客时看到的有趣的文章，上面的很多内容很多~~参考~~抄自这些文章，当然有些文章看不懂，也列在了这里：
+
+- [罗雨屏的课件](/posts/oi-icpc/notes/spanning-tree-intro/图论-LYP.pdf)
+- [CMXRYNP 的博客：01 分数规划学习笔记](https://cmxrynp.github.io/2018/12/03/01%E5%88%86%E6%95%B0%E8%A7%84%E5%88%92%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/)
+- [wqs 的论文：《浅析一类二分方法》](/posts/oi-icpc/notes/spanning-tree-intro/Train2012-sol-wqs.pdf)
+- [clj 的论文：《Tree 解题报告》](/posts/oi-icpc/notes/spanning-tree-intro/Train2012-test-clj-tree.pdf)
+- [YoungNeal 的博客：[总结] wqs 二分学习笔记](https://www.cnblogs.com/YoungNeal/p/10381611.html)
+- [Creeper_LKF 的博客：关于 WQS 二分算法以及其一个细节证明](https://www.cnblogs.com/CreeperLKF/p/9045491.html)
+- [Wikipedia 词条：Quickhull](https://en.wikipedia.org/wiki/Quickhull)
+- [一篇关于凸包期望个数的论文](/posts/oi-icpc/notes/spanning-tree-intro/rand_hull.pdf)
+- [知乎上关于最小乘积生成树的讨论](https://www.zhihu.com/question/26086333)
+- [《生成树的计数及其应用》 周冬](/posts/oi-icpc/notes/spanning-tree-intro/生成树的计数及其应用.pdf)
+- [MoebiusMeow 的博客：康复计划#5 Matrix-Tree 定理(生成树计数)的另类证明和简单拓展](https://www.cnblogs.com/meowww/p/6485422.html)
+- [Wikipedia 词条：行列式](https://zh.wikipedia.org/wiki/%E8%A1%8C%E5%88%97%E5%BC%8F)
+- [Stilwell 的课件：线性代数](/posts/oi-icpc/notes/spanning-tree-intro/Linear_Algebra.pdf)
+- [关于 Cauchy-Binet 公式的一个证明](/posts/oi-icpc/notes/spanning-tree-intro/The_Cauchy-Binet_formula.pdf)
+- [「from CommonAnts」Matrix-Tree 定理相关](https://loj.ac/article/33)
