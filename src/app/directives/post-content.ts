@@ -55,6 +55,11 @@ export class PostContentDirective {
         initContentImageZoom(container),
         this.citations.bind(container),
       ];
+      if (container.querySelector('[data-flash-forward]')) {
+        void import('../utils/flash-forward/player').then(({ initFlashForward }) => {
+          if (!abort.signal.aborted) cleanups.push(initFlashForward(container));
+        });
+      }
       this.spy.observe(container, post.toc);
       void Promise.all([
         typesetMath(container, abort.signal),

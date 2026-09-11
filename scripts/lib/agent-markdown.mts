@@ -126,7 +126,7 @@ export function htmlToAgentMarkdown(html: string, canonical: string): string {
   try {
     const { document } = dom.window;
     for (const element of document.querySelectorAll(
-      'script, style, link, button, .heading-permalink, .code-header, [data-footnote-backref]',
+      'script, style, link, button, .heading-permalink, .code-header, [data-footnote-backref], [data-agent-omit]',
     ))
       element.remove();
     for (const element of document.querySelectorAll('i, em, b, strong')) {

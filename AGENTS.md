@@ -133,6 +133,14 @@ Project guidance for agents working in this repository.
   client DOM enhancements attach; browser tests asserting on client elements
   (such as embedded PDF readers) should wait for this attribute before querying
   or scrolling iframes to ensure hydration has settled.
+- Interactive MDX examples render semantic initial HTML in post-local components
+  and attach lazy browser controllers through `PostContentDirective`. Share numeric
+  models between build-time markup and playback, preserve explanations in Markdown,
+  and clean up timers, observers, and events on navigation. Keep playback opt-in,
+  pause when hidden/offscreen, and respect reduced motion. Async examples expose
+  their own readiness attribute; `data-rendered` does not await their lazy imports.
+  Mark transient playback UI with `data-agent-omit` and provide a static explanation
+  or numeric transcript outside it for Markdown exports and noninteractive reading.
 - `PageMetadataStrategy` handles browser and prerendered metadata.
   It also owns article `BlogPosting` JSON-LD: reuse authored dates and article
   covers, omit unknown modification dates and unrelated fallback images, and
