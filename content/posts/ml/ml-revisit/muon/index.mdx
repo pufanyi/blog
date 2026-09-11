@@ -1,0 +1,184 @@
+---
+title: "Muon"
+date: "2026-09-11"
+description: "从矩阵更新的奇异值理解 Muon，以及 Newton–Schulz 近似、学习率缩放和大规模训练中的取舍。"
+---
+
+训练一个 linear layer 时，参数是矩阵，但 SGD 和 AdamW 的更新规则并没有充分利用这个矩阵的结构。Muon [@jordan2024muon] 的做法是：先用 momentum 平滑梯度，再调整更新矩阵的奇异值，让不同方向的更新具有相近的尺度。名字里的 **MomentUm Orthogonalized by Newton–Schulz**，说的就是这个过程。
+
+## 从逐元素缩放到矩阵更新
+
+设一层的计算是 $y=Wx$，其中 $W\in\mathbb{R}^{m\times n}$，梯度为 $G_t=\nabla_W\mathcal{L}_t$。SGD 直接沿着 $-G_t$ 更新。AdamW [@loshchilov2019decoupled] 则保存梯度的一阶、二阶矩估计 $M_t,V_t$，用经过 bias correction 的 $\widehat M_t,\widehat V_t$ 做逐元素缩放：
+
+$$
+W_{t+1}=(1-\eta_t\lambda)W_t
+-\eta_t\frac{\widehat M_t}{\sqrt{\widehat V_t}+\epsilon}.
+$$
+
+这里的除法和平方根都逐元素进行，$\eta_t$ 是 learning rate，$\lambda$ 是 decoupled weight decay 的系数。AdamW 能根据每个坐标的历史梯度调整步长，但矩阵还描述了输入方向到输出方向的映射。Muon 从这些方向入手构造更新。
+
+先看不带 Nesterov 的版本。令 $M_{-1}=0$，定义
+
+$$
+\begin{aligned}
+M_t&=\beta M_{t-1}+(1-\beta)G_t,\\
+O_t&\approx\operatorname{Polar}(M_t),\\
+W_{t+1}&=(1-\eta_t\lambda)W_t-\eta_t s_{m,n}O_t.
+\end{aligned}
+$$
+
+$\operatorname{Polar}$ 是下面要解释的矩阵变换，$s_{m,n}$ 用来控制不同形状矩阵的更新尺度。**Momentum 先于这个变换计算**：累积的是梯度的历史，再变换平滑后的矩阵。
+
+## 把奇异值拉到相同尺度
+
+暂时省略时间下标，把待处理的 momentum 矩阵写成 compact SVD：
+
+$$
+M=U\Sigma V^\top
+=\sum_{i=1}^{r}\sigma_i u_i v_i^\top,
+\qquad r=\operatorname{rank}(M),\quad \sigma_i>0.
+$$
+
+$v_i$ 是输入空间里的一个单位方向，$u_i$ 是对应的输出方向，两组向量各自正交。等式 $Mv_i=\sigma_i u_i$ 告诉我们：这个更新在方向 $v_i$ 上的强度是 $\sigma_i$。如果奇异值相差很大，更新便主要集中在少数方向。
+
+Muon 的理想变换是
+
+$$
+\operatorname{Polar}(M)=UV^\top
+=\sum_{i=1}^{r}u_i v_i^\top.
+$$
+
+也就是保留这些方向，把每个非零奇异值变成 $1$。这和把整个矩阵除以 Frobenius norm 不一样：整体归一化保留奇异值之间的比例，polar 变换会改变这个比例。
+
+例如 $M=\operatorname{diag}(8,2,0.5)$，除以 $\lVert M\rVert_F$ 以后，三个方向仍然相差 $16:4:1$；理想 polar 变换得到 $I_3$，三个方向的强度相同。下面也画出了实际五步迭代的结果，计算方法见下一节。
+
+<MuonSpectrum />
+
+这里的 orthogonalization 指的是**更新矩阵**。加上这个更新之后，权重 $W$ 本身不必正交，也不是在要求相邻两个训练 step 的更新互相垂直。对于满秩矩形矩阵，只能有 $O^\top O=I_n$（$m\ge n$）或 $OO^\top=I_m$（$m\le n$），所以更准确地说是 semi-orthogonal。
+
+如果 $M$ 秩亏，上面的 compact SVD 只保留非零奇异值，$UV^\top$ 是一个 partial isometry，不能声称它的所有行或所有列都正交。多项式迭代也不会凭空生成缺失的方向：在精确算术下，零奇异值始终为零。
+
+为什么这种更新可能有用？如果小奇异值对应的方向也包含学习信号，拉平谱就能提高它们相对于主导方向的更新强度。不过，小方向也可能包含噪声；这种直觉本身并不保证泛化更好。Momentum 能平滑输入给变换的梯度，实际收益仍然需要实验验证。
+
+<details>
+<summary>为什么 spectral norm 约束会给出这个方向？</summary>
+
+Bernstein 和 Newhouse [@bernstein2024old] 从 norm 约束下的 steepest descent 解释了这种矩阵更新。先忽略 momentum，用一阶近似
+
+$$
+\mathcal{L}(W+\Delta W)
+\approx\mathcal{L}(W)+\langle G,\Delta W\rangle_F,
+\qquad \langle A,B\rangle_F=\operatorname{tr}(A^\top B).
+$$
+
+如果限制 $\lVert\Delta W\rVert_F\le\eta$，最优方向是 $-G/\lVert G\rVert_F$。换成 spectral norm 约束
+
+$$
+\min_{\lVert\Delta W\rVert_2\le\eta}
+\langle G,\Delta W\rangle_F,
+$$
+
+其中 $\lVert A\rVert_2$ 是最大奇异值，就得到一个最优解 $\Delta W=-\eta UV^\top$。因为若 $G=\sum_i\sigma_i u_i v_i^\top$，则
+
+$$
+\langle G,\Delta W\rangle_F
+=\sum_i\sigma_i u_i^\top\Delta Wv_i
+\ge-\eta\sum_i\sigma_i,
+$$
+
+而 $-\eta UV^\top$ 能取到等号。这里 $\sum_i\sigma_i$ 也叫 nuclear norm。
+
+对 $y=Wx$ 来说，$\lVert\Delta W x\rVert_2\le\lVert\Delta W\rVert_2\lVert x\rVert_2$。因此 spectral norm 约束限制的是任意单位输入方向上输出变化的最大幅度。这给出了一个利用 linear layer 结构的解释；带 momentum、有限步近似的实际 Muon，并不等于每一步都精确求解当前 loss 的这个问题。
+
+</details>
+
+## 用 Newton–Schulz 避免 SVD
+
+SVD 适合解释方向，但每个 step 都对每个权重矩阵做 SVD，计算成本太高。Newton–Schulz 可以只用矩阵乘法近似这个变换，更适合 GPU。
+
+先归一化
+
+$$
+X_0=\frac{M}{\lVert M\rVert_F+\epsilon}.
+$$
+
+因为最大奇异值不超过 Frobenius norm，$X_0$ 的奇异值都小于 $1$。经典的三次迭代是
+
+$$
+X_{k+1}=\frac32X_k-\frac12X_kX_k^\top X_k.
+$$
+
+将 $X_k=U\Sigma_kV^\top$ 代入，得到
+
+$$
+X_{k+1}=U\left(\frac32\Sigma_k-\frac12\Sigma_k^3\right)V^\top.
+$$
+
+矩阵乘法在这里实现了对每个奇异值分别应用 $f(x)=\frac32x-\frac12x^3$：奇异向量不变，位于 $(0,1)$ 的奇异值逐渐靠近 $1$。整个过程不需要显式算出 $U,\Sigma,V$。
+
+实际的 [Muon 实现](https://github.com/KellerJordan/Muon/blob/master/muon.py) 使用更激进的五次多项式，常用 $5$ 步：
+
+$$
+\begin{aligned}
+A_k&=X_kX_k^\top,\\
+X_{k+1}&=aX_k+(bA_k+cA_k^2)X_k,\\
+(a,b,c)&=(3.4445,-4.7750,2.0315).
+\end{aligned}
+$$
+
+对应的标量变换是 $f(x)=ax+bx^3+cx^5$。它在零附近的斜率更大，可以更快放大小奇异值；代价是它并不精确收敛到 $1$，例如 $f(1)=0.701$。所以实际输出是 $U\widetilde\Sigma V^\top$，把奇异值拉到相近尺度，而非严格得到 $UV^\top$。前图的第三栏正是这个有限步计算，不能把更多迭代简单理解为更精确的正交化。
+
+<MuonIteration />
+
+计算时可以先转置高矩阵，让参与 $X_kX_k^\top$ 的行数为 $\min(m,n)$，最后再转置回来。这样临时方阵更小。矩阵乘法可以在 BF16 下进行；上图用 FP64 演示标量递推，实际低精度结果会有差异。
+
+## 完整的一步与更新尺度
+
+前面为了说明机制使用了普通 momentum。作者实现默认使用 Nesterov-style momentum，采用 EMA 记法时，完整顺序如下。这里的 $t$ 是训练 step，$k$ 是一次更新内部的 Newton–Schulz 迭代，二者不要混淆。
+
+1. 计算当前梯度 $G_t=\nabla_W\mathcal{L}_t$。
+2. 更新 $M_t=\beta M_{t-1}+(1-\beta)G_t$，初始 $M_{-1}=0$。
+3. 构造 $H_t=\beta M_t+(1-\beta)G_t$；不用 Nesterov 时取 $H_t=M_t$。
+4. 以 $H_t$ 为输入，归一化后执行 $K$ 次 Newton–Schulz，得到 $O_t$。
+5. 更新 $W_{t+1}=(1-\eta_t\lambda)W_t-\eta_t s_{m,n}O_t$。
+
+常用起点是 $\beta=0.95$、$K=5$。有些实现用不带 $(1-\beta)$ 的 momentum 累加式；配套的 Nesterov 写法也要一起对应，不能只替换其中一行。正的整体缩放会被进入迭代前的归一化消去，忽略 $\epsilon$ 和舍入时，两套配套写法可以等价。
+
+还需要选择 $s_{m,n}$。对满秩矩阵的理想 polar 结果，令 $r=\min(m,n)$，因为共有 $r$ 个值为 $1$ 的奇异值，
+
+$$
+\lVert O\rVert_F^2=r,
+\qquad
+\operatorname{RMS}(O)
+=\frac{\lVert O\rVert_F}{\sqrt{mn}}
+=\frac1{\sqrt{\max(m,n)}}.
+$$
+
+如果直接使用 $O$，矩阵越大，平均每个元素的更新反而越小。Moonlight [@liu2025muon] 使用
+
+$$
+s_{m,n}=0.2\sqrt{\max(m,n)},
+$$
+
+让理想更新的 RMS 为 $0.2$，方便与 AdamW 的更新尺度对齐。$0.2$ 来自该工作的经验选择，不是 AdamW 更新 RMS 的普适定理；有限步近似、秩亏也会使实际 RMS 偏离它。Weight decay 直接作用于 $W_t$，不放进正交化，也不乘这个形状系数。
+
+作者仓库还使用 $s_{m,n}=\sqrt{\max(1,m/n)}$，其中这里按 $W$ 的存储形状 $[\text{out},\text{in}]$ 定义 $m,n$。这与上面的 RMS 对齐规则不同，同一个 learning rate 数值不能脱离缩放约定比较。PyTorch 的 Muon 文档 [@pytorchmuon] 将两者分别称为 `original` 和 `match_rms_adamw`；使用现成实现时应明确选择哪套约定。
+
+## 实际训练中的取舍
+
+Muon 通常用于 Transformer 隐藏层的 attention projection 和 MLP 权重；embedding、LM head、bias 和 normalization 参数交给 AdamW。Embedding 和 LM head 虽然也是二维矩阵，但参数分组还要考虑它们的用途，不能只检查 `ndim == 2`。作者还报告 [@jordan2024muon]，把合并存储的 Q、K、V 分开做 Muon 更新更好；矩阵如何分块会改变变换本身。
+
+| 比较项 | AdamW | Muon 的矩阵参数部分 |
+| --- | --- | --- |
+| 更新处理 | 用二阶矩估计逐元素缩放 | 用矩阵多项式调整 momentum 的奇异值 |
+| 持久优化器状态 | 一阶、二阶矩 | 一个 momentum buffer |
+| 每步额外计算 | 主要是逐元素运算 | 多次矩阵乘法和临时方阵 |
+| 参数切片 | 更新可逐元素独立计算 | 任意切片后分别正交化通常不等价 |
+
+假设两者的状态都用 FP32，Muon 的矩阵参数每个元素需 $4$ bytes 的持久 momentum，AdamW 的两个矩估计需 $8$ bytes。这只比较优化器状态，不包含参数、梯度、master weights、activations、Newton–Schulz workspace，以及仍由 AdamW 管理的参数，不能据此说训练总显存减半。
+
+分布式训练的区别也来自矩阵结构。例如按行分成 $M_1,M_2$，完整 Gram matrix 包含 $M_1M_2^\top$ 这样的跨分片项；各卡独立处理自己的切片会漏掉它们。结合 [FSDP / ZeRO](/blog/ml/ml-revisit/infra/infra-fsdp) 或 [Tensor Parallel](/blog/ml/ml-revisit/infra/infra-tp) 时，需要恢复相关矩阵，或使用数学上对应的分布式矩阵运算。Moonlight 的实现会 gather 相关分片再计算完整更新，并保留本卡需要的部分；这些临时状态和通信都要计入成本。
+
+Moonlight [@liu2025muon] 在其 compute-optimal scaling 实验中报告了相对 AdamW 约 $2\times$ 的计算效率，并用 Muon 训练了总参数 $16$B、激活参数约 $3$B 的 MoE。这个结果描述的是其训练设置下的 compute–loss 关系，不代表一个 optimizer step 快了两倍。Muon 每步增加的矩阵计算能否被达到目标 loss 所需 step 的减少抵消，要在相同硬件和训练设置下测 wall-clock time。
+
+更大规模还会遇到稳定性问题。Kimi K2 的 MuonClip [@kimi2025k2] 在 Muon 更新之外加入 QK-Clip：根据每个 attention head 观测到的 logits，在更新后缩放相关 query / key 权重，抑制 logits 过大。它是额外的稳定化机制；仅把更新矩阵的奇异值拉平，并不能限制整个训练过程中权重和 attention logits 的增长。

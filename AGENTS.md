@@ -216,6 +216,9 @@ Project guidance for agents working in this repository.
 - Keep one source of truth for a diagram's data. Derive related masks, cells,
   edges, and labels from the same arrays and predicates instead of duplicating
   hard-coded values that can drift apart.
+  For iterative numerical methods, distinguish ideal targets from finite-step
+  approximations; derive plotted values and accessible transcripts from the
+  same recurrence, and state the precision used by the example.
   Memory diagrams should state tensor precisions and included allocations;
   distinguish stored model states from peak memory used by temporary buffers.
   Distributed training flows should distinguish per-layer/bucket collectives
