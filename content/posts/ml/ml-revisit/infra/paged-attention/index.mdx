@@ -4,11 +4,13 @@ date: "2026-09-11"
 description: "Notes for PagedAttention and vLLM"
 ---
 
-## KV Cache 的显存账
+## KV Cache 为什么会浪费显存
 
-Prefill 为 prompt 建立 KV cache，decode 再逐步追加。Serving 时，请求的到达时间、长度和结束时间都不同；给每个请求预留最大长度的连续空间，会把本可用于其他请求的显存占住。PagedAttention 把 KV cache 的分配单位缩小到 block，让 vLLM 能在同一显存预算下容纳更多活跃请求。[@jain2026kvcache]
+生成新 token 时，attention 要读取此前 token 的 key 和 value。在 causal attention 中，过去 token 的 KV 不会因为后面新增了 token 而改变，因此可以保存在显存里反复使用，这就是 **KV cache**。Prefill 处理 prompt 并建立 cache；随后 decode 逐 token 生成，cache 随之增长。
 
-假设一个请求已缓存 3 个 token，最终会增长到 5 个，却一开始就分配了 8 个 slot。讲义和原论文将浪费拆成三类：[@jain2026kvcache; @kwon2023pagedattention]
+Serving 要同时处理许多请求，而每个请求会生成多长，事先并不知道。一种朴素做法是按最大长度预留一整段连续空间，避免 cache 增长时放不下。但这些还没存入 KV 的空间也被占住了，无法交给其他请求。
+
+假设一个请求已缓存 3 个 token，最终只需缓存 5 个，却一开始就分配了 8 个 slot；一个 slot 表示存放一个 token 的 KV 所需的空间。按 CSE 291 讲义中的分类，浪费有三种：[@jain2026kvcache]
 
 - **Reservation**：之后会用到、现在还空着的 2 个 slot。即使事先知道最终长度，过早占住这部分空间，也会挤掉其他请求。
 - **Internal fragmentation**：分配区内最终用不上的 3 个 slot，来自按最大可能长度过量分配。
@@ -16,30 +18,47 @@ Prefill 为 prompt 建立 KV cache，decode 再逐步追加。Serving 时，请�
 
 <PagedKvWaste />
 
-前两类是按最终长度回看的划分；在线调度时，还不知道请求会在 5 个 token 后结束。PagedAttention 用按需分配减少提前预留，把过量分配限制在小的尾块内，再用等大小、可不连续的 physical block 避免 pool 内的 external fragmentation。
+前两类是按最终长度回看的划分：现在还不知道，剩下的 5 个 slot 中，哪些以后会用到。要减少这些浪费，就需要让请求按需拿空间，并且不要求拿到的空间都连在一起。
 
 ## 按 Block 分配
 
-每个 block 容纳 $B$ 个 token 的 KV。每个请求维护一张 **block table**，把连续的 logical block 编号映射到 GPU pool 中任意可用的 physical block；长出一个 block 时再分配，请求结束后释放引用。这里的 paging 是软件管理的 KV 布局，attention kernel 根据 block table 直接读取 KV。[@kwon2023pagedattention]
+**PagedAttention** 是 vLLM 的核心设计之一。它把 KV cache 拆成固定大小的 block，每个 block 容纳 $B$ 个 token 的 KV。vLLM 预先建立 GPU block pool，请求需要增长时，再从 pool 中领取空闲 block。这样就不用为每个请求预留最大长度。[@kwon2023pagedattention]
+
+为了让 attention 找到拆开的 KV，每个请求维护一张 **block table**，连接两种编号：
+
+- **Logical block**：按 token 顺序分组。例如 $B=4$ 时，位置 0–3 属于第 0 块，4–7 属于第 1 块。
+- **Physical block**：KV 实际存放的显存块。它们可以散落在 pool 中，位置不必与 token 顺序一致。
 
 <PagedKvLayout />
 
-在不共享、按需分配的简单情形下，长度 $T$ 占用 $B\lceil T/B\rceil$ 个 token slot，每个序列尾块的空位少于 $B$；等大小的 block pool 也避免了不同大小请求之间的 external fragmentation。Block 越小，尾部浪费越少，但 block table 和寻址开销越大。[@jain2026kvcache; @kwon2023pagedattention]
+图中 A 的 block table 是 `[3, 0, 4]`：前三个 logical block 分别放在 P3、P0、P4。比如读取位置 8 的 token，就先找到 logical block 2，再查表到 P4，读取块内位置 0。Attention kernel 直接按这张表读取 KV，无须先把它们复制成连续的一整段。
+
+在不共享、按需分配的简单情形下，长度 $T$ 需要 $\lceil T/B\rceil$ 个 block，占用 $B\lceil T/B\rceil$ 个 slot。图中 9 个 token 占 3 块、共 12 个 slot，只有尾块的 3 个 slot 空着。新增 token 先填尾块，填满后再领一块；请求结束时释放引用，无人使用的块就能交给其他请求。
+
+这同时缓解了三类浪费：按需领取减少 reservation，尾块的空位始终少于 $B$，等大小且可不连续的 block 则避免了 pool 内的 external fragmentation。**Block 越小，尾部浪费越少，但 block table 更大，kernel 的寻址和管理开销也更高。**
 
 ## 共享前缀，分叉时 Copy-on-write
 
-同一 prompt 采样多条输出时，各序列的 block table 可以指向同一份 prompt KV。原论文用 reference count 管理共享：若要写入仍被其他序列引用的尾块，就先复制该块，再修改映射；已经填满的前缀块继续共享。[@kwon2023pagedattention]
+同一 prompt 采样多条输出时，prompt 的 KV 完全相同。让各序列的 block table 指向同一份 physical block，就能省掉重复存储。
+
+问题出在尚未填满的共享尾块：A 和 B 接下来生成的 token 可能不同，如果都写进同一个空位，就会覆盖彼此的 KV。原论文用 **reference count** 记录有多少序列正在使用一块；写入时若引用数大于 1，就先复制该块，将写入者的映射改到新块，再追加自己的 KV。这就是 **copy-on-write**。已经填满的前缀块无需修改，可以继续共享。
 
 <PagedKvSharing />
 
-后来的 **Automatic Prefix Caching** 把复用扩展到不同时间到达的请求：命中缓存的完整前缀块可直接复用，省去对应的 prefill 计算。vLLM 的 hash 同时包含前序 block 的 hash、当前 token 和必要的上下文标识（如 LoRA ID），因为 KV 依赖整个前缀；只有中间一段文字相同并不足以复用。当前这套缓存设计只缓存完整 block。[@vllmprefixcaching]
+后来的 **Automatic Prefix Caching** 把复用扩展到不同时间到达的请求。例如，多个请求以相同的 system prompt 开头，就可以复用仍在缓存中的完整前缀块，省去这部分的 prefill 计算。[@vllmprefixcaching]
+
+这里必须匹配**整个前缀**：同一句话接在不同的上文之后，其 KV 通常也不同。因此 vLLM 用于查找缓存的 hash 包含前序 block 的 hash、当前块的 token，以及 LoRA ID 等必要的上下文标识。当前这套设计只缓存完整 block；命中前缀省下的是重复计算，这些 KV 仍要参与后续的 attention。
 
 ## Continuous Batching
 
-显存容得下更多请求，还需要调度把它们用起来。**Iteration-level scheduling** 每轮重新组织 batch：完成的请求退出，资源允许时接纳等待中的请求，无须等整个 batch 中最长的序列结束。这一思路在 Orca 中已有，Stanford CS336 的 inference lecture 也将它与 PagedAttention 放在一起讨论。[@yu2022orca; @liang2025inference]
+显存容得下更多请求，还需要调度把它们用起来。在普通 decode 中，一轮计算为 batch 中每个活跃序列生成一个 token。各序列需要的轮数不同：如果固定整个 batch 的成员，短请求结束后，新请求仍要等最长的请求完成才能加入。
+
+**Continuous batching** 每轮重新组织 batch：完成的请求退出，资源允许时接纳等待中的请求。这种 **iteration-level scheduling** 在 Orca 中已有，Stanford CS336 的 inference lecture 也将它与 PagedAttention 放在一起讨论。[@yu2022orca; @liang2025inference]
 
 <PagedContinuousBatching />
 
-两者配合：分页减少显存浪费，continuous batching 及时补入工作，提高 serving throughput。它并不保证单个请求的每一步 decode 都更快；并发量仍受 KV 容量、计算预算和延迟目标约束。
+图中 B 只需一轮，A 需要三轮。Continuous batching 让 C 在第二轮就加入，与 A 一起执行。为单独展示 decode 调度，图中假设 C 已完成 prefill；实际接纳新请求时，还要为 prefill 安排计算预算。
 
-PagedAttention 与 FlashAttention 也可以配合：前者让 attention 读取分页的 KV，后者通过 tiling 和融合减少 attention 中间结果的 HBM 读写。两者都保留原来的 dense attention 语义，分页本身不会缩短需要关注的上下文。[@jain2026kvcache; @liang2025inference]
+两者配合：分页让同一份显存容纳更多活跃请求，continuous batching 及时补入工作，提高 serving throughput。但单个请求的每一步 decode 未必更快，并发量仍受 KV 容量、计算预算和延迟目标约束。
+
+PagedAttention 与 FlashAttention 也可以配合：前者管理跨生成步骤保留的 KV，让 attention 读取分页布局；后者将 attention 计算分块并融合，减少中间结果在显存中的读写。两者都保留原来的 dense attention 语义，分页本身不会缩短需要关注的上下文。
