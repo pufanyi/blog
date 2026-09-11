@@ -8,16 +8,6 @@ description: "Notes for PagedAttention and vLLM"
 
 Prefill 为 prompt 建立 KV cache，decode 再逐步追加。Serving 时，请求的到达时间、长度和结束时间都不同；给每个请求预留最大长度的连续空间，会把本可用于其他请求的显存占住。PagedAttention 把 KV cache 的分配单位缩小到 block，让 vLLM 能在同一显存预算下容纳更多活跃请求。[@jain2026kvcache]
 
-对于各层结构相同的 MHA / GQA，未分片、未共享的 KV cache 大小为
-
-$$
-M_{\mathrm{KV}} = 2 L H_{\mathrm{KV}} d_h b \sum_i T_i.
-$$
-
-这里 $L$ 是层数，$H_{\mathrm{KV}}$ 是 KV head 数，$d_h$ 是 head dimension，$b$ 是每个元素的字节数，$T_i$ 包括第 $i$ 个请求已缓存的 prompt 和生成 token。例如，$L=32$、$H_{\mathrm{KV}}=8$、$d_h=128$、BF16（$b=2$）时，每个 token 要 128 KiB，8,192 个 token 就是 1 GiB。这里只计 KV tensor，不含模型权重、block table、padding 和临时 workspace。
-
-### 三种显存浪费
-
 假设一个请求已缓存 3 个 token，最终会增长到 5 个，却一开始就分配了 8 个 slot。讲义和原论文将浪费拆成三类：[@jain2026kvcache; @kwon2023pagedattention]
 
 - **Reservation**：之后会用到、现在还空着的 2 个 slot。即使事先知道最终长度，过早占住这部分空间，也会挤掉其他请求。
