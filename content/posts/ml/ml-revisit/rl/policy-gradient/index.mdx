@@ -11,6 +11,8 @@ $$
 \begin{aligned}
 \nabla_\theta \mathcal{J}(\theta)
 &= \int \nabla_\theta \pi_\theta(\tau) r(\tau)\,\mathrm{d}\tau \\
+&= \int \pi_\theta(\tau)\frac{\nabla_\theta\pi_\theta(\tau)}{\pi_\theta(\tau)}r(\tau)\,\mathrm{d}\tau \\
+&= \int \pi_\theta(\tau)r(\tau)\nabla_\theta\log\pi_\theta(\tau)\,\mathrm{d}\tau \\
 &= \mathbb{E}_{\tau\sim\pi_\theta}\left[r(\tau)\cdot\nabla_\theta\log\pi_\theta(\tau)\right] \\
 &= \mathbb{E}_{\tau\sim\pi_\theta}\left[
 \left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right)
