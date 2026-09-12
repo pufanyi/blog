@@ -338,6 +338,8 @@ Project guidance for agents working in this repository.
   and heading relationships, and resolve `@key` citations through a post-local
   `references.bib`. Keep the original `.typ` outside `content/posts`, since the
   asset copy rules would otherwise publish it.
+  When inserting MDX with JavaScript `replace`, use a replacement callback:
+  replacement strings turn `$$` display-math fences into single dollar signs.
 - For Hexo imports, remove `<!--more-->` and replace plugin tags with equivalent
   embeds, such as a PDF iframe with a direct link. Apart from the prose spacing
   above, preserve original prose, math placement, links, and code; further
@@ -449,6 +451,11 @@ Project guidance for agents working in this repository.
 ### ML Revisited Editorial Principles
 
 These principles apply to the series under `content/posts/ml/ml-revisit/`.
+
+- The RL notes are one article at `rl/index.mdx`. Their Typst source and original
+  bibliography remain under `tmp/typst-originals/`; preserve the later policy
+  gradient revisions when consulting that older source. Keep unfinished sections
+  marked as pending unless the author asks to complete them.
 
 - The visual SSL overview is one long article at `ssl/index.mdx`, with shared
   SVG primitives in `ssl/scripts/elements.tsx` and styles in `styles/media/ssl.css`.
