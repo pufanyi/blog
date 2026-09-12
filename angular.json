@@ -47,7 +47,7 @@
                 "ignore": [
                   "**/*.mdx",
                   "**/*.bib",
-                  "**/*.post-component.tsx"
+                  "**/*.tsx"
                 ]
               }
             ],

@@ -1,0 +1,117 @@
+---
+title: "从聚类到 Self-Distillation：SwAV 与 DINO"
+date: "2026-09-12"
+description: "理解 SwAV 的 balanced assignment、DINO 的 teacher distribution，以及 iBOT、DINOv2、DINOv3 怎样结合全局语义和局部特征。"
+---
+
+Contrastive learning 在许多样本中找出一个匹配对象，[BYOL](/blog/ml/ml-revisit/ssl/non-contrastive) 则预测另一个 view 的连续向量。还有一种选择：让每个 view 输出一个概率分布，再要求不同 view 的分布一致。
+
+SwAV 用一组共享 prototypes 构造这样的目标，DINO 则用一个不断更新的 teacher 产生目标。这条路线连接了 online clustering、self-distillation，也逐渐与 masked image modeling 融合。
+
+## SwAV：交换两个 view 的聚类分配
+
+先设想一个简单做法：把图像分到若干 cluster，再把 cluster ID 当作伪标签训练 encoder。困难是 encoder 更新之后，旧 cluster 也可能不再适合；如果所有样本落到同一个 cluster，伪标签还会彻底失去作用。
+
+SwAV [@caron2020swav] 在训练中联合学习 encoder 与 prototypes。设归一化后的图像 projection 为 $z\in\mathbb R^d$，有 $K$ 个 prototype $c_1,\ldots,c_K$，模型预测
+
+$$
+p_k(z)=\frac{\exp(c_k^\top z/\tau)}
+{\sum_{r=1}^K\exp(c_r^\top z/\tau)}.
+$$
+
+Prototype 是表征空间中的可学习向量，没有预先指定「猫」「狗」等含义。它也不等于已知语义类别；多个 prototype 可以表达同一语义的不同变化。
+
+接下来，为 view $1$ 的表征计算 assignment $q^{(1)}$，为 view $2$ 计算 $q^{(2)}$。训练让 view $2$ 预测 $q^{(1)}$，反过来让 view $1$ 预测 $q^{(2)}$：
+
+$$
+\mathcal L_{\mathrm{swap}}
+=H(\operatorname{sg}(q^{(1)}),p^{(2)})
++H(\operatorname{sg}(q^{(2)}),p^{(1)}),
+\qquad H(q,p)=-\sum_kq_k\log p_k.
+$$
+
+**交换的是 assignment，匹配的不是两个 projection 的每个坐标。** 两个 view 即使在外观上不同，也应对共享的 prototypes 给出一致判断。
+
+<SwappedAssignments />
+
+## 为什么需要 balanced assignment
+
+若 assignment 只是随手对当前 scores 做 argmax，所有样本都偏向同一个 prototype 会形成反馈：它越常被选中，就越常成为训练目标。
+
+SwAV 在一个 batch 上联合计算 assignment。把 $B$ 个样本的分配写为 $Q\in\mathbb R_+^{B\times K}$，使用每行和为 $1$ 的约定：
+
+$$
+\sum_{k=1}^K Q_{ik}=1,\qquad
+\sum_{i=1}^B Q_{ik}=\frac BK.
+$$
+
+第一条表示每个样本分配一份概率质量，第二条要求每个 prototype 分到相同的总质量。它约束的是 **batch 的总分配**，不是要求每张图都输出均匀分布。
+
+<details>
+<summary>Sinkhorn 在这里求什么？</summary>
+
+令 $S_{ik}=z_i^\top c_k$，SwAV 求解带 entropy regularization 的分配问题：
+
+$$
+\max_{Q\ge0}\;
+\sum_{i,k}Q_{ik}S_{ik}+\epsilon H(Q),
+\qquad
+H(Q)=-\sum_{i,k}Q_{ik}\log Q_{ik},
+$$
+
+并满足上面的行、列约束。Sinkhorn-Knopp 迭代交替调整行、列的尺度，让分配逐渐满足这两个边际条件。原论文也常用总质量为 $1$ 的矩阵约定；乘上 $B$ 后就得到这里的写法。
+
+训练将得到的 assignment 当作固定目标，通过预测分支更新 encoder 和 prototypes，不需要沿 assignment 求解器反向传播。
+
+</details>
+
+Balanced assignment 排除了「整个 batch 全分给一个 prototype」，但本身没有排除每张图都输出相同均匀分布。还需要结合有区分度的 assignment、跨 view 预测以及具体优化配方理解训练。有限 batch 的均衡约束也只是一种训练先验，并不表示真实数据的语义类别频率相同。
+
+SwAV 还引入 multi-crop：少数大裁剪配合更多小裁剪，在增加 view 数量的同时控制计算量。局部 view 被要求与更大范围的图像内容建立联系，这个设计后来也进入了 DINO。
+
+## DINO：让 teacher 提供一个分布
+
+DINO [@caron2021dino] 的名字来自 self-distillation with no labels。Student 和 teacher 都输出 $K$ 维 logits，但 teacher 不是一个已经用类别标签训练好的模型，它由 student 的 EMA 参数得到。
+
+设 student logits 为 $a_\theta(v)$，teacher logits 为 $a_\xi(v)$。原始 DINO 的分布为
+
+$$
+p_s(v)=\operatorname{softmax}\left(\frac{a_\theta(v)}{\tau_s}\right),
+\qquad
+p_t(v)=\operatorname{softmax}\left(\frac{a_\xi(v)-c}{\tau_t}\right).
+$$
+
+$c\in\mathbb R^K$ 是 teacher logits 的 running center，$\tau_t$ 和 $\tau_s$ 分别控制目标与预测的锐度。Teacher 看两份 global crops；student 看 global 和 local crops，用其他 view 的 student 分布匹配 teacher 的 global 分布：
+
+$$
+\mathcal L_{\mathrm{DINO}}
+=\frac1{|\mathcal P|}\sum_{(g,v)\in\mathcal P}
+H\left(\operatorname{sg}(p_t(g)),p_s(v)\right),
+$$
+
+其中 $\mathcal P$ 包含同一原图内、global teacher view 与不同 student view 的配对，排除相同 view 的配对。
+
+只让两边分布相同仍然有退化解。原始 DINO 通过 centering 和 sharpening 的配合控制两种倾向：centering 抑制某些输出维度长期占优势，sharpening 让每张图的目标分布有区分度。Center 由 teacher 的 batch 平均 logits 做 EMA 更新；teacher 参数则由 student 参数做 EMA 更新。这是两套不同的 moving average。
+
+这种设计不等于使用一份均匀标签，更不需要解释第 $k$ 个输出恰好是哪一个物体类别。Loss head 的分布是训练工具，之后通常取 backbone feature 做下游任务。
+
+## 从 DINO 到 DINOv3
+
+DINO 在 ViT 上观察到一些与物体区域相关的 attention 结构，但 attention 可视化并不自动等价于有类别含义的 segmentation mask。后来工作的重点之一，是让局部特征本身更稳定、更可用。
+
+**iBOT** [@zhou2022ibot] 把 teacher 作为 online tokenizer：除了图像级 self-distillation，还让 student 预测被遮住 patch 的 teacher 分布。这里已经同时出现了 distillation 与 masked prediction，目标无需来自预先训练好的离散 tokenizer。
+
+**DINOv2** [@oquab2024dinov2] 结合图像级 DINO 目标、patch 级 iBOT 目标和促进特征分散的 KoLeo regularization，同时系统改进数据筛选、训练稳定性与规模。它使用的目标归一化等实现细节也有所演进，不能直接把原始 DINO 的每一个超参数和 centering 公式照搬过去。
+
+**DINOv3** [@simeoni2025dinov3] 进一步处理长时间训练中 dense features 退化的问题。它增加 Gram anchoring：用稳定参考模型的 patch 间关系约束正在训练的特征。若归一化后的 patch features 按行组成 $F\in\mathbb R^{N\times d}$，Gram matrix $FF^\top$ 描述的是同一图像中各 patch 的相似关系。
+
+这里与 VICReg 的区别很有启发性：VICReg 约束的是不同特征维度之间的 covariance，DINOv3 的这一步保留的是不同空间位置之间的关系。更好的全局分类分数，未必意味着更好的局部几何；DINOv3 正是针对这种分歧增加训练信号。作者的[官方实现](https://github.com/facebookresearch/dinov3)可用于核对模型、训练与特征提取方式。
+
+| 方法 | 目标主要从哪里来 | 新引入的联系 |
+| --- | --- | --- |
+| SwAV | Batch 上的 balanced prototype assignment | 不同 view 对 prototypes 的判断 |
+| DINO | EMA teacher 的全局分布 | Local view 与 global view |
+| iBOT / DINOv2 | Teacher 的全局和 patch 级分布 | 被遮住位置与局部语义 |
+| DINOv3 | 前述目标加稳定的 patch 关系参考 | 全局语义与 dense feature 质量 |
+
+如果想进一步区分「online teacher 的 patch 分布」「固定 tokenizer 的离散 ID」和「原始像素」，可以接着读 [MAE 与 BEiT](/blog/ml/ml-revisit/ssl/masked-modeling)。

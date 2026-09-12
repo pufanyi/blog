@@ -1,0 +1,155 @@
+---
+title: "LeJEPA：用 SIGReg 约束表征分布"
+date: "2026-09-12"
+description: "从 VICReg 的二阶统计走向 LeJEPA 的 Gaussian matching，理解随机投影、characteristic function、SIGReg，以及理论保证与有限训练的区别。"
+---
+
+[JEPA](/blog/ml/ml-revisit/ssl/jepa) 希望让一个 view 的表征预测另一个 view，但必须避免所有输入都变成同一个向量。[VICReg](/blog/ml/ml-revisit/ssl/non-contrastive) 已经给出一个直接的办法：在对齐两个 view 的同时，要求各维有足够方差，并减少维度间的线性冗余。
+
+LeJEPA [@balestriero2025lejepa] 进一步问：**能否把期望的 embedding 分布明确规定下来，再设计一个可扩展的 loss 去匹配它？** Randall Balestriero 与 Yann LeCun 在 2025 年提出这个方法，名字中的 Le 指 Latent-Euclidean。其关键组件是 Sketched Isotropic Gaussian Regularization，简称 SIGReg。
+
+## 不只是「方差不为零」
+
+LeJEPA 选择的目标分布是 isotropic Gaussian：
+
+$$
+z\sim\mathcal N(0,I_d).
+$$
+
+这描述的是许多不同样本的 embedding 在空间中的总体分布，不是往每张图的 feature 上额外加 Gaussian noise，也不是要求每个样本的各坐标在一次前向中看起来像随机数。
+
+先用一个简单例子区分 covariance 与完整分布。令二维随机变量的两个坐标独立地取 $-1$ 或 $1$，各以 $1/2$ 的概率出现。那么
+
+$$
+\mathbb E[z]=0,\qquad \operatorname{Cov}(z)=I_2,
+$$
+
+但所有概率都集中在正方形的四个顶点上，显然不是二维 Gaussian。它通过了均值和 covariance 的检查，却没有通过分布匹配。这也是为什么「去相关」不等于「Gaussian」，更不等于一般意义下的独立性。
+
+<GaussianSlices />
+
+## 把高维检查变成一维检查
+
+直接估计高维密度很困难。SIGReg 的办法是采样多个单位方向 $a_r\in\mathbb R^d$，把 batch 中的 embeddings 投影到这些方向：
+
+$$
+u_{ir}=a_r^\top z_i,\qquad \|a_r\|_2=1.
+$$
+
+如果 $z\sim\mathcal N(0,I_d)$，那么每个方向的投影都应服从 $\mathcal N(0,1)$。反过来，如果所有方向上的投影分布都与该 Gaussian 的投影一致，Cramér-Wold 的结论允许我们识别原来的联合分布。
+
+这也解释了为什么不只检查每个坐标轴：坐标之间的依赖可能在斜方向上才显露出来。实际训练每步采样有限多个方向，用一维统计量的平均值提供梯度；这是一种随机近似，不能把「若所有方向都匹配」直接改写为「有限次检查证明已经匹配」。
+
+## 用 characteristic function 比较分布
+
+一维样本 $u_1,\ldots,u_B$ 的 empirical characteristic function 为
+
+$$
+\widehat\varphi(t)
+=\frac1B\sum_{i=1}^B e^{\mathrm i t u_i}
+=\frac1B\sum_i\cos(tu_i)
++\mathrm i\frac1B\sum_i\sin(tu_i).
+$$
+
+这里 $\mathrm i$ 是虚数单位。可以把不同的 $t$ 理解成不同尺度的分布探针：不用拟合一个密度函数，只需要计算一批 sine 和 cosine 的平均值。标准 Gaussian 有已知的 characteristic function：
+
+$$
+\varphi_0(t)=e^{-t^2/2}.
+$$
+
+SIGReg 使用基于 Epps-Pulley statistic 的比较。按官方实现 [@lejepaEppsPulley] 对应的尺度约定，单个投影方向的统计量写作
+
+$$
+T(u)=B\int_{\mathbb R}
+\left|\widehat\varphi(t)-e^{-t^2/2}\right|^2
+e^{-t^2/2}\,dt,
+\qquad
+\operatorname{SIGReg}(Z)=\frac1R\sum_{r=1}^R T(Za_r).
+$$
+
+积分前的 $B$ 是样本量尺度，最后的 Gaussian 权重让远处频率的贡献衰减。取 $R$ 个随机方向，就把高维分布约束转化成一组一维检查。
+
+实际代码用有限积分区间和求积节点近似这个积分。作者当前实现利用正负 $t$ 的对称性，只计算非负节点；cosine 均值对应实部，sine 均值对应虚部。复数是数学表达上的方便，计算不一定需要 complex tensor。
+
+<details>
+<summary>前面的四顶点分布怎样被检测出来？</summary>
+
+沿第一个坐标轴投影，$u$ 等概率取 $-1,1$，所以
+
+$$
+\varphi_u(t)=\frac12e^{\mathrm it}+\frac12e^{-\mathrm it}=\cos t.
+$$
+
+在 $t=\pi$，它等于 $-1$；标准 Gaussian 的 characteristic function 则是正数 $e^{-\pi^2/2}$。虽然前两个矩相同，分布检查仍能区分它们。
+
+沿对角方向 $a=(1,1)^\top/\sqrt2$ 投影，三个可能值为 $-\sqrt2,0,\sqrt2$，概率分别是 $1/4,1/2,1/4$。这是图中投影柱子的来源；它们是概率质量，不是 Gaussian 密度的直方图近似。
+
+</details>
+
+## 把 SIGReg 与 view prediction 合起来
+
+一个 batch 有 $B$ 张图，每张有 $V$ 个 view，其中集合 $G$ 是 global views。令 $z_{i,v}\in\mathbb R^d$ 为用于 loss 的 projection，先计算每张图的 global-view center：
+
+$$
+\mu_i=\frac1{|G|}\sum_{v\in G}z_{i,v}.
+$$
+
+采用论文示例实现中的 center-based prediction 写法 [@balestriero2025lejepa]：
+
+$$
+\mathcal L_{\mathrm{pred}}
+=\frac1{BVd}\sum_{i=1}^B\sum_{v=1}^V
+\|z_{i,v}-\mu_i\|_2^2,
+$$
+
+$$
+\mathcal L
+=(1-\lambda)\mathcal L_{\mathrm{pred}}
++\lambda\frac1V\sum_{v=1}^V
+\operatorname{SIGReg}(Z_v),\qquad 0<\lambda<1.
+$$
+
+$Z_v\in\mathbb R^{B\times d}$ 收集第 $v$ 个 view 在不同图像上的 projections。Prediction 项沿 view 轴建立同一图像的联系，SIGReg 沿样本轴约束不同图像的分布。**Center 也参与求导，不需要 detach 或 EMA teacher。**
+
+两项分别对应两个要求：同一实例的 views 应该一致，但整个数据集不能被压成一个点。仅有 SIGReg，也可以得到分布漂亮却与任务无关的表征；仅有 prediction，又会允许常数解。
+
+<details>
+<summary>预测 center 与平均两两距离的关系</summary>
+
+对任意向量 $z$ 和一组 global-view 向量 $g_1,\ldots,g_m$，令 $\mu=m^{-1}\sum_a g_a$。展开平方可得
+
+$$
+\frac1m\sum_{a=1}^m\|z-g_a\|_2^2
+=\|z-\mu\|_2^2
++\frac1m\sum_{a=1}^m\|g_a-\mu\|_2^2.
+$$
+
+第二项是 global views 自身的离散程度。若这些向量也在学习，就不能普遍把它当成与参数无关的常数扔掉。本文明确采用上面的 center objective，不把它与所有 pairwise objective 不加条件地等同起来。
+
+当 global views 就是全部 views，并对预测端也平均时，平均两两平方距离恰好是平均到 center 的平方距离的两倍；这个特殊情形才可以通过整体尺度调整互换。
+
+</details>
+
+## 理论结论应该怎样理解
+
+论文分析了固定总方差等条件下的表征几何与 probe 风险：线性部分比较保留相同内在特征、但尺度不同的表示；非线性部分研究特定的邻域或 kernel probe，并需要相应的正则性条件。
+
+这些结果为 Gaussian 目标提供理论动机，但不能跳过条件，推出「任意数据、任意增强、任意下游任务都保证最优」。如果增强删掉了任务需要的信息，或者模型没学到有用的区分，匹配一个边际分布并不能补回这些信息。
+
+同样，有限 batch 的 empirical characteristic function 有采样误差，有限方向和有限积分节点是近似。即使真实分布是 Gaussian，单个有限 batch 的统计量通常也不会严格等于零。降低 regularizer 与证明总体分布完全匹配是不同的目标。
+
+## 简化了什么，仍然需要选择什么
+
+LeJEPA 的这个实例不需要 negatives、prototype assignments、EMA teacher 或 stop-gradient。它也不必包含 I-JEPA 那种用目标位置作条件的独立 predictor：多 view 的中心对齐已经定义了这里的预测关系。
+
+它仍然需要选择 backbone、projector、数据增强、optimizer、batch size，以及投影方向和求积精度。论文强调的单个 trade-off hyperparameter 指两类 loss 的权衡 $\lambda$，不表示整个训练系统只有一个配置项；这些选择可以对照作者实现 [@lejepaCode] 核查。
+
+若有 $R$ 个方向、$T$ 个积分节点，投影的直接计算约为 $O(BdR)$，统计部分约为 $O(BRT)$。固定 $R,T$ 后，对样本量与 embedding 维度是线性扩展；若中间张量较大，可以分块计算。分布式实现还要在各设备同步投影方向，并先聚合 characteristic function 的均值，再计算偏差。
+
+LeJEPA 的价值是把避免 collapse 的要求写得更明确。实际选型时，仍应把它与 [DINO 系列](/blog/ml/ml-revisit/ssl/clustering-distillation)、[VICReg](/blog/ml/ml-revisit/ssl/non-contrastive) 等在相同数据和评估协议下比较，再判断这种简化是否适合自己的任务。
+
+## 后续延伸：LeVJEPA
+
+截至 2026 年 9 月 12 日，还值得关注 2026 年 8 月公开的 LeVJEPA [@kuhn2026levjepa]。它把相同思路用于视频：同一时间窗口的 global、local views 经共享 encoder 和 projector 得到 clip-level embeddings，用 invariance 与 SIGReg 联合训练，不使用独立 teacher 或 predictor。
+
+作者还结合大量 token dropping 控制计算，并研究 block-causal attention，使帧表征不依赖未来帧。这里的监督主要作用在 clip-level 表征，不能与 V-JEPA 2.1 的全 token、多个层次的 dense prediction 混为一谈；能产生 causal features，也还不等于已经得到带动作条件的规划系统。论文与[作者项目页](https://levjepa.github.io/)适合作为 LeJEPA 之后的延伸阅读。

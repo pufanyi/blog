@@ -15,7 +15,7 @@
     "eslint.config.mts",
     "remark.config.mts",
     "scripts/**/*.mts",
-    "content/posts/**/scripts/*.post-component.tsx",
+    "content/posts/**/scripts/*.tsx",
     "scripts/lib/fixtures/**/scripts/*.post-component.tsx"
   ]
 }

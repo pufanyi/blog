@@ -1,0 +1,98 @@
+---
+title: "Masked Image Modeling：MAE 与 BEiT"
+date: "2026-09-12"
+description: "从图像冗余和预测目标理解 MAE、BEiT：可见 token 的计算、像素重建、离散 tokenizer，以及与 JEPA 的边界。"
+---
+
+遮住句子中的一个词，让模型根据上下文预测它，是很自然的自监督任务。把这个思路搬到图像上也很直观：遮住一些 patches，再预测缺失内容。但「缺失内容」可以指像素、离散 token，或者另一个 encoder 产生的特征。
+
+**MAE 与 BEiT 的关键区别，是预测目标的表示方式，以及 mask 以后哪些 tokens 仍然进入 encoder。** 先理解这两点，再看它们与 [DINO、iBOT](/blog/ml/ml-revisit/ssl/clustering-distillation) 和 JEPA 的联系。
+
+## 为什么不能直接照搬文字填空
+
+图像的局部冗余很高。只遮住一小块平滑天空，附近的颜色往往足够猜出答案。一个容易通过插值解决的任务，未必迫使模型理解物体结构。
+
+这解释了两个设计方向：提高遮挡比例，让模型必须利用更大范围的上下文；或者改变目标，把细碎的像素信息压缩成更有结构的表示。Mask ratio、mask 形状与 target 都在改变学习任务，不能脱离模型和数据独立讨论。
+
+## MAE：encoder 只处理可见 patches
+
+MAE [@he2022mae] 把图像分为 $N$ 个 patches，随机保留其中一部分。它的关键结构是不对称的 encoder-decoder：
+
+1. 只把 visible patches 和位置编码送入较大的 ViT encoder。
+2. 将 encoder 输出映射到 decoder 的维度。
+3. 在缺失位置补入可学习的 mask tokens，再加入 decoder 的位置编码。
+4. 由较小的 decoder 预测像素，在被遮住的位置计算 loss。
+
+<MaskedTargets />
+
+设 masked 索引集合为 $M$，visible 集合为 $V$，每个 patch 的像素向量为 $x_i\in\mathbb R^{P^2C}$。简写 encoder-decoder 的输出为 $\hat x_i$，重建目标是
+
+$$
+\mathcal L_{\mathrm{MAE}}
+=\frac1{|M|}\sum_{i\in M}
+\frac1{P^2C}\|\hat x_i-x_i\|_2^2.
+$$
+
+原论文也实验了对每个 patch 的像素做均值、方差归一化后再作为 target，这在其设置中改善了表征学习。这里的归一化作用在训练目标，不是把输入图像变成某种离散词表。
+
+原始 MAE 的典型设置遮住约 $75\%$ 的 patches。大比例遮挡一方面提高任务难度，另一方面让昂贵的 encoder 只处理较短的序列。预训练后，通常丢掉 decoder，用 encoder 处理完整图像，再接下游任务。
+
+<details>
+<summary>保留四分之一的 token，是否就快十六倍？</summary>
+
+不能这样估计整个模型。假设一张图有 $14\times14=196$ 个 patches，保留 $25\%$ 后是 $49$ 个。不计 class token、padding 等细节，encoder 中 attention score matrix 的元素数变为
+
+$$
+\frac{49^2}{196^2}=\frac1{16}.
+$$
+
+但线性投影与 MLP 的许多计算只随 token 数线性变化，这部分约变为 $1/4$。Decoder 还要处理完整序列，运行时间也受内存访问和 kernel 效率影响。因此，$1/16$ 只是这一块二次复杂度的理想比例，不是端到端速度结论。
+
+</details>
+
+高遮挡比例也不是普遍最优值。如果小物体占的面积很少，随机丢掉绝大部分 patches 可能直接抹掉任务所需的信息。需要根据数据和 downstream task 判断。
+
+## BEiT：预测离散 visual token
+
+BEiT [@bao2022beit] 认为，像素不一定是最合适的预测单位。它先用一个预训练的 visual tokenizer，把完整图像转换成空间排列的离散 token IDs：
+
+$$
+y_i=T(x)_i\in\{1,\ldots,K\}.
+$$
+
+Tokenizer 看到完整图像，提供 target；用于学习表征的 ViT 则接收部分 patches 被 mask embedding 替换的图像序列。模型在被遮住的位置预测一个 $K$ 类分布：
+
+$$
+\mathcal L_{\mathrm{BEiT}}
+=-\frac1{|M|}\sum_{i\in M}
+\log p_\theta(y_i\mid x_{\mathrm{masked}}).
+$$
+
+这是分类 loss，而不是像素 MSE。Token ID 是 codebook 中的索引，不是人工物体标签；同一个图像语义可以涉及很多 visual tokens。
+
+原始 BEiT 使用预训练 discrete VAE 的 tokenizer。预训练 ViT 时 tokenizer 固定，target 不随 ViT 一起更新。它采用 blockwise masking，而且 **mask tokens 也进入 ViT encoder**；因此不能把 MAE 只处理 visible tokens 的计算节省直接套到 BEiT 上。
+
+Tokenizer 决定了任务要求保留什么：若 codebook 更关注纹理和颜色，预测 token 也会继承这种偏好；若 tokenizer 本身保留了较强语义，预测任务就可能更偏向语义。离散化本身不会自动把视觉单元变成有意义的「词」。
+
+## BEiT v2 与 online tokenizer
+
+BEiT v2 [@peng2022beitv2] 用 vector-quantized knowledge distillation 构造更有语义的 tokenizer，并增加 patch aggregation 相关的训练设计。其 CLIP teacher 设置还提醒我们：要看清 tokenizer 的知识来源，不能因为后续 MIM 阶段没有人工类别标签，就忽略上游 teacher 使用过的图文监督。
+
+与固定 tokenizer 相比，iBOT [@zhou2022ibot] 用 EMA teacher 的 patch 分布作为随训练更新的目标。两者都在被遮住的位置提供分类式的预测信号，但目标生成流程不同。
+
+| 方法 | Target | Target 是否随表征训练更新 | 主 encoder 是否处理 mask tokens |
+| --- | --- | --- | --- |
+| MAE | 原图 pixels，可做 patch normalization | 原图目标固定 | 否，在 decoder 补入 |
+| BEiT | 预训练 tokenizer 的离散 ID | Tokenizer 固定 | 是 |
+| iBOT | EMA teacher 的 patch 概率分布 | 是 | Student 是 |
+| I-JEPA | EMA target encoder 的连续特征 | 是 | Context encoder 只看 context；predictor 接收目标位置 |
+
+表中最后一行会在 [JEPA](/blog/ml/ml-revisit/ssl/jepa) 中展开。它与 MAE 都可以使用轻量 predictor 和部分可见输入，但 loss 所在的空间不同。
+
+## 重建质量与表征质量
+
+像素重建给模型一个来自数据的固定目标，所以输出同一个常向量通常无法对所有图像完成任务。然而，模型也可能花很多容量刻画下游不关心的纹理、噪声和背景。生成的图片看起来更逼真，并不必然意味着分类、检索或定位更好。
+
+另一方面，MAE 的研究目标是得到有用的 encoder，不是把重建图像当作最终产品；需要看 fine-tuning、linear probe 和 dense task 的实际评估，而不能只看重建可视化。
+
+这就引出了 JEPA 的问题：如果某些像素细节既难预测、又与任务无关，是否能让训练目标本身就忽略这些细节？

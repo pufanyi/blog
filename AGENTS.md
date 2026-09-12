@@ -39,6 +39,9 @@ Project guidance for agents working in this repository.
 - Prefer `.mts` for Node ESM scripts and executable configuration, `.ts` for
   Angular/shared code, and `.tsx` for JSX. `tsconfig.scripts.json` checks all
   tooling, script tests, and post-local components strictly, without `allowJs`.
+  Include post-local JSX helpers as well as component entrypoints: `tsx` needs
+  those files covered by this config to use the automatic React JSX runtime.
+  Keep build-time TSX files excluded from Angular's post asset copy rules.
   Keep native Node entrypoints compatible with type stripping; MDX generation
   and its tests use `tsx` because they load authored JSX components.
 - ESLint loads `eslint.config.mts` through the explicit `jiti` dev dependency.
@@ -439,6 +442,12 @@ Project guidance for agents working in this repository.
 ### ML Revisited Editorial Principles
 
 These principles apply to the series under `content/posts/ml/ml-revisit/`.
+
+- The visual SSL series lives under `ssl/`, with its reading map in
+  `ssl/overview/index.mdx`. Keep the category root free of `index.mdx`, which
+  would stop recursive article discovery; update the reading map and cross-post
+  links when extending the series. Shared SVG primitives live in
+  `ssl/overview/scripts/elements.tsx` and styles in `styles/media/ssl.css`.
 
 - Write for readers with some machine-learning or LLM background who may be
   encountering the specific topic for the first time. The series should support
