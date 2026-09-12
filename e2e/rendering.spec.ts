@@ -59,6 +59,8 @@ for (const article of ['ssl', 'ar']) {
         }
       });
       const widths = browserName === 'webkit' ? [1280, 390] : [page.viewportSize()!.width];
+      // Each viewport performs a cold render, including the real speech queue.
+      test.setTimeout(30_000 * widths.length);
       for (const width of widths) {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(`/blog/ml/ml-revisit/${article}`);
