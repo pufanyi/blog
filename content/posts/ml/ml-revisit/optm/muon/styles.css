@@ -75,6 +75,40 @@
   stroke-width: 2;
 }
 
+.muon-flow-box {
+  fill: color-mix(in srgb, currentColor 7%, var(--paper-bg));
+  stroke: currentColor;
+  stroke-width: 1.25;
+}
+
+.muon-flow-state {
+  stroke-dasharray: 5 4;
+}
+
+.muon-flow-edge {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.muon-flow-arrow,
+.muon-flow-junction {
+  fill: var(--text-secondary);
+}
+
+.muon-flow-group {
+  fill: color-mix(in srgb, var(--accent-teal) 4%, var(--paper-bg));
+  stroke: var(--accent-teal);
+  stroke-width: 1.25;
+}
+
+.muon-flow-sum {
+  fill: var(--paper-bg);
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+}
+
 .muon-heading,
 .muon-note,
 .muon-value {

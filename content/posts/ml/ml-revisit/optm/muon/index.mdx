@@ -1,10 +1,15 @@
 ---
 title: "Muon"
 date: "2026-09-11"
+updated: "2026-09-12"
 description: "从矩阵更新的奇异值理解 Muon，以及 Newton–Schulz 近似、学习率缩放和大规模训练中的取舍。"
 ---
 
 训练一个 linear layer 时，参数是矩阵，但 SGD 和 AdamW 的更新规则并没有充分利用这个矩阵的结构。Muon [@jordan2024muon] 的做法是：先用 momentum 平滑梯度，再调整更新矩阵的奇异值，让不同方向的更新具有相近的尺度。名字里的 **MomentUm Orthogonalized by Newton–Schulz**，说的就是这个过程。
+
+先把它放回一次完整的训练 step。Forward 和 backward 照常进行；Muon 接收 backward 算出的梯度，在 optimizer step 中构造参数更新。下面以 Transformer 的常见参数分组为例，$\theta_t$ 表示整个模型的参数。
+
+<MuonTrainingStep />
 
 ## 从逐元素缩放到矩阵更新
 
@@ -170,7 +175,11 @@ $$
 
 ## 完整的一步与更新尺度
 
-前面为了说明机制使用了普通 momentum。作者实现默认使用 Nesterov-style momentum，采用 EMA 记法时，完整顺序如下。这里的 $t$ 是训练 step，$k$ 是一次更新内部的 Newton–Schulz 迭代，二者不要混淆。
+前面为了说明机制使用了普通 momentum。作者实现默认使用 Nesterov-style momentum。现在放大训练总览中的 Muon 分支，看单个权重矩阵 $W_t$ 的一次更新。采用 EMA 记法，先从当前梯度和历史 momentum 得到 $M_t$，再与当前梯度组合成送入 Newton–Schulz 的 $H_t$。
+
+<MuonMatrixStep />
+
+这里的 $t$ 是训练 step，$k$ 是一次更新内部的 Newton–Schulz 迭代。跨训练 step 保存的是 $M_t$；$X_0,\ldots,X_5$ 都在本次 optimizer step 内算完。图中的各步对应：
 
 1. 计算当前梯度 $G_t=\nabla_W\mathcal{L}_t$。
 2. 更新 $M_t=\beta M_{t-1}+(1-\beta)G_t$，初始 $M_{-1}=0$。

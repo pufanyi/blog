@@ -17,6 +17,11 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   `src/app/utils/blog-redirects.ts`, shared by client routes and prerendering.
   Keep section anchors stable when reorganizing the article.
 
+- Muon diagrams distinguish the outer training step from the internal
+  Newton–Schulz iterations. Keep the saved momentum upstream of the matrix
+  transform and show decoupled weight decay bypassing it. The spectrum plots
+  distinguish ideal polar factors from the actual finite-step approximation.
+
 - Write for readers with some machine-learning or LLM background who may be
   encountering the specific topic for the first time. The series should support
   both initial learning and review. Briefly establish necessary prerequisites
