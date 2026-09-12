@@ -13,6 +13,7 @@ import remarkMath from 'remark-math';
 import type { Highlighter } from 'shiki';
 import { createCodeRenderer } from './code-renderer.mts';
 import { getImageDimensions, type ImageDimensions } from './image-dimensions.mts';
+import { postStyles } from './post-assets.mts';
 import { buildTableOfContents } from './toc-renderer.mts';
 
 const POSTS_DIR = fileURLToPath(new URL('../../content/posts', import.meta.url));
@@ -388,5 +389,6 @@ export async function renderMdx(
     rehypePlugins,
   });
   const html = renderToStaticMarkup(createElement(module.default, { components }));
-  return postprocessMdxHtml(html, slug, highlighter, citations);
+  const result = postprocessMdxHtml(html, slug, highlighter, citations);
+  return { ...result, html: postStyles(sourcePath) + result.html };
 }

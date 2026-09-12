@@ -452,6 +452,7 @@ test('prerendered HTML contains article metadata and missing routes return the 4
 
 test('home and search do not download article bodies or MathJax; reading loads one body', async ({
   page,
+  baseURL,
 }) => {
   const scripts: Promise<string>[] = [];
   let mathRequests = 0;
@@ -459,10 +460,7 @@ test('home and search do not download article bodies or MathJax; reading loads o
     if (request.url().includes('/mathjax@')) mathRequests++;
   });
   page.on('response', (response) => {
-    if (
-      response.url().startsWith('http://127.0.0.1:4173/') &&
-      response.request().resourceType() === 'script'
-    )
+    if (response.url().startsWith(`${baseURL}/`) && response.request().resourceType() === 'script')
       scripts.push(response.text());
   });
   await page.goto('/');

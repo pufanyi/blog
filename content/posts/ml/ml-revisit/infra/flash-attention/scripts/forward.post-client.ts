@@ -215,3 +215,5 @@ export function initFlashForward(container: HTMLElement): () => void {
   );
   return () => cleanups.forEach((cleanup) => cleanup());
 }
+
+export const enhancePost = initFlashForward;

@@ -14,6 +14,7 @@ import { parsePostSource } from './lib/front-matter.mts';
 import { publishGeneratedFiles } from './lib/generated-files.mts';
 import { normalizePostImageHref, renderMdx } from './lib/mdx-renderer.mts';
 import { buildPersonData } from './lib/person-data.mts';
+import { postEnhancementModule } from './lib/post-assets.mts';
 import { buildPostExcerpt } from './lib/post-excerpt.mts';
 import { discoverPostSources } from './lib/post-sources.mts';
 import { loadSiteConfiguration } from './lib/site-config.mts';
@@ -129,6 +130,7 @@ export async function generateData(root = ROOT): Promise<void> {
   }
   posts.sort(comparePostsByPublication);
   const dataFiles = await buildPostModules(posts);
+  dataFiles.set('post-enhancements.ts', postEnhancementModule(root, rawPosts));
   for (const [filename, type, name, value] of [
     ['site-config', 'SiteConfig', 'SITE_CONFIG', configuration.site],
     ['blog-config', 'BlogConfig', 'BLOG_CONFIG', configuration.blog],

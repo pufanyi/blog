@@ -9,6 +9,7 @@ import {
   input,
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { POST_ENHANCEMENTS } from '../data/post-enhancements';
 import type { Post } from '../models/post.model';
 import { CitationPreviewService } from '../services/citation-preview.service';
 import { PageScrollService } from '../services/page-scroll.service';
@@ -20,6 +21,7 @@ import {
   initContentImageZoom,
   optimizeContentImages,
 } from '../utils/post-content-hooks';
+import { bindPostEnhancements } from '../utils/post-enhancements';
 
 @Directive({
   selector: '[appPostContent]',
@@ -54,12 +56,8 @@ export class PostContentDirective {
         hydrateContentImages(container, this.environmentInjector, this.appRef),
         initContentImageZoom(container),
         this.citations.bind(container),
+        bindPostEnhancements(container, POST_ENHANCEMENTS.get(post.slug) ?? []),
       ];
-      if (container.querySelector('[data-flash-forward]')) {
-        void import('../utils/flash-forward/player').then(({ initFlashForward }) => {
-          if (!abort.signal.aborted) cleanups.push(initFlashForward(container));
-        });
-      }
       this.spy.observe(container, post.toc);
       void Promise.all([
         typesetMath(container, abort.signal),

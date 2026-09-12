@@ -3,6 +3,7 @@ import test from 'node:test';
 import { JSDOM } from 'jsdom';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { initFlashForward } from '../../content/posts/ml/ml-revisit/infra/flash-attention/scripts/forward.post-client';
 import { POST_COMPONENTS } from '../../content/posts/ml/ml-revisit/infra/flash-attention/scripts/interactive.post-component';
 import {
   buildFrames,
@@ -11,8 +12,7 @@ import {
   partition,
   QUERY_TILES,
   SEQUENCE_LENGTH,
-} from '../../src/app/utils/flash-forward/model';
-import { initFlashForward } from '../../src/app/utils/flash-forward/player';
+} from '../../content/posts/ml/ml-revisit/infra/flash-attention/scripts/model';
 import { htmlToAgentMarkdown } from './agent-markdown.mts';
 
 const markup = () => renderToStaticMarkup(createElement(POST_COMPONENTS.FlashForwardInteractive));

@@ -1,5 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 
+function port(name: string, fallback: number): number {
+  const value = Number(process.env[name] ?? fallback);
+  if (!Number.isInteger(value) || value < 1 || value > 65535) throw new Error(`Invalid ${name}`);
+  return value;
+}
+const previewPort = port('BLOG_PREVIEW_PORT', 4173);
+const cloudflarePort = port('BLOG_CLOUDFLARE_PORT', 8787);
+const previewUrl = `http://127.0.0.1:${previewPort}`;
+const cloudflareUrl = `http://127.0.0.1:${cloudflarePort}`;
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -8,7 +18,7 @@ export default defineConfig({
   workers: 2,
   reporter: process.env['CI'] ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL: previewUrl,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
@@ -21,19 +31,19 @@ export default defineConfig({
     {
       name: 'cloudflare',
       testMatch: 'agent-content.spec.ts',
-      use: { baseURL: 'http://127.0.0.1:8787' },
+      use: { baseURL: cloudflareUrl },
     },
   ],
   webServer: [
     {
-      command: 'pnpm preview',
-      url: 'http://127.0.0.1:4173',
-      reuseExistingServer: !process.env['CI'],
+      command: `PORT=${previewPort} pnpm preview`,
+      url: previewUrl,
+      reuseExistingServer: false,
     },
     {
-      command: 'pnpm preview:cloudflare',
-      url: 'http://127.0.0.1:8787',
-      reuseExistingServer: !process.env['CI'],
+      command: `pnpm exec wrangler dev --local --ip 127.0.0.1 --port ${cloudflarePort}`,
+      url: cloudflareUrl,
+      reuseExistingServer: false,
     },
   ],
 });

@@ -42,7 +42,14 @@
                 "glob": "**/*",
                 "input": "content/posts",
                 "output": "posts",
-                "ignore": ["**/*.mdx", "**/*.bib", "**/*.tsx"]
+                "ignore": [
+                  "**/*.mdx",
+                  "**/*.bib",
+                  "**/*.tsx",
+                  "**/scripts/**/*.ts",
+                  "**/scripts/**/*.mts",
+                  "**/styles.css"
+                ]
               }
             ],
             "styles": [

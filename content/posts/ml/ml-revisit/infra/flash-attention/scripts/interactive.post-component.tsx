@@ -9,7 +9,7 @@ import {
   SEQUENCE_LENGTH,
   tokenRange,
   GRID_UNIT as UNIT,
-} from '../../../../../../../src/app/utils/flash-forward/model';
+} from './model';
 
 function Math({ children }: { children: string }) {
   return <span className="math-inline">{`\\(${children}\\)`}</span>;

@@ -1,0 +1,174 @@
+.made-diagram-shell {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--paper-bg);
+  box-shadow: 0 1px 4px var(--shadow-color);
+}
+
+.made-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--text-color);
+}
+
+.made-diagram-heading,
+.made-diagram-degree,
+.made-diagram-legend,
+.made-diagram-mask-key,
+.made-diagram-caption {
+  fill: var(--text-color);
+  font-family: var(--font-body);
+}
+
+.made-diagram-math {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  font-family: var(--font-body);
+  line-height: 1;
+}
+
+.made-diagram-math mjx-container {
+  margin: 0 !important;
+}
+
+.made-diagram-heading {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+.made-diagram-node {
+  fill: var(--paper-bg);
+  stroke: var(--text-secondary);
+  stroke-width: 2.5;
+}
+
+.made-diagram-degree {
+  font-size: 17px;
+  font-weight: 500;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.made-diagram-variable {
+  font-size: 18px;
+}
+
+.made-diagram-edge-dense,
+.made-diagram-edge-one,
+.made-diagram-edge-two {
+  fill: none;
+  stroke-width: 1.8;
+}
+
+.made-diagram-edge-dense {
+  stroke: var(--text-secondary);
+  marker-end: url("#made-arrow-dense");
+}
+
+.made-diagram-edge-one {
+  stroke: var(--surface-strong);
+  marker-end: url("#made-arrow-one");
+}
+
+.made-diagram-edge-two {
+  stroke: var(--accent-blue);
+  marker-end: url("#made-arrow-two");
+}
+
+.made-diagram-arrow-dense {
+  fill: var(--text-secondary);
+}
+
+.made-diagram-arrow-one {
+  fill: var(--surface-strong);
+}
+
+.made-diagram-arrow-two {
+  fill: var(--accent-blue);
+}
+
+.made-mask-cell,
+.made-mask-cell-active {
+  stroke: var(--surface-strong);
+  stroke-width: 1;
+}
+
+.made-mask-cell {
+  fill: var(--paper-bg);
+}
+
+.made-mask-cell-active {
+  fill: var(--accent-sage);
+}
+
+.made-diagram-mask-label {
+  font-size: 20px;
+}
+
+.made-diagram-operation {
+  font-size: 14px;
+  color: var(--accent-rose);
+}
+
+.made-diagram-transform-arrow {
+  fill: none;
+  stroke: var(--accent-rose);
+  stroke-width: 3;
+  marker-end: url("#made-transform-arrow");
+}
+
+.made-diagram-transform-arrowhead {
+  fill: var(--accent-rose);
+}
+
+.made-diagram-probability {
+  font-size: 15px;
+}
+
+.made-diagram-legend {
+  font-size: 14px;
+}
+
+.made-diagram-legend-one,
+.made-diagram-legend-two {
+  stroke-width: 2;
+}
+
+.made-diagram-legend-one {
+  stroke: var(--surface-strong);
+}
+
+.made-diagram-legend-two {
+  stroke: var(--accent-blue);
+}
+
+.made-diagram-mask-key {
+  font-size: 12px;
+}
+
+.made-diagram-caption {
+  padding: 0 1rem 0.9rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  /* Preserve the SVG coordinate system for WebKit foreignObject content. */
+  .made-diagram {
+    width: 1000px;
+    height: 600px;
+    max-width: none;
+  }
+}
