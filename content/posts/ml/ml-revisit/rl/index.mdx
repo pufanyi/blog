@@ -58,7 +58,7 @@ $$
 
 ### Direct policy differentiation
 
-用带参数 $\theta$ 的策略 $\pi_\theta$ 与环境交互，会得到一条轨迹 $\tau$。记这套策略产生轨迹 $\tau$ 的概率或密度为 $\pi_\theta(\tau)$，整条轨迹的总奖励为 $r(\tau)=\sum_{t=1}^T r(s_t,a_t)$。我们想最大化的是这套策略反复执行时的平均总奖励：
+记整条轨迹的总 reward 为 $r(\tau)=\sum_{t=1}^T r(s_t,a_t)$，我们想最大化它在当前策略下的期望：
 
 $$
 \mathcal{J}(\theta)
@@ -66,44 +66,24 @@ $$
 =\int\pi_\theta(\tau)r(\tau)\,\mathrm{d}\tau.
 $$
 
-$\mathcal{J}(\theta)$ 衡量当前策略有多好；为了更新参数，我们还需要求它的梯度 $\nabla_\theta\mathcal{J}(\theta)$。这里假设环境的转移和奖励规则不依赖 $\theta$：固定一条轨迹后，$r(\tau)$ 就固定了，但改变策略参数会改变各条轨迹出现的概率。因此，求导时需要处理的是期望中的分布 $\pi_\theta$。
+采样得到一条 $\tau$ 后，很容易觉得：既然有它的概率 $\pi_\theta(\tau)$，又有它的 reward $r(\tau)$，那就直接最大化两者的乘积。这里漏掉了积分：**$\pi_\theta(\tau)r(\tau)$ 只是被积函数在这条轨迹上的取值，目标 $\mathcal J(\theta)$ 是对所有轨迹的积分。** 如果能算出整个积分，直接对 $\mathcal J$ 求导当然可以；但只拿到一条采样轨迹时，直接对这个乘积求导，并不能给出整个目标梯度的无偏估计。
 
-在积分与求导可以交换的条件下，REINFORCE Algorithm [@williams1992simple] 使用下面的梯度表达式：
+实际训练通常无法遍历所有轨迹，只能按当前策略采样。我们希望每条样本给出一个梯度，平均起来就能无偏地估计整个目标的梯度。**下面推导的目的，就是把 $\nabla_\theta\mathcal J(\theta)$ 写成一个可以用采样估计的期望，从而确定每条样本应该贡献什么梯度。**
+
+沿用环境与 reward 不依赖 $\theta$ 的假设，在积分与求导可以交换的条件下，利用 $\nabla_\theta\log\pi_\theta(\tau)=\nabla_\theta\pi_\theta(\tau)/\pi_\theta(\tau)$，得到 REINFORCE [@williams1992simple] 的梯度表达式：
 
 $$
 \begin{aligned}
 \nabla_\theta \mathcal{J}(\theta)
-&= \nabla_\theta\mathbb{E}_{\tau\sim\pi_\theta}[r(\tau)] \\
-&= \int \nabla_\theta \pi_\theta(\tau) r(\tau)\,\mathrm{d}\tau \\
+&= \int r(\tau)\nabla_\theta\pi_\theta(\tau)\,\mathrm{d}\tau \\
 &= \int \pi_\theta(\tau)\frac{\nabla_\theta\pi_\theta(\tau)}{\pi_\theta(\tau)}r(\tau)\,\mathrm{d}\tau \\
-&= \int \pi_\theta(\tau)r(\tau)\nabla_\theta\log\pi_\theta(\tau)\,\mathrm{d}\tau \\
-&= \mathbb{E}_{\tau\sim\pi_\theta}\left[r(\tau)\cdot\nabla_\theta\log\pi_\theta(\tau)\right] \\
 &= \mathbb{E}_{\tau\sim\pi_\theta}\left[
-\left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right)
-\left(\sum_{t=1}^T r(s_t,a_t)\right)
-\right]
+r(\tau)\nabla_\theta\log\pi_\theta(\tau)
+\right].
 \end{aligned}
 $$
 
-**开头的期望等于 $\mathcal{J}(\theta)$，推导末尾的期望等于 $\nabla_\theta\mathcal{J}(\theta)$。** 两者都按同一个 $\pi_\theta$ 取平均，但被平均的量不同：前者是奖励 $r(\tau)$，后者是梯度贡献 $r(\tau)\nabla_\theta\log\pi_\theta(\tau)$。前者给出策略的表现，后者给出这个表现随参数变化的方向和幅度。
-
-把梯度重新写成期望，是为了方便采样估计。对同一批轨迹 $\tau_1,\ldots,\tau_N\sim\pi_\theta$，分别取下面两个平均，就能估计目标值和目标梯度：
-
-$$
-\begin{aligned}
-\hat{\mathcal{J}}&=\frac1N\sum_{i=1}^N r(\tau_i),\\
-\hat g&=\frac1N\sum_{i=1}^N r(\tau_i)\nabla_\theta\log\pi_\theta(\tau_i).
-\end{aligned}
-$$
-
-所以说，在 $\tau\sim\pi_\theta$ 时，$r(\tau)\cdot\nabla_\theta\log\pi_\theta(\tau)$ 是**目标梯度 $\nabla_\theta\mathcal{J}(\theta)$ 的无偏估计**。这里需要的是 reward 加权的 log probability 的梯度，单独的 $\log\pi_\theta(\tau)$ 并不是这个估计量。可惜这玩意儿的 variance 很高。
-
-<details>
-<summary>从轨迹积分到代码里的 loss</summary>
-
-按 $\pi_\theta$ 采样后，直接平均 $r(\tau)$ 就能估计 $\mathcal{J}(\theta)$。**积分里的概率权重已经由采样频率体现了**；如果再平均 $\pi_\theta(\tau)r(\tau)$，就会多乘一次轨迹概率。
-
-但采样后的 reward 是固定数据，直接对它求导无法反映轨迹分布随参数的变化。为了用梯度下降实现正文推导出的更新，构造下面的 loss，并在求导时固定采到的轨迹和奖励：
+这就告诉我们，对 $\tau\sim\pi_\theta$，$r(\tau)\nabla_\theta\log\pi_\theta(\tau)$ 是所需的无偏梯度估计。为了用反向传播得到它，取下面的 loss [@SpinningUp2018]，求导时固定采到的轨迹和 reward：
 
 $$
 \begin{aligned}
@@ -113,18 +93,23 @@ $$
 \end{aligned}
 $$
 
-因此，**loss 的负梯度 $-\nabla_\theta\ell_\theta(\tau)$ 是 policy gradient 的无偏估计**，loss 的数值本身并不估计负的期望奖励。Spinning Up [@SpinningUp2018] 强调，这个无偏保证是在采样所用的策略参数处成立的；更新参数后，一直复用旧 batch 最小化它，并没有同样的保证。
+负号用于把最大化写成梯度下降。使用 $\log\pi_\theta(\tau)$ 的理由就在这里：**这个 loss 的负梯度，在采样所用的策略参数处，是目标梯度的无偏估计。**
 
-对一条轨迹，代码中把各步实际采到的 action 的 log probability 相加：
+实现时，由于初始状态分布和环境转移与 $\theta$ 无关，有
+
+$$
+\nabla_\theta\log\pi_\theta(\tau)
+=\sum_{t=1}^T\nabla_\theta\log\pi_\theta(a_t\mid s_t).
+$$
+
+因此，对一条轨迹，把实际采到的各步 action 的 log probability 相加，再乘总 reward 即可：
 
 ```python
 trajectory_log_prob = action_log_probs.sum()
 loss = -trajectory_return.detach() * trajectory_log_prob
 ```
 
-这里 `trajectory_return` 是总奖励，求导时作为常量；`action_log_probs` 保留策略参数的计算图。对一个 batch，再平均各条轨迹的 loss。完整轨迹概率中的初始状态和环境转移项在本文假设下与 $\theta$ 无关，因此计算梯度时可以省略。
-
-</details>
+这里 `trajectory_return` 是总奖励，求导时作为常量；`action_log_probs` 保留策略参数的计算图。对一个 batch，再平均各条轨迹的 loss。这个估计虽然无偏，但 variance 很高，接下来考虑怎么减小它。
 
 ### Reduce Variance
 

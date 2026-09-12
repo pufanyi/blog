@@ -14,6 +14,8 @@ description: "从监督信号与 representation collapse 出发，系统理解 S
 
 设图像为 $x$，encoder 为 $f_\theta$，我们希望得到有用的表征 $h=f_\theta(x)$。预训练时，模型可能在判断两个裁剪是否来自同一张图，也可能在预测被遮住的 patch。部署时，我们却可能用 $h$ 做分类、检索、分割，甚至接入一个控制系统。
 
+<SSLWorkflow />
+
 因此，**把预训练任务做得好，不等于学到了适合下游任务的表征**。例如，两个裁剪的颜色分布很相似，模型可能只比较颜色就完成匹配，却没有理解形状。反过来，如果任务需要识别物体颜色，过强的 color jitter 又可能丢掉有用信息。数据增强实际上在告诉模型：哪些变化应该被忽略，哪些关系应该被保留。
 
 Stanford CS231n 2026 的 Lecture 12 [@cs231n2026ssl] 从 pretext task、contrastive learning 走到 masked prediction，适合建立这张地图。下面按机制组织，而不把每篇论文当作互不相关的新算法。
@@ -22,15 +24,7 @@ Stanford CS231n 2026 的 Lecture 12 [@cs231n2026ssl] 从 pretext task、contrast
 
 第一个问题是：**目标是什么？** 可以是另一张图的 embedding、对一组 prototype 的概率分布、离散 visual token、原始像素，或者目标区域的连续特征。
 
-第二个问题是：**为什么模型不能投机取巧？** 假设只要求同一张图的两个 view 接近：
-
-$$
-\mathcal L_{\mathrm{align}}
-=\mathbb E_{x,t_1,t_2}
-\left\|f_\theta(t_1(x))-f_\theta(t_2(x))\right\|_2^2.
-$$
-
-令所有输入都输出同一个常向量，loss 就是零，但表征已经无法区分任何图像。这叫 complete collapse。还有一种更隐蔽的 dimensional collapse：输出仍然不同，却主要挤在少数几个方向上。
+第二个问题是：**为什么模型不能投机取巧？** 若只要求同一张图的两个 view 接近，模型可以把所有输入都映射为同一个常向量。这叫 complete collapse：loss 很小，表征却无法区分图像。Dimensional collapse 更隐蔽：输出仍然不同，却主要挤在少数几个方向上。
 
 <SSLMap />
 
@@ -51,11 +45,18 @@ $$
 
 没有类别标签时，我们仍然知道两次随机增强是否来自同一张图。Contrastive learning 把这个关系变成一个分类问题：给定一个 view，从一组候选中找出同一张图的另一个 view。SimCLR [@chen2020simclr] 和 MoCo [@he2020moco] 用的都是这个思路，主要区别在于**候选来自哪里，以及候选的表征怎样保持一致**。
 
-先写清 loss，再看 batch、queue 和 momentum encoder 分别解决什么问题。
+先看一个 batch 怎样构造候选，再比较 queue 和 momentum encoder 的作用。
 
 ### 把「相似」写成一个预测任务
 
 对一张图 $x$，独立采样两个增强 $t_1,t_2$，得到 $v_1=t_1(x)$、$v_2=t_2(x)$。它们是 positive pair；其他图像的 view 作为 negatives。这里的 positive 来自样本身份，**不需要知道两张图是否属于同一个类别**。
+
+<SimCLRBatch />
+
+Encoder 产生供下游使用的 $h$，projection head 再把它变成训练时比较的向量。两个 view 的相似度经过 softmax，模型要提高 positive 相对于其他候选的概率。Temperature 越小，越关注分数最高的候选。
+
+<details>
+<summary>表征、相似度与 contrastive loss 的定义</summary>
 
 通常先算 backbone feature，再经过 projection head：
 
@@ -79,6 +80,8 @@ $$
 
 这就是在候选集合上做 cross-entropy；$\tau>0$ 是 temperature。让 positive 的相似度变大，会提高它的概率；但只有相对于其他候选变大才有用。Temperature 越小，softmax 越关注那些相似度最高的候选，困难 negatives 对更新的影响通常越明显。
 
+</details>
+
 <details>
 <summary>从梯度看「拉近」与「推远」</summary>
 
@@ -99,6 +102,11 @@ $$
 
 ### SimCLR：在一个 batch 内构造候选
 
+图中每一行都轮流作为 anchor，两个分支共享参数且都接收梯度。**分母包含 positive，排除的是 anchor 自身。**
+
+<details>
+<summary>NT-Xent loss 与候选数量</summary>
+
 一个 batch 有 $B$ 张原图，每张生成两个 view，于是共有 $2B$ 个向量。对 anchor $i$，排除它自己，剩下 $2B-1$ 个候选，其中一个是 positive，$2B-2$ 个是 negatives。SimCLR 的 NT-Xent loss 为
 
 $$
@@ -109,15 +117,24 @@ $$
 {\sum_{k\ne i}\exp(u_i^\top u_k/\tau)}.
 $$
 
-**分母包含 positive，排除的是 anchor 自身。** 两个方向都参与训练，两个分支共享参数且都接收梯度。
-
-<ContrastiveDictionary />
+</details>
 
 SimCLR 的设计很直接，但增加 negatives 需要增加全局 batch。分布式训练时，同一步其他 GPU 上的 view 也可以作为候选；相似度矩阵、跨设备通信与激活内存都会影响成本。
 
 增强同样是算法的一部分。Random crop 提供不同的可见区域，color jitter 降低只比较颜色统计的捷径；但增强太强、裁剪内容不再共享有用信息，也会使 positive 的假设失效。UvA 的 SimCLR 教程 [@lippeSimCLR] 很适合对照这一步与 loss 实现，并在小规模实验中观察增强如何改变学习任务。
 
 ### MoCo：把候选集合和当前 batch 解耦
+
+MoCo v1/v2 把最近若干 step 的 key embeddings 留在 FIFO queue 中，作为当前 query 的 negatives。这样，候选数量就不再受当前 batch 大小限制。
+
+<ContrastiveDictionary />
+
+旧 keys 来自旧 encoder，因此 key encoder 用 query encoder 的 EMA 缓慢更新，减轻新旧表征的不一致。每步新 keys 入队、最旧 keys 出队；历史向量不保留计算图。
+
+**Queue 扩大候选集合，EMA 让跨 step 的候选尽量可比较。** 缓存仍然有滞后，并没有重新编码全部旧 keys。
+
+<details>
+<summary>MoCo 的 loss 与 momentum 更新</summary>
 
 MoCo v1 不要求所有 negatives 都在当前 step 重新计算。它保存一个 FIFO queue，里面是最近若干 step 的 key embedding。当前 query $q$ 要从 positive key $k^+$ 和 queue 的 $K$ 个 negatives 中找出匹配对象：
 
@@ -139,6 +156,8 @@ $$
 $\theta_q$ 通过反向传播学习，$\theta_k$ 不接收 loss 的梯度。较大的 $m$ 让 key encoder 缓慢变化，从而减轻 queue 中新旧 keys 的不一致。它们仍然是有一定滞后的表征，并没有被重新编码成完全相同版本。
 
 可以把两项设计连起来理解：**queue 提供跨 step 的候选，momentum encoder 让这些候选尽量可比较**。仅仅缓存旧 feature，并不能自动得到 MoCo 所需要的一致性。
+
+</details>
 
 ### 后续版本改了什么
 
@@ -166,7 +185,14 @@ Instance discrimination 不知道类别。两张不同的猫照片可能被当�
 
 ### BYOL：预测一个缓慢变化的目标
 
-BYOL [@grill2020byol] 使用 online network 和 target network。对两个 view $v_1,v_2$，online 分支有 encoder $f_\theta$、projector $g_\theta$ 和 predictor $q_\theta$；target 分支只有 encoder $f_\xi$ 与 projector $g_\xi$。
+BYOL [@grill2020byol] 让 online network 预测另一个 view 的 target representation。Online 一侧多一个 predictor，target 一侧通过 EMA 跟随 online 更新。
+
+<SiameseBranches />
+
+Predictor 负责预测，stop-gradient 阻断 target 路径的反向传播，EMA 控制目标随时间怎样移动。Target 从 online 的对应参数初始化；它不是预先训练好的监督模型。
+
+<details>
+<summary>BYOL 的归一化回归目标与 EMA</summary>
 
 令 $\operatorname{norm}(a)=a/\|a\|_2$，一个方向的 loss 是
 
@@ -188,13 +214,20 @@ $$
 
 这里 EMA 只对应 encoder 和 projector；target 分支没有 predictor。初始化时把 online 的对应参数复制给 target。随着 online 学习，target 也缓慢移动，而不是一个预先训练好的监督模型。
 
-<SiameseBranches />
-
-Predictor 使两侧承担不同角色：一侧负责把自己的表征变换成预测，另一侧在这个方向上提供目标。Stop-gradient 限定谁响应当前误差，EMA 则控制目标怎样随时间变化。这三件事不要混为一谈。
+</details>
 
 ### SimSiam：连 EMA teacher 也去掉
 
-SimSiam [@chen2021simsiam] 让两个 view 使用同一套 encoder 和 projector 参数。记
+SimSiam [@chen2021simsiam] 使用同一套 encoder 和 projector，连独立的 EMA target 也去掉了。两份 view 轮流预测对方：
+
+<SimSiamPaths />
+
+同一个 $z_1$，在第一个方向中通过 predictor 接收梯度，在第二个方向中作为被 detach 的目标。**Stop-gradient 是当前计算路径的属性，不是永久冻结某一个 view 对应的网络。**
+
+<details>
+<summary>SimSiam 的两个方向怎样合成 loss</summary>
+
+记
 
 $$
 z_1=g_\theta(f_\theta(v_1)),\quad
@@ -216,7 +249,7 @@ $$
 +\frac12D(p_2,\operatorname{sg}(z_1)).
 $$
 
-它没有独立的 momentum target encoder。但同一个 $z_1$ 在第一项中通过 predictor 接收梯度，在第二项中作为被 detach 的目标。**Stop-gradient 是当前计算路径的属性，不是永久冻结某一个 view 对应的网络。**
+</details>
 
 <details>
 <summary>Stop-gradient 是否从数学上排除了常数解？</summary>
@@ -231,7 +264,16 @@ Predictor、normalization、数据增强和优化器共同影响训练动力学�
 
 ### Barlow Twins：约束跨 view 的相关性
 
-另一种思路是直接观察一个 batch 的统计量。Barlow Twins [@zbontar2021barlow] 把两个 view 的 projection 按特征维度在 batch 上中心化、标准化，然后计算 cross-correlation matrix。设标准化后的矩阵为 $\widetilde Z^{(1)},\widetilde Z^{(2)}\in\mathbb R^{B\times d}$：
+Barlow Twins [@zbontar2021barlow] 直接比较一个 batch 的统计量：同一特征维度应在两个 view 上一致，不同维度应减少冗余。
+
+<CorrelationObjectives />
+
+图中上半部分把 cross-correlation 推向单位矩阵。横纵轴都是**特征维度**；这里没有构造样本两两之间的相似度矩阵。
+
+<details>
+<summary>Barlow Twins 的 cross-correlation 与目标函数</summary>
+
+设标准化后的矩阵为 $\widetilde Z^{(1)},\widetilde Z^{(2)}\in\mathbb R^{B\times d}$：
 
 $$
 C_{ab}=\frac1B\sum_{i=1}^B
@@ -248,7 +290,20 @@ $$
 
 对角项要求同一维在两份 view 上一致，非对角项减少不同维度间的冗余。这里比较的是两个分支之间的 cross-correlation，不是单个分支的 covariance，也不是样本两两之间的相似度矩阵。
 
+</details>
+
 ### VICReg：分别写出三个愿望
+
+VICReg [@bardes2022vicreg] 把图中的三个要求分开：同图 views 对齐、每一维在不同样本间有足够变化、不同维度减少线性冗余。两个分支都接收梯度。
+
+<CollapseGeometry />
+
+左图缺少跨样本变化，variance 项会惩罚它；中图两维复制同一个变化量，covariance 项会惩罚它。右图只说明用了更多方向，还需要 invariance 把同一张图的 views 对齐。
+
+这些统计约束不保证语义正确；view 的构造决定模型应该保留什么共同信息。
+
+<details>
+<summary>VICReg 的 invariance、variance 和 covariance 公式</summary>
 
 VICReg [@bardes2022vicreg] 更直接地把目标拆为 invariance、variance 和 covariance。设两个分支未做逐样本单位化的输出为 $Z,Z'\in\mathbb R^{B\times d}$，第 $i$ 行分别为 $z_i,z_i'$。
 
@@ -285,11 +340,7 @@ $$
 
 两个分支都接受梯度，不需要 EMA teacher 或 stop-gradient 来定义这套目标。
 
-<CollapseGeometry />
-
-三个项的作用可以用二维例子区分：所有点相同，variance 不够；两维复制同一个变化量，variance 可以足够，但 covariance 很大；两个 view 各自分散得很好，却把同一张图放在不同位置，invariance 又不满足。
-
-同时满足这些条件也不等于语义已经正确。例如一组与任务无关的变化也可能具有很好的 covariance。统计约束排除部分退化解，view 的构造才决定应该共享什么信息。
+</details>
 
 ### 如何比较这几种方法
 
@@ -312,9 +363,16 @@ SwAV 用一组共享 prototypes 构造这样的目标，DINO 则用一个不断�
 
 ### SwAV：交换两个 view 的聚类分配
 
-先设想一个简单做法：把图像分到若干 cluster，再把 cluster ID 当作伪标签训练 encoder。困难是 encoder 更新之后，旧 cluster 也可能不再适合；如果所有样本落到同一个 cluster，伪标签还会彻底失去作用。
+SwAV [@caron2020swav] 联合学习 encoder 与一组共享 prototypes。每个 view 先判断自己如何分配到这些 prototypes，再用这份 assignment 监督另一个 view。
 
-SwAV [@caron2020swav] 在训练中联合学习 encoder 与 prototypes。设归一化后的图像 projection 为 $z\in\mathbb R^d$，有 $K$ 个 prototype $c_1,\ldots,c_K$，模型预测
+<SwappedAssignments />
+
+**交换的是 assignment，不是逐坐标匹配两个 projection。** Prototype 是可学习的向量，没有预先指定的「猫」「狗」类别含义。
+
+<details>
+<summary>Prototype scores 与 swapped prediction loss</summary>
+
+设归一化后的图像 projection 为 $z\in\mathbb R^d$，有 $K$ 个 prototype $c_1,\ldots,c_K$，模型预测
 
 $$
 p_k(z)=\frac{\exp(c_k^\top z/\tau)}
@@ -334,11 +392,16 @@ $$
 
 **交换的是 assignment，匹配的不是两个 projection 的每个坐标。** 两个 view 即使在外观上不同，也应对共享的 prototypes 给出一致判断。
 
-<SwappedAssignments />
+</details>
 
 ### 为什么需要 balanced assignment
 
 若 assignment 只是随手对当前 scores 做 argmax，所有样本都偏向同一个 prototype 会形成反馈：它越常被选中，就越常成为训练目标。
+
+SwAV 在整个 batch 上联合平衡分配：每个样本分配一份概率质量，每个 prototype 分到相同的总质量。它约束的是 **batch 的总分配**，不是让每张图输出均匀分布。
+
+<details>
+<summary>Sinkhorn 在这里求什么？</summary>
 
 SwAV 在一个 batch 上联合计算 assignment。把 $B$ 个样本的分配写为 $Q\in\mathbb R_+^{B\times K}$，使用每行和为 $1$ 的约定：
 
@@ -348,9 +411,6 @@ $$
 $$
 
 第一条表示每个样本分配一份概率质量，第二条要求每个 prototype 分到相同的总质量。它约束的是 **batch 的总分配**，不是要求每张图都输出均匀分布。
-
-<details>
-<summary>Sinkhorn 在这里求什么？</summary>
 
 令 $S_{ik}=z_i^\top c_k$，SwAV 求解带 entropy regularization 的分配问题：
 
@@ -373,7 +433,16 @@ SwAV 还引入 multi-crop：少数大裁剪配合更多小裁剪，在增加 vie
 
 ### DINO：让 teacher 提供一个分布
 
-DINO [@caron2021dino] 的名字来自 self-distillation with no labels。Student 和 teacher 都输出 $K$ 维 logits，但 teacher 不是一个已经用类别标签训练好的模型，它由 student 的 EMA 参数得到。
+DINO [@caron2021dino] 让 EMA teacher 产生目标分布。Teacher 只看 global crops，student 还要从 local crops 预测同一图像的全局信息。
+
+<DINOBranches />
+
+两边分布相同仍可能 collapse。Centering 抑制少数输出维度长期占优势，sharpening 让单张图的目标更有区分度。图中的两种 EMA 分别更新 teacher 参数和 logits 的 running center。
+
+输出槽位没有预设类别含义；训练后通常复用 backbone features。
+
+<details>
+<summary>DINO 的分布、crop 配对与两种 moving average</summary>
 
 设 student logits 为 $a_\theta(v)$，teacher logits 为 $a_\xi(v)$。原始 DINO 的分布为
 
@@ -397,9 +466,13 @@ $$
 
 这种设计不等于使用一份均匀标签，更不需要解释第 $k$ 个输出恰好是哪一个物体类别。Loss head 的分布是训练工具，之后通常取 backbone feature 做下游任务。
 
+</details>
+
 ### 从 DINO 到 DINOv3
 
 DINO 在 ViT 上观察到一些与物体区域相关的 attention 结构，但 attention 可视化并不自动等价于有类别含义的 segmentation mask。后来工作的重点之一，是让局部特征本身更稳定、更可用。
+
+<PatchDistillation />
 
 **iBOT** [@zhou2022ibot] 把 teacher 作为 online tokenizer：除了图像级 self-distillation，还让 student 预测被遮住 patch 的 teacher 分布。这里已经同时出现了 distillation 与 masked prediction，目标无需来自预先训练好的离散 tokenizer。
 
@@ -432,14 +505,12 @@ iBOT 引入的 masked prediction 把目标选择的问题带到了局部位置�
 
 ### MAE：encoder 只处理可见 patches
 
-MAE [@he2022mae] 把图像分为 $N$ 个 patches，随机保留其中一部分。它的关键结构是不对称的 encoder-decoder：
-
-1. 只把 visible patches 和位置编码送入较大的 ViT encoder。
-2. 将 encoder 输出映射到 decoder 的维度。
-3. 在缺失位置补入可学习的 mask tokens，再加入 decoder 的位置编码。
-4. 由较小的 decoder 预测像素，在被遮住的位置计算 loss。
+MAE [@he2022mae] 把大部分 patches 暂时移走，只让昂贵的 encoder 编码可见部分。小 decoder 再补入 mask tokens，在缺失位置预测像素。
 
 <MaskedTargets />
+
+<details>
+<summary>MAE 的 masked-only pixel loss</summary>
 
 设 masked 索引集合为 $M$，visible 集合为 $V$，每个 patch 的像素向量为 $x_i\in\mathbb R^{P^2C}$。简写 encoder-decoder 的输出为 $\hat x_i$，重建目标是
 
@@ -450,6 +521,8 @@ $$
 $$
 
 原论文也实验了对每个 patch 的像素做均值、方差归一化后再作为 target，这在其设置中改善了表征学习。这里的归一化作用在训练目标，不是把输入图像变成某种离散词表。
+
+</details>
 
 原始 MAE 的典型设置遮住约 $75\%$ 的 patches。大比例遮挡一方面提高任务难度，另一方面让昂贵的 encoder 只处理较短的序列。预训练后，通常丢掉 decoder，用 encoder 处理完整图像，再接下游任务。
 
@@ -470,6 +543,13 @@ $$
 
 ### BEiT：预测离散 visual token
 
+BEiT [@bao2022beit] 对应图中下路：固定的 visual tokenizer 读取完整图像，产生离散 token IDs；ViT 接收带 mask tokens 的完整位置序列，在被遮住的位置预测这些 IDs。
+
+这是分类任务。Token ID 是 codebook 索引，不是人工物体标签；目标也不是像素 MSE。
+
+<details>
+<summary>BEiT 的 target IDs 与 cross-entropy</summary>
+
 BEiT [@bao2022beit] 认为，像素不一定是最合适的预测单位。它先用一个预训练的 visual tokenizer，把完整图像转换成空间排列的离散 token IDs：
 
 $$
@@ -485,6 +565,8 @@ $$
 $$
 
 这是分类 loss，而不是像素 MSE。Token ID 是 codebook 中的索引，不是人工物体标签；同一个图像语义可以涉及很多 visual tokens。
+
+</details>
 
 原始 BEiT 使用预训练 discrete VAE 的 tokenizer。预训练 ViT 时 tokenizer 固定，target 不随 ViT 一起更新。它采用 blockwise masking，而且 **mask tokens 也进入 ViT encoder**；因此不能把 MAE 只处理 visible tokens 的计算节省直接套到 BEiT 上。
 
@@ -521,6 +603,13 @@ BEiT v2 [@peng2022beitv2] 用 vector-quantized knowledge distillation 构造更�
 
 ### 先看预测目标的位置
 
+[MAE](#masked-image-modeling) 预测被遮住区域的像素；JEPA 先把目标内容编码为特征，再让 context features 预测它。目标位置、时间或动作可以作为 predictor 的条件。
+
+这个目标空间也在学习，因此仍需避免 collapse。跳过像素细节只是设计意图，并不自动保证 encoder 保留了下游需要的信息。
+
+<details>
+<summary>JEPA 的抽象表示与预测条件</summary>
+
 [MAE](#masked-image-modeling) 的目标是被遮住区域的像素。JEPA 则先把目标内容编码为特征，再让 context 的特征预测它。抽象地写：
 
 $$
@@ -533,11 +622,16 @@ $$
 
 这个空间也在学习，所以「难预测的细节可以被忽略」是一种设计意图，而不是自动成立的性质。如果 target encoder 连有用信息也一起丢掉，两边都输出常数，预测反而更容易。因此，JEPA 同样需要解决 collapse，不能因为不用像素就省略这个问题。
 
+</details>
+
 ### I-JEPA：由 context 预测多个目标区域
 
 I-JEPA 把图像划分为 patches，采样一块较大的 context 和多块 target。Context 会移除与 target 重叠的区域，避免把目标内容直接交给预测分支。目标区域较大、context 覆盖较广，是为了让任务更依赖语义结构，而不只是局部补纹理。
 
 <JEPAPrediction />
+
+<details>
+<summary>I-JEPA 的 context、target 与 feature regression</summary>
 
 用一个 target block 简化记号。设其 patch 索引集合为 $T$，可见 context 索引为 $C$，且 $C\cap T=\emptyset$。Context encoder 只接收 $x_C$；target encoder 接收完整图像 $x$，然后提取 $T$ 上的特征：
 
@@ -557,6 +651,8 @@ $$
 实际训练对多个 target blocks 的 loss 再平均。Online encoder 与 predictor 接收梯度，target encoder 用 online encoder 的 EMA 更新。
 
 Teacher 看到完整图像并不构成预测分支的输入泄漏：完整信息只用来产生训练 target。需要避免的是把 target 像素或 target feature 混进 predictor 的 context 输入。
+
+</details>
 
 与对比学习的 global augmentation invariance 相比，这里学习的是**带目标位置条件的预测关系**。不同位置不必得到相同表征；predictor 必须知道现在要预测哪一块。
 
@@ -580,6 +676,11 @@ V-JEPA [@bardes2024vjepa] 对视频中的时空区域做 masking，在特征空�
 
 V-JEPA 2 [@assran2025vjepa2] 扩大视频自监督预训练，并进一步研究 action-conditioned world model。后者需要额外的动作相关训练，使模型能预测执行某个动作后的状态，而不只是从视频里提取特征。
 
+<VideoPrediction />
+
+<details>
+<summary>用表征距离描述一个简化的规划目标</summary>
+
 一种简化的规划表达是：先用 encoder 得到当前状态表征 $h_t$ 和目标表征 $h_{\mathrm{goal}}$，再用 action-conditioned predictor $F$ 展开候选动作序列：
 
 $$
@@ -589,6 +690,8 @@ d(\hat h_{t+H},h_{\mathrm{goal}}).
 $$
 
 这是说明表征预测如何接入规划的示意，不是完整的机器人控制算法。动作数据、目标距离、优化方法、闭环重规划都影响系统效果，不能由 encoder 的视频识别分数推断出来。
+
+</details>
 
 V-JEPA 2.1 [@murlabadia2026vjepa21] 则明确强化 dense features。它让 loss 覆盖 masked 和 visible tokens，并在 encoder 的多个中间层加入 self-supervision；另外使用适配图像与视频的 tokenizers，进行联合训练。这里的 visible-token loss 仍然属于特征预测，不是恢复到像素重建。
 
@@ -609,6 +712,10 @@ V-JEPA 2.1 [@murlabadia2026vjepa21] 则明确强化 dense features。它让 loss
 
 LeJEPA [@balestriero2025lejepa] 进一步问：**能否把期望的 embedding 分布明确规定下来，再设计一个可扩展的 loss 去匹配它？** Randall Balestriero 与 Yann LeCun 在 2025 年提出这个方法，名字中的 Le 指 Latent-Euclidean。其关键组件是 Sketched Isotropic Gaussian Regularization，简称 SIGReg。
 
+先看两项 loss 怎样分工。每张图产生 global 和 local views，经共享网络得到 projections；一个方向联系同图的 views，另一个方向约束跨图像的分布。
+
+<LeJEPAObjective />
+
 ### 不只是「方差不为零」
 
 LeJEPA 选择的目标分布是 isotropic Gaussian：
@@ -619,13 +726,7 @@ $$
 
 这描述的是许多不同样本的 embedding 在空间中的总体分布，不是往每张图的 feature 上额外加 Gaussian noise，也不是要求每个样本的各坐标在一次前向中看起来像随机数。
 
-先用一个简单例子区分 covariance 与完整分布。令二维随机变量的两个坐标独立地取 $-1$ 或 $1$，各以 $1/2$ 的概率出现。那么
-
-$$
-\mathbb E[z]=0,\qquad \operatorname{Cov}(z)=I_2,
-$$
-
-但所有概率都集中在正方形的四个顶点上，显然不是二维 Gaussian。它通过了均值和 covariance 的检查，却没有通过分布匹配。这也是为什么「去相关」不等于「Gaussian」，更不等于一般意义下的独立性。
+下图的四个顶点已经具有零均值和单位 covariance，却显然不是 Gaussian。仅检查二阶统计，会漏掉这样的分布差异。
 
 <GaussianSlices />
 
@@ -642,6 +743,11 @@ $$
 这也解释了为什么不只检查每个坐标轴：坐标之间的依赖可能在斜方向上才显露出来。实际训练每步采样有限多个方向，用一维统计量的平均值提供梯度；这是一种随机近似，不能把「若所有方向都匹配」直接改写为「有限次检查证明已经匹配」。
 
 ### 用 characteristic function 比较分布
+
+不必先拟合一条密度曲线：对投影样本计算一组 sine、cosine 的平均值，就能得到 empirical characteristic function，再与标准 Gaussian 的已知形式比较。SIGReg 将多个随机方向的这种差异平均，作为可求导的训练信号。
+
+<details>
+<summary>Characteristic function、Epps-Pulley statistic 与积分近似</summary>
 
 一维样本 $u_1,\ldots,u_B$ 的 empirical characteristic function 为
 
@@ -672,8 +778,18 @@ $$
 
 实际代码用有限积分区间和求积节点近似这个积分。作者当前实现利用正负 $t$ 的对称性，只计算非负节点；cosine 均值对应实部，sine 均值对应虚部。复数是数学表达上的方便，计算不一定需要 complex tensor。
 
+</details>
+
 <details>
 <summary>前面的四顶点分布怎样被检测出来？</summary>
+
+先用一个简单例子区分 covariance 与完整分布。令二维随机变量的两个坐标独立地取 $-1$ 或 $1$，各以 $1/2$ 的概率出现。那么
+
+$$
+\mathbb E[z]=0,\qquad \operatorname{Cov}(z)=I_2,
+$$
+
+但所有概率都集中在正方形的四个顶点上，显然不是二维 Gaussian。它通过了均值和 covariance 的检查，却没有通过分布匹配。这也是为什么「去相关」不等于「Gaussian」，更不等于一般意义下的独立性。
 
 沿第一个坐标轴投影，$u$ 等概率取 $-1,1$，所以
 
@@ -688,6 +804,13 @@ $$
 </details>
 
 ### 把 SIGReg 与 view prediction 合起来
+
+回到本节开头的网格：prediction 沿 view 轴，让每张图的 views 接近它的 global-view center；SIGReg 沿样本轴，让每一列的跨图像分布接近 isotropic Gaussian。
+
+**Center 也参与求导，不需要 detach 或 EMA teacher。** 只有 prediction 会允许常数解；只有 SIGReg，又可能得到分布漂亮却与任务无关的表征。
+
+<details>
+<summary>Center-based prediction 与完整 LeJEPA 目标</summary>
 
 一个 batch 有 $B$ 张图，每张有 $V$ 个 view，其中集合 $G$ 是 global views。令 $z_{i,v}\in\mathbb R^d$ 为用于 loss 的 projection，先计算每张图的 global-view center：
 
@@ -714,6 +837,8 @@ $Z_v\in\mathbb R^{B\times d}$ 收集第 $v$ 个 view 在不同图像上的 proje
 
 两项分别对应两个要求：同一实例的 views 应该一致，但整个数据集不能被压成一个点。仅有 SIGReg，也可以得到分布漂亮却与任务无关的表征；仅有 prediction，又会允许常数解。
 
+</details>
+
 <details>
 <summary>预测 center 与平均两两距离的关系</summary>
 
@@ -733,11 +858,18 @@ $$
 
 ### 理论结论应该怎样理解
 
+Gaussian 目标有带条件的理论动机；它不能补回增强删掉的信息，也不能保证任意下游任务最优。有限 batch、方向与积分节点还带来采样和近似误差。
+
+<details>
+<summary>理论假设与有限样本统计的边界</summary>
+
 论文分析了固定总方差等条件下的表征几何与 probe 风险：线性部分比较保留相同内在特征、但尺度不同的表示；非线性部分研究特定的邻域或 kernel probe，并需要相应的正则性条件。
 
 这些结果为 Gaussian 目标提供理论动机，但不能跳过条件，推出「任意数据、任意增强、任意下游任务都保证最优」。如果增强删掉了任务需要的信息，或者模型没学到有用的区分，匹配一个边际分布并不能补回这些信息。
 
 同样，有限 batch 的 empirical characteristic function 有采样误差，有限方向和有限积分节点是近似。即使真实分布是 Gaussian，单个有限 batch 的统计量通常也不会严格等于零。降低 regularizer 与证明总体分布完全匹配是不同的目标。
+
+</details>
 
 ### 简化了什么，仍然需要选择什么
 
@@ -745,7 +877,12 @@ LeJEPA 的这个实例不需要 negatives、prototype assignments、EMA teacher 
 
 它仍然需要选择 backbone、projector、数据增强、optimizer、batch size，以及投影方向和求积精度。论文强调的单个 trade-off hyperparameter 指两类 loss 的权衡 $\lambda$，不表示整个训练系统只有一个配置项；这些选择可以对照作者实现 [@lejepaCode] 核查。
 
+<details>
+<summary>SIGReg 的计算量与分布式实现</summary>
+
 若有 $R$ 个方向、$T$ 个积分节点，投影的直接计算约为 $O(BdR)$，统计部分约为 $O(BRT)$。固定 $R,T$ 后，对样本量与 embedding 维度是线性扩展；若中间张量较大，可以分块计算。分布式实现还要在各设备同步投影方向，并先聚合 characteristic function 的均值，再计算偏差。
+
+</details>
 
 LeJEPA 的价值是把避免 collapse 的要求写得更明确。实际选型时，仍应把它与 [DINO 系列](#clustering-and-self-distillation)、[VICReg](#vicreg分别写出三个愿望) 等在相同数据和评估协议下比较，再判断这种简化是否适合自己的任务。
 

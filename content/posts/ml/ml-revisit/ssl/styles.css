@@ -66,6 +66,11 @@
 .ssl-update {
   stroke-dasharray: 5 4;
 }
+.ssl-gradient {
+  stroke: var(--accent-clay);
+  stroke-dasharray: 2 4;
+  stroke-width: 2;
+}
 .ssl-arrowhead {
   fill: var(--text-secondary);
 }
@@ -102,6 +107,61 @@
   fill: color-mix(in srgb, var(--accent-clay) 16%, var(--paper-bg));
   stroke: var(--accent-clay);
   stroke-width: 2;
+}
+.ssl-vector-bar {
+  fill: currentColor;
+  opacity: 0.75;
+}
+.ssl-image-bg {
+  fill: var(--surface-soft);
+  stroke: var(--border-color);
+}
+.ssl-image-sun {
+  fill: var(--accent-clay);
+}
+.ssl-image-land {
+  fill: color-mix(in srgb, var(--accent-teal) 65%, var(--paper-bg));
+}
+.ssl-image-mask {
+  fill: var(--paper-bg);
+}
+.ssl-panel {
+  fill: color-mix(in srgb, var(--surface-soft) 45%, var(--paper-bg));
+  stroke: var(--border-color);
+}
+.ssl-divider {
+  stroke: var(--border-color);
+  stroke-width: 1;
+}
+.ssl-cell {
+  fill: var(--surface-soft);
+  stroke: var(--border-color);
+}
+.ssl-positive {
+  fill: color-mix(in srgb, var(--accent-teal) 30%, var(--paper-bg));
+  stroke: var(--accent-teal);
+  stroke-width: 2;
+}
+.ssl-excluded {
+  fill: var(--paper-bg);
+  stroke: var(--text-secondary);
+  stroke-dasharray: 2 2;
+}
+.ssl-highlight {
+  fill: none;
+  stroke: var(--accent-clay);
+  stroke-width: 2;
+}
+.ssl-row-band {
+  fill: color-mix(in srgb, var(--accent-clay) 8%, transparent);
+  stroke: var(--accent-clay);
+  stroke-width: 1.5;
+}
+.ssl-column-band {
+  fill: none;
+  stroke: var(--accent-teal);
+  stroke-width: 2;
+  stroke-dasharray: 5 3;
 }
 
 .ssl-math {

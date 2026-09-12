@@ -107,13 +107,33 @@ export function Box({
   );
 }
 
-export function Arrow({ id, d, update = false }: { id: string; d: string; update?: boolean }) {
+export function Arrow({
+  id,
+  d,
+  update = false,
+  gradient = false,
+}: {
+  id: string;
+  d: string;
+  update?: boolean;
+  gradient?: boolean;
+}) {
+  // SVG marker-end only marks the last subpath. Render disconnected flow
+  // segments separately so every destination has its own arrowhead.
   return (
-    <path
-      d={d}
-      className={`ssl-edge${update ? ' ssl-update' : ''}`}
-      markerEnd={`url(#${id}-arrow)`}
-    />
+    <g>
+      {d
+        .split(/(?=[Mm])/)
+        .filter(Boolean)
+        .map((segment, i) => (
+          <path
+            key={i}
+            d={segment}
+            className={`ssl-edge${update ? ' ssl-update' : ''}${gradient ? ' ssl-gradient' : ''}`}
+            markerEnd={`url(#${id}-arrow)`}
+          />
+        ))}
+    </g>
   );
 }
 
@@ -121,16 +141,82 @@ export function MathLabel({
   x,
   y,
   width,
+  height = 40,
   tex,
 }: {
   x: number;
   y: number;
   width: number;
+  height?: number;
   tex: string;
 }) {
   return (
-    <foreignObject x={x} y={y} width={width} height="40">
+    <foreignObject x={x} y={y} width={width} height={height}>
       <div className="ssl-math">{`\\(${tex}\\)`}</div>
     </foreignObject>
+  );
+}
+
+export function Vector({
+  x,
+  y,
+  tone = 'blue',
+  values = [12, 23, 17, 29],
+}: {
+  x: number;
+  y: number;
+  tone?: 'blue' | 'teal' | 'clay';
+  values?: readonly number[];
+}) {
+  return (
+    <g className={`ssl-${tone}`} aria-hidden="true">
+      {values.map((height, i) => (
+        <rect
+          key={i}
+          x={x + i * 9}
+          y={y + 30 - height}
+          width="6"
+          height={height}
+          className="ssl-vector-bar"
+        />
+      ))}
+    </g>
+  );
+}
+
+export function ImageTile({
+  x,
+  y,
+  size = 56,
+  local = false,
+  masked = false,
+}: {
+  x: number;
+  y: number;
+  size?: number;
+  local?: boolean;
+  masked?: boolean;
+}) {
+  // The same simple scene identifies related views without using image assets.
+  return (
+    <g transform={`translate(${x} ${y}) scale(${size / 56})`} aria-hidden="true">
+      <rect width="56" height="56" rx="4" className="ssl-image-bg" />
+      <circle cx={local ? 18 : 40} cy="15" r="6" className="ssl-image-sun" />
+      <path
+        d={local ? 'M 2 48 L 25 8 L 54 48 Z' : 'M 3 48 L 21 21 L 34 39 L 43 28 L 53 48 Z'}
+        className="ssl-image-land"
+      />
+      {masked &&
+        [1, 4, 6].map((index) => (
+          <rect
+            key={index}
+            x={2 + (index % 3) * 18}
+            y={2 + Math.floor(index / 3) * 18}
+            width="16"
+            height="16"
+            className="ssl-masked ssl-image-mask"
+          />
+        ))}
+    </g>
   );
 }
