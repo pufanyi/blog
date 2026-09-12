@@ -87,6 +87,7 @@ jobs:
             test-results/**/resources.json
             test-results/**/made-*.png
             test-results/**/wide-formula.png
+            test-results/**/docs-*.png
           if-no-files-found: ignore
           retention-days: 7
 

@@ -1,0 +1,79 @@
+<ng-template #navigation>
+  <label class="docs-filter">
+    Find a guide
+    <input type="search" placeholder="Filter page titles and summaries" [value]="filter()" (input)="filter.set($any($event.target).value)" />
+  </label>
+  <nav aria-label="Documentation pages">
+    @for (group of groups(); track group.title) {
+      <section class="docs-nav-group">
+        <h2>{{ group.title }}</h2>
+        <ul>
+          @for (page of group.pages; track page.slug) {
+            <li>
+              <a #link [routerLink]="docPath(page.slug)" routerLinkActive="is-current" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu(link)">{{ page.title }}</a>
+            </li>
+          }
+        </ul>
+      </section>
+    } @empty {
+      <p role="status">No guides match this filter.</p>
+    }
+  </nav>
+</ng-template>
+
+@if (doc(); as page) {
+  <div class="docs-layout">
+    <aside class="docs-sidebar">
+      <a class="docs-home" routerLink="/docs">Documentation</a>
+      <ng-container [ngTemplateOutlet]="navigation" />
+    </aside>
+    <div class="docs-main">
+      <details class="docs-mobile-menu">
+        <summary>Browse documentation</summary>
+        <ng-container [ngTemplateOutlet]="navigation" />
+      </details>
+      @for (document of [page]; track document.slug) {
+        <header class="docs-header">
+          <nav aria-label="Breadcrumb">
+            <a routerLink="/docs">Docs</a><span aria-hidden="true"> / </span><span>{{ document.group }}</span>
+          </nav>
+          <h1>{{ document.title }}</h1>
+          <div class="docs-source-links">
+            <a [href]="document.sourceUrl">View source</a>
+            <a [href]="markdownPath(document.slug)">Read Markdown</a>
+          </div>
+        </header>
+        @if (document.toc.length) {
+          <details class="docs-page-toc">
+            <summary>On this page</summary>
+            <nav aria-label="On this page">
+              <ul>
+                @for (section of document.toc; track section.id) {
+                  <li>
+                    <a [routerLink]="docPath(document.slug)" [fragment]="section.id">{{ section.text }}</a>
+                    @if (section.children.length) {
+                      <ul>
+                        @for (child of section.children; track child.id) {
+                          <li><a [routerLink]="docPath(document.slug)" [fragment]="child.id">{{ child.text }}</a></li>
+                        }
+                      </ul>
+                    }
+                  </li>
+                }
+              </ul>
+            </nav>
+          </details>
+        }
+        <article #body class="post-body docs-body" [innerHTML]="html()" [attr.aria-label]="document.title"></article>
+        <nav class="docs-pagination" aria-label="Adjacent documentation">
+          @if (adjacent().previous; as previous) {
+            <a [routerLink]="docPath(previous.slug)"><span>Previous</span>{{ previous.title }}</a>
+          }
+          @if (adjacent().next; as next) {
+            <a class="docs-next" [routerLink]="docPath(next.slug)"><span>Next</span>{{ next.title }}</a>
+          }
+        </nav>
+      }
+    </div>
+  </div>
+}

@@ -193,3 +193,9 @@ version. Its worker compatibility adapter and removal criteria are documented in
   preference can otherwise squeeze slide pages into thumbnails on mobile.
   Slide decks can repeat PDF page labels across overlays. The page-number input
   uses those labels; `.page[data-page-number]` uses physical page indexes.
+
+## Documentation pages
+
+The handbook is authored once in `docs/`. Its navigation manifest groups pages for authors, developers, and historical maintenance records. The generator validates and compiles Markdown, adds heading IDs and highlighted code, rewrites repository/document links, and publishes page summaries, lazy body modules, and Markdown exports together with other generated files. Documentation changes participate in the generation fingerprint and the development watcher.
+
+The lazy `/docs` route uses generated summaries for page routes and navigation. Server routes use the same summaries for prerendering. Each page resolves only its own body; documentation is excluded from blog summaries, feeds, and full-text search. Shared typography/code/table styles preserve the blog theme, while the documentation component owns its navigation and content enhancement lifecycle. Page metadata advertises the one-to-one Markdown alternative, allowing the existing postbuild sitemap and Worker route discovery to include docs without a second URL list. See [documentation maintenance](documentation.md) for the source format, link validation boundaries, and synchronization workflow.

@@ -37,6 +37,8 @@ const routes = {
   '/cv': `${origin}/profile.md`,
   '/blog': `${origin}/blog/index.md`,
   '/blog/page/2': `${origin}/blog/index.md`,
+  '/docs': `${origin}/docs/index.md`,
+  '/docs/development': `${origin}/docs/development.md`,
   '/blog/post': `${origin}/blog/post.md`,
 };
 
@@ -199,7 +201,7 @@ test('Cloudflare header rules must not label the HTML 404 fallback as Markdown',
   assert.equal(await response.text(), '<h1>Not found</h1>');
 });
 
-test('direct and negotiated article Markdown identify the HTML canonical, including HEAD and 304', async () => {
+test('direct and negotiated article/document Markdown identify the HTML canonical, including HEAD and 304', async () => {
   const worker = createMarkdownWorker(routes);
   const env = {
     ASSETS: {
@@ -216,7 +218,14 @@ test('direct and negotiated article Markdown identify the HTML canonical, includ
       },
     },
   };
-  for (const path of ['/blog/post', '/blog/post.md']) {
+  for (const path of [
+    '/blog/post',
+    '/blog/post.md',
+    '/docs',
+    '/docs/index.md',
+    '/docs/development',
+    '/docs/development.md',
+  ]) {
     for (const method of ['GET', 'HEAD']) {
       for (const unchanged of [false, true]) {
         const headers = new Headers({ Accept: 'text/markdown' });
@@ -226,7 +235,10 @@ test('direct and negotiated article Markdown identify the HTML canonical, includ
           env,
         );
         assert.equal(response.status, unchanged ? 304 : 200);
-        assert.ok(response.headers.get('Link')?.includes(`<${origin}/blog/post>; rel="canonical"`));
+        const canonical = path === '/docs/index.md' ? '/docs' : path.replace(/\.md$/, '');
+        assert.ok(
+          response.headers.get('Link')?.includes(`<${origin}${canonical}>; rel="canonical"`),
+        );
         assert.equal(response.headers.get('ETag'), '"md"');
         assert.equal(await response.text(), unchanged || method === 'HEAD' ? '' : '# Post');
         if (path.endsWith('.md')) {

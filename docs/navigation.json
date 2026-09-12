@@ -1,0 +1,41 @@
+{
+  "sourceUrl": "https://github.com/pufanyi/blog/blob/main",
+  "groups": [
+    { "title": "Start here", "pages": ["index.md"] },
+    {
+      "title": "Writing",
+      "pages": [
+        "writing/first-post.md",
+        "writing/markdown.md",
+        "writing/media.md",
+        "writing/references.md",
+        "writing/publishing.md",
+        "content-migrations.md",
+        "ml-editorial.md"
+      ]
+    },
+    {
+      "title": "Development",
+      "pages": [
+        "development.md",
+        "architecture.md",
+        "configuration.md",
+        "testing.md",
+        "deployment.md",
+        "documentation.md",
+        "dependencies.md",
+        "browser-troubleshooting.md"
+      ]
+    },
+    {
+      "title": "Maintenance records",
+      "pages": [
+        "maintenance/tasks.md",
+        "maintenance/performance.md",
+        "maintenance/angular-cache.md",
+        "maintenance/mathjax-webkit.md",
+        "audits/2026-09-12-maintainability.md"
+      ]
+    }
+  ]
+}

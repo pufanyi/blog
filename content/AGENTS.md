@@ -259,3 +259,10 @@ Controllers live in `scripts/*.post-client.ts` and export
 `enhancePost(container): () => void`. The generator discovers them automatically;
 keep article styles in `styles.css`. See
 [the lifecycle contract](../docs/architecture.md#article-payload-and-lifecycle).
+
+## Human-facing author documentation
+
+The [writing handbook](../docs/writing/first-post.md) covers post creation, syntax,
+media, references, and publishing. Update its owning page in the same change when
+introducing or changing a reusable authoring convention. Keep this file focused
+on agent working agreements; put detailed reader instructions in `docs/`.

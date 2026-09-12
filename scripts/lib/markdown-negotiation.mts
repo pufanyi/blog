@@ -48,12 +48,14 @@ export function prefersMarkdown(accept: string | null): boolean {
 }
 
 export function createMarkdownWorker(routes: MarkdownRoutes) {
-  // Only one-to-one article alternatives are canonicalized. The complete index
+  // Only one-to-one article/document alternatives are canonicalized. The complete index
   // and CV exports are shared by several pages with different visible content.
   const articleCanonicals = new Map(
     Object.entries(routes).flatMap(([path, markdown]) => {
       const url = new URL(markdown);
-      return path.startsWith('/blog/') && url.pathname === `${path}.md`
+      return ((path.startsWith('/blog/') || path.startsWith('/docs/')) &&
+        url.pathname === `${path}.md`) ||
+        (path === '/docs' && url.pathname === '/docs/index.md')
         ? [[url.pathname, new URL(path, url).href] as const]
         : [];
     }),

@@ -4,6 +4,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import { PERSON_DATA } from '../data/person';
 import { SITE_CONFIG } from '../data/site-config';
+import { type DocPage, docMarkdownPath } from '../models/doc.model';
 import type { Post } from '../models/post.model';
 import { type BlogDirectory, blogDirectoryPath } from '../utils/blog-directories';
 import { type BlogPage, blogPagePath } from '../utils/blog-pagination';
@@ -19,6 +20,7 @@ export class PageMetadataStrategy extends TitleStrategy {
   override updateTitle(snapshot: RouterStateSnapshot): void {
     let route = snapshot.root;
     while (route.firstChild) route = route.firstChild;
+    const doc = route.data['doc'] as DocPage | undefined;
     const post = route.data['post'] as Post | null | undefined;
     const blogPage = route.data['blogPage'] as BlogPage | null | undefined;
     const directory = route.data['directory'] as BlogDirectory | undefined;
@@ -83,15 +85,17 @@ export class PageMetadataStrategy extends TitleStrategy {
     const markdownPath =
       missing || route.data['noindex']
         ? null
-        : post
-          ? `/blog/${post.slug}.md`
-          : directory
-            ? `${blogDirectoryPath(directory.slug)}/index.md`
-            : path === '/' || path === '/cv'
-              ? '/profile.md'
-              : blogPage || path === '/blog'
-                ? '/blog/index.md'
-                : null;
+        : doc
+          ? docMarkdownPath(doc.slug)
+          : post
+            ? `/blog/${post.slug}.md`
+            : directory
+              ? `${blogDirectoryPath(directory.slug)}/index.md`
+              : path === '/' || path === '/cv'
+                ? '/profile.md'
+                : blogPage || path === '/blog'
+                  ? '/blog/index.md'
+                  : null;
     this.updateLink(
       'alternate',
       markdownPath ? `${SITE_CONFIG.url}${markdownPath}` : null,

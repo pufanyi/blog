@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { JSDOM } from 'jsdom';
@@ -20,6 +20,7 @@ import {
 } from './lib/content-cache.mts';
 import { renderCvMarkdown } from './lib/cv-markdown.mts';
 import { parseCvSource } from './lib/cv-source.mts';
+import { buildDocs } from './lib/docs.mts';
 import { parsePostSource } from './lib/front-matter.mts';
 import { publishGeneratedFiles } from './lib/generated-files.mts';
 import { normalizePostImageHref, renderMdx } from './lib/mdx-renderer.mts';
@@ -125,6 +126,7 @@ export async function generateData(
     JSON.stringify([
       compiler,
       [...keys],
+      inputs.files(treeFiles(join(root, 'docs'))),
       inputs.files([...treeFiles(join(root, 'configs')), join(root, 'content/cv.yaml')]),
     ]),
   );
@@ -134,6 +136,9 @@ export async function generateData(
     const manifest = JSON.parse(readFileSync(join(cacheDirectory, 'manifest.json'), 'utf8'));
     if (
       manifest.fingerprint === fingerprint &&
+      manifest.docsSources.every(
+        ([path, directory]: [string, boolean]) => statSync(path).isDirectory() === directory,
+      ) &&
       outputDirectories.every(existsSync) &&
       manifest.outputs === outputDigest(outputDirectories)
     ) {
@@ -241,7 +246,18 @@ export async function generateData(
     'person.ts',
     `${GENERATED}import type { PersonStructuredData } from '../models/structured-data.model';\n\nexport const PERSON_DATA: PersonStructuredData = ${JSON.stringify(buildPersonData(cv, configuration.site), null, 2)};\n`,
   );
+  const docs = await buildDocs(root, configuration.site.url);
+  for (const [path, content] of docs.dataFiles) dataFiles.set(path, content);
   const agentFiles = buildAgentFiles(agentPosts, cv, configuration.site);
+  for (const [path, content] of docs.agentFiles) agentFiles.set(path, content);
+  if (docs.summaries.length)
+    agentFiles.set(
+      'llms.txt',
+      agentFiles.get('llms.txt') +
+        '\n## Documentation\n\n- [Developer and author handbook](' +
+        configuration.site.url +
+        '/docs/index.md): Setup, architecture, writing, testing, and maintenance.\n',
+    );
   for (const [path, content] of buildSyndicationFeeds(agentPosts, configuration.site))
     agentFiles.set(path, content);
   const trees = [
@@ -250,7 +266,12 @@ export async function generateData(
   ];
   cacheFiles.set(
     'manifest.json',
-    JSON.stringify({ fingerprint, outputs: generatedDigest(trees), count: posts.length }),
+    JSON.stringify({
+      fingerprint,
+      outputs: generatedDigest(trees),
+      count: posts.length,
+      docsSources: docs.sourceFiles,
+    }),
   );
   const result = publishGeneratedFiles([
     ...trees,

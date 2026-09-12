@@ -23,7 +23,7 @@ wrapper performs its own initial generation; there is no separate `prestart`.
 The `*:generated` variants deliberately omit generation for CI's already-fresh
 outputs. Keep them aligned with their ordinary counterparts.
 
-The watcher observes MDX, bibliography/assets, YAML, local component dependencies,
+The watcher observes MDX, handbook Markdown/navigation, bibliography/assets, YAML, local component dependencies,
 compiler scripts, package/lock, and TypeScript configuration. It serializes and
 coalesces changes, using a fresh generator process to avoid stale imported JSX.
 An invalid edit keeps the last successful preview and prints the error; save a
@@ -80,7 +80,7 @@ copying a live worktree can capture another task's incomplete edits.
 Install browsers with `pnpm exec playwright install --with-deps chromium webkit`.
 CI uses `--only-shell chromium` and the default Chromium channel. Desktop/mobile
 Chromium cover navigation, search, history, metadata, PDFs and content assets;
-WebKit covers search and real MathJax with SVG labels. The Cloudflare project
+WebKit covers documentation navigation/layout, search, and real MathJax with SVG labels. The Cloudflare project
 exercises actual Worker/static-asset routing. Its two corresponding Chromium
 checks are intentionally skipped to avoid claiming Node preview reproduces
 Cloudflare behavior.
@@ -102,3 +102,7 @@ The quality and browser CI jobs run independently. The final required `check`
 job must require both to succeed. `pnpm check` does not run tests or build.
 Use a focused behavior test for a regression; avoid assertions that merely mirror
 implementation details or depend on unrelated authored prose.
+
+## Documentation workflow
+
+Read the [handbook](index.md) for author and developer entry points. The watcher also monitors `docs/`; saving a page or its navigation regenerates the documentation site at `/docs`. Invalid document links or anchors fail generation. Update the [owning guide](documentation.md#where-to-update) with changes to commands, configuration, or application behavior. See [testing](testing.md) for choosing validation and [deployment](deployment.md) for production output.

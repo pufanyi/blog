@@ -1,11 +1,17 @@
 import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
 import { BLOG_CONFIG } from './data/blog-config';
+import { DOCS } from './data/docs';
 import { POSTS } from './data/posts';
+import { docPath } from './models/doc.model';
 import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directories';
 import { blogPageCount } from './utils/blog-pagination';
 import { BLOG_REDIRECTS } from './utils/blog-redirects';
 
 export const serverRoutes: ServerRoute[] = [
+  ...DOCS.map((doc) => ({
+    path: docPath(doc.slug).slice(1),
+    renderMode: RenderMode.Prerender as const,
+  })),
   {
     path: 'pdf-viewer',
     renderMode: RenderMode.Prerender,

@@ -45,7 +45,7 @@ const queue = createBuildQueue(
   },
   (error) => console.error('Content was not updated; fix the source and save again.', error),
 );
-const watchers = ['content', 'configs', 'scripts', 'src'].map((directory) =>
+const watchers = ['content', 'configs', 'docs', 'scripts', 'src'].map((directory) =>
   watch(new URL(`../${directory}/`, import.meta.url), { recursive: true }, (_event, file) => {
     if (
       directory === 'src' &&

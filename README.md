@@ -3,6 +3,10 @@
 Fanyi Pu's Angular blog, with MDX posts, build-time citations and diagrams,
 prerendered routes, and a shared Morandi theme.
 
+## Documentation
+
+The [multipage handbook](docs/index.md) is published at `/docs` using the blog theme. Start with [your first post](docs/writing/first-post.md) as an author or [local development](docs/development.md) as a developer. Edit `docs/` once; the watcher and production build generate the website. Keep the [owning guide](docs/documentation.md) updated with implementation changes.
+
 ## Development
 
 Use the Node version in `.nvmrc` and pnpm version in `package.json`.

@@ -49,6 +49,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/icpc/icpc').then((m) => m.IcpcPageComponent),
       },
       {
+        path: 'docs',
+        loadChildren: () => import('./docs.routes').then((m) => m.docsRoutes),
+      },
+      {
         path: 'blog',
         loadChildren: () => import('./blog.routes').then((m) => m.blogRoutes),
       },

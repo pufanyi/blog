@@ -61,3 +61,15 @@ instead of accumulating unrelated rules here.
   events, views, observers, and timers on navigation, including late imports.
 - Assess performance on served production routes, including lazy/worker
   requests. Keep the resource budgets and real MathJax/WebKit regressions.
+
+## Keep the handbook current
+
+- Treat `docs/` as the human-facing source of truth, published at `/docs`. Update
+  the relevant page in the same change as code, configuration, commands, tests,
+  or authoring contracts. Use the [ownership map](docs/documentation.md#where-to-update).
+- Review the owning guide even for internal refactors; explain in the change
+  description when the documented contract is unchanged. Do not add meaningless
+  documentation edits simply to satisfy a file-touch checklist.
+- Register every handbook Markdown file in `docs/navigation.json`. Keep one
+  source of prose, relative links, and stable headings; generation validates
+  local document links and anchors. Preserve dated records as historical evidence.

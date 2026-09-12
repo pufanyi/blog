@@ -49,8 +49,40 @@ test('cached generation follows shared imports, repairs outputs, and prunes dele
         .slice(6),
     );
   }
+  mkdirSync(join(root, 'docs'), { recursive: true });
+  const docsNavigation = (pages: string[]) =>
+    writeFileSync(
+      join(root, 'docs/navigation.json'),
+      JSON.stringify({
+        sourceUrl: 'https://example.com/source',
+        groups: [{ title: 'Guides', pages }],
+      }),
+    );
+  docsNavigation(['index.md', 'extra.md']);
+  writeFileSync(join(root, 'linked.ts'), '// Linked source.\n');
+  writeFileSync(
+    join(root, 'docs/index.md'),
+    '# Handbook\n\nFirst documentation version.\n\n[Source](../linked.ts)\n',
+  );
+  writeFileSync(join(root, 'docs/extra.md'), '# Extra\n\nAn extra page.\n');
   assert.equal((await generate()).rendered, 2);
   assert.equal((await generate()).rendered, 0);
+  rmSync(join(root, 'linked.ts'));
+  await assert.rejects(generate(), /missing repository link/);
+  writeFileSync(join(root, 'linked.ts'), '// Restored source.\n');
+  const docOutput = join(root, '.generated/agent-content/docs/index.md');
+  writeFileSync(join(root, 'docs/index.md'), '# Handbook\n\nSecond documentation version.\n');
+  assert.equal((await generate()).rendered, 0);
+  assert.match(readFileSync(docOutput, 'utf8'), /Second documentation version/);
+  writeFileSync(join(root, 'docs/index.md'), '# Handbook\n\n[Broken](missing.md)\n');
+  await assert.rejects(generate(), /missing repository link/);
+  assert.match(readFileSync(docOutput, 'utf8'), /Second documentation version/);
+  writeFileSync(join(root, 'docs/index.md'), '# Handbook\n\nRecovered.\n');
+  rmSync(join(root, 'docs/extra.md'));
+  docsNavigation(['index.md']);
+  assert.equal((await generate()).rendered, 0);
+  assert.throws(() => readFileSync(join(root, 'src/app/data/docs/extra.ts')), /ENOENT/);
+  assert.throws(() => readFileSync(join(root, '.generated/agent-content/docs/extra.md')), /ENOENT/);
   writeFileSync(join(root, 'nested.ts'), 'export const label = "Second version";\n');
   const changed = await generate();
   assert.equal(changed.rendered, 1);

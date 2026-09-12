@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { JSDOM } from 'jsdom';
+import { DOCS } from '../src/app/data/docs';
 import { POSTS } from '../src/app/data/posts';
+import { docMarkdownPath, docPath } from '../src/app/models/doc.model';
 
 test('contents directories are prerendered with immediate children and publication dates', async ({
   request,
@@ -360,4 +362,46 @@ test('published Markdown keeps technical content and HTML advertises the corresp
     'https://pufanyi.com/posts/oi-icpc/other-problems/mock-contest-20190307/problem.pdf',
   );
   expect(contest).not.toContain('pdf-viewer');
+});
+
+test('every documentation page is prerendered, indexed, and negotiates its own Markdown', async ({
+  request,
+}) => {
+  const sitemap = await (await request.get('/sitemap.xml')).text();
+  for (const doc of DOCS) {
+    const path = docPath(doc.slug);
+    const response = await request.get(path, { maxRedirects: 0 });
+    expect(response.status(), path).toBe(200);
+    const dom = new JSDOM(await response.text());
+    try {
+      const document = dom.window.document;
+      expect(document.querySelector('h1')?.textContent).toBe(doc.title);
+      expect(document.querySelector('.docs-body')?.textContent?.length).toBeGreaterThan(100);
+      expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+        'https://pufanyi.com' + path,
+      );
+      expect(document.querySelector('#article-structured-data')).toBeNull();
+      expect(document.querySelector('link[type="text/markdown"]')?.getAttribute('href')).toBe(
+        'https://pufanyi.com' + docMarkdownPath(doc.slug),
+      );
+      expect(sitemap).toContain('<loc>https://pufanyi.com' + path + '</loc>');
+      const direct = await request.get(docMarkdownPath(doc.slug));
+      const negotiated = await request.get(path, { headers: { Accept: 'text/markdown' } });
+      expect(direct.status()).toBe(200);
+      expect(negotiated.status()).toBe(200);
+      expect(negotiated.headers()['content-type']).toContain('text/markdown');
+      expect(negotiated.headers()['vary']).toContain('Accept');
+      expect(direct.headers()['link']).toContain(
+        '<https://pufanyi.com' + path + '>; rel="canonical"',
+      );
+      expect(await negotiated.text()).toBe(await direct.text());
+    } finally {
+      dom.window.close();
+    }
+  }
+  for (const path of ['/docs/missing.md', '/docs/missing']) {
+    const response = await request.get(path);
+    expect(response.status()).toBe(404);
+    expect(response.headers()['content-type']).toContain('text/html');
+  }
 });

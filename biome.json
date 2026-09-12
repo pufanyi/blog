@@ -4,6 +4,7 @@
     "includes": [
       "*.{ts,mts,json,jsonc}",
       "scripts/**/*.mts",
+      "docs/**/*.json",
       "e2e/**/*.ts",
       "src/**/*.{ts,css}",
       "content/posts/**/scripts/**/*.{ts,mts,tsx}",

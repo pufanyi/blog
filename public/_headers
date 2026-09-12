@@ -12,3 +12,6 @@
 
 /atom.xml
   Content-Type: application/atom+xml; charset=utf-8
+
+/docs/*.md
+  Content-Type: text/markdown; charset=utf-8
