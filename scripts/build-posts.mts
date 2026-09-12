@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { createHighlighter } from 'shiki';
@@ -7,7 +7,17 @@ import type { Post } from '../src/app/models/post.model';
 import type { SearchDocument, SerializedSearchIndex } from '../src/app/models/search.model';
 import { comparePostsByPublication } from '../src/app/utils/blog-pagination';
 import { createSearchIndex } from '../src/app/utils/search-index';
-import { type AgentPost, buildAgentFiles } from './lib/agent-content.mts';
+import { type AgentPost, buildAgentFiles, renderArticleMarkdown } from './lib/agent-content.mts';
+import {
+  type CachedPost,
+  digest,
+  encodeCachedPost,
+  generatedDigest,
+  InputDigests,
+  outputDigest,
+  readCachedPost,
+  treeFiles,
+} from './lib/content-cache.mts';
 import { renderCvMarkdown } from './lib/cv-markdown.mts';
 import { parseCvSource } from './lib/cv-source.mts';
 import { parsePostSource } from './lib/front-matter.mts';
@@ -40,7 +50,10 @@ function searchableText(html: string): string {
   }
 }
 
-async function buildPostModules(posts: Post[]): Promise<Map<string, string>> {
+async function buildPostModules(
+  posts: Post[],
+  searchTexts: Map<string, string>,
+): Promise<Map<string, string>> {
   const files = new Map<string, string>();
   const summaries = posts.map(({ contentHtml: _html, toc: _toc, ...summary }) => summary);
   files.set(
@@ -70,7 +83,7 @@ async function buildPostModules(posts: Post[]): Promise<Map<string, string>> {
     title: post.title,
     date: post.date,
     description: post.description ?? '',
-    content: searchableText(post.contentHtml),
+    content: searchTexts.get(post.slug)!,
   }));
   const index = createSearchIndex();
   for (const document of documents) index.add(document);
@@ -86,9 +99,52 @@ async function buildPostModules(posts: Post[]): Promise<Map<string, string>> {
 }
 
 /** Build every representation before publishing any derived files. */
-export async function generateData(root = ROOT): Promise<void> {
+export async function generateData(
+  root = ROOT,
+): Promise<{ rendered: number; cached: number; changed: number; removed: number }> {
+  const inputs = new InputDigests();
+  const compiler = inputs.files(
+    [
+      ...treeFiles(join(ROOT, 'scripts')).filter(
+        (path) => !path.includes('/fixtures/') && !path.endsWith('.spec.mts'),
+      ),
+      ...['package.json', 'pnpm-lock.yaml', 'tsconfig.json', 'tsconfig.scripts.json'].map((path) =>
+        join(ROOT, path),
+      ),
+    ],
+    true,
+  );
+  const sources = discoverPostSources(join(root, 'content/posts'));
+  const keys = new Map(
+    sources.map(({ slug, sourcePath }) => [
+      slug,
+      inputs.files(treeFiles(dirname(sourcePath)), true),
+    ]),
+  );
+  const fingerprint = digest(
+    JSON.stringify([
+      compiler,
+      [...keys],
+      inputs.files([...treeFiles(join(root, 'configs')), join(root, 'content/cv.yaml')]),
+    ]),
+  );
+  const cacheDirectory = join(root, '.generated/content-cache');
+  const outputDirectories = [join(root, 'src/app/data'), join(root, '.generated/agent-content')];
+  try {
+    const manifest = JSON.parse(readFileSync(join(cacheDirectory, 'manifest.json'), 'utf8'));
+    if (
+      manifest.fingerprint === fingerprint &&
+      outputDirectories.every(existsSync) &&
+      manifest.outputs === outputDigest(outputDirectories)
+    ) {
+      console.log('Content is unchanged; reused all generated files');
+      return { rendered: 0, cached: manifest.count, changed: 0, removed: 0 };
+    }
+  } catch {
+    /* A missing or invalid cache is a normal cold build. */
+  }
   const configuration = loadSiteConfiguration(join(root, 'configs'));
-  const rawPosts = discoverPostSources(join(root, 'content/posts'))
+  const rawPosts = sources
     .map(({ slug, sourcePath }) => {
       const { metadata, body } = parsePostSource(
         readFileSync(sourcePath, 'utf8'),
@@ -97,39 +153,70 @@ export async function generateData(root = ROOT): Promise<void> {
       return { slug, sourcePath, meta: metadata, mdx: body };
     })
     .filter(({ meta }) => !meta.draft);
+  const cacheFiles = new Map<string, string>();
+  const cachedPosts = new Map<string, CachedPost>();
+  const cacheKeys = new Map(
+    rawPosts.map(({ slug }) => [
+      slug,
+      digest(JSON.stringify([compiler, keys.get(slug), configuration.site])),
+    ]),
+  );
+  for (const { slug } of rawPosts) {
+    const cached = readCachedPost(join(cacheDirectory, `${slug}.json`), cacheKeys.get(slug)!);
+    if (cached) cachedPosts.set(slug, cached);
+  }
   const languages = [
     ...new Set(
-      rawPosts.flatMap(({ mdx }) => [...mdx.matchAll(/```(\w+)/g)].map((match) => match[1])),
+      rawPosts
+        .filter(({ slug }) => !cachedPosts.has(slug))
+        .flatMap(({ mdx }) => [...mdx.matchAll(/```(\w+)/g)].map((match) => match[1])),
     ),
   ];
-  const highlighter = await createHighlighter({
-    themes: ['catppuccin-latte', 'catppuccin-mocha'],
-    langs: languages.length ? languages : ['text'],
-  });
+  const highlighter =
+    cachedPosts.size === rawPosts.length
+      ? undefined
+      : await createHighlighter({
+          themes: ['catppuccin-latte', 'catppuccin-mocha'],
+          langs: languages.length ? languages : ['text'],
+        });
   const agentPosts: AgentPost[] = [];
+  const searchTexts = new Map<string, string>();
   let posts: Post[];
   try {
     posts = await Promise.all(
       rawPosts.map(async ({ slug, meta, mdx, sourcePath }) => {
+        const remember = (value: CachedPost) => {
+          agentPosts.push(value.agent);
+          searchTexts.set(slug, value.searchText);
+          cacheFiles.set(`${slug}.json`, encodeCachedPost(cacheKeys.get(slug)!, value));
+          return value.post;
+        };
+        const cached = cachedPosts.get(slug);
+        if (cached) return remember(cached);
         const { draft: _draft, ...summary } = meta;
         if (summary.coverImage)
           summary.coverImage = normalizePostImageHref(summary.coverImage, slug);
-        const rendered = await renderMdx(mdx, slug, sourcePath, highlighter);
-        agentPosts.push({ ...summary, slug, markdownHtml: rendered.markdownHtml });
-        return {
+        const rendered = await renderMdx(mdx, slug, sourcePath, highlighter!);
+        const agent = { ...summary, slug, markdownHtml: rendered.markdownHtml };
+        const post = {
           ...summary,
           slug,
           excerptHtml: buildPostExcerpt(rendered.markdownHtml),
           contentHtml: rendered.html,
           toc: rendered.toc,
         };
+        return remember({
+          post,
+          agent: { ...agent, markdownExport: renderArticleMarkdown(agent, configuration.site) },
+          searchText: searchableText(post.contentHtml),
+        });
       }),
     );
   } finally {
-    highlighter.dispose();
+    highlighter?.dispose();
   }
   posts.sort(comparePostsByPublication);
-  const dataFiles = await buildPostModules(posts);
+  const dataFiles = await buildPostModules(posts, searchTexts);
   dataFiles.set('post-enhancements.ts', postEnhancementModule(root, rawPosts));
   for (const [filename, type, name, value] of [
     ['site-config', 'SiteConfig', 'SITE_CONFIG', configuration.site],
@@ -157,13 +244,23 @@ export async function generateData(root = ROOT): Promise<void> {
   const agentFiles = buildAgentFiles(agentPosts, cv, configuration.site);
   for (const [path, content] of buildSyndicationFeeds(agentPosts, configuration.site))
     agentFiles.set(path, content);
-  const result = publishGeneratedFiles([
+  const trees = [
     { directory: join(root, 'src/app/data'), files: dataFiles },
     { directory: join(root, '.generated/agent-content'), files: agentFiles },
-  ]);
-  console.log(
-    `Generated ${posts.length} posts and ${agentFiles.size} exports; wrote ${result.changed}, removed ${result.removed} files`,
+  ];
+  cacheFiles.set(
+    'manifest.json',
+    JSON.stringify({ fingerprint, outputs: generatedDigest(trees), count: posts.length }),
   );
+  const result = publishGeneratedFiles([
+    ...trees,
+    { directory: cacheDirectory, files: cacheFiles },
+  ]);
+  const stats = { rendered: posts.length - cachedPosts.size, cached: cachedPosts.size, ...result };
+  console.log(
+    `Generated ${posts.length} posts (${stats.rendered} rendered, ${stats.cached} cached) and ${agentFiles.size} exports; wrote ${result.changed}, removed ${result.removed} files (including cache)`,
+  );
+  return stats;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)

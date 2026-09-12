@@ -8,6 +8,7 @@ import { publishGeneratedFiles } from './generated-files.mts';
 
 export interface AgentPost extends PostSummary {
   markdownHtml: string;
+  markdownExport?: string;
 }
 
 function escapeHtml(value: string): string {
@@ -60,6 +61,19 @@ export function renderProfileMarkdown(cv: CvData, site: SiteConfig): string {
   return htmlToAgentMarkdown(html.join('\n'), `${site.url}/`);
 }
 
+export function renderArticleMarkdown(post: AgentPost, site: SiteConfig): string {
+  const canonical = `${site.url}/blog/${post.slug}`;
+  const header = [
+    `<h1>${escapeHtml(post.title)}</h1>`,
+    paragraph(`Author: ${site.author.name}`),
+    paragraph(`Published: ${post.date}`),
+    ...(post.updated ? [paragraph(`Updated: ${post.updated}`)] : []),
+    `<p>Canonical: ${link(canonical, canonical)}</p>`,
+    ...(post.description ? [paragraph(post.description)] : []),
+  ].join('\n');
+  return htmlToAgentMarkdown(`${header}\n${post.markdownHtml}`, canonical);
+}
+
 export function buildAgentFiles(
   posts: AgentPost[],
   cv: CvData,
@@ -82,15 +96,7 @@ export function buildAgentFiles(
     const canonical = `${site.url}/blog/${post.slug}`;
     const path = `blog/${post.slug}.md`;
     if (files.has(path)) throw new Error(`Duplicate Markdown export: ${path}`);
-    const header = [
-      `<h1>${escapeHtml(post.title)}</h1>`,
-      paragraph(`Author: ${site.author.name}`),
-      paragraph(`Published: ${post.date}`),
-      ...(post.updated ? [paragraph(`Updated: ${post.updated}`)] : []),
-      `<p>Canonical: ${link(canonical, canonical)}</p>`,
-      ...(post.description ? [paragraph(post.description)] : []),
-    ].join('\n');
-    files.set(path, htmlToAgentMarkdown(`${header}\n${post.markdownHtml}`, canonical));
+    files.set(path, post.markdownExport ?? renderArticleMarkdown(post, site));
     index.push(
       `<h2>${link(post.title, `${canonical}.md`)}</h2>`,
       paragraph(post.date),

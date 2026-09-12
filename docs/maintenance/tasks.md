@@ -6,7 +6,7 @@ Work proceeds in dependency order. Every item includes implementation and its ta
 - [x] T2 — Code cleanliness: remove unused duplicate code and enforce consistent TypeScript/TSX/CSS formatting.
 - [x] T3 — Sustainable generation: preserve unchanged files and last successful outputs on generation failure.
 - [x] T4 — Maintainability: article-local styles/controllers with one lifecycle contract.
-- [ ] T5 — Sustainable authoring: dependency-aware incremental generation, watching, and validated Angular caching.
+- [x] T5 — Sustainable authoring: dependency-aware incremental generation, watching, and validated Angular caching.
 - [ ] T6 — Performance: enforce served-route and cold-search resource budgets; measure improvements.
 - [ ] T7 — Test quality: lifecycle/failure cases, real MathJax, representative WebKit regressions, and focused E2E organization.
 - [ ] T8 — Documentation/integration: scoped instructions, clear operator workflow, complete checks/unit/browser validation.
@@ -30,3 +30,9 @@ Generation builds all representations before publishing. Dedicated output trees 
 ### T4 — Complete
 
 All article-specific diagram CSS now lives in each article's `styles.css` and is included only in its rendered HTML. Static rendering and same-document SVG fragment URLs are preserved. Post clients and their shared numerical model are article-local; generated loaders use one `enhancePost`/cleanup contract. Build-only CSS/TypeScript is excluded from published assets. Async lifecycle tests cover late imports, failed imports, cleanup errors, and idempotent disposal. Browser tests cover static CSS, removal on navigation, real controller disposal, and private source paths. Checks, 124 unit tests, production build, and 56 browser tests passed (2 intentional skips). Preview ports are configurable and tests never reuse an unrelated running server.
+
+### T5 — Complete
+
+Content-addressed caches follow article MDX/BibTeX/assets and transitive literal local imports. Compiler/configuration changes invalidate the relevant cache, corrupt or missing outputs are repaired, and deleted posts are pruned. A serial watcher launches fresh generator processes for MDX, YAML, and component changes. Regression tests cover shared imports, cycles, corruption, deletion, failed generation, and queued edits. Checks and 129 unit tests passed. No-change generation took 5.028, 4.155, and 5.020 seconds versus the audit's 16.296 seconds, with zero output writes. A real MDX edit updated the development output in 3.760 seconds and was verified in served HTML; YAML updated automatically too.
+
+Angular caching initially reproduced a SQLite binary-serialization failure, including after clearing its cache. Updating build/CLI/SSR to 22.1.8 fixed the typed-array round trip; peer checks and cold/warm production builds passed (Angular build phases 16.992/14.569 seconds). Details are in [angular-cache.md](angular-cache.md). Local timings are observations on this host, not CI or user-performance promises.
