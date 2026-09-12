@@ -27,7 +27,11 @@ export default defineConfig({
       name: 'desktop',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
     },
-    { name: 'mobile', use: { ...devices['Pixel 7'], defaultBrowserType: 'chromium' } },
+    {
+      name: 'mobile',
+      testIgnore: 'performance.spec.ts',
+      use: { ...devices['Pixel 7'], defaultBrowserType: 'chromium' },
+    },
     {
       name: 'cloudflare',
       testMatch: 'agent-content.spec.ts',

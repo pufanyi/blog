@@ -2,7 +2,10 @@
 export const BLOG_REDIRECTS = [
   { path: 'ml/ml-revisit/muon', redirectTo: '/blog/ml/ml-revisit/optm/muon' },
   { path: 'contents/ml/ml-revisit/rl', redirectTo: '/blog/ml/ml-revisit/rl' },
-  { path: 'ml/ml-revisit/rl/policy-gradient', redirectTo: '/blog/ml/ml-revisit/rl#policy-gradient-algorithms' },
+  {
+    path: 'ml/ml-revisit/rl/policy-gradient',
+    redirectTo: '/blog/ml/ml-revisit/rl#policy-gradient-algorithms',
+  },
   { path: 'contents/ml/ml-revisit/ssl', redirectTo: '/blog/ml/ml-revisit/ssl' },
   { path: 'ml/ml-revisit/ssl/overview', redirectTo: '/blog/ml/ml-revisit/ssl' },
   {
