@@ -8,27 +8,27 @@ const inputNodes = [
   { x: 70, degree: 3, label: 'x_1' },
   { x: 150, degree: 1, label: 'x_2' },
   { x: 230, degree: 2, label: 'x_3' },
-] as const satisfies ReadonlyArray<DiagramNode>;
+] as const satisfies readonly DiagramNode[];
 
 const firstHiddenNodes = [
   { x: 45, degree: 2 },
   { x: 115, degree: 1 },
   { x: 185, degree: 2 },
   { x: 255, degree: 2 },
-] as const satisfies ReadonlyArray<DiagramNode>;
+] as const satisfies readonly DiagramNode[];
 
 const secondHiddenNodes = [
   { x: 45, degree: 1 },
   { x: 115, degree: 2 },
   { x: 185, degree: 2 },
   { x: 255, degree: 1 },
-] as const satisfies ReadonlyArray<DiagramNode>;
+] as const satisfies readonly DiagramNode[];
 
 const outputNodes = [
   { x: 70, degree: 3, label: '\\hat{x}_1' },
   { x: 150, degree: 1, label: '\\hat{x}_2' },
   { x: 230, degree: 2, label: '\\hat{x}_3' },
-] as const satisfies ReadonlyArray<DiagramNode>;
+] as const satisfies readonly DiagramNode[];
 
 interface NodeProps {
   degree?: number;
@@ -99,8 +99,8 @@ const allowHiddenConnection: ConnectionRule = (source, target) => source <= targ
 const allowOutputConnection: ConnectionRule = (source, target) => source < target;
 
 function createMask(
-  targets: ReadonlyArray<DiagramNode>,
-  sources: ReadonlyArray<DiagramNode>,
+  targets: readonly DiagramNode[],
+  sources: readonly DiagramNode[],
   isAllowed: ConnectionRule,
 ) {
   return targets.map((target) =>
@@ -117,10 +117,10 @@ function Connections({
   toY,
 }: {
   classForEdge?: (source: DiagramNode, target: DiagramNode) => string;
-  from: ReadonlyArray<DiagramNode>;
+  from: readonly DiagramNode[];
   fromY: number;
   isAllowed?: ConnectionRule;
-  to: ReadonlyArray<DiagramNode>;
+  to: readonly DiagramNode[];
   toY: number;
 }) {
   return from.flatMap((source, sourceIndex) =>
@@ -150,7 +150,7 @@ function MaskGrid({
 }: {
   columns: number;
   rows: number;
-  values: ReadonlyArray<ReadonlyArray<number>>;
+  values: readonly (readonly number[])[];
   x: number;
   y: number;
 }) {
@@ -187,7 +187,7 @@ function MaskLabel({ layer, x, y }: { layer: string; x: number; y: number }) {
 
 function MadeDiagram() {
   const madeOffset = 650;
-  const shift = (nodes: ReadonlyArray<DiagramNode>) =>
+  const shift = (nodes: readonly DiagramNode[]) =>
     nodes.map((node) => ({ ...node, x: node.x + madeOffset }));
   const madeInputs = shift(inputNodes);
   const madeFirstHidden = shift(firstHiddenNodes);

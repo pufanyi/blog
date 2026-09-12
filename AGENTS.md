@@ -111,7 +111,8 @@ Project guidance for agents working in this repository.
   discovery lives in page metadata, the footer, and `llms.txt`; keep MIME types
   correct in both Cloudflare `_headers` and the Node preview.
 - Run unit tests with `pnpm test`; use `pnpm test --watch=false` for a
-  noninteractive run. `pnpm check` does not run tests or the production build.
+  noninteractive run. `pnpm check` includes Angular application/template compilation,
+  content/tooling and E2E typechecks, and lint; it does not run tests or a production build.
   If Vitest workers exit unexpectedly on a host reporting many CPUs, retry with
   `VITEST_MAX_WORKERS=2 pnpm test --watch=false` to limit local concurrency.
 - Angular's unit-test builder does not support `vi.mock` for relative imports.

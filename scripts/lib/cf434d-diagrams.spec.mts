@@ -55,7 +55,7 @@ test('CF434D endpoint diagrams reproduce the counterexample and recover the cons
     );
     const removed = new Set(cut);
     const reachable = new Set(['S']);
-    for (let pass = 0; pass < graph.nodes.length; pass++) {
+    for (let remaining = graph.nodes.length; remaining > 0; remaining--) {
       for (const edge of graph.edges) {
         if (!removed.has(edge) && reachable.has(edge.from)) reachable.add(edge.to);
       }

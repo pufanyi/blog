@@ -96,7 +96,9 @@ test('playback merges only the selected query band, reuses the temporary tile, a
       constructor(callback: (entries: { isIntersecting: boolean }[]) => void) {
         visibility = (visible) => callback([{ isIntersecting: visible }]);
       }
-      observe() {}
+      observe() {
+        return;
+      }
       disconnect() {
         disconnects++;
       }

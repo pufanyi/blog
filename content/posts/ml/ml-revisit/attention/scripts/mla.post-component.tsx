@@ -140,7 +140,7 @@ const edges = [
   { from: 'key', to: 'attention', branch: 'kv', toOffset: nodes.key.x - nodes.attention.x },
   { from: 'value', to: 'attention', branch: 'kv', toOffset: nodes.value.x - nodes.attention.x },
   { from: 'attention', to: 'output', branch: 'neutral' },
-] as const satisfies ReadonlyArray<DiagramEdge>;
+] as const satisfies readonly DiagramEdge[];
 
 const projectionLabels = [
   { x: 254, y: 628, text: '降维投影', branch: 'query' },

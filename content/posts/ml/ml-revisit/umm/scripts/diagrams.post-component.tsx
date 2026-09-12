@@ -39,7 +39,7 @@ function ImagePatch({ href, index, x, y, size }: ImagePatchProps) {
 }
 
 function TransfusionDiagram() {
-  const inputs: Array<string | null> = [
+  const inputs: (string | null)[] = [
     'A',
     'cute',
     'cat',
@@ -56,7 +56,7 @@ function TransfusionDiagram() {
     'its',
     'nose',
   ];
-  const outputs: Array<string | null> = [
+  const outputs: (string | null)[] = [
     'cute',
     'cat',
     '.',
@@ -227,7 +227,7 @@ function PatchLabel({ index }: { index: number }) {
 }
 
 function AttentionMask({ width = 'min(100%, 32rem)' }: { width?: string }) {
-  const tokens: Array<string | number> = ['A', 'cute', 'cat', '<BOI>', 0, 1, 2, 3, '<EOI>', 'What'];
+  const tokens: (string | number)[] = ['A', 'cute', 'cat', '<BOI>', 0, 1, 2, 3, '<EOI>', 'What'];
   const label = (token: string | number) =>
     typeof token === 'number' ? <PatchLabel index={token} /> : token;
   const isAllowed = (row: number, column: number) => {
