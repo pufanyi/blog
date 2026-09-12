@@ -450,32 +450,182 @@ $$
 
 ## Generalized Advantage Estimation
 
-Schulman 等人的 GAE [@schulman2015high]。
+Actor-critic 用 advantage 判断一个 action 比当前策略的平均表现好多少。实际训练时，真实的 $\mathcal Q$ 和 $\mathcal V$ 都未知，我们需要从采到的轨迹和 critic 的预测中构造 $\hat{\mathcal A}_t$。
 
-我们考虑 advantage 在 policy gradient 中的这一项：
+我们需要决定观察多少步真实 reward，再让 critic 预测剩下的收益。只观察一步，估计很依赖 critic；一直观察到终点，又会混入后续 action 和环境带来的随机性。Schulman 等人提出的 **Generalized Advantage Estimation（GAE）** [@schulman2015high] 把不同步数的估计结合起来，用 $\lambda$ 调节两者的取舍。
+
+### From one step to multiple steps
+
+固定采样策略 $\pi$ 和 discount factor $\gamma$，记 $r_t=r(s_t,a_t)$，把 critic 对 $\mathcal V^{\pi,\gamma}(s_t)$ 的预测简记为 $v_t=\hat{\mathcal V}_\phi(s_t)$。在同一条轨迹上，我们可以在不同位置交给 critic 接手：
+
+<GaeHorizonDiagram />
+
+观察 $n$ 步后，前半段用实际 reward，后半段用 $v_{t+n}$ 补足。这种用估计值预测尚未观察到的收益的做法叫做 bootstrap。再减去当前状态的 baseline $v_t$，得到 $n$-step advantage estimate：
 
 $$
-\mathbb E\left[\Psi_t\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right].
+\hat{\mathcal A}_t^{(n)}
+=\underbrace{\sum_{l=0}^{n-1}\gamma^l r_{t+l}}_{\text{observed rewards}}
++\underbrace{\gamma^n v_{t+n}}_{\text{bootstrap}}
+-v_t.
 $$
 
-其中如果 $\Psi_t=\mathcal A^{\pi_\theta,\gamma}(s_t,a_t)$ 的话，是对的。那我们有没有啥其他的 $\Psi_t$ 也能给出相同的期望呢？我们把满足
+$n=1$ 时，它就是 TD residual：
+
+$$
+\delta_t=r_t+\gamma v_{t+1}-v_t.
+$$
+
+增加 $n$，就是用更多实际发生的 reward 替换 critic 对未来的预测。这样通常能减少 bootstrap 误差的影响，但也纳入了更多后续轨迹的随机性。
+
+### Mixing the horizons
+
+GAE 为这些不同长度的估计分配指数衰减的权重。先考虑 $0\le\lambda<1$：
+
+$$
+\hat{\mathcal A}_t^{\mathrm{GAE}(\gamma,\lambda)}
+=(1-\lambda)\sum_{n=1}^{\infty}
+\lambda^{n-1}\hat{\mathcal A}_t^{(n)}.
+$$
+
+这些权重之和为 $1$。较小的 $\lambda$ 把权重集中在短步数估计上；较大的 $\lambda$ 让长步数估计参与得更多。对于已经终止的 episode，可以把终止后的 reward 和 value 都延拓为 $0$。
+
+把各个 $n$-step estimate 展开并合并，GAE 就变成了 TD residual 的折扣和：
+
+$$
+\hat{\mathcal A}_t^{\mathrm{GAE}(\gamma,\lambda)}
+=\sum_{l=0}^{\infty}(\gamma\lambda)^l\delta_{t+l}
+=\delta_t+\gamma\lambda\delta_{t+1}
++(\gamma\lambda)^2\delta_{t+2}+\cdots.
+$$
+
+前一个式子说明 GAE 如何结合不同步数的估计，后一个式子更方便计算。$\lambda=1$ 时使用后一个表达式，或取前一个表达式在 $\lambda\to1$ 时的极限。
+
+<details>
+<summary>从 n-step average 到 TD residual sum</summary>
+
+把 TD residual 展开后，中间的 value 项相消：
+
+$$
+\hat{\mathcal A}_t^{(n)}
+=\sum_{l=0}^{n-1}\gamma^l\delta_{t+l}
+=\sum_{l=0}^{n-1}\gamma^l r_{t+l}
++\gamma^n v_{t+n}-v_t.
+$$
+
+$\delta_{t+l}$ 出现在所有 $n\ge l+1$ 的估计里，因此它在加权平均中的系数是
+
+$$
+(1-\lambda)\gamma^l\sum_{n=l+1}^{\infty}\lambda^{n-1}
+=(\gamma\lambda)^l.
+$$
+
+若只采到后续 $H$ 步，有限长度版本把剩余权重交给最长的估计：
+
+$$
+\begin{aligned}
+\hat{\mathcal A}_t^{\mathrm{GAE},H}
+&=(1-\lambda)\sum_{n=1}^{H-1}\lambda^{n-1}\hat{\mathcal A}_t^{(n)}
++\lambda^{H-1}\hat{\mathcal A}_t^{(H)}\\
+&=\sum_{l=0}^{H-1}(\gamma\lambda)^l\delta_{t+l}.
+\end{aligned}
+$$
+
+其中 $H=1$ 时只有 $\hat{\mathcal A}_t^{(1)}$。最长那一项仍可以在采样边界使用 critic 的预测。
+
+</details>
+
+### What λ controls
+
+| $\lambda$ | 使用的信息 | 主要取舍 |
+| --- | --- | --- |
+| $0$ | 一步 reward 和下一状态的 value，$\hat{\mathcal A}_t=\delta_t$ | 通常方差较低，更依赖 critic 的准确性 |
+| $0<\lambda<1$ | 不同步数估计的加权平均 | 在 bootstrap 误差和轨迹采样噪声之间折中 |
+| $1$ | 若采到真正终止，使用完整 discounted return 减去 $v_t$ | 后续收益完全来自采样，通常方差较高 |
+
+Bootstrap 可能把 critic 的预测误差带入 policy gradient。若 critic 恰好等于真实的 $\mathcal V^{\pi,\gamma}$，一步 TD 就已经是 advantage 的条件无偏估计；在同样的采样与边界条件下，其他 $\lambda$ 也不会额外引入这种 bias。
+
+$\gamma$ 和 $\lambda$ 的作用不同：$\gamma$ 定义本节要估计的 discounted return；固定 $\gamma$ 后，$\lambda$ 调节估计这个量时观察多长的轨迹。改变 $\lambda$ 不会改变真实 advantage 的定义。
+
+<details>
+<summary>Advantage bias 与 policy-gradient bias</summary>
+
+GAE 最终要放进 actor 的梯度里，因此还要区分 advantage 数值的误差与它给 policy gradient 带来的 bias。原论文把满足下面条件的估计量称为 $\gamma$-just：
 
 $$
 \mathbb E\left[\hat{\mathcal A}_t\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right]
 =\mathbb E\left[\mathcal A^{\pi_\theta,\gamma}(s_t,a_t)
-\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right]
+\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right].
 $$
 
-的估计量叫做 $\gamma$-just 的。它说的是这个 discounted advantage 的梯度项，不能因此忽略前面讨论的目标与时间权重约定。
-
-使用真实的 value function 时，
+当 $v_t=\mathcal V^{\pi,\gamma}(s_t)$ 时，
 
 $$
-r(s_t,a_t)+\gamma\mathcal V^{\pi_\theta,\gamma}(s_{t+1})
--\mathcal V^{\pi_\theta,\gamma}(s_t)
+\mathbb E[\delta_t\mid s_t,a_t]
+=\mathcal A^{\pi,\gamma}(s_t,a_t).
 $$
 
-是 $\gamma$-just 的。进一步的推导待续。
+此时一步估计已经满足要求。使用近似 critic 并且 $\lambda<1$ 时，bootstrap 误差一般会传入 policy gradient。
+
+记完整的 discounted return 为 $G_t$。当 $\lambda=1$ 且采到真正终止时，$\hat{\mathcal A}_t=G_t-v_t$。即使 $v_t$ 不准确，$G_t$ 仍是 discounted $\mathcal Q$ 的条件无偏估计，而 $v_t$ 是不依赖当前 action 的 baseline，所以这个估计量仍是 $\gamma$-just。但它的条件期望是 $\mathcal Q^{\pi,\gamma}(s_t,a_t)-v_t$，未必等于真实 advantage。
+
+这里固定采样策略，并把 critic 当作给定的函数。$\gamma$-just 讨论的是 discounted policy-gradient 项；对于前文从初始状态定义的 discounted objective，仍沿用相应的外层时间权重。
+
+</details>
+
+### Computing GAE on a rollout
+
+实际收集到的轨迹是有限的。设最后一个 action 是 $a_T$，下一状态为 $s_{T+1}$。从后往前计算即可：
+
+$$
+\hat{\mathcal A}_t
+=\delta_t+\gamma\lambda\hat{\mathcal A}_{t+1},
+\qquad \hat{\mathcal A}_{T+1}=0.
+$$
+
+这里的 $\hat{\mathcal A}_{T+1}=0$ 表示没有更多已采样的 TD residual；未来收益仍通过最后一个 $\delta_T$ 中的 $v_{T+1}$ 进入估计。边界 value 按轨迹停止的原因确定：
+
+- **真正终止**：未来没有 reward，令 $v_{T+1}=0$。
+- **rollout 收集结束或外部 time limit 截断**：任务本可继续，使用停止前最后一个状态的 critic 预测作为 $v_{T+1}$。
+
+Spinning Up 的 [PPOBuffer 实现](https://spinningup.openai.com/en/latest/_modules/spinup/algos/pytorch/ppo/ppo.html) 就通过最后一个 value 处理这两种情况。Gymnasium [@faramaHandlingTimeLimits] 用 `terminated` 和 `truncated` 区分真正终止与外部截断；任务本身定义的有限时域终点属于前者。
+
+有限 rollout 下，即使 $\lambda=1$，仍有
+
+$$
+\hat{\mathcal A}_t
+=\sum_{l=0}^{T-t}\gamma^l r_{t+l}
++\gamma^{T-t+1}v_{T+1}-v_t.
+$$
+
+采到真正终止时，边界项为零，才得到纯 Monte Carlo return 减 baseline；截断时则保留 bootstrap。
+
+下面用普通列表实现单段 rollout 的计算。`rewards` 长度为 $T$，`values` 长度为 $T+1$，最后一个元素已经按上面的规则设置。它们都是采样时记录并固定下来的数值。
+
+```python
+def gae(rewards, values, gamma, lam):
+    assert len(values) == len(rewards) + 1
+    advantages = [0.0] * len(rewards)
+    carry = 0.0
+    for t in reversed(range(len(rewards))):
+        delta = rewards[t] + gamma * values[t + 1] - values[t]
+        carry = delta + gamma * lam * carry
+        advantages[t] = carry
+    return advantages
+```
+
+多条 episode 应分别计算；截断后 reset 得到的新初始状态也不属于上一段轨迹，不能把它的 value 或 advantage 接到上一段。
+
+例如，一条三步后终止的轨迹只有最后一步得到 reward。取 $\gamma=0.9$、$\lambda=0.8$，因此 $\gamma\lambda=0.72$，并设终止状态 $v_4=0$：
+
+| $t$ | $r_t$ | $v_t$ | $\delta_t$ | $\hat{\mathcal A}_t$ |
+| --- | --- | --- | --- | --- |
+| $1$ | $0$ | $0.4$ | $0.05$ | $0.28616$ |
+| $2$ | $0$ | $0.5$ | $0.04$ | $0.328$ |
+| $3$ | $1$ | $0.6$ | $0.4$ | $0.4$ |
+
+从最后一步开始，先得到 $\hat{\mathcal A}_3=0.4$，再算 $\hat{\mathcal A}_2=0.04+0.72\times0.4=0.328$，最后得到 $\hat{\mathcal A}_1=0.05+0.72\times0.328=0.28616$。终点的信息通过这次反向递推传到更早的 action。
+
+训练 actor 时，把算好的 advantage 当作固定权重，代入前面的 policy-gradient loss 或后面的 PPO objective。GAE 负责构造这个权重；接下来的 TRPO 和 PPO 则控制策略如何利用它更新。
 
 ## Trust Region Policy Optimization
 

@@ -8,6 +8,8 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   marked as pending unless the author asks to complete them.
   Motivate REINFORCE by distinguishing the full trajectory integral from one
   sampled integrand value, then derive its unbiased gradient estimator once.
+  The GAE section is a complete tutorial: introduce rollout horizons and their
+  mixture before the estimator, keeping bias definitions in supplementary details.
 
 - The visual SSL overview is one long article at `ssl/index.mdx`, with shared
   SVG primitives in `ssl/scripts/elements.tsx` and styles in `ssl/styles.css`.

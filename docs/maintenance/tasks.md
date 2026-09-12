@@ -9,7 +9,7 @@ Work proceeds in dependency order. Every item includes implementation and its ta
 - [x] T5 — Sustainable authoring: dependency-aware incremental generation, watching, and validated Angular caching.
 - [x] T6 — Performance: enforce served-route and cold-search resource budgets; measure improvements.
 - [x] T7 — Test quality: lifecycle/failure cases, real MathJax, representative WebKit regressions, and focused E2E organization.
-- [ ] T8 — Documentation/integration: scoped instructions, clear operator workflow, complete checks/unit/browser validation.
+- [x] T8 — Documentation/integration: scoped instructions, clear operator workflow, complete checks/unit/browser validation.
 
 ## Validation record
 
@@ -44,3 +44,15 @@ Production browser tests now constrain complete first-party program resources, H
 ### T7 — Complete
 
 The large browser spec is split into navigation, reading, metadata, and search, with shared setup in fixtures. Controlled unit cases cover search ranking/snippets, clipboard rejection/disposal, image-view release, and citation-preview teardown. Real pinned MathJax, fonts, speech workers, and rules are exercised in Chromium and WebKit, including SVG labels and both themes/widths. This exposed and fixed early Blob-URL revocation in MathJax's WebKit worker startup; see [mathjax-webkit.md](mathjax-webkit.md). CI installs matching WebKit and retains resource JSON and diagram captures on successful runs too. Checks, all 138 unit tests, production build, and all 72 browser tests passed (2 intentional Cloudflare-only duplicate skips). Actual WebKit narrow/desktop captures were inspected; these are diagnostic artifacts rather than pixel baselines.
+
+### T8 — Complete
+
+Root instructions now contain 63 lines of shared workflow and links. Content/diagram/citation guidance lives in `content/AGENTS.md`; architecture, development, dependency exceptions, migration recipes, browser setup, and ML editorial guidance have separate owners. Existing editorial rules were preserved, and outdated manual-generation/style-registration instructions were replaced. Local documentation links were checked.
+
+The maintenance branch was integrated into the working checkout, preserving the concurrent search, SSL/RL, TOC, and formula changes. The added long-TOC tests moved into `reading.spec.ts` with an unchanged syntax-tree structure. The code-disclosure regression now uses production-rendered code in a controlled disclosure with an explicit long line, so prose rearrangements and code-line lengths do not remove its coverage. Formula regressions cover both scrolling and a failed MathJax download in Chromium and WebKit; CI retains their captures too.
+
+Final checks and all **138 unit tests** passed. Source fingerprints matched the independent validation directory and remained unchanged through browser validation. The actual working checkout's production build generated **142 static routes**, 128 sitemap URLs, and 127 Markdown alternatives. Its served production output passed **85 browser tests**, with **2 intentional skips** for duplicate Cloudflare-only checks. WebKit used the matching 26.5 engine; its narrow formula/diagram captures were inspected. The final logs and source fingerprints are retained in ignored `tmp/maintenance-2026-09-12`, alongside resource reports and rendering captures from `test-results`.
+
+The measured generation and resource improvements remain the scoped observations recorded under T5/T6, not production Core Web Vitals or an assurance that every article/device has been visually reviewed. Original uncommitted work was preserved; the integration recovery patch and autostashes were retained as backups.
+
+Concurrent authoring continued after the final browser run completed at 17:07:43 local time. Later changes to the RL article, bibliography, GAE component, article styles, and editorial notes are preserved but are outside this validated snapshot. The saved source fingerprint identifies the maintenance version tested; it is not a check/test approval for later edits. Run the normal gates after that authoring work is complete.

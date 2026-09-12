@@ -25,6 +25,9 @@ runtime can work, but its loader and C++ libraries must be isolated to the
 browser executable. Putting a newer glibc in global `LD_LIBRARY_PATH` can break
 Node and Chromium. Keep any such wrapper outside the repository and report the
 engine used. The maintenance validation used WebKit 26.5.
+Use the same `PLAYWRIGHT_HOST_PLATFORM_OVERRIDE` when installing and running that
+supported build; otherwise the driver may still use a frozen platform's protocol
+settings with the newer executable (for example, the removed `PushAPIEnabled`).
 
 `BLOG_PREVIEW_PORT` and `BLOG_CLOUDFLARE_PORT` select isolated browser-test ports
 (defaults 4173 and 8787). Tests deliberately refuse to reuse an existing server.

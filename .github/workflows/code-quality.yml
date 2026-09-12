@@ -86,6 +86,7 @@ jobs:
           path: |
             test-results/**/resources.json
             test-results/**/made-*.png
+            test-results/**/wide-formula.png
           if-no-files-found: ignore
           retention-days: 7
 

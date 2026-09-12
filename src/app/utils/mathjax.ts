@@ -1,6 +1,7 @@
 import { createMathWorker } from './mathjax-worker';
 
 interface MathJaxApi {
+  output?: { displayOverflow: 'scroll' };
   tex?: { inlineMath: string[][]; displayMath: string[][] };
   startup?: {
     typeset?: boolean;
@@ -27,6 +28,7 @@ function loadMathJax(): Promise<MathJaxApi> {
   loading = new Promise<MathJaxApi>((resolve, reject) => {
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      output: { displayOverflow: 'scroll' },
       startup: { typeset: false },
     };
     const script = document.createElement('script');

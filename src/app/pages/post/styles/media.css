@@ -57,9 +57,15 @@
 }
 
 .post-body .math-display {
+  /* Contain MathJax's margins; its renderer owns wide-expression scrolling. */
+  display: flow-root;
   text-align: center;
   margin: 1.75rem 0;
-  overflow-x: auto;
+}
+
+.post-body .math-display:not(:has(mjx-container)),
+.post-body .math-inline:not(:has(mjx-container)) {
+  overflow-wrap: anywhere;
 }
 
 /* HR separator — fading line with center ornament */

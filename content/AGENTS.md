@@ -22,6 +22,8 @@ For Jekyll, Hexo, or Typst imports, also read
   does not alter `\Rightarrow`. Inspect formulas for red undefined
   commands as well as `mjx-merror`; unsupported macros can render without
   producing an error node.
+  When composing TeX labels from string fragments, separate a command from
+  following letters so concatenation does not create an undefined command.
 
 - Each blog post lives at `content/posts/<slug>/index.mdx`; the slug is its full
   relative directory path, such as `oi-icpc/codeforces/cf551c`. The generator and

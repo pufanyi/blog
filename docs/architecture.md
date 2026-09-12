@@ -58,6 +58,9 @@ local imports. Adding an article must not require editing the application shell.
 - Keep article presentation in `PostComponent`, DOM enhancement and cleanup
   in `PostContentDirective`, and TOC interaction in `PostNavigationComponent`.
   Use render hooks and cleanup callbacks rather than retrying DOM queries.
+  Keep a shrinkable flex chain from the bounded TOC host to its scrolling list;
+  percentage heights do not inherit a sidebar's `max-height` and can leave long
+  lists clipped. Verify the final entry is reachable in both sidebar and drawer.
   `PostContentDirective` marks `.post-body` with `data-rendered="true"` after
   client DOM enhancements attach; browser tests asserting on client elements
   (such as embedded PDF readers) should wait for this attribute before querying
@@ -70,6 +73,12 @@ local imports. Adding an article must not require editing the application shell.
 - MathJax loads on demand through `src/app/utils/mathjax.ts`, with automatic
   typesetting disabled. Angular-authored views outside generated post content
   must call `typesetMath` after rendering when they contain TeX delimiters.
+  Use MathJax's `displayOverflow: 'scroll'` for wide equations. Display wrappers
+  use `flow-root` to contain margins without another scroll container: outer
+  `overflow-x: auto` also enables vertical scrolling for small glyph overhangs.
+  Keep raw display TeX wrappable before MathJax initializes, without introducing
+  another scroll container around the finished formula.
+  Keep raw TeX wrappable while the renderer is loading or unavailable.
 
 Keep the pinned real-rendering test packages synchronized with the MathJax CDN
 version. Its worker compatibility adapter and removal criteria are documented in

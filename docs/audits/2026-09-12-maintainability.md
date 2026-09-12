@@ -1,5 +1,8 @@
 # Blog maintainability audit — 2026-09-12
 
+This document preserves the original baseline. Implementation outcomes and
+validation are recorded in the [ordered maintenance task list](../maintenance/tasks.md).
+
 The main maintenance risk is the growing cost of adding and changing article features. The application already has useful boundaries and meaningful regression tests. Article presentation, content compilation, quality gates, and operational guidance need stronger boundaries so their maintenance cost does not keep growing with the collection.
 
 ## Scope and reproducibility
