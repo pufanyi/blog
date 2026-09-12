@@ -1,8 +1,8 @@
 import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
-import { POSTS } from './data/posts';
 import { BLOG_CONFIG } from './data/blog-config';
-import { blogPageCount } from './utils/blog-pagination';
+import { POSTS } from './data/posts';
 import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directories';
+import { blogPageCount } from './utils/blog-pagination';
 import { BLOG_REDIRECTS } from './utils/blog-redirects';
 
 export const serverRoutes: ServerRoute[] = [
@@ -30,7 +30,7 @@ export const serverRoutes: ServerRoute[] = [
     path: 'blog/page/1',
     renderMode: RenderMode.Prerender,
   },
-  ...BLOG_REDIRECTS.map(redirect => ({
+  ...BLOG_REDIRECTS.map((redirect) => ({
     path: `blog/${redirect.path}`,
     renderMode: RenderMode.Prerender as const,
   })),
@@ -46,9 +46,9 @@ export const serverRoutes: ServerRoute[] = [
     },
   },
   ...[
-    ...buildBlogDirectories(POSTS).map(directory => blogDirectoryPath(directory.slug).slice(1)),
-    ...POSTS.map(post => `blog/${post.slug}`),
-  ].map(path => ({
+    ...buildBlogDirectories(POSTS).map((directory) => blogDirectoryPath(directory.slug).slice(1)),
+    ...POSTS.map((post) => `blog/${post.slug}`),
+  ].map((path) => ({
     path,
     renderMode: RenderMode.Prerender as const,
   })),

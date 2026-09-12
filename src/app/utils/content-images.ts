@@ -1,4 +1,4 @@
-import { ApplicationRef, ComponentRef, EnvironmentInjector, createComponent } from '@angular/core';
+import { ApplicationRef, ComponentRef, createComponent, EnvironmentInjector } from '@angular/core';
 import { ImageLightboxComponent } from '../components/image-lightbox/image-lightbox';
 
 export function hydrateContentImages(

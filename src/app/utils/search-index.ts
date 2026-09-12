@@ -7,8 +7,8 @@ const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
 // The same encoder is used for the build-time index and browser queries.
 export function searchTerms(text: string): string[] {
   return Array.from(segmenter.segment(text.normalize('NFKC').toLowerCase()))
-    .filter(part => part.isWordLike)
-    .map(part => part.segment);
+    .filter((part) => part.isWordLike)
+    .map((part) => part.segment);
 }
 
 export function createSearchIndex(): Document<SearchDocument> {

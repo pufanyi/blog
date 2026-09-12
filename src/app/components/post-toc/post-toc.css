@@ -65,8 +65,7 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: color-mix(in srgb, var(--overlay-color) 55%, transparent)
-    transparent;
+  scrollbar-color: color-mix(in srgb, var(--overlay-color) 55%, transparent) transparent;
   scrollbar-width: thin;
 }
 
@@ -83,7 +82,7 @@
 }
 
 .toc-list::before {
-  content: '';
+  content: "";
   position: absolute;
   inset-block: 0.3rem;
   inset-inline-start: 0.16rem;
@@ -110,11 +109,13 @@
   font-weight: 520;
   line-height: 1.35;
   text-decoration: none;
-  transition: color 160ms ease, background-color 160ms ease;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
 }
 
 .toc-link::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: -0.64rem;
@@ -123,7 +124,9 @@
   border-radius: 999px;
   background: transparent;
   transform: translateY(-50%);
-  transition: background-color 160ms ease, box-shadow 160ms ease;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .toc-link:hover {

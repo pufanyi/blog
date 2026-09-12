@@ -16,7 +16,10 @@ export class BlogBreadcrumbsComponent {
     const parts = this.slug().split('/').filter(Boolean);
     return [
       { label: 'Contents', path: blogDirectoryPath('') },
-      ...parts.map((label, index) => ({ label, path: blogDirectoryPath(parts.slice(0, index + 1).join('/')) })),
+      ...parts.map((label, index) => ({
+        label,
+        path: blogDirectoryPath(parts.slice(0, index + 1).join('/')),
+      })),
     ];
   });
 }

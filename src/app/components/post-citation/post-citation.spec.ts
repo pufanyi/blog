@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { PostCitationComponent } from './post-citation';
 import { SITE_CONFIG } from '../../data/site-config';
+import { PostCitationComponent } from './post-citation';
 
 describe('PostCitationComponent', () => {
   it('builds a stable BibTeX entry from post metadata', () => {
@@ -10,7 +10,9 @@ describe('PostCitationComponent', () => {
     fixture.componentRef.setInput('slug', 'hello-world');
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.bibtex()).toBe(`@misc{${SITE_CONFIG.author.citationKeyPrefix}2026helloworld,
+    expect(
+      fixture.componentInstance.bibtex(),
+    ).toBe(`@misc{${SITE_CONFIG.author.citationKeyPrefix}2026helloworld,
   author = {${SITE_CONFIG.author.citationName.replace(/([&%#_{}])/g, '\\$1')}},
   title  = {Research \\& Development},
   year   = {2026},
@@ -18,6 +20,8 @@ describe('PostCitationComponent', () => {
   url    = {${SITE_CONFIG.url}/blog/hello-world}
 }`);
     fixture.componentRef.setInput('slug', 'topic/nested/hello-world');
-    expect(fixture.componentInstance.bibtex()).toContain(`${SITE_CONFIG.url}/blog/topic/nested/hello-world`);
+    expect(fixture.componentInstance.bibtex()).toContain(
+      `${SITE_CONFIG.url}/blog/topic/nested/hello-world`,
+    );
   });
 });

@@ -2,7 +2,9 @@ import { expect, test } from '@playwright/test';
 
 const article = '/blog/ml/ml-revisit/infra/flash-attention';
 
-test('forward tiles the full sequence and merges each range into one query output', async ({ page }) => {
+test('forward tiles the full sequence and merges each range into one query output', async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(article);
   const player = page.locator('[data-flash-forward]');
@@ -51,23 +53,32 @@ test('forward tiles the full sequence and merges each range into one query outpu
   await player.getByRole('button', { name: '暂停' }).click();
   await player.getByRole('button', { name: '上一步' }).click();
   await expect(player).toHaveAttribute('data-step', '0');
-  expect(await player.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+  expect(await player.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(
+    true,
+  );
   await page.setViewportSize({ width: 320, height: 900 });
-  expect(await player.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
-  const offsets = await wider.evaluate(element => {
+  expect(await player.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(
+    true,
+  );
+  const offsets = await wider.evaluate((element) => {
     const grid = element.querySelector('svg')!.getBoundingClientRect();
-    return ['[data-query]', '[data-output]'].flatMap(selector => {
+    return ['[data-query]', '[data-output]'].flatMap((selector) => {
       const labels = [...element.querySelectorAll(selector)];
       return labels.map((label, row) => {
         const box = label.getBoundingClientRect();
-        return Math.abs(box.top + box.height / 2 - (grid.top + (row + 0.5) * grid.height / labels.length));
+        return Math.abs(
+          box.top + box.height / 2 - (grid.top + ((row + 0.5) * grid.height) / labels.length),
+        );
       });
     });
   });
   for (const offset of offsets) expect(offset).toBeLessThan(2);
 });
 
-test('the partitioned sequence remains readable without JavaScript', async ({ browser, viewport }) => {
+test('the partitioned sequence remains readable without JavaScript', async ({
+  browser,
+  viewport,
+}) => {
   const context = await browser.newContext({ javaScriptEnabled: false, viewport });
   try {
     const page = await context.newPage();
@@ -78,6 +89,10 @@ test('the partitioned sequence remains readable without JavaScript', async ({ br
     await expect(player).toContainText('24 个 token');
     await expect(player).toContainText('分别扫描 6 或 3 次');
     await expect(player.getByRole('button', { name: '播放' })).not.toBeVisible();
-    expect(await player.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
-  } finally { await context.close(); }
+    expect(await player.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(
+      true,
+    );
+  } finally {
+    await context.close();
+  }
 });

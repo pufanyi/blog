@@ -26,12 +26,24 @@
   height: auto;
 }
 
-.paged-blue { color: var(--accent-blue); }
-.paged-teal { color: var(--accent-teal); }
-.paged-lavender { color: var(--accent-lavender); }
-.paged-neutral { color: var(--text-secondary); }
-.paged-ochre { color: var(--accent-ochre); }
-.paged-clay { color: var(--accent-clay); }
+.paged-blue {
+  color: var(--accent-blue);
+}
+.paged-teal {
+  color: var(--accent-teal);
+}
+.paged-lavender {
+  color: var(--accent-lavender);
+}
+.paged-neutral {
+  color: var(--text-secondary);
+}
+.paged-ochre {
+  color: var(--accent-ochre);
+}
+.paged-clay {
+  color: var(--accent-clay);
+}
 
 .paged-cell {
   fill: color-mix(in srgb, currentColor 16%, var(--paper-bg));
@@ -57,8 +69,12 @@
   stroke-width: 1.3;
 }
 
-.paged-dashed { stroke-dasharray: 5 4; }
-.paged-arrowhead { fill: var(--text-secondary); }
+.paged-dashed {
+  stroke-dasharray: 5 4;
+}
+.paged-arrowhead {
+  fill: var(--text-secondary);
+}
 
 .paged-heading,
 .paged-label,
@@ -70,19 +86,43 @@
   font-size: 14px;
 }
 
-.paged-heading { font-weight: 500; }
+.paged-heading {
+  font-weight: 500;
+}
 .paged-label,
-.paged-token { font-family: var(--font-mono); }
-.paged-note { fill: var(--text-secondary); font-size: 12px; }
+.paged-token {
+  font-family: var(--font-mono);
+}
+.paged-note {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
 
-.paged-waste-cell { stroke: var(--border-color); }
-.paged-waste-generated { fill: color-mix(in srgb, currentColor 32%, var(--paper-bg)); }
-.paged-waste-reserved { stroke: currentColor; stroke-dasharray: 4 2; }
-.paged-waste-internal { fill: color-mix(in srgb, currentColor 25%, var(--paper-bg)); }
-.paged-waste-external { fill: var(--surface-soft); }
-.paged-waste-token { font-size: 11px; }
-.paged-waste-bracket { stroke-width: 0.9; }
-.paged-waste-annotation { fill: var(--text-color); }
+.paged-waste-cell {
+  stroke: var(--border-color);
+}
+.paged-waste-generated {
+  fill: color-mix(in srgb, currentColor 32%, var(--paper-bg));
+}
+.paged-waste-reserved {
+  stroke: currentColor;
+  stroke-dasharray: 4 2;
+}
+.paged-waste-internal {
+  fill: color-mix(in srgb, currentColor 25%, var(--paper-bg));
+}
+.paged-waste-external {
+  fill: var(--surface-soft);
+}
+.paged-waste-token {
+  font-size: 11px;
+}
+.paged-waste-bracket {
+  stroke-width: 0.9;
+}
+.paged-waste-annotation {
+  fill: var(--text-color);
+}
 
 .paged-scroll-hint {
   display: none;
@@ -101,5 +141,7 @@
 }
 
 @container (max-width: 619px) {
-  .paged-scroll-hint { display: block; }
+  .paged-scroll-hint {
+    display: block;
+  }
 }

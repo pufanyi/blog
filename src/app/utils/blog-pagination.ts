@@ -2,9 +2,11 @@ import type { PostSummary } from '../models/post.model';
 
 /** Moving an article between categories must not reorder same-day archive entries. */
 export function comparePostsByPublication(a: PostSummary, b: PostSummary): number {
-  return b.date.localeCompare(a.date) ||
+  return (
+    b.date.localeCompare(a.date) ||
     a.slug.split('/').at(-1)!.localeCompare(b.slug.split('/').at(-1)!) ||
-    a.slug.localeCompare(b.slug);
+    a.slug.localeCompare(b.slug)
+  );
 }
 
 export interface BlogPage {
@@ -17,7 +19,8 @@ export interface BlogPage {
 }
 
 export function blogPageCount(totalPosts: number, pageSize: number): number {
-  if (!Number.isSafeInteger(pageSize) || pageSize < 1) throw new Error('Page size must be a positive integer');
+  if (!Number.isSafeInteger(pageSize) || pageSize < 1)
+    throw new Error('Page size must be a positive integer');
   return Math.max(1, Math.ceil(totalPosts / pageSize));
 }
 
@@ -25,7 +28,11 @@ export function blogPagePath(page: number): string {
   return page === 1 ? '/blog' : `/blog/page/${page}`;
 }
 
-export function paginatePosts(posts: readonly PostSummary[], value: string | null, pageSize: number): BlogPage | null {
+export function paginatePosts(
+  posts: readonly PostSummary[],
+  value: string | null,
+  pageSize: number,
+): BlogPage | null {
   const totalPages = blogPageCount(posts.length, pageSize);
   if (value !== null && !/^[1-9]\d*$/.test(value)) return null;
   const number = value === null ? 1 : Number(value);
@@ -46,7 +53,9 @@ export function paginationItems(page: number, total: number): (number | 'ellipsi
   const visible = new Set([1, total, page - 1, page, page + 1]);
   if (page <= 3) for (let number = 2; number <= 5; number++) visible.add(number);
   if (page >= total - 2) for (let number = total - 4; number < total; number++) visible.add(number);
-  const numbers = [...visible].filter(number => number > 0 && number <= total).sort((a, b) => a - b);
+  const numbers = [...visible]
+    .filter((number) => number > 0 && number <= total)
+    .sort((a, b) => a - b);
   const result: (number | 'ellipsis')[] = [];
   for (const [index, number] of numbers.entries()) {
     const previous = numbers[index - 1];

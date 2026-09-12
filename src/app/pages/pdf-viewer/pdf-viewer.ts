@@ -1,12 +1,12 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
-  ViewEncapsulation,
-  afterNextRender,
   computed,
+  DestroyRef,
   inject,
   signal,
+  ViewEncapsulation,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';

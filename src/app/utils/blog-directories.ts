@@ -49,13 +49,19 @@ export function buildBlogDirectories(posts: readonly PostSummary[]): BlogDirecto
   for (const directory of directories.values()) {
     if (!directory.slug) continue;
     directories.get(parentBlogSlug(directory.slug))?.entries.push({
-      kind: 'directory', slug: directory.slug, title: directory.name,
-      date: directory.date!, postCount: directory.postCount,
+      kind: 'directory',
+      slug: directory.slug,
+      title: directory.name,
+      date: directory.date!,
+      postCount: directory.postCount,
     });
   }
   for (const directory of directories.values()) {
-    directory.entries.sort((a, b) =>
-      a.kind.localeCompare(b.kind) || b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug),
+    directory.entries.sort(
+      (a, b) =>
+        a.kind.localeCompare(b.kind) ||
+        b.date.localeCompare(a.date) ||
+        a.slug.localeCompare(b.slug),
     );
   }
   return [...directories.values()].sort((a, b) => a.slug.localeCompare(b.slug));

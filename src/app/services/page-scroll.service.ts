@@ -13,7 +13,7 @@ export class PageScrollService {
 
   constructor() {
     this.viewport.setHistoryScrollRestoration('manual');
-    this.router.events.pipe(takeUntilDestroyed()).subscribe(event => {
+    this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.lastScroll = null;
         this.userScrolled = false;

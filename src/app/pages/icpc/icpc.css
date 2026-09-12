@@ -112,7 +112,9 @@ h2 i {
   position: relative;
   padding: 0.82rem 0.35rem 0.84rem 2.45rem;
   color: var(--text-secondary);
-  transition: color 160ms ease, background-color 160ms ease;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
 }
 
 .tribute-list li::before {

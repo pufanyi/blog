@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  calculateReadingProgress,
-  flattenToc,
-  resolveActiveHeading,
-} from './heading-scroll-spy';
+import { calculateReadingProgress, flattenToc, resolveActiveHeading } from './heading-scroll-spy';
 
 describe('resolveActiveHeading', () => {
   const headings = [
@@ -57,7 +53,7 @@ describe('flattenToc', () => {
           children: [{ id: 'one-a', text: 'One A', level: 3, children: [] }],
         },
         { id: 'two', text: 'Two', level: 2, children: [] },
-      ]).map(item => item.id),
+      ]).map((item) => item.id),
     ).toEqual(['one', 'one-a', 'two']);
   });
 });

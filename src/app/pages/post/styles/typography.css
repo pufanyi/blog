@@ -16,7 +16,7 @@
 }
 
 .post-body h2::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -117,7 +117,10 @@
   opacity: 0;
   text-decoration: none;
   vertical-align: 0.08em;
-  transition: color 160ms ease, background-color 160ms ease, opacity 160ms ease;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    opacity 160ms ease;
 }
 
 .post-body h2:hover > .heading-permalink,
@@ -292,7 +295,7 @@
 }
 
 .post-body .citation-source-link::after {
-  content: '↗';
+  content: "↗";
   font-size: 0.85em;
   text-decoration: none;
 }

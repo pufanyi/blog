@@ -1,26 +1,26 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ViewEncapsulation,
   computed,
   inject,
+  ViewEncapsulation,
   viewChild,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
-import type { Post } from '../../models/post.model';
-import { PostHeaderComponent } from '../../components/post-header/post-header';
-import { GiscusCommentsComponent } from '../../components/giscus-comments/giscus-comments';
 import { BackToTopComponent } from '../../components/back-to-top/back-to-top';
-import { PostNavigationComponent } from '../../components/post-navigation/post-navigation';
+import { BlogBreadcrumbsComponent } from '../../components/blog-breadcrumbs/blog-breadcrumbs';
+import { GiscusCommentsComponent } from '../../components/giscus-comments/giscus-comments';
 import { PostCitationComponent } from '../../components/post-citation/post-citation';
-import { PostContentDirective } from '../../directives/post-content';
-import { NotFoundComponent } from '../not-found/not-found';
+import { PostHeaderComponent } from '../../components/post-header/post-header';
+import { PostNavigationComponent } from '../../components/post-navigation/post-navigation';
 import { BLOG_CONFIG } from '../../data/blog-config';
 import { COMMENTS_CONFIG } from '../../data/comments-config';
-import { BlogBreadcrumbsComponent } from '../../components/blog-breadcrumbs/blog-breadcrumbs';
+import { PostContentDirective } from '../../directives/post-content';
+import type { Post } from '../../models/post.model';
 import { parentBlogSlug } from '../../utils/blog-directories';
+import { NotFoundComponent } from '../not-found/not-found';
 
 @Component({
   selector: 'app-post',
@@ -65,7 +65,7 @@ export class PostComponent {
   readonly showCitation = BLOG_CONFIG.showCitation;
   readonly commentsEnabled = COMMENTS_CONFIG.enabled;
   private readonly route = inject(ActivatedRoute);
-  readonly post = toSignal(this.route.data.pipe(map(data => data['post'] as Post | null)), {
+  readonly post = toSignal(this.route.data.pipe(map((data) => data['post'] as Post | null)), {
     initialValue: null,
   });
   readonly content = viewChild(PostContentDirective);

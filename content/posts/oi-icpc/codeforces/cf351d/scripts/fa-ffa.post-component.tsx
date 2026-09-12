@@ -26,8 +26,8 @@ type Pointer = 'fa' | 'ffa';
 const columnX = (index: number): number => 104 + (index - 1) * 72;
 const describePointers = (pointer: Pointer): string =>
   nodes
-    .filter(node => node[pointer] !== 0)
-    .map(node => `${node.index} 指向 ${node[pointer]}`)
+    .filter((node) => node[pointer] !== 0)
+    .map((node) => `${node.index} 指向 ${node[pointer]}`)
     .join('，');
 
 function PointerArrows({ pointer }: { pointer: Pointer }) {
@@ -37,8 +37,8 @@ function PointerArrows({ pointer }: { pointer: Pointer }) {
   return (
     <g className={`cf351d-pointers-${pointer}`}>
       {nodes
-        .filter(node => node[pointer] !== 0)
-        .map(node => {
+        .filter((node) => node[pointer] !== 0)
+        .map((node) => {
           const target = node[pointer];
           // Separate incoming and outgoing ports so adjacent arrowheads remain distinct.
           const fromX = columnX(node.index) - 8;
@@ -86,7 +86,7 @@ function FaFfaDiagram() {
             {`序列为 ${sequence.join('、')}。每列上方是数值 a[i]，下方是从 1 开始的位置 i。上方实线由 i 指向 fa[i]：${describePointers('fa')}。下方红色虚线由 i 指向 ffa[i]：${describePointers('ffa')}。指向 0 的边不绘制。`}
           </desc>
           <defs>
-            {(['fa', 'ffa'] as const).map(pointer => (
+            {(['fa', 'ffa'] as const).map((pointer) => (
               <marker
                 key={pointer}
                 id={`cf351d-pointers-${pointer}-arrow`}
@@ -127,7 +127,7 @@ function FaFfaDiagram() {
           <text x="24" y="198" className="cf351d-pointers-row-label">
             i
           </text>
-          {nodes.map(node => {
+          {nodes.map((node) => {
             const x = columnX(node.index);
             return (
               <g key={node.index}>

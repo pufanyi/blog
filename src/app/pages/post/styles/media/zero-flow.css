@@ -134,9 +134,15 @@
   opacity: 0.5;
 }
 
-.infra-zero-flow-arrow-parameters { fill: var(--accent-teal); }
-.infra-zero-flow-arrow-gradients { fill: var(--accent-blush); }
-.infra-zero-flow-arrow-local { fill: var(--text-secondary); }
+.infra-zero-flow-arrow-parameters {
+  fill: var(--accent-teal);
+}
+.infra-zero-flow-arrow-gradients {
+  fill: var(--accent-blush);
+}
+.infra-zero-flow-arrow-local {
+  fill: var(--text-secondary);
+}
 
 .infra-zero-flow-unused {
   opacity: 0.25;
@@ -179,5 +185,7 @@
 }
 
 @container (max-width: 779px) {
-  .infra-zero-flow-scroll-hint { display: block; }
+  .infra-zero-flow-scroll-hint {
+    display: block;
+  }
 }

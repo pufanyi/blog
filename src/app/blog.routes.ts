@@ -7,40 +7,55 @@ import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directorie
 import type { BlogPage } from './utils/blog-pagination';
 import { BLOG_REDIRECTS } from './utils/blog-redirects';
 
-const resolveBlogPage: ResolveFn<BlogPage | null> = route =>
-  import('./services/blog-repository').then(module => module.loadBlogPage(route.paramMap.get('page')));
-const loadBlogComponent = () => import('./pages/home/home').then(m => m.HomeComponent);
-const resolvePost: ResolveFn<Post | null> = route =>
-  import('./services/post-repository').then(module => module.loadPost(route.data['slug']));
+const resolveBlogPage: ResolveFn<BlogPage | null> = (route) =>
+  import('./services/blog-repository').then((module) =>
+    module.loadBlogPage(route.paramMap.get('page')),
+  );
+const loadBlogComponent = () => import('./pages/home/home').then((m) => m.HomeComponent);
+const resolvePost: ResolveFn<Post | null> = (route) =>
+  import('./services/post-repository').then((module) => module.loadPost(route.data['slug']));
 
 export const blogRoutes: Routes = [
   {
-    path: '', pathMatch: 'full', title: SITE_CONFIG.title,
+    path: '',
+    pathMatch: 'full',
+    title: SITE_CONFIG.title,
     data: { description: BLOG_CONFIG.description },
-    resolve: { blogPage: resolveBlogPage }, loadComponent: loadBlogComponent,
+    resolve: { blogPage: resolveBlogPage },
+    loadComponent: loadBlogComponent,
   },
   { path: 'page/1', pathMatch: 'full', redirectTo: '/blog' },
-  ...BLOG_REDIRECTS.map(redirect => ({ ...redirect, pathMatch: 'full' as const })),
+  ...BLOG_REDIRECTS.map((redirect) => ({ ...redirect, pathMatch: 'full' as const })),
   {
-    path: 'page/:page', title: SITE_CONFIG.title,
+    path: 'page/:page',
+    title: SITE_CONFIG.title,
     data: { description: BLOG_CONFIG.description },
-    resolve: { blogPage: resolveBlogPage }, loadComponent: loadBlogComponent,
+    resolve: { blogPage: resolveBlogPage },
+    loadComponent: loadBlogComponent,
   },
-  ...buildBlogDirectories(POSTS).map(directory => ({
-    path: blogDirectoryPath(directory.slug).slice('/blog/'.length), pathMatch: 'full' as const,
+  ...buildBlogDirectories(POSTS).map((directory) => ({
+    path: blogDirectoryPath(directory.slug).slice('/blog/'.length),
+    pathMatch: 'full' as const,
     title: `${directory.name} — ${SITE_CONFIG.author.name}`,
-    data: { directory, description: directory.slug
-      ? `Browse ${directory.postCount} posts in ${directory.slug}.`
-      : `Browse all ${directory.postCount} posts by directory.` },
-    loadComponent: () => import('./pages/blog-directory/blog-directory').then(m => m.BlogDirectoryComponent),
+    data: {
+      directory,
+      description: directory.slug
+        ? `Browse ${directory.postCount} posts in ${directory.slug}.`
+        : `Browse all ${directory.postCount} posts by directory.`,
+    },
+    loadComponent: () =>
+      import('./pages/blog-directory/blog-directory').then((m) => m.BlogDirectoryComponent),
   })),
-  ...POSTS.map(post => ({
-    path: post.slug, pathMatch: 'full' as const,
-    data: { slug: post.slug }, resolve: { post: resolvePost },
-    loadComponent: () => import('./pages/post/post').then(m => m.PostComponent),
+  ...POSTS.map((post) => ({
+    path: post.slug,
+    pathMatch: 'full' as const,
+    data: { slug: post.slug },
+    resolve: { post: resolvePost },
+    loadComponent: () => import('./pages/post/post').then((m) => m.PostComponent),
   })),
   {
-    path: '**', title: '404: Existence Left as an Exercise',
-    loadComponent: () => import('./pages/not-found/not-found').then(m => m.NotFoundComponent),
+    path: '**',
+    title: '404: Existence Left as an Exercise',
+    loadComponent: () => import('./pages/not-found/not-found').then((m) => m.NotFoundComponent),
   },
 ];

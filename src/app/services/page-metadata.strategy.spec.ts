@@ -4,8 +4,8 @@ import { TestBed } from '@angular/core/testing';
 import { type ActivatedRouteSnapshot, provideRouter, TitleStrategy } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { SITE_CONFIG } from '../data/site-config';
 import { PERSON_DATA } from '../data/person';
+import { SITE_CONFIG } from '../data/site-config';
 import type { Post } from '../models/post.model';
 import { PageMetadataStrategy } from './page-metadata.strategy';
 
@@ -43,19 +43,23 @@ describe('article structured data', () => {
           { path: 'pdf-viewer', component: MetadataTestPage, data: { noindex: true } },
           { path: 'blog', component: MetadataTestPage },
           {
-            path: 'blog/contents/topic/nested', component: MetadataTestPage,
+            path: 'blog/contents/topic/nested',
+            component: MetadataTestPage,
             title: 'nested — Example',
             data: { directory: { slug: 'topic/nested' }, description: 'Browse nested posts.' },
           },
           {
-            path: 'blog/contents', component: MetadataTestPage, title: 'Contents — Example',
+            path: 'blog/contents',
+            component: MetadataTestPage,
+            title: 'Contents — Example',
             data: { directory: { slug: '' } },
           },
           {
             path: 'blog/:slug',
             component: MetadataTestPage,
             resolve: {
-              post: (route: ActivatedRouteSnapshot) => fixturePosts[route.paramMap.get('slug') ?? ''] ?? null,
+              post: (route: ActivatedRouteSnapshot) =>
+                fixturePosts[route.paramMap.get('slug') ?? ''] ?? null,
             },
           },
         ]),
@@ -65,23 +69,39 @@ describe('article structured data', () => {
     document = TestBed.inject(DOCUMENT);
   });
 
-  afterEach(() => document.head.querySelectorAll('#article-structured-data, #profile-structured-data').forEach(node => node.remove()));
+  afterEach(() =>
+    document.head
+      .querySelectorAll('#article-structured-data, #profile-structured-data')
+      .forEach((node) => node.remove()),
+  );
 
   it('replaces article metadata with indexable directory metadata and its Markdown index', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/blog/first');
     await harness.navigateByUrl('/blog/contents/topic/nested');
     expect(document.title).toBe('nested — Example');
-    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('index, follow');
-    expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe('Browse nested posts.');
-    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/blog/contents/topic/nested`);
-    expect(document.querySelector('link[type="text/markdown"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/blog/contents/topic/nested/index.md`);
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe(
+      'index, follow',
+    );
+    expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(
+      'Browse nested posts.',
+    );
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      `${SITE_CONFIG.url}/blog/contents/topic/nested`,
+    );
+    expect(document.querySelector('link[type="text/markdown"]')?.getAttribute('href')).toBe(
+      `${SITE_CONFIG.url}/blog/contents/topic/nested/index.md`,
+    );
     expect(document.querySelector('#article-structured-data')).toBeNull();
     expect(document.querySelector('meta[property="article:modified_time"]')).toBeNull();
     await harness.navigateByUrl('/blog/contents');
     expect(document.title).toBe('Contents — Example');
-    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/blog/contents`);
-    expect(document.querySelector('link[type="text/markdown"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/blog/contents/index.md`);
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      `${SITE_CONFIG.url}/blog/contents`,
+    );
+    expect(document.querySelector('link[type="text/markdown"]')?.getAttribute('href')).toBe(
+      `${SITE_CONFIG.url}/blog/contents/index.md`,
+    );
   });
 
   it('describes the article and preserves authored text when HTML is serialized and parsed again', async () => {
@@ -101,7 +121,14 @@ describe('article structured data', () => {
       description: first.description,
       datePublished: first.date,
       dateModified: first.updated,
-      author: [{ '@type': 'Person', '@id': PERSON_DATA['@id'], name: SITE_CONFIG.author.name, url: `${SITE_CONFIG.url}/` }],
+      author: [
+        {
+          '@type': 'Person',
+          '@id': PERSON_DATA['@id'],
+          name: SITE_CONFIG.author.name,
+          url: `${SITE_CONFIG.url}/`,
+        },
+      ],
       image: [`${SITE_CONFIG.url}${first.coverImage}`],
     });
     const reparsed = new DOMParser().parseFromString(script.outerHTML, 'text/html');
@@ -120,7 +147,11 @@ describe('article structured data', () => {
 
     await harness.navigateByUrl('/blog/first');
     expect(document.head.querySelector('#article-structured-data')).toBe(prerendered);
-    expect(document.head.querySelector('meta[property="article:modified_time"]')?.getAttribute('content')).toBe(first.updated);
+    expect(
+      document.head
+        .querySelector('meta[property="article:modified_time"]')
+        ?.getAttribute('content'),
+    ).toBe(first.updated);
     await harness.navigateByUrl('/blog/second');
     expect(document.head.querySelectorAll('#article-structured-data')).toHaveLength(1);
     const data = JSON.parse(prerendered.textContent!);
@@ -130,8 +161,14 @@ describe('article structured data', () => {
     expect(data).not.toHaveProperty('image');
     expect(data).not.toHaveProperty('dateModified');
     expect(data).not.toHaveProperty('description');
-    for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
-      expect(document.head.querySelector(selector)?.getAttribute('content')).toBe(SITE_CONFIG.description);
+    for (const selector of [
+      'meta[name="description"]',
+      'meta[property="og:description"]',
+      'meta[name="twitter:description"]',
+    ]) {
+      expect(document.head.querySelector(selector)?.getAttribute('content')).toBe(
+        SITE_CONFIG.description,
+      );
     }
     expect(document.head.querySelector('meta[property="article:modified_time"]')).toBeNull();
 
@@ -163,8 +200,10 @@ describe('article structured data', () => {
 
   it('advertises Markdown equivalents and clears stale links on missing or noindex pages', async () => {
     const harness = await RouterTestingHarness.create();
-    const alternate = () => document.head.querySelector<HTMLLinkElement>('link[rel="alternate"][type="text/markdown"]');
-    const guide = () => document.head.querySelector<HTMLLinkElement>('link[rel="describedby"][type="text/plain"]');
+    const alternate = () =>
+      document.head.querySelector<HTMLLinkElement>('link[rel="alternate"][type="text/markdown"]');
+    const guide = () =>
+      document.head.querySelector<HTMLLinkElement>('link[rel="describedby"][type="text/plain"]');
     for (const [route, markdown] of [
       ['/', '/profile.md'],
       ['/cv', '/profile.md'],
@@ -175,9 +214,19 @@ describe('article structured data', () => {
       await harness.navigateByUrl(route);
       expect(alternate()?.href).toBe(`${SITE_CONFIG.url}${markdown}`);
       expect(guide()?.href).toBe(`${SITE_CONFIG.url}/llms.txt`);
-      expect(document.head.querySelectorAll('link[rel="alternate"][type="text/markdown"]')).toHaveLength(1);
-      expect(document.head.querySelector('link[rel="alternate"][type="application/rss+xml"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/feed.xml`);
-      expect(document.head.querySelector('link[rel="alternate"][type="application/atom+xml"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/atom.xml`);
+      expect(
+        document.head.querySelectorAll('link[rel="alternate"][type="text/markdown"]'),
+      ).toHaveLength(1);
+      expect(
+        document.head
+          .querySelector('link[rel="alternate"][type="application/rss+xml"]')
+          ?.getAttribute('href'),
+      ).toBe(`${SITE_CONFIG.url}/feed.xml`);
+      expect(
+        document.head
+          .querySelector('link[rel="alternate"][type="application/atom+xml"]')
+          ?.getAttribute('href'),
+      ).toBe(`${SITE_CONFIG.url}/atom.xml`);
     }
     for (const route of ['/blog/missing', '/pdf-viewer']) {
       await harness.navigateByUrl(route);

@@ -7,7 +7,9 @@
   box-shadow: var(--paper-shadow);
   border-radius: 3px;
   overflow: visible;
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    background 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 @media (max-width: 768px) {

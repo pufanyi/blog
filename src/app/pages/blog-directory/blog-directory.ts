@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { BlogBreadcrumbsComponent } from '../../components/blog-breadcrumbs/blog-breadcrumbs';
-import { blogDirectoryPath, type BlogDirectory } from '../../utils/blog-directories';
+import { type BlogDirectory, blogDirectoryPath } from '../../utils/blog-directories';
 
 @Component({
   selector: 'app-blog-directory',
@@ -14,5 +14,7 @@ import { blogDirectoryPath, type BlogDirectory } from '../../utils/blog-director
 })
 export class BlogDirectoryComponent {
   readonly directoryPath = blogDirectoryPath;
-  readonly directory = toSignal(inject(ActivatedRoute).data.pipe(map(data => data['directory'] as BlogDirectory)));
+  readonly directory = toSignal(
+    inject(ActivatedRoute).data.pipe(map((data) => data['directory'] as BlogDirectory)),
+  );
 }

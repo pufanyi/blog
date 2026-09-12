@@ -1,17 +1,17 @@
 import {
-  Component,
-  InjectionToken,
-  OnDestroy,
   afterNextRender,
-  effect,
-  inject,
-  ElementRef,
   ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  effect,
+  InjectionToken,
+  inject,
+  OnDestroy,
 } from '@angular/core';
-import { ThemeService } from '../../services/theme.service';
 import { COMMENTS_CONFIG } from '../../data/comments-config';
 import { SITE_CONFIG } from '../../data/site-config';
 import type { CommentsConfig } from '../../models/config.model';
+import { ThemeService } from '../../services/theme.service';
 
 export const GISCUS_CONFIG = new InjectionToken<CommentsConfig>('Giscus configuration', {
   providedIn: 'root',

@@ -1,7 +1,7 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { ToolbarComponent } from '../toolbar/toolbar';
 import { FooterComponent } from '../footer/footer';
+import { ToolbarComponent } from '../toolbar/toolbar';
 
 @Component({
   selector: 'app-blog-shell',

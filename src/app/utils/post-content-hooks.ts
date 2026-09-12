@@ -6,7 +6,7 @@ const IMAGE_ZOOM_OPTIONS = {
 };
 
 export function optimizeContentImages(container: HTMLElement): void {
-  container.querySelectorAll<HTMLImageElement>('img').forEach(img => {
+  container.querySelectorAll<HTMLImageElement>('img').forEach((img) => {
     if (!img.hasAttribute('loading')) {
       img.setAttribute('loading', 'lazy');
     }
@@ -23,7 +23,7 @@ export function initContentImageZoom(container: HTMLElement): () => void {
 
   const root = container;
   const images = Array.from(root.querySelectorAll<HTMLImageElement>('img')).filter(
-    img => !img.closest('app-image-lightbox'),
+    (img) => !img.closest('app-image-lightbox'),
   );
   const zoom = images.length ? mediumZoom(images, IMAGE_ZOOM_OPTIONS) : null;
 
@@ -60,5 +60,5 @@ export function initCodeCopyButtons(container: HTMLElement): () => void {
       button.removeEventListener('click', onClick);
     });
   }
-  return () => cleanups.forEach(cleanup => cleanup());
+  return () => cleanups.forEach((cleanup) => cleanup());
 }

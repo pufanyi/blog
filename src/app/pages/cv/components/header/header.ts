@@ -1,4 +1,4 @@
-import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ImageLightboxComponent } from '../../../../components/image-lightbox/image-lightbox';
 import { CvHeader } from '../../../../models/cv.model';

@@ -21,7 +21,7 @@ describe('NotFoundComponent', () => {
     }).compileComponents();
     // JSDOM has no layout, so CDK cannot measure the visible dialog button.
     vi.spyOn(TestBed.inject(InteractivityChecker), 'isFocusable').mockImplementation(
-      element => element instanceof HTMLButtonElement,
+      (element) => element instanceof HTMLButtonElement,
     );
   });
 
@@ -66,7 +66,7 @@ describe('NotFoundComponent', () => {
     expect(element.querySelector('[role="dialog"]')).not.toBeNull();
   });
 
-  it.each(['button', 'backdrop', 'escape'])('dismisses peer review with %s', async method => {
+  it.each(['button', 'backdrop', 'escape'])('dismisses peer review with %s', async (method) => {
     const fixture = TestBed.createComponent(NotFoundComponent);
     fixture.detectChanges();
 

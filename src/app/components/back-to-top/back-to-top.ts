@@ -1,5 +1,5 @@
-import { Component, OnDestroy, signal, ChangeDetectionStrategy } from '@angular/core';
-import { smoothScrollTo, SmoothScrollHandle } from '../../utils/smooth-scroll';
+import { ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
+import { SmoothScrollHandle, smoothScrollTo } from '../../utils/smooth-scroll';
 
 @Component({
   selector: 'app-back-to-top',

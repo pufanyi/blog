@@ -10,9 +10,15 @@ describe('PDF asset source', () => {
 
   it('rejects missing files, remote URLs and paths outside PDF assets', () => {
     for (const source of [
-      null, '', 'https://example.com/file.pdf', '//example.com/file.pdf',
-      'javascript:alert(1)', '/blog/example', '/posts/example/file.html',
-      '/posts/../../private.pdf', '/posts/example/file.pdf?download=1',
+      null,
+      '',
+      'https://example.com/file.pdf',
+      '//example.com/file.pdf',
+      'javascript:alert(1)',
+      '/blog/example',
+      '/posts/example/file.html',
+      '/posts/../../private.pdf',
+      '/posts/example/file.pdf?download=1',
       '/posts/example/file.pdf#page=2',
     ]) {
       expect(pdfSource(source), source ?? 'missing').toBeNull();

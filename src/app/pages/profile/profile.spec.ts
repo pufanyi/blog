@@ -29,11 +29,11 @@ describe('ProfilePageComponent', () => {
     expect(element.querySelector('.abstract-content a[href="/icpc"]')?.textContent).toBe(
       'my teammates and friends',
     );
-    expect(element.querySelector('.abstract-content a[href="https://icpc.global/"]')?.textContent).toBe(
-      'ICPC',
-    );
+    expect(
+      element.querySelector('.abstract-content a[href="https://icpc.global/"]')?.textContent,
+    ).toBe('ICPC');
     const iconLinks = Array.from(element.querySelectorAll<HTMLAnchorElement>('.icon-link'));
-    expect(iconLinks.every(link => link.dataset['tooltip'] === link.ariaLabel)).toBe(true);
+    expect(iconLinks.every((link) => link.dataset['tooltip'] === link.ariaLabel)).toBe(true);
   });
 
   it('keeps the website link on the full CV page', () => {

@@ -20,7 +20,10 @@ export class PostCitationComponent {
 
   readonly bibtex = computed(() => {
     const [year, month] = this.date().split('-');
-    const keySlug = this.slug().replace(/[^a-zA-Z0-9]+/g, '').toLowerCase() || 'post';
+    const keySlug =
+      this.slug()
+        .replace(/[^a-zA-Z0-9]+/g, '')
+        .toLowerCase() || 'post';
 
     return `@misc{${SITE_CONFIG.author.citationKeyPrefix}${year}${keySlug},
   author = {${escapeBibtex(SITE_CONFIG.author.citationName)}},

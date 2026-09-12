@@ -1,10 +1,10 @@
 import {
   ApplicationRef,
+  afterRenderEffect,
+  computed,
   Directive,
   ElementRef,
   EnvironmentInjector,
-  afterRenderEffect,
-  computed,
   inject,
   input,
 } from '@angular/core';
@@ -42,7 +42,7 @@ export class PostContentDirective {
   );
 
   constructor() {
-    afterRenderEffect(onCleanup => {
+    afterRenderEffect((onCleanup) => {
       const post = this.post();
       const container = this.host.nativeElement;
       const abort = new AbortController();
@@ -89,7 +89,7 @@ export class PostContentDirective {
     requestAnimationFrame(() => {
       const heading = Array.from(
         this.host.nativeElement.querySelectorAll<HTMLElement>('h2[id], h3[id]'),
-      ).find(candidate => candidate.id === id);
+      ).find((candidate) => candidate.id === id);
       heading?.focus({ preventScroll: true });
     });
   }

@@ -4,7 +4,10 @@ export interface SmoothScrollHandle {
 
 const DEFAULT_DURATION_MS = 420;
 
-export function smoothScrollTo(targetY: number, durationMs = DEFAULT_DURATION_MS): SmoothScrollHandle {
+export function smoothScrollTo(
+  targetY: number,
+  durationMs = DEFAULT_DURATION_MS,
+): SmoothScrollHandle {
   if (typeof window === 'undefined') {
     return { cancel: () => undefined };
   }

@@ -2,11 +2,11 @@ import { ViewportScroller } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import {
   DefaultUrlSerializer,
+  type Event,
   NavigationEnd,
   NavigationStart,
   Router,
   Scroll,
-  type Event,
 } from '@angular/router';
 import { Subject } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -73,11 +73,14 @@ describe('PageScrollService', () => {
     expect(scrollToPosition).toHaveBeenLastCalledWith([0, 0], { behavior: 'instant' });
   });
 
-  it.each(['wheel', 'touchmove'])('does not override a reader who used %s during loading', type => {
-    document.dispatchEvent(new window.Event(type));
-    service.contentSettled(article);
-    expect(scrollIntoView).not.toHaveBeenCalled();
-  });
+  it.each(['wheel', 'touchmove'])(
+    'does not override a reader who used %s during loading',
+    (type) => {
+      document.dispatchEvent(new window.Event(type));
+      service.contentSettled(article);
+      expect(scrollIntoView).not.toHaveBeenCalled();
+    },
+  );
 
   it('ignores text-input keys but respects keyboard scrolling outside an input', () => {
     const input = document.createElement('input');

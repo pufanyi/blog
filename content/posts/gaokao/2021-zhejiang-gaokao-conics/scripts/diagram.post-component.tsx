@@ -46,15 +46,7 @@ const labels = [
   { name: 'R', dx: 16, dy: 5 },
 ] as const;
 
-function Segment({
-  from,
-  to,
-  className,
-}: {
-  from: Point;
-  to: Point;
-  className: string;
-}) {
+function Segment({ from, to, className }: { from: Point; to: Point; className: string }) {
   const start = project(from);
   const end = project(to);
   return <line x1={start.x} y1={start.y} x2={end.x} y2={end.y} className={className} />;
@@ -85,9 +77,9 @@ function ConicsDiagram() {
         >
           <title id="conics-diagram-title">抛物线与焦点弦的题目示意图</title>
           <desc id="conics-diagram-desc">
-            等比例直角坐标系中，抛物线 y² = 4x 的顶点为 O，焦点为 F(1, 0)，准线与 x
-            轴交于 M(−1, 0)。弦 AB 经过 F。斜率为 2 的直线 l 分别与 MA、MB、AB、x
-            轴交于 P、Q、R、N，且 RN² = PN · QN。N 位于 O 与 F 之间。
+            等比例直角坐标系中，抛物线 y² = 4x 的顶点为 O，焦点为 F(1, 0)，准线与 x 轴交于 M(−1,
+            0)。弦 AB 经过 F。斜率为 2 的直线 l 分别与 MA、MB、AB、x 轴交于 P、Q、R、N，且 RN² = PN
+            · QN。N 位于 O 与 F 之间。
           </desc>
           <defs>
             <marker

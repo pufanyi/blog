@@ -1,31 +1,40 @@
-import { expect, test, type Page } from '@playwright/test';
-import { POSTS } from '../src/app/data/posts';
-import { BLOG_CONFIG } from '../src/app/data/blog-config';
-import { SITE_CONFIG } from '../src/app/data/site-config';
+import { expect, type Page, test } from '@playwright/test';
 import { JSDOM } from 'jsdom';
+import { BLOG_CONFIG } from '../src/app/data/blog-config';
+import { POSTS } from '../src/app/data/posts';
+import { SITE_CONFIG } from '../src/app/data/site-config';
 
-const diffusion = POSTS.find(post => post.slug === 'ml/ml-revisit/diffusion')!;
-const autoregressive = POSTS.find(post => post.slug === 'ml/ml-revisit/ar')!;
-const vae = POSTS.find(post => post.slug === 'ml/ml-revisit/ae/ml-revisit-vae')!;
+const diffusion = POSTS.find((post) => post.slug === 'ml/ml-revisit/diffusion')!;
+const autoregressive = POSTS.find((post) => post.slug === 'ml/ml-revisit/ar')!;
+const vae = POSTS.find((post) => post.slug === 'ml/ml-revisit/ae/ml-revisit-vae')!;
 const archivePages = Math.max(1, Math.ceil(POSTS.length / BLOG_CONFIG.postsPerPage));
 
-test('folder navigation opens nested articles and returns through their breadcrumbs', async ({ page }) => {
+test('folder navigation opens nested articles and returns through their breadcrumbs', async ({
+  page,
+}) => {
   await page.goto('/blog/contents');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Contents');
-  await expect(page.locator('.directory-entry')).toHaveCount(new Set(POSTS.map(post => post.slug.split('/')[0])).size);
+  await expect(page.locator('.directory-entry')).toHaveCount(
+    new Set(POSTS.map((post) => post.slug.split('/')[0])).size,
+  );
   await page.locator('a.directory-entry[href="/blog/contents/oi-icpc"]').click();
   await expect(page).toHaveURL('/blog/contents/oi-icpc');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('oi-icpc');
   const folder = page.locator('a.directory-entry[href="/blog/contents/oi-icpc/codeforces"]');
-  const codeforcesPosts = POSTS.filter(post => post.slug.startsWith('oi-icpc/codeforces/'));
-  const date = codeforcesPosts.map(post => post.date).sort().at(-1)!;
+  const codeforcesPosts = POSTS.filter((post) => post.slug.startsWith('oi-icpc/codeforces/'));
+  const date = codeforcesPosts
+    .map((post) => post.date)
+    .sort()
+    .at(-1)!;
   await expect(folder.locator('time')).toHaveAttribute('datetime', date);
   await folder.scrollIntoViewIfNeeded();
   await folder.focus();
   await folder.press('Enter');
   await expect(page).toHaveURL('/blog/contents/oi-icpc/codeforces');
   await expect(page.locator('.directory-entry')).toHaveCount(codeforcesPosts.length);
-  await expect(page.locator('.directory-entry[data-kind="post"] .entry-copy')).toHaveText(codeforcesPosts.map(post => post.title));
+  await expect(page.locator('.directory-entry[data-kind="post"] .entry-copy')).toHaveText(
+    codeforcesPosts.map((post) => post.title),
+  );
   await page.locator('a.directory-entry[href="/blog/oi-icpc/codeforces/cf551c"]').click();
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   await expect(page).toHaveURL('/blog/oi-icpc/codeforces/cf551c');
@@ -34,18 +43,29 @@ test('folder navigation opens nested articles and returns through their breadcru
   await breadcrumbs.getByRole('link', { name: 'oi-icpc', exact: true }).click();
   await expect(page).toHaveURL('/blog/contents/oi-icpc');
   await expect(page.locator('#article-structured-data')).toHaveCount(0);
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `${SITE_CONFIG.url}/blog/contents/oi-icpc`);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    'href',
+    `${SITE_CONFIG.url}/blog/contents/oi-icpc`,
+  );
   await page.reload();
-  await expect(page.locator('a.directory-entry[href="/blog/contents/oi-icpc/codeforces"] time')).toHaveAttribute('datetime', date);
+  await expect(
+    page.locator('a.directory-entry[href="/blog/contents/oi-icpc/codeforces"] time'),
+  ).toHaveAttribute('datetime', date);
   await breadcrumbs.getByRole('link', { name: 'Contents', exact: true }).click();
   await expect(page).toHaveURL('/blog/contents');
   await expect(breadcrumbs.locator('[aria-current="page"]')).toHaveText('Contents');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.goto('/blog/contents/ml/ml-revisit/infra');
-  const infraEntries = new Set(POSTS.filter(post => post.slug.startsWith('ml/ml-revisit/infra/')).map(post => post.slug.split('/')[3]));
+  const infraEntries = new Set(
+    POSTS.filter((post) => post.slug.startsWith('ml/ml-revisit/infra/')).map(
+      (post) => post.slug.split('/')[3],
+    ),
+  );
   await expect(page.locator('.directory-entry')).toHaveCount(infraEntries.size);
   await page.goto('/blog/contents/ml/ml-revisit/infra/does-not-exist');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('404: Existence Left as an Exercise');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    '404: Existence Left as an Exercise',
+  );
 });
 
 test('archive pagination supports keyboard navigation, reload, and history', async ({ page }) => {
@@ -60,11 +80,15 @@ test('archive pagination supports keyboard navigation, reload, and history', asy
   await expect(page).toHaveURL('/blog/page/2');
   await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
-  await expect(page.locator('.post-title span').first()).toHaveText(POSTS[BLOG_CONFIG.postsPerPage]!.title);
+  await expect(page.locator('.post-title span').first()).toHaveText(
+    POSTS[BLOG_CONFIG.postsPerPage]!.title,
+  );
   await expect(page.locator('.pagination [aria-current="page"]')).toHaveText('2');
   await expect(page).toHaveTitle(`${SITE_CONFIG.title} — Page 2`);
   await page.reload();
-  await expect(page.locator('.post-title span').first()).toHaveText(POSTS[BLOG_CONFIG.postsPerPage]!.title);
+  await expect(page.locator('.post-title span').first()).toHaveText(
+    POSTS[BLOG_CONFIG.postsPerPage]!.title,
+  );
 
   const entry = page.locator('.post-entry').last();
   const articlePath = await entry.getAttribute('href');
@@ -74,7 +98,9 @@ test('archive pagination supports keyboard navigation, reload, and history', asy
   await expect(page).toHaveURL(articlePath!);
   await expect(page.locator('#article-structured-data')).toHaveCount(1);
   expect(
-    await page.locator('#article-structured-data').evaluate(script => JSON.parse(script.textContent!).url),
+    await page
+      .locator('#article-structured-data')
+      .evaluate((script) => JSON.parse(script.textContent!).url),
   ).toBe(`${SITE_CONFIG.url}${articlePath}`);
   await expect(page.locator('link[rel="prev"], link[rel="next"]')).toHaveCount(0);
   await page.goBack();
@@ -90,25 +116,39 @@ test('archive pagination supports keyboard navigation, reload, and history', asy
   await expect(page).toHaveURL('/blog');
 });
 
-test('archive pages contain their own posts and metadata before JavaScript runs', async ({ request, page }) => {
+test('archive pages contain their own posts and metadata before JavaScript runs', async ({
+  request,
+  page,
+}) => {
   for (const number of new Set([1, Math.min(2, archivePages), archivePages])) {
     const path = number === 1 ? '/blog' : `/blog/page/${number}`;
     const response = await request.get(path);
     expect(response.status()).toBe(200);
     const document = new JSDOM(await response.text()).window.document;
     const entries = Array.from(document.querySelectorAll('.post-entry'));
-    const expected = POSTS.slice((number - 1) * BLOG_CONFIG.postsPerPage, number * BLOG_CONFIG.postsPerPage);
-    expect(entries.map(entry => entry.querySelector('.post-title span')?.textContent)).toEqual(expected.map(post => post.title));
-    expect(document.querySelectorAll('.post-excerpt').length).toBe(BLOG_CONFIG.showExcerpts ? expected.filter(post => post.excerptHtml).length : 0);
+    const expected = POSTS.slice(
+      (number - 1) * BLOG_CONFIG.postsPerPage,
+      number * BLOG_CONFIG.postsPerPage,
+    );
+    expect(entries.map((entry) => entry.querySelector('.post-title span')?.textContent)).toEqual(
+      expected.map((post) => post.title),
+    );
+    expect(document.querySelectorAll('.post-excerpt').length).toBe(
+      BLOG_CONFIG.showExcerpts ? expected.filter((post) => post.excerptHtml).length : 0,
+    );
     for (const [index, entry] of entries.entries()) {
       const excerpt = document.createElement('div');
-      excerpt.innerHTML = BLOG_CONFIG.showExcerpts ? expected[index]!.excerptHtml ?? '' : '';
+      excerpt.innerHTML = BLOG_CONFIG.showExcerpts ? (expected[index]!.excerptHtml ?? '') : '';
       expect(entry.querySelector('.post-excerpt')?.innerHTML ?? '').toBe(excerpt.innerHTML);
     }
-    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}${path}`);
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      `${SITE_CONFIG.url}${path}`,
+    );
     expect(document.title).toBe(`${SITE_CONFIG.title}${number > 1 ? ` — Page ${number}` : ''}`);
     expect(document.querySelectorAll('link[rel="prev"]').length).toBe(number > 1 ? 1 : 0);
-    expect(document.querySelectorAll('link[rel="next"]').length).toBe(number < archivePages ? 1 : 0);
+    expect(document.querySelectorAll('link[rel="next"]').length).toBe(
+      number < archivePages ? 1 : 0,
+    );
   }
   await page.goto('/blog/page/1');
   await expect(page).toHaveURL('/blog');
@@ -148,9 +188,9 @@ async function openSearch(page: Page) {
 test.beforeEach(async ({ page }) => {
   await page.route(
     /https:\/\/(www\.googletagmanager\.com|.*google-analytics\.com|giscus\.app)\//,
-    route => route.fulfill({ body: '', contentType: 'text/javascript' }),
+    (route) => route.fulfill({ body: '', contentType: 'text/javascript' }),
   );
-  await page.route('**/mathjax@*/tex-chtml.js', route =>
+  await page.route('**/mathjax@*/tex-chtml.js', (route) =>
     route.fulfill({
       contentType: 'text/javascript',
       body: `window.MathJax = {
@@ -172,13 +212,23 @@ test.afterEach(async ({ page }) => {
   expect(await page.pageErrors()).toEqual([]);
 });
 
-test('code inside details keeps its layout, scrolling and copy behavior', async ({ page, context, isMobile }) => {
+test('code inside details keeps its layout, scrolling and copy behavior', async ({
+  page,
+  context,
+  isMobile,
+}) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/blog/ml/ml-revisit/rl/policy-gradient');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
-  await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }' });
-  const details = page.locator('.post-body details').filter({ has: page.locator('.code-block') }).first();
+  await page.addStyleTag({
+    content:
+      '*, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }',
+  });
+  const details = page
+    .locator('.post-body details')
+    .filter({ has: page.locator('.code-block') })
+    .first();
   const summary = details.locator(':scope > summary');
   const block = details.locator('.code-block').first();
   const pre = block.locator('pre');
@@ -190,27 +240,39 @@ test('code inside details keeps its layout, scrolling and copy behavior', async 
   await expect(block).toBeVisible();
 
   for (const theme of ['light', 'dark']) {
-    if (await page.locator('html').getAttribute('data-theme') !== theme) {
+    if ((await page.locator('html').getAttribute('data-theme')) !== theme) {
       await page.getByRole('button', { name: 'Toggle theme' }).click();
     }
     await block.scrollIntoViewIfNeeded();
     // The header and code background should meet the frame, with the disclosure
     // providing space outside that frame instead of inserting strips inside it.
-    const gaps = await block.evaluate(element => {
+    const gaps = await block.evaluate((element) => {
       const bounds = element.getBoundingClientRect();
       const style = getComputedStyle(element);
       const left = bounds.left + parseFloat(style.borderLeftWidth);
       const right = bounds.right - parseFloat(style.borderRightWidth);
       const header = element.querySelector('.code-header')!.getBoundingClientRect();
       const code = element.querySelector('pre')!.getBoundingClientRect();
-      return [header.left - left, right - header.right, code.left - left, right - code.right, code.top - header.bottom];
+      return [
+        header.left - left,
+        right - header.right,
+        code.left - left,
+        right - code.right,
+        code.top - header.bottom,
+      ];
     });
     for (const gap of gaps) expect(Math.abs(gap)).toBeLessThan(1);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
     if (isMobile) {
-      await pre.evaluate(element => { element.scrollLeft = element.scrollWidth; });
-      expect(await pre.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
-      await pre.evaluate(element => { element.scrollLeft = 0; });
+      await pre.evaluate((element) => {
+        element.scrollLeft = element.scrollWidth;
+      });
+      expect(await pre.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+      await pre.evaluate((element) => {
+        element.scrollLeft = 0;
+      });
     }
   }
   await block.getByRole('button', { name: 'Copy code' }).click();
@@ -232,15 +294,20 @@ test('search moves one result per key and keeps focus inside the dialog', async 
   await input.fill('model');
   await expect(page.getByRole('option').nth(2)).toBeVisible();
   const results = page.getByRole('listbox', { name: 'Search results' });
-  await expect.poll(() => results.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
+  await expect
+    .poll(() => results.evaluate((element) => element.scrollHeight > element.clientHeight))
+    .toBe(true);
   await expect(input).toHaveAttribute('aria-activedescendant', 'search-result-0');
   await input.press('ArrowDown');
   await expect(input).toHaveAttribute('aria-activedescendant', 'search-result-1');
   await input.press('ArrowUp');
   await expect(input).toHaveAttribute('aria-activedescendant', 'search-result-0');
   await input.press('ArrowUp');
-  await expect(input).toHaveAttribute('aria-activedescendant', `search-result-${await page.getByRole('option').count() - 1}`);
-  await expect.poll(() => results.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+  await expect(input).toHaveAttribute(
+    'aria-activedescendant',
+    `search-result-${(await page.getByRole('option').count()) - 1}`,
+  );
+  await expect.poll(() => results.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   await expect(input).toBeFocused();
   await input.press('ArrowDown');
   await expect(input).toHaveAttribute('aria-activedescendant', 'search-result-0');
@@ -321,7 +388,7 @@ test('table of contents preserves focus and anchors after deferred formula layou
   await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
   await expect
     .poll(async () =>
-      heading.evaluate(element =>
+      heading.evaluate((element) =>
         Math.abs(
           element.getBoundingClientRect().top -
             parseFloat(getComputedStyle(element).scrollMarginTop),
@@ -388,10 +455,10 @@ test('home and search do not download article bodies or MathJax; reading loads o
 }) => {
   const scripts: Promise<string>[] = [];
   let mathRequests = 0;
-  page.on('request', request => {
+  page.on('request', (request) => {
     if (request.url().includes('/mathjax@')) mathRequests++;
   });
-  page.on('response', response => {
+  page.on('response', (response) => {
     if (
       response.url().startsWith('http://127.0.0.1:4173/') &&
       response.request().resourceType() === 'script'
@@ -410,7 +477,7 @@ test('home and search do not download article bodies or MathJax; reading loads o
   expect(mathRequests).toBe(0);
   await input.press('Enter');
   await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
-  expect((await Promise.all(scripts)).filter(script => /contentHtml:/.test(script))).toHaveLength(
+  expect((await Promise.all(scripts)).filter((script) => /contentHtml:/.test(script))).toHaveLength(
     1,
   );
   expect(mathRequests).toBe(1);

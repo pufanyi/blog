@@ -47,14 +47,7 @@ interface MathLabelProps {
   y: number;
 }
 
-function MathLabel({
-  className = '',
-  height = 32,
-  tex,
-  width = 100,
-  x,
-  y,
-}: MathLabelProps) {
+function MathLabel({ className = '', height = 32, tex, width = 100, x, y }: MathLabelProps) {
   const formula = '\\(' + tex + '\\)';
 
   return (
@@ -288,37 +281,23 @@ function MadeDiagram() {
         <text x="445" y="38" className="made-diagram-heading">
           Binary masks
         </text>
-        <MaskGrid
-          x={409}
-          y={128}
-          rows={3}
-          columns={4}
-          values={outputMask}
-        />
+        <MaskGrid x={409} y={128} rows={3} columns={4} values={outputMask} />
         <MaskLabel layer="3" x={505} y={160} />
 
-        <MaskGrid
-          x={409}
-          y={255}
-          rows={4}
-          columns={4}
-          values={secondMask}
-        />
+        <MaskGrid x={409} y={255} rows={4} columns={4} values={secondMask} />
         <MaskLabel layer="2" x={505} y={296} />
 
-        <MaskGrid
-          x={418}
-          y={395}
-          rows={4}
-          columns={3}
-          values={firstMask}
-        />
+        <MaskGrid x={418} y={395} rows={4} columns={3} values={firstMask} />
         <MaskLabel layer="1" x={505} y={436} />
         <g className="made-diagram-mask-key">
           <rect x="405" y="510" width="14" height="14" className="made-mask-cell-active" />
-          <text x="427" y="522">1: keep</text>
+          <text x="427" y="522">
+            1: keep
+          </text>
           <rect x="476" y="510" width="14" height="14" className="made-mask-cell" />
-          <text x="498" y="522">0: remove</text>
+          <text x="498" y="522">
+            0: remove
+          </text>
         </g>
         <MathLabel x={595} y={277} width={92} tex="W \odot M" className="made-diagram-operation" />
         <path d="M 560 305 L 625 305" className="made-diagram-transform-arrow" />
@@ -360,28 +339,13 @@ function MadeDiagram() {
           />
         ))}
         {madeFirstHidden.map((node, index) => (
-          <NetworkNode
-            key={`made-hidden-one-${index}`}
-            x={node.x}
-            y={380}
-            degree={node.degree}
-          />
+          <NetworkNode key={`made-hidden-one-${index}`} x={node.x} y={380} degree={node.degree} />
         ))}
         {madeSecondHidden.map((node, index) => (
-          <NetworkNode
-            key={`made-hidden-two-${index}`}
-            x={node.x}
-            y={270}
-            degree={node.degree}
-          />
+          <NetworkNode key={`made-hidden-two-${index}`} x={node.x} y={270} degree={node.degree} />
         ))}
         {madeOutputs.map((node) => (
-          <NetworkNode
-            key={`made-output-${node.label}`}
-            x={node.x}
-            y={160}
-            degree={node.degree}
-          />
+          <NetworkNode key={`made-output-${node.label}`} x={node.x} y={160} degree={node.degree} />
         ))}
         <MathLabel
           x={720}
@@ -390,13 +354,7 @@ function MadeDiagram() {
           tex="p(x_1 \mid x_2,x_3)"
           className="made-diagram-probability"
         />
-        <MathLabel
-          x={800}
-          y={95}
-          width={64}
-          tex="p(x_2)"
-          className="made-diagram-probability"
-        />
+        <MathLabel x={800} y={95} width={64} tex="p(x_2)" className="made-diagram-probability" />
         <MathLabel
           x={880}
           y={95}
@@ -407,9 +365,13 @@ function MadeDiagram() {
 
         <g className="made-diagram-legend">
           <line x1="700" y1="552" x2="736" y2="552" className="made-diagram-legend-one" />
-          <text x="746" y="557">depends on 1 input</text>
+          <text x="746" y="557">
+            depends on 1 input
+          </text>
           <line x1="700" y1="577" x2="736" y2="577" className="made-diagram-legend-two" />
-          <text x="746" y="582">depends on 2 inputs</text>
+          <text x="746" y="582">
+            depends on 2 inputs
+          </text>
         </g>
       </svg>
       <figcaption className="made-diagram-caption">

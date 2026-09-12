@@ -1,11 +1,14 @@
-@import './styles/morandi.css';
+@import "./styles/morandi.css";
 
 ::selection {
   color: var(--text-color);
   background: var(--selection-bg);
 }
 
-* { margin: 0; padding: 0; }
+* {
+  margin: 0;
+  padding: 0;
+}
 
 html {
   font-size: 15px;
@@ -19,7 +22,9 @@ html {
 }
 
 @media (max-width: 768px) {
-  html { font-size: 14px; }
+  html {
+    font-size: 14px;
+  }
 }
 
 body {
@@ -28,7 +33,9 @@ body {
   line-height: 1.6;
   color: var(--text-color);
   background: var(--background);
-  transition: background 0.3s ease, color 0.3s ease;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -36,7 +43,9 @@ body {
 a {
   color: var(--link-color);
   text-decoration: none;
-  transition: color 0.2s ease-in-out, text-decoration-color 0.2s ease-in-out;
+  transition:
+    color 0.2s ease-in-out,
+    text-decoration-color 0.2s ease-in-out;
 }
 
 a:hover {
@@ -98,7 +107,12 @@ a:hover {
   }
 
   /* Prevent orphaned headings and widows */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     break-after: avoid;
     page-break-after: avoid;
   }

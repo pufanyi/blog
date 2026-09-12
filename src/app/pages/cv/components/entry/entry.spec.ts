@@ -17,9 +17,7 @@ describe('EntryComponent', () => {
 
     const element = fixture.nativeElement as HTMLElement;
 
-    expect(element.querySelector('.entry-date')?.textContent?.trim()).toBe(
-      'Sep 2026 – Present',
-    );
+    expect(element.querySelector('.entry-date')?.textContent?.trim()).toBe('Sep 2026 – Present');
     expect(element.querySelector('.entry-detail-main')?.textContent?.trim()).toBe(
       'Ph.D. in Computer Science (Incoming)',
     );

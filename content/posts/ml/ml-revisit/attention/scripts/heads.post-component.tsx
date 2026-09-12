@@ -82,12 +82,7 @@ function AttentionPanel({ variant }: { variant: (typeof variants)[number] }) {
             {`${QUERY_HEADS} 个 Query heads，${groups.length} 个 Key heads 和 ${groups.length} 个 Value heads。${sharing}。斜线填充的 K/V 在自回归推理时缓存；连线表示各 Query head 使用哪组 K/V。`}
           </desc>
           <defs>
-            <pattern
-              id={`${id}-cache`}
-              width="5"
-              height="5"
-              patternUnits="userSpaceOnUse"
-            >
+            <pattern id={`${id}-cache`} width="5" height="5" patternUnits="userSpaceOnUse">
               <path d="M-1 1L1-1M0 5L5 0M4 6L6 4" className="attention-head-hatch" />
             </pattern>
           </defs>
@@ -164,8 +159,8 @@ function AttentionHeadsDiagram() {
       </div>
       <figcaption>
         连线表示各 Query head 使用哪组 K/V；GQA 以 {QUERY_HEADS} 个 Query heads 分成{' '}
-        {variants[1].kvHeads} 组为例。下方比例为相对 MHA 的 KV cache
-        大小，假设序列长度、每个 head 的维度、层数、batch size 和缓存精度相同。
+        {variants[1].kvHeads} 组为例。下方比例为相对 MHA 的 KV cache 大小，假设序列长度、每个 head
+        的维度、层数、batch size 和缓存精度相同。
       </figcaption>
     </figure>
   );

@@ -25,7 +25,9 @@ const bandY = (index: number): number =>
 function memoryFormula(stage: number): string {
   const replicated = STATES.filter((state) => stage < state.shardFrom).map((state) => state.term);
   const sharded = STATES.filter((state) => stage >= state.shardFrom).map((state) => state.term);
-  return [...replicated, ...(sharded.length ? [`\\frac{${sharded.join('+')}}{N_d}`] : [])].join('+');
+  return [...replicated, ...(sharded.length ? [`\\frac{${sharded.join('+')}}{N_d}`] : [])].join(
+    '+',
+  );
 }
 
 function GpuState({ rank, stage }: { rank: number; stage: number }) {
@@ -83,9 +85,9 @@ function ZeroShardingDiagram() {
         >
           <title id="infra-zero-title">ZeRO：从复制模型状态到逐步分片</title>
           <desc id="infra-zero-description">
-            四列分别代表 GPU 0 至 GPU 3；每张卡的色块从上到下是参数、梯度、优化器状态。
-            Baseline 在每张卡复制全部三类状态。ZeRO-1 只分片优化器状态，ZeRO-2
-            进一步分片梯度，ZeRO-3 再分片参数。分片后 GPU i 仅保留第 i
+            四列分别代表 GPU 0 至 GPU 3；每张卡的色块从上到下是参数、梯度、优化器状态。 Baseline
+            在每张卡复制全部三类状态。ZeRO-1 只分片优化器状态，ZeRO-2 进一步分片梯度，ZeRO-3
+            再分片参数。分片后 GPU i 仅保留第 i
             份，四张卡的分片合起来是一份完整状态。虚线框标出分片前的范围，留白部分不在本卡存储。
             右侧逐行给出每张 GPU 的模型状态显存公式。
           </desc>
@@ -94,14 +96,24 @@ function ZeroShardingDiagram() {
               {`GPU ${rank}`}
             </text>
           ))}
-          <text x="677" y="21" className="infra-zero-heading">Memory / GPU</text>
-          <text x="677" y="40" className="infra-zero-unit">模型状态 · bytes</text>
+          <text x="677" y="21" className="infra-zero-heading">
+            Memory / GPU
+          </text>
+          <text x="677" y="40" className="infra-zero-unit">
+            模型状态 · bytes
+          </text>
           <line x1="557" y1="10" x2="557" y2="428" className="infra-zero-divider" />
           {STAGES.map((stage, index) => (
             <g key={stage.name}>
-              <text x="10" y={rowY(index) + 28} className="infra-zero-stage">{stage.name}</text>
-              <text x="10" y={rowY(index) + 48} className="infra-zero-detail">{stage.detail}</text>
-              {RANKS.map((rank) => <GpuState key={rank} rank={rank} stage={index} />)}
+              <text x="10" y={rowY(index) + 28} className="infra-zero-stage">
+                {stage.name}
+              </text>
+              <text x="10" y={rowY(index) + 48} className="infra-zero-detail">
+                {stage.detail}
+              </text>
+              {RANKS.map((rank) => (
+                <GpuState key={rank} rank={rank} stage={index} />
+              ))}
               <foreignObject x="568" y={rowY(index) - 1} width="218" height="72">
                 <div className="infra-zero-formula">{`\\(\\displaystyle ${memoryFormula(index)}\\)`}</div>
               </foreignObject>
@@ -121,14 +133,18 @@ function ZeroShardingDiagram() {
         {STATES.map((state) => (
           <span key={state.id} className={`infra-zero-legend-item infra-zero-${state.id}`}>
             <span className="infra-zero-swatch" aria-hidden="true" />
-            <span>{state.name} <span className="infra-zero-legend-term">{`\\(${state.term}\\)`}</span></span>
+            <span>
+              {state.name} <span className="infra-zero-legend-term">{`\\(${state.term}\\)`}</span>
+            </span>
           </span>
         ))}
       </div>
       <figcaption>
         {'图示 \\(N_d = 4\\)，每张卡保留的分片位置不同；虚线框中的留白由其他 GPU 持有。'}
         <br />
-        {'\\(\\Psi\\) 为参数量，\\(N_d\\) 为数据并行度。参数与梯度按 16-bit 计，优化器状态为每参数 \\(k\\) bytes；色块高度按混合精度 Adam 的 \\(k = 12\\) 绘制（FP32 主权重及一、二阶矩）。仅计模型状态，不含激活与临时通信缓冲区。'}
+        {
+          '\\(\\Psi\\) 为参数量，\\(N_d\\) 为数据并行度。参数与梯度按 16-bit 计，优化器状态为每参数 \\(k\\) bytes；色块高度按混合精度 Adam 的 \\(k = 12\\) 绘制（FP32 主权重及一、二阶矩）。仅计模型状态，不含激活与临时通信缓冲区。'
+        }
       </figcaption>
     </figure>
   );

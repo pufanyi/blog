@@ -65,8 +65,8 @@ function sourceLabel(source: FlowNode, node: FlowNode, offset: number): Point {
   const dy = 1.5 * (end.y - start.y);
   const length = Math.hypot(dx, dy);
   return {
-    x: (start.x + end.x) / 2 - 26 * Math.abs(dy) / length,
-    y: (start.y + end.y) / 2 + 26 * Math.sign(dy) * dx / length,
+    x: (start.x + end.x) / 2 - (26 * Math.abs(dy)) / length,
+    y: (start.y + end.y) / 2 + (26 * Math.sign(dy) * dx) / length,
   };
 }
 
@@ -86,16 +86,26 @@ function MathLabel({ x, y, text, width = 130 }: Point & { text: string; width?: 
 }
 
 function Edge({ edge, graph, id }: { edge: FlowEdge; graph: FlowGraph; id: string }) {
-  const from = graph.nodes.find(node => node.id === edge.from)!;
-  const to = graph.nodes.find(node => node.id === edge.to)!;
+  const from = graph.nodes.find((node) => node.id === edge.from)!;
+  const to = graph.nodes.find((node) => node.id === edge.to)!;
   const start = port(from, 'right');
   const end = port(to, 'left');
   const path = edge.path ?? `M ${start.x} ${start.y} H ${end.x}`;
-  const tone = edge.cutAt ? 'cut' : edge.bypass ? 'bypass' : edge.constraint ? 'constraint' : 'ordinary';
+  const tone = edge.cutAt
+    ? 'cut'
+    : edge.bypass
+      ? 'bypass'
+      : edge.constraint
+        ? 'constraint'
+        : 'ordinary';
 
   return (
     <g className={`cf434d-${tone}`} data-from={edge.from} data-to={edge.to}>
-      <path className={`cf434d-edge${edge.omitted ? ' cf434d-omitted' : ''}`} d={path} markerEnd={`url(#${id}-${tone})`} />
+      <path
+        className={`cf434d-edge${edge.omitted ? ' cf434d-omitted' : ''}`}
+        d={path}
+        markerEnd={`url(#${id}-${tone})`}
+      />
       {edge.cutAt && (
         <path
           className="cf434d-cut-mark"
@@ -111,7 +121,7 @@ function Graph({ graph, id }: { graph: FlowGraph; id: string }) {
   return (
     <>
       <defs>
-        {tones.map(tone => (
+        {tones.map((tone) => (
           <marker
             key={tone}
             id={`${id}-${tone}`}
@@ -128,14 +138,26 @@ function Graph({ graph, id }: { graph: FlowGraph; id: string }) {
           </marker>
         ))}
       </defs>
-      {graph.edges.map(edge => <Edge key={`${edge.from}-${edge.to}`} edge={edge} graph={graph} id={id} />)}
-      {graph.nodes.map(node => (
+      {graph.edges.map((edge) => (
+        <Edge key={`${edge.from}-${edge.to}`} edge={edge} graph={graph} id={id} />
+      ))}
+      {graph.nodes.map((node) => (
         <g key={node.id} className={node.sentinel ? 'cf434d-node cf434d-sentinel' : 'cf434d-node'}>
           {node.label !== '\\cdots' && (
-            <rect x={node.x - (node.width ?? 76) / 2} y={node.y - (node.height ?? NODE_HEIGHT) / 2} width={node.width ?? 76} height={node.height ?? NODE_HEIGHT} rx="10" />
+            <rect
+              x={node.x - (node.width ?? 76) / 2}
+              y={node.y - (node.height ?? NODE_HEIGHT) / 2}
+              width={node.width ?? 76}
+              height={node.height ?? NODE_HEIGHT}
+              rx="10"
+            />
           )}
           <MathLabel {...node} text={node.label} width={node.width ?? 76} />
-          {node.sentinel && <text x={node.x} y={node.y + 42} className="cf434d-note">新增</text>}
+          {node.sentinel && (
+            <text x={node.x} y={node.y + 42} className="cf434d-note">
+              新增
+            </text>
+          )}
         </g>
       ))}
     </>
@@ -143,7 +165,14 @@ function Graph({ graph, id }: { graph: FlowGraph; id: string }) {
 }
 
 function FlowFigure({
-  id, title, description, height, graph, caption, cut = false, bypass = false,
+  id,
+  title,
+  description,
+  height,
+  graph,
+  caption,
+  cut = false,
+  bypass = false,
 }: {
   id: string;
   title: string;
@@ -173,13 +202,38 @@ function FlowFigure({
         </svg>
       </div>
       <div className="cf434d-legend" aria-hidden="true">
-        <span><i className="cf434d-key cf434d-ordinary" />链上的边</span>
-        {graph.edges.some(edge => edge.omitted) && <span><i className="cf434d-key cf434d-key-omitted" />省略链段</span>}
-        {graph.edges.some(edge => edge.constraint) && <span><i className="cf434d-key cf434d-constraint" />约束边：{'\\(\\infty\\)'}</span>}
-        {cut && <span><i className="cf434d-key cf434d-cut">∕∕</i>尝试割掉的边</span>}
-        {bypass && <span><i className="cf434d-key cf434d-bypass" />仍然连通的路径</span>}
+        <span>
+          <i className="cf434d-key cf434d-ordinary" />
+          链上的边
+        </span>
+        {graph.edges.some((edge) => edge.omitted) && (
+          <span>
+            <i className="cf434d-key cf434d-key-omitted" />
+            省略链段
+          </span>
+        )}
+        {graph.edges.some((edge) => edge.constraint) && (
+          <span>
+            <i className="cf434d-key cf434d-constraint" />
+            约束边：{'\\(\\infty\\)'}
+          </span>
+        )}
+        {cut && (
+          <span>
+            <i className="cf434d-key cf434d-cut">∕∕</i>尝试割掉的边
+          </span>
+        )}
+        {bypass && (
+          <span>
+            <i className="cf434d-key cf434d-bypass" />
+            仍然连通的路径
+          </span>
+        )}
       </div>
-      <figcaption>{caption}<span className="cf434d-scroll-hint">左右滑动查看完整图示</span></figcaption>
+      <figcaption>
+        {caption}
+        <span className="cf434d-scroll-hint">左右滑动查看完整图示</span>
+      </figcaption>
     </figure>
   );
 }
@@ -196,10 +250,30 @@ function IndependentChainsDiagram() {
     const labelY = y + (i === 3 ? 30 : -30);
     graph.nodes.push(first, next, last);
     graph.edges.push(
-      { from: 'S', to: first.id, capacity: Infinity, label: '\\infty', labelAt: sourceLabel(source, first, (i - 2) * 14), path: sourcePath(source, first, (i - 2) * 14) },
-      { from: first.id, to: next.id, capacity: 1, label: `c_${i}(l_${i})`, labelAt: { x: 245, y: y - 30 } },
+      {
+        from: 'S',
+        to: first.id,
+        capacity: Infinity,
+        label: '\\infty',
+        labelAt: sourceLabel(source, first, (i - 2) * 14),
+        path: sourcePath(source, first, (i - 2) * 14),
+      },
+      {
+        from: first.id,
+        to: next.id,
+        capacity: 1,
+        label: `c_${i}(l_${i})`,
+        labelAt: { x: 245, y: y - 30 },
+      },
       { from: next.id, to: last.id, capacity: 1, omitted: true },
-      { from: last.id, to: 'T', capacity: 1, label: `c_${i}(r_${i})`, labelAt: { x: 588, y: labelY }, path: sinkPath(last, sink, (i - 2) * 14) },
+      {
+        from: last.id,
+        to: 'T',
+        capacity: 1,
+        label: `c_${i}(r_${i})`,
+        labelAt: { x: 588, y: labelY },
+        path: sinkPath(last, sink, (i - 2) * 14),
+      },
     );
   }
   return (
@@ -209,7 +283,9 @@ function IndependentChainsDiagram() {
       description="三条独立的函数链共享源点 S 和汇点 T。源点到每条链的起点容量为无穷大；从 (i,j) 出发的有限边容量为 lim 减 f_i(j)。割掉这条边代表选择 x_i 等于 j。点线省略中间的节点及边。"
       height={413}
       graph={graph}
-      caption={'记 \\(c_i(j)=lim-f_i(j)\\)。每条链割一条有限边，即选择对应的 \\(x_i=j\\)。点线省略中间节点及边。'}
+      caption={
+        '记 \\(c_i(j)=lim-f_i(j)\\)。每条链割一条有限边，即选择对应的 \\(x_i=j\\)。点线省略中间节点及边。'
+      }
     />
   );
 }
@@ -218,7 +294,10 @@ function ConstraintCutDiagram() {
   const source = terminal('S', 218);
   const sink = terminal('T', 218);
   const graph: FlowGraph = { nodes: [source, sink], edges: [] };
-  const rows = [['u', 108], ['v', 328]] as const;
+  const rows = [
+    ['u', 108],
+    ['v', 328],
+  ] as const;
   for (const [row, y] of rows) {
     const nodes = Array.from({ length: 3 }, (_, k) => {
       const value = `${row === 'u' ? 'x' : 'x-d'}${k ? `+${k}` : ''}`;
@@ -228,18 +307,53 @@ function ConstraintCutDiagram() {
     const [first, middle, last] = nodes as [FlowNode, FlowNode, FlowNode];
     const offset = row === 'u' ? -14 : 14;
     graph.edges.push(
-      { from: 'S', to: first.id, capacity: 1, path: sourcePath(source, first, offset), bypass: row === 'u', omitted: true },
-      { from: first.id, to: middle.id, capacity: 1, cutAt: row === 'v' ? { x: (first.x + middle.x) / 2, y } : undefined, bypass: row === 'u' },
-      { from: middle.id, to: last.id, capacity: 1, cutAt: row === 'u' ? { x: (middle.x + last.x) / 2, y } : undefined, bypass: row === 'v' },
-      { from: last.id, to: 'T', capacity: 1, path: sinkPath(last, sink, offset), bypass: row === 'v', omitted: true },
+      {
+        from: 'S',
+        to: first.id,
+        capacity: 1,
+        path: sourcePath(source, first, offset),
+        bypass: row === 'u',
+        omitted: true,
+      },
+      {
+        from: first.id,
+        to: middle.id,
+        capacity: 1,
+        cutAt: row === 'v' ? { x: (first.x + middle.x) / 2, y } : undefined,
+        bypass: row === 'u',
+      },
+      {
+        from: middle.id,
+        to: last.id,
+        capacity: 1,
+        cutAt: row === 'u' ? { x: (middle.x + last.x) / 2, y } : undefined,
+        bypass: row === 'v',
+      },
+      {
+        from: last.id,
+        to: 'T',
+        capacity: 1,
+        path: sinkPath(last, sink, offset),
+        bypass: row === 'v',
+        omitted: true,
+      },
     );
   }
   for (let k = 0; k < 3; k++) {
-    const from = graph.nodes.find(node => node.id === `u${k}`)!;
-    const to = graph.nodes.find(node => node.id === `v${k}`)!;
+    const from = graph.nodes.find((node) => node.id === `u${k}`)!;
+    const to = graph.nodes.find((node) => node.id === `v${k}`)!;
     const start = port(from, 'bottom');
     const end = port(to, 'top');
-    graph.edges.push({ from: from.id, to: to.id, capacity: Infinity, label: '\\infty', labelAt: { x: start.x + 26, y: (start.y + end.y) / 2 }, path: `M ${start.x} ${start.y} V ${end.y}`, constraint: true, bypass: k === 1 });
+    graph.edges.push({
+      from: from.id,
+      to: to.id,
+      capacity: Infinity,
+      label: '\\infty',
+      labelAt: { x: start.x + 26, y: (start.y + end.y) / 2 },
+      path: `M ${start.x} ${start.y} V ${end.y}`,
+      constraint: true,
+      bypass: k === 1,
+    });
   }
   return (
     <FlowFigure
@@ -250,7 +364,9 @@ function ConstraintCutDiagram() {
       graph={graph}
       cut
       bypass
-      caption={'绿色双斜杠对应 \\(x_u=x+1\\)、\\(x_v=x-d\\)，违反 \\(x_u\\le x_v+d\\)。玫瑰色路径绕过两条割边，所以这不是一个 S–T 割。两侧点线省略链的其余部分。'}
+      caption={
+        '绿色双斜杠对应 \\(x_u=x+1\\)、\\(x_v=x-d\\)，违反 \\(x_u\\le x_v+d\\)。玫瑰色路径绕过两条割边，所以这不是一个 S–T 割。两侧点线省略链的其余部分。'
+      }
     />
   );
 }
@@ -262,7 +378,10 @@ export const example = {
     { id: 1, l: 2, r: 3, a: 0, b: 1, c: 0 },
     { id: 2, l: 1, r: 2, a: 0, b: 1, c: 1 },
   ],
-  constraints: [{ u: 1, v: 2, d: 0 }, { u: 2, v: 1, d: 0 }],
+  constraints: [
+    { u: 1, v: 2, d: 0 },
+    { u: 2, v: 1, d: 0 },
+  ],
 };
 
 export function createExampleGraph(sentinels: boolean): FlowGraph {
@@ -274,12 +393,26 @@ export function createExampleGraph(sentinels: boolean): FlowGraph {
     const end = fn.r + Number(sentinels);
     const offset = fn.id === 1 ? -14 : 14;
     for (let j = fn.l; j <= end; j++) {
-      graph.nodes.push({ id: `${fn.id}:${j}`, label: `(${fn.id},${j})`, x: 148 + 136 * (j - 1), y, width: 72, sentinel: j > fn.r });
+      graph.nodes.push({
+        id: `${fn.id}:${j}`,
+        label: `(${fn.id},${j})`,
+        x: 148 + 136 * (j - 1),
+        y,
+        width: 72,
+        sentinel: j > fn.r,
+      });
     }
-    const first = graph.nodes.find(node => node.id === `${fn.id}:${fn.l}`)!;
-    graph.edges.push({ from: 'S', to: first.id, capacity: Infinity, label: '\\infty', labelAt: sourceLabel(source, first, offset), path: sourcePath(source, first, offset) });
+    const first = graph.nodes.find((node) => node.id === `${fn.id}:${fn.l}`)!;
+    graph.edges.push({
+      from: 'S',
+      to: first.id,
+      capacity: Infinity,
+      label: '\\infty',
+      labelAt: sourceLabel(source, first, offset),
+      path: sourcePath(source, first, offset),
+    });
     for (let j = fn.l; j <= end; j++) {
-      const node = graph.nodes.find(node => node.id === `${fn.id}:${j}`)!;
+      const node = graph.nodes.find((node) => node.id === `${fn.id}:${j}`)!;
       const isTerminal = j === end;
       const capacity = j > fn.r ? Infinity : example.lim - (fn.a * j * j + fn.b * j + fn.c);
       const cut = j === (sentinels ? 2 : fn.r);
@@ -289,25 +422,34 @@ export function createExampleGraph(sentinels: boolean): FlowGraph {
         to: isTerminal ? 'T' : `${fn.id}:${j + 1}`,
         capacity,
         label: capacity === Infinity ? '\\infty' : `lim-${example.lim - capacity}`,
-        labelAt: isTerminal && j === 4
-          ? { x: port(sink, 'left', offset).x + 15, y: (y + sink.y + offset) / 2 }
-          : { x: midX, y: y - 31 },
+        labelAt:
+          isTerminal && j === 4
+            ? { x: port(sink, 'left', offset).x + 15, y: (y + sink.y + offset) / 2 }
+            : { x: midX, y: y - 31 },
         path: isTerminal ? sinkPath(node, sink, offset) : undefined,
         cutAt: cut ? { x: midX, y } : undefined,
       });
     }
   }
   for (const { u, v, d } of example.constraints) {
-    const fn = example.functions.find(fn => fn.id === u)!;
+    const fn = example.functions.find((fn) => fn.id === u)!;
     for (let j = fn.l; j <= fn.r + Number(sentinels); j++) {
-      const from = graph.nodes.find(node => node.id === `${u}:${j}`)!;
-      const target = graph.nodes.find(node => node.id === `${v}:${j - d}`);
+      const from = graph.nodes.find((node) => node.id === `${u}:${j}`)!;
+      const target = graph.nodes.find((node) => node.id === `${v}:${j - d}`);
       if (!target) continue;
       const down = u === 1;
       const offset = down ? -9 : 9;
       const start = port(from, down ? 'bottom' : 'top', offset);
       const end = port(target, down ? 'top' : 'bottom', offset);
-      graph.edges.push({ from: from.id, to: target.id, capacity: Infinity, label: '\\infty', labelAt: { x: start.x + (down ? -23 : 23), y: (start.y + end.y) / 2 }, path: `M ${start.x} ${start.y} V ${end.y}`, constraint: true });
+      graph.edges.push({
+        from: from.id,
+        to: target.id,
+        capacity: Infinity,
+        label: '\\infty',
+        labelAt: { x: start.x + (down ? -23 : 23), y: (start.y + end.y) / 2 },
+        path: `M ${start.x} ${start.y} V ${end.y}`,
+        constraint: true,
+      });
     }
   }
   return graph;
@@ -322,7 +464,9 @@ function MissingEndpointDiagram() {
       height={395}
       graph={createExampleGraph(false)}
       cut
-      caption={'此时 \\(x_1=3\\)、\\(x_2=2\\)，收益为 \\(3+(2+1)=6\\)。但限制要求 \\(x_1=x_2\\)；缺少 \\((2,3)\\)，就无法阻止这个非法选择。'}
+      caption={
+        '此时 \\(x_1=3\\)、\\(x_2=2\\)，收益为 \\(3+(2+1)=6\\)。但限制要求 \\(x_1=x_2\\)；缺少 \\((2,3)\\)，就无法阻止这个非法选择。'
+      }
     />
   );
 }
@@ -336,7 +480,9 @@ function SentinelEndpointDiagram() {
       height={390}
       graph={createExampleGraph(true)}
       cut
-      caption={'新增点 \\((i,r_i+1)\\) 以 \\(\\infty\\) 连向 T。此时只有 \\(x_1=x_2=2\\) 合法，最小割为 \\((lim-2)+(lim-3)\\)，最大收益为 \\(5\\)。'}
+      caption={
+        '新增点 \\((i,r_i+1)\\) 以 \\(\\infty\\) 连向 T。此时只有 \\(x_1=x_2=2\\) 合法，最小割为 \\((lim-2)+(lim-3)\\)，最大收益为 \\(5\\)。'
+      }
     />
   );
 }

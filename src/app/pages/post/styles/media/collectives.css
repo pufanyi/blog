@@ -83,11 +83,21 @@
   height: auto;
 }
 
-.infra-collective-source-0 { color: var(--accent-blue); }
-.infra-collective-source-1 { color: var(--accent-sage); }
-.infra-collective-source-2 { color: var(--accent-ochre); }
-.infra-collective-source-3 { color: var(--accent-rose); }
-.infra-collective-combined { color: var(--text-secondary); }
+.infra-collective-source-0 {
+  color: var(--accent-blue);
+}
+.infra-collective-source-1 {
+  color: var(--accent-sage);
+}
+.infra-collective-source-2 {
+  color: var(--accent-ochre);
+}
+.infra-collective-source-3 {
+  color: var(--accent-rose);
+}
+.infra-collective-combined {
+  color: var(--text-secondary);
+}
 
 .infra-collective-buffer {
   fill: var(--paper-bg);
@@ -249,21 +259,41 @@
   stroke-width: 2;
 }
 
-.infra-collective-panel:has(input[value="0"]:checked) [data-destination]:not([data-destination="0"]),
-.infra-collective-panel:has(input[value="1"]:checked) [data-destination]:not([data-destination="1"]),
-.infra-collective-panel:has(input[value="2"]:checked) [data-destination]:not([data-destination="2"]),
-.infra-collective-panel:has(input[value="3"]:checked) [data-destination]:not([data-destination="3"]) {
+.infra-collective-panel:has(input[value="0"]:checked)
+  [data-destination]:not([data-destination="0"]),
+.infra-collective-panel:has(input[value="1"]:checked)
+  [data-destination]:not([data-destination="1"]),
+.infra-collective-panel:has(input[value="2"]:checked)
+  [data-destination]:not([data-destination="2"]),
+.infra-collective-panel:has(input[value="3"]:checked)
+  [data-destination]:not([data-destination="3"]) {
   opacity: 0.05;
 }
 
-.infra-collective-panel:has(input[value="0"]:checked) .infra-collective-input [data-column]:not([data-column="0"]),
-.infra-collective-panel:has(input[value="1"]:checked) .infra-collective-input [data-column]:not([data-column="1"]),
-.infra-collective-panel:has(input[value="2"]:checked) .infra-collective-input [data-column]:not([data-column="2"]),
-.infra-collective-panel:has(input[value="3"]:checked) .infra-collective-input [data-column]:not([data-column="3"]),
-.infra-collective-panel:has(input[value="0"]:checked) .infra-collective-output [data-rank]:not([data-rank="0"]),
-.infra-collective-panel:has(input[value="1"]:checked) .infra-collective-output [data-rank]:not([data-rank="1"]),
-.infra-collective-panel:has(input[value="2"]:checked) .infra-collective-output [data-rank]:not([data-rank="2"]),
-.infra-collective-panel:has(input[value="3"]:checked) .infra-collective-output [data-rank]:not([data-rank="3"]) {
+.infra-collective-panel:has(input[value="0"]:checked)
+  .infra-collective-input
+  [data-column]:not([data-column="0"]),
+.infra-collective-panel:has(input[value="1"]:checked)
+  .infra-collective-input
+  [data-column]:not([data-column="1"]),
+.infra-collective-panel:has(input[value="2"]:checked)
+  .infra-collective-input
+  [data-column]:not([data-column="2"]),
+.infra-collective-panel:has(input[value="3"]:checked)
+  .infra-collective-input
+  [data-column]:not([data-column="3"]),
+.infra-collective-panel:has(input[value="0"]:checked)
+  .infra-collective-output
+  [data-rank]:not([data-rank="0"]),
+.infra-collective-panel:has(input[value="1"]:checked)
+  .infra-collective-output
+  [data-rank]:not([data-rank="1"]),
+.infra-collective-panel:has(input[value="2"]:checked)
+  .infra-collective-output
+  [data-rank]:not([data-rank="2"]),
+.infra-collective-panel:has(input[value="3"]:checked)
+  .infra-collective-output
+  [data-rank]:not([data-rank="3"]) {
   opacity: 0.2;
 }
 

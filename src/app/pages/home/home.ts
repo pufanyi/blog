@@ -1,22 +1,22 @@
 import {
-  Component,
-  ChangeDetectionStrategy,
-  ElementRef,
   afterRenderEffect,
+  ChangeDetectionStrategy,
+  Component,
   computed,
+  ElementRef,
   inject,
   viewChild,
 } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { ImageLightboxComponent } from '../../components/image-lightbox/image-lightbox';
 import { BLOG_CONFIG } from '../../data/blog-config';
 import { SITE_CONFIG } from '../../data/site-config';
-import { NotFoundComponent } from '../not-found/not-found';
-import { blogPagePath, paginationItems, type BlogPage } from '../../utils/blog-pagination';
-import { clearMath, typesetMath } from '../../utils/mathjax';
 import { PageScrollService } from '../../services/page-scroll.service';
+import { type BlogPage, blogPagePath, paginationItems } from '../../utils/blog-pagination';
+import { clearMath, typesetMath } from '../../utils/mathjax';
+import { NotFoundComponent } from '../not-found/not-found';
 
 @Component({
   selector: 'app-home',
@@ -35,9 +35,12 @@ export class HomeComponent {
   private focusedNavigation = -1;
   readonly config = BLOG_CONFIG;
   readonly title = SITE_CONFIG.title;
-  readonly page = toSignal(this.route.data.pipe(map(data => data['blogPage'] as BlogPage | null)), {
-    initialValue: null,
-  });
+  readonly page = toSignal(
+    this.route.data.pipe(map((data) => data['blogPage'] as BlogPage | null)),
+    {
+      initialValue: null,
+    },
+  );
   readonly pageItems = computed(() => {
     const page = this.page();
     return page ? paginationItems(page.number, page.totalPages) : [];
@@ -46,12 +49,15 @@ export class HomeComponent {
   readonly paginationState = { blogPagination: true };
 
   constructor() {
-    afterRenderEffect(onCleanup => {
+    afterRenderEffect((onCleanup) => {
       this.page();
       const container = this.postList()?.nativeElement;
       if (!container) return;
       const abort = new AbortController();
-      void Promise.all([typesetMath(container, abort.signal), container.ownerDocument.fonts?.ready]).then(() => {
+      void Promise.all([
+        typesetMath(container, abort.signal),
+        container.ownerDocument.fonts?.ready,
+      ]).then(() => {
         if (!abort.signal.aborted) this.scroll.contentSettled(container);
       });
       onCleanup(() => {
@@ -64,8 +70,11 @@ export class HomeComponent {
       const navigation = this.router.lastSuccessfulNavigation();
       const heading = this.heading()?.nativeElement;
       if (
-        page && heading && navigation?.trigger === 'imperative' &&
-        navigation.extras.state?.['blogPagination'] && navigation.id !== this.focusedNavigation
+        page &&
+        heading &&
+        navigation?.trigger === 'imperative' &&
+        navigation.extras.state?.['blogPagination'] &&
+        navigation.id !== this.focusedNavigation
       ) {
         heading.focus({ preventScroll: true });
         this.focusedNavigation = navigation.id;

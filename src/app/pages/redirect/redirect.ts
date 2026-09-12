@@ -1,6 +1,15 @@
-import { Component, computed, inject, OnInit, OnDestroy, signal, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Redirect } from '../../models/redirect.model';
 
 @Component({

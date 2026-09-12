@@ -23,14 +23,18 @@ export class CitationPreviewService {
 
     for (const link of container.querySelectorAll<HTMLAnchorElement>(CITATION_LINK_SELECTOR)) {
       const handleClick = (event: MouseEvent) => {
-        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        if (
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        ) {
           return;
         }
 
         const referenceHref = link.getAttribute('href');
-        const reference = referenceHref
-          ? this.findReference(container, referenceHref)
-          : null;
+        const reference = referenceHref ? this.findReference(container, referenceHref) : null;
         if (!referenceHref || !reference) {
           return;
         }
@@ -105,10 +109,7 @@ export class CitationPreviewService {
     this.overlayRef = overlayRef;
 
     const componentRef = overlayRef.attach(new ComponentPortal(CitationPreviewComponent));
-    componentRef.setInput(
-      'entryHtml',
-      this.sanitizer.bypassSecurityTrustHtml(reference.innerHTML),
-    );
+    componentRef.setInput('entryHtml', this.sanitizer.bypassSecurityTrustHtml(reference.innerHTML));
     componentRef.setInput('title', reference.dataset['title'] ?? null);
     componentRef.setInput('authors', reference.dataset['authors'] ?? null);
     componentRef.setInput('year', reference.dataset['year'] ?? null);
@@ -132,9 +133,11 @@ export class CitationPreviewService {
 
     try {
       const id = decodeURIComponent(href.slice(hashIndex + 1));
-      return Array.from(container.querySelectorAll<HTMLElement>('.csl-entry[id]')).find(
-        (entry) => entry.id === id,
-      ) ?? null;
+      return (
+        Array.from(container.querySelectorAll<HTMLElement>('.csl-entry[id]')).find(
+          (entry) => entry.id === id,
+        ) ?? null
+      );
     } catch {
       return null;
     }

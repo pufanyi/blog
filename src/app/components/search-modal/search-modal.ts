@@ -1,19 +1,19 @@
-import { DOCUMENT } from '@angular/common';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { DOCUMENT } from '@angular/common';
 import {
+  afterNextRender,
+  ChangeDetectionStrategy,
   Component,
+  ElementRef,
   inject,
+  OnDestroy,
   output,
   signal,
-  ElementRef,
   viewChild,
-  afterNextRender,
-  OnDestroy,
-  ChangeDetectionStrategy,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { SearchService } from '../../services/search.service';
 import type { SearchResult } from '../../models/search.model';
+import { SearchService } from '../../services/search.service';
 
 @Component({
   selector: 'app-search-modal',
@@ -71,7 +71,7 @@ export class SearchModalComponent implements OnDestroy {
     if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && length) {
       event.preventDefault();
       const delta = event.key === 'ArrowDown' ? 1 : -1;
-      this.activeIndex.update(index => (index + delta + length) % length);
+      this.activeIndex.update((index) => (index + delta + length) % length);
       this.document
         .getElementById(`search-result-${this.activeIndex()}`)
         ?.scrollIntoView({ block: 'nearest' });

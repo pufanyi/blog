@@ -1,4 +1,13 @@
-import { buildFrames, DEFAULT_QUERY, GRID_UNIT, type KvTileSize, partition, QUERY_TILES, SEQUENCE_LENGTH, tokenRange } from './model';
+import {
+  buildFrames,
+  DEFAULT_QUERY,
+  GRID_UNIT,
+  type KvTileSize,
+  partition,
+  QUERY_TILES,
+  SEQUENCE_LENGTH,
+  tokenRange,
+} from './model';
 
 function bindPlayer(root: HTMLElement): () => void {
   const document = root.ownerDocument;
@@ -11,7 +20,8 @@ function bindPlayer(root: HTMLElement): () => void {
     return element;
   };
   const field = (name: string, value: string) => {
-    for (const element of root.querySelectorAll(`[data-field="${name}"]`)) element.textContent = value;
+    for (const element of root.querySelectorAll(`[data-field="${name}"]`))
+      element.textContent = value;
   };
   const play = get<HTMLButtonElement>('[data-action="play"]');
   const previous = get<HTMLButtonElement>('[data-action="previous"]');
@@ -27,7 +37,9 @@ function bindPlayer(root: HTMLElement): () => void {
   const reducedMotion = view.matchMedia('(prefers-reduced-motion: reduce)');
   const algorithm = document.getElementById('flash-forward-algorithm');
   const clearHighlight = () => {
-    algorithm?.querySelectorAll('[data-playing-line]').forEach(line => line.removeAttribute('data-playing-line'));
+    algorithm
+      ?.querySelectorAll('[data-playing-line]')
+      .forEach((line) => line.removeAttribute('data-playing-line'));
   };
   const pause = () => {
     view.clearTimeout(timer);
@@ -49,7 +61,10 @@ function bindPlayer(root: HTMLElement): () => void {
     get<HTMLAnchorElement>('[data-line-link]').href = `#flash-forward-${frame.lines[0]}`;
     progress.max = String(frames.length - 1);
     progress.value = String(index);
-    progress.setAttribute('aria-valuetext', `第 ${index + 1} 步，共 ${frames.length} 步：${frame.title}`);
+    progress.setAttribute(
+      'aria-valuetext',
+      `第 ${index + 1} 步，共 ${frames.length} 步：${frame.title}`,
+    );
     previous.disabled = index === 0;
     next.disabled = index === frames.length - 1;
     for (const layout of root.querySelectorAll<HTMLElement>('[data-layout]')) {
@@ -62,16 +77,27 @@ function bindPlayer(root: HTMLElement): () => void {
         const output = get(`[data-output="${row.index}"]`, layout);
         const written = active && frame.phase === 'output';
         output.dataset['status'] = written ? 'written' : active ? 'pending' : 'idle';
-        output.setAttribute('aria-label', `输出块 O ${row.index + 1}，${written ? '已写回' : active ? '等待扫描完成' : '尚未演示'}`);
+        output.setAttribute(
+          'aria-label',
+          `输出块 O ${row.index + 1}，${written ? '已写回' : active ? '等待扫描完成' : '尚未演示'}`,
+        );
         get('[data-output-mark]', output).textContent = written ? '✓' : '·';
         for (const tile of tiles) {
-          get(`[data-map-cell="${row.index}-${tile.index}"]`, layout).setAttribute('data-status',
-            active && tile.end <= frame.processed ? 'merged' : active && frame.phase === 'tile' && frame.kv === tile.index ? 'current' : 'waiting');
+          get(`[data-map-cell="${row.index}-${tile.index}"]`, layout).setAttribute(
+            'data-status',
+            active && tile.end <= frame.processed
+              ? 'merged'
+              : active && frame.phase === 'tile' && frame.kv === tile.index
+                ? 'current'
+                : 'waiting',
+          );
         }
       }
       for (const tile of tiles) {
-        get(`[data-kv="${tile.index}"]`, layout).dataset['status'] = frame.kv === tile.index ? 'current' : tile.end <= frame.processed ? 'merged' : 'waiting';
-        get(`[data-coverage="${tile.index}"]`, layout).dataset['status'] = tile.end <= frame.processed ? 'merged' : 'waiting';
+        get(`[data-kv="${tile.index}"]`, layout).dataset['status'] =
+          frame.kv === tile.index ? 'current' : tile.end <= frame.processed ? 'merged' : 'waiting';
+        get(`[data-coverage="${tile.index}"]`, layout).dataset['status'] =
+          tile.end <= frame.processed ? 'merged' : 'waiting';
       }
       const scan = get<SVGRectElement>('[data-scan-window]', layout);
       scan.setAttribute('visibility', frame.phase === 'tile' ? 'visible' : 'hidden');
@@ -79,10 +105,23 @@ function bindPlayer(root: HTMLElement): () => void {
       scan.setAttribute('y', String(QUERY_TILES[query].start * GRID_UNIT));
     }
     field('covered', `${frame.processed} / ${SEQUENCE_LENGTH}`);
-    field('buffer', frame.phase === 'tile' ? `KV 块 ${(frame.kv ?? 0) + 1} 已读入` : frame.phase === 'merge' || frame.phase === 'output' ? '临时空间已释放' : '尚未读取');
-    field('result', frame.phase === 'output' ? `token ${tokenRange(QUERY_TILES[query])} 已写回` : '扫描完才能归一化');
+    field(
+      'buffer',
+      frame.phase === 'tile'
+        ? `KV 块 ${(frame.kv ?? 0) + 1} 已读入`
+        : frame.phase === 'merge' || frame.phase === 'output'
+          ? '临时空间已释放'
+          : '尚未读取',
+    );
+    field(
+      'result',
+      frame.phase === 'output'
+        ? `token ${tokenRange(QUERY_TILES[query])} 已写回`
+        : '扫描完才能归一化',
+    );
     clearHighlight();
-    for (const line of frame.lines) document.getElementById(`flash-forward-${line}`)?.setAttribute('data-playing-line', '');
+    for (const line of frame.lines)
+      document.getElementById(`flash-forward-${line}`)?.setAttribute('data-playing-line', '');
     if (timer === undefined) pause();
   };
   const seek = (position: number) => {
@@ -91,49 +130,70 @@ function bindPlayer(root: HTMLElement): () => void {
     render();
   };
   const schedule = () => {
-    timer = view.setTimeout(() => {
-      index++;
-      render();
-      if (index === frames.length - 1) pause();
-      else schedule();
-    }, reducedMotion.matches ? 3500 : 2200);
+    timer = view.setTimeout(
+      () => {
+        index++;
+        render();
+        if (index === frames.length - 1) pause();
+        else schedule();
+      },
+      reducedMotion.matches ? 3500 : 2200,
+    );
   };
-  root.addEventListener('click', event => {
-    const target = event.target;
-    if (!(target instanceof view.Element)) return;
-    const queryButton = target.closest<HTMLElement>('[data-query]');
-    if (queryButton) {
-      query = Number(queryButton.dataset['query']);
-      frames = buildFrames(size, query);
-      seek(2);
-      return;
-    }
-    const action = target.closest<HTMLElement>('[data-action]')?.dataset['action'];
-    if (action === 'next') seek(index + 1);
-    if (action === 'previous') seek(index - 1);
-    if (action === 'reset') seek(0);
-    if (action === 'play') {
-      if (timer !== undefined) { pause(); return; }
-      if (index === frames.length - 1) seek(0);
-      stage.setAttribute('aria-live', 'off');
-      play.textContent = '暂停';
-      play.setAttribute('aria-pressed', 'true');
-      schedule();
-    }
-  }, { signal: abort.signal });
+  root.addEventListener(
+    'click',
+    (event) => {
+      const target = event.target;
+      if (!(target instanceof view.Element)) return;
+      const queryButton = target.closest<HTMLElement>('[data-query]');
+      if (queryButton) {
+        query = Number(queryButton.dataset['query']);
+        frames = buildFrames(size, query);
+        seek(2);
+        return;
+      }
+      const action = target.closest<HTMLElement>('[data-action]')?.dataset['action'];
+      if (action === 'next') seek(index + 1);
+      if (action === 'previous') seek(index - 1);
+      if (action === 'reset') seek(0);
+      if (action === 'play') {
+        if (timer !== undefined) {
+          pause();
+          return;
+        }
+        if (index === frames.length - 1) seek(0);
+        stage.setAttribute('aria-live', 'off');
+        play.textContent = '暂停';
+        play.setAttribute('aria-pressed', 'true');
+        schedule();
+      }
+    },
+    { signal: abort.signal },
+  );
   progress.addEventListener('input', () => seek(Number(progress.value)), { signal: abort.signal });
-  sizeInput.addEventListener('change', () => {
-    size = Number(sizeInput.value) as KvTileSize;
-    frames = buildFrames(size, query);
-    seek(1);
-  }, { signal: abort.signal });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); }, { signal: abort.signal });
-  const observer = new view.IntersectionObserver(entries => {
-    if (!entries.some(entry => entry.isIntersecting)) pause();
+  sizeInput.addEventListener(
+    'change',
+    () => {
+      size = Number(sizeInput.value) as KvTileSize;
+      frames = buildFrames(size, query);
+      seek(1);
+    },
+    { signal: abort.signal },
+  );
+  document.addEventListener(
+    'visibilitychange',
+    () => {
+      if (document.hidden) pause();
+    },
+    { signal: abort.signal },
+  );
+  const observer = new view.IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) pause();
   });
   observer.observe(root);
   get('[data-controls]').hidden = false;
-  for (const button of root.querySelectorAll<HTMLButtonElement>('[data-query]')) button.disabled = false;
+  for (const button of root.querySelectorAll<HTMLButtonElement>('[data-query]'))
+    button.disabled = false;
   render();
   root.dataset['ready'] = 'true';
   return () => {
@@ -142,12 +202,16 @@ function bindPlayer(root: HTMLElement): () => void {
     observer.disconnect();
     clearHighlight();
     get('[data-controls]').hidden = true;
-    for (const button of root.querySelectorAll<HTMLButtonElement>('[data-query]')) button.disabled = true;
+    for (const button of root.querySelectorAll<HTMLButtonElement>('[data-query]'))
+      button.disabled = true;
     delete root.dataset['ready'];
   };
 }
 
 export function initFlashForward(container: HTMLElement): () => void {
-  const cleanups = Array.from(container.querySelectorAll<HTMLElement>('[data-flash-forward]'), bindPlayer);
-  return () => cleanups.forEach(cleanup => cleanup());
+  const cleanups = Array.from(
+    container.querySelectorAll<HTMLElement>('[data-flash-forward]'),
+    bindPlayer,
+  );
+  return () => cleanups.forEach((cleanup) => cleanup());
 }

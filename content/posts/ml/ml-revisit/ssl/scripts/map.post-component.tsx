@@ -9,12 +9,22 @@ const FAMILIES = [
 
 function SSLMap() {
   return (
-    <Figure id="ssl-map" title="用预测目标和避免退化的机制阅读 SSL"
+    <Figure
+      id="ssl-map"
+      title="用预测目标和避免退化的机制阅读 SSL"
       description="四种可交叉的设计：contrastive 比较样本，self-distillation 匹配 teacher 或 prototype，masked prediction 隐藏部分输入，分布正则化约束整个 batch 的特征。"
-      caption="按设计问题阅读：同一种算法可以同时使用 masking、teacher 和分布约束。" height={314}>
-      <Label x={124} y={28}>设计思路</Label>
-      <Label x={344} y={28}>预测什么</Label>
-      <Label x={554} y={28}>怎样保持可区分</Label>
+      caption="按设计问题阅读：同一种算法可以同时使用 masking、teacher 和分布约束。"
+      height={314}
+    >
+      <Label x={124} y={28}>
+        设计思路
+      </Label>
+      <Label x={344} y={28}>
+        预测什么
+      </Label>
+      <Label x={554} y={28}>
+        怎样保持可区分
+      </Label>
       {FAMILIES.map(([name, target, control], i) => (
         <g key={name}>
           <Box x={12} y={44 + i * 64} width={224} label={name} tone="blue" />

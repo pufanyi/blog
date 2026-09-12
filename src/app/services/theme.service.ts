@@ -1,4 +1,4 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { effect, Injectable, signal } from '@angular/core';
 
 function getInitialTheme(): 'light' | 'dark' {
   if (typeof localStorage !== 'undefined') {
@@ -29,6 +29,6 @@ export class ThemeService {
   }
 
   toggle() {
-    this.theme.update(t => t === 'light' ? 'dark' : 'light');
+    this.theme.update((t) => (t === 'light' ? 'dark' : 'light'));
   }
 }

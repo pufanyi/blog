@@ -2,11 +2,11 @@ import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
-import type { Post } from '../models/post.model';
-import { SITE_CONFIG } from '../data/site-config';
 import { PERSON_DATA } from '../data/person';
-import { blogPagePath, type BlogPage } from '../utils/blog-pagination';
-import { blogDirectoryPath, type BlogDirectory } from '../utils/blog-directories';
+import { SITE_CONFIG } from '../data/site-config';
+import type { Post } from '../models/post.model';
+import { type BlogDirectory, blogDirectoryPath } from '../utils/blog-directories';
+import { type BlogPage, blogPagePath } from '../utils/blog-pagination';
 
 const NOT_FOUND_TITLE = '404: Existence Left as an Exercise';
 
@@ -80,33 +80,63 @@ export class PageMetadataStrategy extends TitleStrategy {
       this.meta.removeTag('property="article:modified_time"');
     }
     this.updateLink('canonical', canonical);
-    const markdownPath = missing || route.data['noindex'] ? null
-      : post ? `/blog/${post.slug}.md`
-        : directory ? `${blogDirectoryPath(directory.slug)}/index.md`
-        : path === '/' || path === '/cv' ? '/profile.md'
-          : blogPage || path === '/blog' ? '/blog/index.md' : null;
-    this.updateLink('alternate', markdownPath ? `${SITE_CONFIG.url}${markdownPath}` : null, 'text/markdown');
-    this.updateLink('describedby', missing || route.data['noindex'] ? null : `${SITE_CONFIG.url}/llms.txt`, 'text/plain');
+    const markdownPath =
+      missing || route.data['noindex']
+        ? null
+        : post
+          ? `/blog/${post.slug}.md`
+          : directory
+            ? `${blogDirectoryPath(directory.slug)}/index.md`
+            : path === '/' || path === '/cv'
+              ? '/profile.md'
+              : blogPage || path === '/blog'
+                ? '/blog/index.md'
+                : null;
+    this.updateLink(
+      'alternate',
+      markdownPath ? `${SITE_CONFIG.url}${markdownPath}` : null,
+      'text/markdown',
+    );
+    this.updateLink(
+      'describedby',
+      missing || route.data['noindex'] ? null : `${SITE_CONFIG.url}/llms.txt`,
+      'text/plain',
+    );
     this.updateArticleStructuredData(missing ? null : post, canonical);
     const indexable = !missing && !route.data['noindex'];
-    this.updateStructuredData('profile-structured-data', indexable && (path === '/' || path === '/cv') ? {
-      '@context': 'https://schema.org',
-      '@type': 'ProfilePage',
-      '@id': `${canonical}#profile`,
-      url: canonical,
-      mainEntity: PERSON_DATA,
-    } : null);
-    this.updateLink('alternate', indexable ? `${SITE_CONFIG.url}/feed.xml` : null, 'application/rss+xml');
-    this.updateLink('alternate', indexable ? `${SITE_CONFIG.url}/atom.xml` : null, 'application/atom+xml');
+    this.updateStructuredData(
+      'profile-structured-data',
+      indexable && (path === '/' || path === '/cv')
+        ? {
+            '@context': 'https://schema.org',
+            '@type': 'ProfilePage',
+            '@id': `${canonical}#profile`,
+            url: canonical,
+            mainEntity: PERSON_DATA,
+          }
+        : null,
+    );
+    this.updateLink(
+      'alternate',
+      indexable ? `${SITE_CONFIG.url}/feed.xml` : null,
+      'application/rss+xml',
+    );
+    this.updateLink(
+      'alternate',
+      indexable ? `${SITE_CONFIG.url}/atom.xml` : null,
+      'application/atom+xml',
+    );
     this.updateLink(
       'prev',
       blogPage && blogPage.number > 1
-        ? `${SITE_CONFIG.url}${blogPagePath(blogPage.number - 1)}` : null,
+        ? `${SITE_CONFIG.url}${blogPagePath(blogPage.number - 1)}`
+        : null,
     );
     this.updateLink(
       'next',
       blogPage && blogPage.number < blogPage.totalPages
-        ? `${SITE_CONFIG.url}${blogPagePath(blogPage.number + 1)}` : null,
+        ? `${SITE_CONFIG.url}${blogPagePath(blogPage.number + 1)}`
+        : null,
     );
   }
 
@@ -125,12 +155,14 @@ export class PageMetadataStrategy extends TitleStrategy {
       description: post.description,
       datePublished: post.date,
       ...(post.updated ? { dateModified: post.updated } : {}),
-      author: [{
-        '@type': 'Person',
-        '@id': PERSON_DATA['@id'],
-        name: SITE_CONFIG.author.name,
-        url: new URL('/', SITE_CONFIG.url).href,
-      }],
+      author: [
+        {
+          '@type': 'Person',
+          '@id': PERSON_DATA['@id'],
+          name: SITE_CONFIG.author.name,
+          url: new URL('/', SITE_CONFIG.url).href,
+        },
+      ],
       ...(post.coverImage ? { image: [new URL(post.coverImage, SITE_CONFIG.url).href] } : {}),
     };
     this.updateStructuredData('article-structured-data', data);

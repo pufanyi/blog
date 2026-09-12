@@ -1,6 +1,6 @@
-import { AfterViewInit, Directive, ElementRef, OnDestroy, inject, input } from '@angular/core';
-import autoAnimate from '@formkit/auto-animate';
+import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy } from '@angular/core';
 import type { AnimationController, AutoAnimateOptions } from '@formkit/auto-animate';
+import autoAnimate from '@formkit/auto-animate';
 
 @Directive({
   selector: '[appAutoAnimate]',

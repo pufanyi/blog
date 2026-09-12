@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { CV_DATA } from './data/cv';
 import { POSTS } from './data/posts';
-import { loadPost } from './services/post-repository';
 import { REDIRECTS } from './data/redirects';
 import type { PostTocItem } from './models/post.model';
+import { loadPost } from './services/post-repository';
 
 function flattenIds(items: readonly PostTocItem[]): string[] {
-  return items.flatMap(item => [item.id, ...flattenIds(item.children)]);
+  return items.flatMap((item) => [item.id, ...flattenIds(item.children)]);
 }
 
 describe('generated content data', () => {
@@ -21,7 +21,9 @@ describe('generated content data', () => {
       const post = await loadPost(summary.slug);
       if (!post) throw new Error(`Missing post: ${summary.slug}`);
       const document = new DOMParser().parseFromString(post.contentHtml, 'text/html');
-      const headingIds = Array.from(document.querySelectorAll('h2, h3')).map(heading => heading.id);
+      const headingIds = Array.from(document.querySelectorAll('h2, h3')).map(
+        (heading) => heading.id,
+      );
       const tocIds = flattenIds(post.toc);
 
       expect(tocIds, post.slug).toEqual(headingIds);

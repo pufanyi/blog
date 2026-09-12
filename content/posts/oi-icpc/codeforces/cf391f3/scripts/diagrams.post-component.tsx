@@ -52,7 +52,7 @@ const projectInterval = ({ time, price }: PricePoint): Point => ({
 function Arrowheads({ id }: { id: string }) {
   return (
     <defs>
-      {tones.map(tone => (
+      {tones.map((tone) => (
         <marker
           key={tone}
           id={`${id}-${tone}-arrow`}
@@ -124,7 +124,9 @@ function Points({
         <circle cx={point.x} cy={point.y} r="4" className="cf391f3-point" />
         <text x={point.x} y={point.y + sample.labelDy} className="cf391f3-point-label">
           <tspan fontStyle="italic">{label[0]}</tspan>
-          <tspan dy="5" fontSize="70%">{label.slice(1)}</tspan>
+          <tspan dy="5" fontSize="70%">
+            {label.slice(1)}
+          </tspan>
         </text>
       </g>
     );
@@ -154,9 +156,9 @@ function GreedyExchangeDiagram() {
         >
           <title id={`${id}-title`}>用更低的买入价 x₃ 与新卖出价 x₅ 匹配</title>
           <desc id={`${id}-desc`}>
-            横轴表示时间，纵轴表示价格。灰色点线表示原区间 x₁ 到 x₂、x₃ 到 x₄。
-            x₃ 的价格低于 x₁。玫瑰色虚线表示尝试将 x₁ 与 x₅ 配对，
-            加粗的蓝色实线表示改用 x₃ 与 x₅ 配对；后者收益更高，且能单独保留原区间 x₁ 到 x₂。
+            横轴表示时间，纵轴表示价格。灰色点线表示原区间 x₁ 到 x₂、x₃ 到 x₄。 x₃ 的价格低于
+            x₁。玫瑰色虚线表示尝试将 x₁ 与 x₅ 配对， 加粗的蓝色实线表示改用 x₃ 与 x₅
+            配对；后者收益更高，且能单独保留原区间 x₁ 到 x₂。
           </desc>
           <Arrowheads id={id} />
           <path
@@ -169,8 +171,12 @@ function GreedyExchangeDiagram() {
             className="cf391f3-axis"
             markerEnd={`url(#${id}-neutral-arrow)`}
           />
-          <text x="42" y="23" className="cf391f3-axis-label">价格</text>
-          <text x="637" y="311" className="cf391f3-axis-label">时间</text>
+          <text x="42" y="23" className="cf391f3-axis-label">
+            价格
+          </text>
+          <text x="637" y="311" className="cf391f3-axis-label">
+            时间
+          </text>
           <Arrow from={point('x1')} to={point('x2')} tone="ink" id={id} />
           <Arrow from={point('x3')} to={point('x4')} tone="ink" id={id} />
           <Arrow from={point('x1')} to={point('x5')} tone="rose" id={id} dashed halo />
@@ -179,9 +185,18 @@ function GreedyExchangeDiagram() {
         </svg>
       </div>
       <div className="cf391f3-legend" aria-hidden="true">
-        <span><i className="cf391f3-key cf391f3-ink cf391f3-key-dotted" />原区间</span>
-        <span><i className="cf391f3-key cf391f3-rose cf391f3-key-dashed" />{'尝试 \\(x_1\\to x_5\\)'}</span>
-        <span><i className="cf391f3-key cf391f3-blue" />{'改用 \\(x_3\\to x_5\\)'}</span>
+        <span>
+          <i className="cf391f3-key cf391f3-ink cf391f3-key-dotted" />
+          原区间
+        </span>
+        <span>
+          <i className="cf391f3-key cf391f3-rose cf391f3-key-dashed" />
+          {'尝试 \\(x_1\\to x_5\\)'}
+        </span>
+        <span>
+          <i className="cf391f3-key cf391f3-blue" />
+          {'改用 \\(x_3\\to x_5\\)'}
+        </span>
       </div>
       <figcaption>
         {'\\(x_3<x_1\\)，所以 \\(x_5-x_3>x_5-x_1\\)；\\([x_1,x_2]\\) 可单独保留。'}
@@ -213,7 +228,9 @@ function IntervalPanel({ variant }: { variant: keyof typeof intervalPairs }) {
             : '所有点的位置与原图相同。蓝色实线连接 l₁ 与 r₂，可以继续合并；青色虚线连接 l₂ 与 r₁，表示单独存入 b 的收益 r₁ − l₂。'}
         </desc>
         <Arrowheads id={id} />
-        <text x="166" y="30" className="cf391f3-panel-title">{title}</text>
+        <text x="166" y="30" className="cf391f3-panel-title">
+          {title}
+        </text>
         {intervalPairs[variant].map(({ from, to, tone, dashed }) => (
           <Arrow
             key={`${from}-${to}`}
@@ -228,9 +245,7 @@ function IntervalPanel({ variant }: { variant: keyof typeof intervalPairs }) {
         <Points points={intervalPoints} project={projectInterval} />
       </svg>
       <div className="cf391f3-profit">
-        {variant === 'original'
-          ? '\\((r_1-l_1)+(r_2-l_2)\\)'
-          : '\\((r_2-l_1)+(r_1-l_2)\\)'}
+        {variant === 'original' ? '\\((r_1-l_1)+(r_2-l_2)\\)' : '\\((r_2-l_1)+(r_1-l_2)\\)'}
       </div>
     </div>
   );
@@ -241,12 +256,20 @@ function IntervalEquivalenceDiagram() {
     <figure className="cf391f3-figure">
       <div className="cf391f3-equivalence">
         <IntervalPanel variant="original" />
-        <span className="cf391f3-equals" aria-hidden="true">=</span>
+        <span className="cf391f3-equals" aria-hidden="true">
+          =
+        </span>
         <IntervalPanel variant="exchanged" />
       </div>
       <div className="cf391f3-legend" aria-hidden="true">
-        <span><i className="cf391f3-key cf391f3-blue" />合并后可继续匹配</span>
-        <span><i className="cf391f3-key cf391f3-teal cf391f3-key-dashed" />{'独立的收益存入 \\(b\\)'}</span>
+        <span>
+          <i className="cf391f3-key cf391f3-blue" />
+          合并后可继续匹配
+        </span>
+        <span>
+          <i className="cf391f3-key cf391f3-teal cf391f3-key-dashed" />
+          {'独立的收益存入 \\(b\\)'}
+        </span>
       </div>
       <figcaption>
         {'交换端点不改变总收益；虚线 \\([l_2,r_1]\\) 表示单独计入 \\(b\\) 的收益 \\(r_1-l_2\\)。'}

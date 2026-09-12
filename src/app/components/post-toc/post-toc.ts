@@ -1,8 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   computed,
+  ElementRef,
   effect,
   input,
   output,
@@ -32,7 +32,7 @@ export class PostTocComponent {
   readonly normalizedProgress = computed(() => Math.min(1, Math.max(0, this.progress())));
 
   constructor() {
-    effect(onCleanup => {
+    effect((onCleanup) => {
       const activeId = this.activeHeadingId();
       const viewport = this.scrollViewport()?.nativeElement;
       if (!activeId || !viewport || typeof window === 'undefined') {
@@ -40,9 +40,9 @@ export class PostTocComponent {
       }
 
       const frameId = window.requestAnimationFrame(() => {
-        const activeLink = Array.from(
-          viewport.querySelectorAll<HTMLElement>('[data-toc-id]'),
-        ).find(link => link.dataset['tocId'] === activeId);
+        const activeLink = Array.from(viewport.querySelectorAll<HTMLElement>('[data-toc-id]')).find(
+          (link) => link.dataset['tocId'] === activeId,
+        );
         if (!activeLink) {
           return;
         }
@@ -74,7 +74,7 @@ export class PostTocComponent {
 
   containsActiveItem(item: PostTocItem): boolean {
     const activeId = this.activeHeadingId();
-    return item.id === activeId || item.children.some(child => child.id === activeId);
+    return item.id === activeId || item.children.some((child) => child.id === activeId);
   }
 
   selectSection(event: MouseEvent, id: string): void {

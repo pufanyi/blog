@@ -14,9 +14,14 @@ const nodes: TreeNode[] = [
   { id: 4, beavers: 3, x: 200, y: 75 },
   { id: 5, beavers: 2, x: 320, y: 195 },
 ];
-const edges = [[2, 5], [3, 4], [4, 5], [1, 5]] as const;
+const edges = [
+  [2, 5],
+  [3, 4],
+  [4, 5],
+  [1, 5],
+] as const;
 const radius = 36;
-const nodeById = new Map(nodes.map(node => [node.id, node]));
+const nodeById = new Map(nodes.map((node) => [node.id, node]));
 
 function SampleTreeDiagram() {
   return (
@@ -38,7 +43,7 @@ function SampleTreeDiagram() {
         >
           <title id="cf77c-tree-title">样例一的树结构</title>
           <desc id="cf77c-tree-desc">
-            {`根节点为 ${root}。${nodes.map(node => `节点 ${node.id} 有 ${node.beavers} 只海狸`).join('，')}。无向边为 ${edges.map(([from, to]) => `${from}—${to}`).join('、')}。每个节点标记中的括号内数字表示海狸数量。`}
+            {`根节点为 ${root}。${nodes.map((node) => `节点 ${node.id} 有 ${node.beavers} 只海狸`).join('，')}。无向边为 ${edges.map(([from, to]) => `${from}—${to}`).join('、')}。每个节点标记中的括号内数字表示海狸数量。`}
           </desc>
           {edges.map(([fromId, toId]) => {
             const from = nodeById.get(fromId)!;
@@ -57,7 +62,7 @@ function SampleTreeDiagram() {
               />
             );
           })}
-          {nodes.map(node => (
+          {nodes.map((node) => (
             <g
               key={node.id}
               className={`cf77c-tree-node${node.id === root ? ' cf77c-tree-root' : ''}`}

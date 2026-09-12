@@ -25,9 +25,15 @@
   margin-inline: auto;
 }
 
-.infra-zero-parameters { color: var(--accent-teal); }
-.infra-zero-gradients { color: var(--accent-blush); }
-.infra-zero-optimizer { color: var(--accent-lavender); }
+.infra-zero-parameters {
+  color: var(--accent-teal);
+}
+.infra-zero-gradients {
+  color: var(--accent-blush);
+}
+.infra-zero-optimizer {
+  color: var(--accent-lavender);
+}
 
 .infra-zero-block {
   fill: color-mix(in srgb, currentColor 65%, var(--paper-bg));

@@ -14,7 +14,7 @@ export class ProfilePageComponent {
   readonly cv = CV_DATA;
   readonly header: CvHeader = {
     ...CV_DATA.header,
-    links: CV_DATA.header.links.map(link =>
+    links: CV_DATA.header.links.map((link) =>
       link.label === 'Homepage'
         ? {
             icon: 'ph-identification-card',

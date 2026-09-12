@@ -34,18 +34,6 @@
     "typecheck:app": "ngc --noEmit -p tsconfig.app.json",
     "lint:code": "eslint ."
   },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
-  },
   "private": true,
   "engines": {
     "node": ">=24.15.0 <25"

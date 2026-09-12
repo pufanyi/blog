@@ -18,7 +18,8 @@ h1 i {
   font-weight: normal;
 }
 
-.directory-summary, .directory-columns {
+.directory-summary,
+.directory-columns {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -125,5 +126,4 @@ time {
     grid-column: 2;
     padding: 0;
   }
-
 }

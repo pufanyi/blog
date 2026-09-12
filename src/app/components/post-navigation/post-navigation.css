@@ -16,7 +16,10 @@
   cursor: pointer;
   font-family: var(--font-heading);
   font-size: 1rem;
-  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
 }
 
 .toc-toggle:hover {
@@ -79,8 +82,7 @@
   height: 100%;
   min-height: 0;
   flex-direction: column;
-  padding:
-    max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
     max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
   padding-top: max(3.8rem, calc(env(safe-area-inset-top) + 3rem));
   border-right: 1px solid color-mix(in srgb, var(--border-color) 28%, transparent);
@@ -109,7 +111,10 @@
   background: color-mix(in srgb, var(--paper-bg) 88%, var(--background));
   color: var(--text-secondary);
   cursor: pointer;
-  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
 }
 
 .toc-drawer-close:hover {
@@ -180,4 +185,3 @@
     transition: none;
   }
 }
-

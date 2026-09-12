@@ -27,11 +27,7 @@
   height: 0.8rem;
   border: 1px solid var(--accent-blue);
   border-radius: 2px;
-  background: repeating-linear-gradient(
-    135deg,
-    transparent 0 3px,
-    var(--accent-blue) 3px 4px
-  );
+  background: repeating-linear-gradient(135deg, transparent 0 3px, var(--accent-blue) 3px 4px);
 }
 
 .attention-head-grid {

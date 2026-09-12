@@ -1,6 +1,6 @@
-import { Component, inject, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
-import { Router, NavigationEnd, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { ThemeService } from '../../services/theme.service';
 import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
@@ -26,7 +26,7 @@ export class ToolbarComponent {
   showBlogLink = toSignal(
     this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-      map(e => !isBlogList(e.urlAfterRedirects)),
+      map((e) => !isBlogList(e.urlAfterRedirects)),
     ),
     { initialValue: !isBlogList(this.router.url) },
   );
@@ -35,7 +35,7 @@ export class ToolbarComponent {
   onKeydown(event: KeyboardEvent) {
     if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
       event.preventDefault();
-      this.searchOpen.update(v => !v);
+      this.searchOpen.update((v) => !v);
     }
   }
 

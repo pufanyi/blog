@@ -4,9 +4,7 @@
   "cli": {
     "packageManager": "pnpm",
     "analytics": "eeeaee06-3443-498d-988c-c78c56460b63",
-    "schematicCollections": [
-      "angular-eslint"
-    ],
+    "schematicCollections": ["angular-eslint"],
     "cache": {
       "enabled": false
     }
@@ -44,11 +42,7 @@
                 "glob": "**/*",
                 "input": "content/posts",
                 "output": "posts",
-                "ignore": [
-                  "**/*.mdx",
-                  "**/*.bib",
-                  "**/*.tsx"
-                ]
+                "ignore": ["**/*.mdx", "**/*.bib", "**/*.tsx"]
               }
             ],
             "styles": [
@@ -103,10 +97,7 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         }
       }

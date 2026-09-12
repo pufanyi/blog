@@ -1,13 +1,13 @@
 import { NgOptimizedImage } from '@angular/common';
 import {
-  Component,
-  ElementRef,
-  OnDestroy,
   afterNextRender,
   booleanAttribute,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
   input,
+  OnDestroy,
   viewChild,
-  ChangeDetectionStrategy
 } from '@angular/core';
 import mediumZoom, { Zoom } from 'medium-zoom';
 

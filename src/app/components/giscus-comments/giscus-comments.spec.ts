@@ -1,9 +1,9 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { GiscusCommentsComponent, GISCUS_CONFIG, GISCUS_SITE_URL } from './giscus-comments';
-import { ThemeService } from '../../services/theme.service';
 import type { CommentsConfig } from '../../models/config.model';
+import { ThemeService } from '../../services/theme.service';
+import { GISCUS_CONFIG, GISCUS_SITE_URL, GiscusCommentsComponent } from './giscus-comments';
 
 const comments: CommentsConfig = {
   enabled: true,

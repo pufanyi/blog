@@ -62,7 +62,9 @@
   display: inline-flex;
   color: var(--text-color);
   font-size: 24px;
-  transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition:
+    color 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
 }
 
 .profile-summary .icon-link::before,
@@ -73,7 +75,10 @@
   visibility: hidden;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    visibility 0.16s ease;
 }
 
 .profile-summary .icon-link::before {

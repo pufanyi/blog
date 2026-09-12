@@ -7,7 +7,7 @@ export interface HeadingPosition {
 }
 
 export function flattenToc(items: readonly PostTocItem[]): PostTocItem[] {
-  return items.flatMap(item => [item, ...flattenToc(item.children)]);
+  return items.flatMap((item) => [item, ...flattenToc(item.children)]);
 }
 
 export function resolveActiveHeading(
@@ -63,13 +63,13 @@ export class HeadingScrollSpy {
 
     this.article = article;
     const headingsById = new Map(
-      Array.from(article.querySelectorAll<HTMLElement>('h2[id], h3[id]')).map(heading => [
+      Array.from(article.querySelectorAll<HTMLElement>('h2[id], h3[id]')).map((heading) => [
         heading.id,
         heading,
       ]),
     );
     this.headings = flattenToc(tocItems)
-      .map(item => headingsById.get(item.id) ?? null)
+      .map((item) => headingsById.get(item.id) ?? null)
       .filter((heading): heading is HTMLElement => heading !== null);
 
     if (!this.headings.length) {
@@ -96,7 +96,7 @@ export class HeadingScrollSpy {
   }
 
   activate(id: string): void {
-    if (this.headings.some(heading => heading.id === id)) {
+    if (this.headings.some((heading) => heading.id === id)) {
       this.activeHeadingId.set(id);
     }
   }
@@ -162,7 +162,10 @@ export class HeadingScrollSpy {
     );
     const atPageEnd = Math.ceil(window.scrollY + window.innerHeight) >= documentHeight - 2;
     const activeId = resolveActiveHeading(
-      this.headings.map(heading => ({ id: heading.id, top: heading.getBoundingClientRect().top })),
+      this.headings.map((heading) => ({
+        id: heading.id,
+        top: heading.getBoundingClientRect().top,
+      })),
       activationLine,
       atPageEnd,
     );

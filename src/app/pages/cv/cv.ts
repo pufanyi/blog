@@ -1,8 +1,8 @@
-import { Component, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
-import { SectionComponent } from './components/section/section';
+import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';
+import { CV_DATA } from '../../data/cv';
 import { EntryComponent } from './components/entry/entry';
 import { ProfileSummaryComponent } from './components/profile-summary/profile-summary';
-import { CV_DATA } from '../../data/cv';
+import { SectionComponent } from './components/section/section';
 
 @Component({
   selector: 'app-cv-page',

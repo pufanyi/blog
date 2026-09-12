@@ -15,7 +15,9 @@ describe('IcpcPageComponent', () => {
     expect(element.querySelector('h1')?.textContent).toBe('My ICPC Teammates');
     expect(element.querySelectorAll('.teammate-list li')).toHaveLength(6);
     expect(element.querySelectorAll('.teacher-list li')).toHaveLength(3);
-    expect(links.map(link => link.getAttribute('href'))).toContain('https://github.com/Falicitas');
-    expect(links.every(link => link.rel === 'noopener noreferrer')).toBe(true);
+    expect(links.map((link) => link.getAttribute('href'))).toContain(
+      'https://github.com/Falicitas',
+    );
+    expect(links.every((link) => link.rel === 'noopener noreferrer')).toBe(true);
   });
 });

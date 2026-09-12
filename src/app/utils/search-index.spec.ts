@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createSearchIndex } from './search-index';
 import type { SerializedSearchIndex } from '../models/search.model';
+import { createSearchIndex } from './search-index';
 
 describe('mixed-language search index', () => {
   it('matches Chinese words without turning English queries into character matches, including after serialization', async () => {
@@ -29,9 +29,9 @@ describe('mixed-language search index', () => {
     for (const [key, data] of serialized) restored.import(key, data);
     for (const current of [index, restored]) {
       for (const query of ['模型', 'model', 'DIFFUSION 模型']) {
-        expect([...new Set(current.search(query).flatMap(group => group.result))], query).toEqual([
-          0,
-        ]);
+        expect([...new Set(current.search(query).flatMap((group) => group.result))], query).toEqual(
+          [0],
+        );
       }
       expect(current.search('absentword')).toEqual([]);
     }

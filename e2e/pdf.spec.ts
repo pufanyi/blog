@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
   await page.route(
     /https:\/\/(www\.googletagmanager\.com|.*google-analytics\.com|giscus\.app)\//,
-    route => route.fulfill({ body: '', contentType: 'text/javascript' }),
+    (route) => route.fulfill({ body: '', contentType: 'text/javascript' }),
   );
 });
 
@@ -22,7 +22,9 @@ test('two embedded PDFs render independently and follow the article theme', asyn
   const solutions = embeds.nth(1).contentFrame();
   for (let index = 0; index < 2; index++) {
     await embeds.nth(index).scrollIntoViewIfNeeded();
-    await expect(embeds.nth(index).contentFrame().locator('.page[data-page-number="1"] canvas').first()).toBeVisible({ timeout: 30_000 });
+    await expect(
+      embeds.nth(index).contentFrame().locator('.page[data-page-number="1"] canvas').first(),
+    ).toBeVisible({ timeout: 30_000 });
   }
   await expect(problems.locator('app-blog-shell')).toHaveCount(0);
   await expect(solutions.locator('app-blog-shell')).toHaveCount(0);
@@ -42,8 +44,13 @@ test('two embedded PDFs render independently and follow the article theme', asyn
   await expect(problems.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(solutions.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(problems.locator('#pageNumber')).toHaveValue('2');
-  await expect(page.getByRole('link', { name: '查看题目 PDF', exact: true })).toHaveAttribute('href', '/posts/oi-icpc/other-problems/mock-contest-20190307/problem.pdf');
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expect(page.getByRole('link', { name: '查看题目 PDF', exact: true })).toHaveAttribute(
+    'href',
+    '/posts/oi-icpc/other-problems/mock-contest-20190307/problem.pdf',
+  );
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
 
   await page.goBack();
   await expect(page).toHaveURL('/blog');
@@ -62,7 +69,9 @@ test('a slide deck with an outline starts with the sidebar closed', async ({ pag
   const embed = page.locator('iframe.post-pdf');
   await embed.scrollIntoViewIfNeeded();
   const reader = embed.contentFrame();
-  await expect(reader.locator('.page[data-page-number="1"] canvas').first()).toBeVisible({ timeout: 30_000 });
+  await expect(reader.locator('.page[data-page-number="1"] canvas').first()).toBeVisible({
+    timeout: 30_000,
+  });
   const container = reader.locator('#outerContainer');
   await expect(container).not.toHaveClass(/viewsManagerOpen/);
 
@@ -85,15 +94,22 @@ test('the static reader is noindex and rejects non-asset sources', async ({ page
 });
 
 test('failed PDF loads retain a direct file link', async ({ page }) => {
-  await page.route('**/posts/example/missing.pdf', route => route.fulfill({ status: 404, body: '' }));
+  await page.route('**/posts/example/missing.pdf', (route) =>
+    route.fulfill({ status: 404, body: '' }),
+  );
   await page.goto('/pdf-viewer?file=%2Fposts%2Fexample%2Fmissing.pdf');
   const error = page.getByRole('alert');
   await expect(error).toContainText('无法加载 PDF', { timeout: 20_000 });
-  await expect(error.getByRole('link', { name: '打开原文件' })).toHaveAttribute('href', '/posts/example/missing.pdf');
+  await expect(error.getByRole('link', { name: '打开原文件' })).toHaveAttribute(
+    'href',
+    '/posts/example/missing.pdf',
+  );
 });
 
 test('CMYK PDFs load their color profile from the static deployment', async ({ page }) => {
-  const profile = page.waitForResponse(response => response.url().endsWith('/CGATS001Compat-v2-micro.icc'));
+  const profile = page.waitForResponse((response) =>
+    response.url().endsWith('/CGATS001Compat-v2-micro.icc'),
+  );
   await page.goto('/pdf-viewer?file=%2Fposts%2Foi-icpc%2Fother-problems%2Fwf2019-a%2Fa.pdf');
   expect((await profile).status()).toBe(200);
   await expect(page.locator('.page canvas').first()).toBeVisible();

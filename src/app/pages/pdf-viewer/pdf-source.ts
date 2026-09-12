@@ -8,7 +8,8 @@ export function pdfSource(file: string | null): string | null {
       !/^\/(?:posts|assets)\/.+\.pdf$/i.test(url.pathname) ||
       url.search ||
       url.hash
-    ) return null;
+    )
+      return null;
     return url.pathname;
   } catch {
     return null;
