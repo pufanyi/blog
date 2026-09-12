@@ -484,6 +484,14 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   For wording corrections, fix the specific ambiguity without expanding
   familiar basics into a tutorial or adding redundant examples.
 - Use illustrations generously when they make an idea clear at a glance.
-  Prefer diagrams for architectures, data flows, tensor layouts, and comparisons.
-  Keep captions and accompanying prose short and focused on how to read the
-  visual. Follow the existing Post Diagrams conventions for implementation.
+  Make diagrams the primary explanation for model architectures, training flows,
+  tensor layouts, and comparisons. Introduce each major mechanism with a visual
+  that readers can follow before reading its equations: show inputs, intermediate
+  representations, prediction targets, and gradient or parameter-update paths.
+  Use short prose to connect the visual to the problem and explain essential
+  assumptions or tradeoffs; remove prose that merely repeats visible steps.
+  Keep only equations needed to read the mechanism in the main flow, with full
+  objectives, derivations, and implementation refinements in native `<details>`.
+  Preserve rigor and attribution. Prefer actual spatial or data relationships to
+  paragraphs placed inside boxes, and provide meaningful diagram descriptions
+  for Markdown exports and accessible reading. Follow the Post Diagrams conventions.
