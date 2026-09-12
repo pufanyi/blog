@@ -5,6 +5,7 @@ import { SITE_CONFIG } from './data/site-config';
 import type { Post } from './models/post.model';
 import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directories';
 import type { BlogPage } from './utils/blog-pagination';
+import { BLOG_REDIRECTS } from './utils/blog-redirects';
 
 const resolveBlogPage: ResolveFn<BlogPage | null> = route =>
   import('./services/blog-repository').then(module => module.loadBlogPage(route.paramMap.get('page')));
@@ -19,7 +20,7 @@ export const blogRoutes: Routes = [
     resolve: { blogPage: resolveBlogPage }, loadComponent: loadBlogComponent,
   },
   { path: 'page/1', pathMatch: 'full', redirectTo: '/blog' },
-  { path: 'ml/ml-revisit/muon', pathMatch: 'full', redirectTo: '/blog/ml/ml-revisit/optm/muon' },
+  ...BLOG_REDIRECTS.map(redirect => ({ ...redirect, pathMatch: 'full' as const })),
   {
     path: 'page/:page', title: SITE_CONFIG.title,
     data: { description: BLOG_CONFIG.description },

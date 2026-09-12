@@ -1,4 +1,4 @@
-import { Arrow, Box, Figure, Label } from '../../overview/scripts/elements';
+import { Arrow, Box, Figure, Label } from './elements';
 
 const VISIBLE = new Set([0, 3, 9, 14]);
 const PATCHES = Array.from({ length: 16 }, (_, index) => ({

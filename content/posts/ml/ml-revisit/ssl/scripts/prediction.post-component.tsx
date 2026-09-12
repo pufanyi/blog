@@ -1,4 +1,4 @@
-import { Arrow, Box, Figure, Label } from '../../overview/scripts/elements';
+import { Arrow, Box, Figure, Label } from './elements';
 
 const TARGETS = new Set([2, 3, 6, 7]);
 const CONTEXT = new Set([0, 1, 4, 5, 8, 9, 12, 13]);

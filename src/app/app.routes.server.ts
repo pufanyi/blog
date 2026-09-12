@@ -3,6 +3,7 @@ import { POSTS } from './data/posts';
 import { BLOG_CONFIG } from './data/blog-config';
 import { blogPageCount } from './utils/blog-pagination';
 import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directories';
+import { BLOG_REDIRECTS } from './utils/blog-redirects';
 
 export const serverRoutes: ServerRoute[] = [
   {
@@ -29,10 +30,10 @@ export const serverRoutes: ServerRoute[] = [
     path: 'blog/page/1',
     renderMode: RenderMode.Prerender,
   },
-  {
-    path: 'blog/ml/ml-revisit/muon',
-    renderMode: RenderMode.Prerender,
-  },
+  ...BLOG_REDIRECTS.map(redirect => ({
+    path: `blog/${redirect.path}`,
+    renderMode: RenderMode.Prerender as const,
+  })),
   {
     path: 'blog/page/:page',
     renderMode: RenderMode.Prerender,

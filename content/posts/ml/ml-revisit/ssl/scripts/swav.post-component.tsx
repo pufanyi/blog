@@ -1,4 +1,4 @@
-import { Arrow, Box, Figure, Label } from '../../overview/scripts/elements';
+import { Arrow, Box, Figure, Label } from './elements';
 
 function SwappedAssignments() {
   const id = 'ssl-swap';

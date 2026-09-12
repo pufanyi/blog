@@ -443,11 +443,11 @@ Project guidance for agents working in this repository.
 
 These principles apply to the series under `content/posts/ml/ml-revisit/`.
 
-- The visual SSL series lives under `ssl/`, with its reading map in
-  `ssl/overview/index.mdx`. Keep the category root free of `index.mdx`, which
-  would stop recursive article discovery; update the reading map and cross-post
-  links when extending the series. Shared SVG primitives live in
-  `ssl/overview/scripts/elements.tsx` and styles in `styles/media/ssl.css`.
+- The visual SSL overview is one long article at `ssl/index.mdx`, with shared
+  SVG primitives in `ssl/scripts/elements.tsx` and styles in `styles/media/ssl.css`.
+  Its former article and directory URLs redirect through `BLOG_REDIRECTS` in
+  `src/app/utils/blog-redirects.ts`, shared by client routes and prerendering.
+  Keep section anchors stable when reorganizing the article.
 
 - Write for readers with some machine-learning or LLM background who may be
   encountering the specific topic for the first time. The series should support

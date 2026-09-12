@@ -1,4 +1,4 @@
-import { Figure, Label, MathLabel } from '../../overview/scripts/elements';
+import { Figure, Label, MathLabel } from './elements';
 
 const CORNERS = [-1, 1].flatMap(x => [-1, 1].map(y => ({ x, y, mass: 0.25 })));
 const DIRECTION = { x: 1 / Math.sqrt(2), y: 1 / Math.sqrt(2) };
