@@ -197,3 +197,62 @@
     display: block;
   }
 }
+
+.ssl-swav-sky {
+  fill: color-mix(in srgb, var(--accent-sky) 12%, var(--paper-bg));
+}
+.ssl-swav-foliage {
+  fill: color-mix(in srgb, var(--accent-sage) 20%, var(--paper-bg));
+}
+.ssl-swav-branch,
+.ssl-swav-feet {
+  fill: none;
+  stroke: var(--accent-clay);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.ssl-swav-feet {
+  stroke-width: 2;
+}
+.ssl-swav-leaf {
+  fill: var(--accent-sage);
+}
+.ssl-swav-bird {
+  fill: var(--accent-sky);
+}
+.ssl-swav-wing {
+  fill: var(--accent-blue);
+  stroke: var(--paper-bg);
+  stroke-width: 0.7;
+}
+.ssl-swav-breast,
+.ssl-swav-beak {
+  fill: var(--accent-ochre);
+}
+.ssl-swav-eye {
+  fill: var(--text-color);
+}
+.ssl-swav-glint {
+  fill: var(--paper-bg);
+}
+.ssl-swav-crop {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.ssl-swav-dashed {
+  stroke-dasharray: 6 4;
+}
+.ssl-swav-crop-number {
+  fill: var(--text-color);
+  stroke: var(--paper-bg);
+  stroke-width: 3;
+  paint-order: stroke;
+  font: 600 15px var(--font-body);
+}
+.ssl-swav-probability {
+  fill: color-mix(in srgb, var(--accent-teal) 30%, var(--paper-bg));
+}
+.ssl-swav-dot {
+  fill: var(--accent-teal);
+}

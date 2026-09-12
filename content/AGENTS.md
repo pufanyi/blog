@@ -181,6 +181,14 @@ For Jekyll, Hexo, or Typst imports, also read
 
 ## Post diagrams
 
+- Choose figures or prose by explanatory information gained, not by a figure
+  quota. For vision tasks, show concrete inputs and the actual relationship
+  between their crops, masks, or targets. Use flow diagrams for dependencies
+  and supervision, and matrices for allocation or comparison. A figure should
+  make a relationship easier to see than its equivalent prose; boxes containing
+  paragraphs and decorative examples do not meet that test. Keep concise text
+  when it explains an idea better. Follow the ML series' editorial principles
+  for the balance between examples, mechanisms, and equations.
 - Prefer post-local build-time components for authored technical diagrams.
   Put them in `content/posts/<slug>/scripts/*.post-component.tsx`, export them
   through a `POST_COMPONENTS` object, and invoke them directly from MDX.

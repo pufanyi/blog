@@ -363,73 +363,100 @@ SwAV 用一组共享 prototypes 构造这样的目标，DINO 则用一个不断�
 
 ### SwAV：交换两个 view 的聚类分配
 
-SwAV [@caron2020swav] 联合学习 encoder 与一组共享 prototypes。每个 view 先判断自己如何分配到这些 prototypes，再用这份 assignment 监督另一个 view。
+同一只鸟，一份裁剪保留了枝条和身体，另一份更突出头部。两份 view 的像素、位置和可见范围都不同，但我们希望模型仍能把它们联系起来。SwAV（Swapping Assignments between Views）[@caron2020swav] 把这个愿望写成一个任务：**从一份 view，预测另一份 view 在一组共享 prototypes 上的分配。**
+
+<SwAVViews />
+
+先理解这里的 prototype。Encoder 和 projection head 把一份 view 变成归一化向量 $z\in\mathbb R^d$；模型另有 $K$ 个可学习向量 $c_1,\ldots,c_K$，作为表征空间里的共同参照。比较 $z$ 与每个 $c_k$，就得到 $K$ 个相似度分数：
+
+$$
+s_k=c_k^\top z,\qquad
+p_k=\frac{\exp(s_k/\tau)}{\sum_{r=1}^K\exp(s_r/\tau)}.
+$$
+
+这里的 $p$ 是模型对这份 view 的**预测分布**。把 prototypes 按列排成矩阵 $C=[c_1,\ldots,c_K]$，所有 scores 就可以合写为 $s=C^\top z$。Prototype 没有预先指定的「鸟」「猫」类别含义，$K$ 也不必等于语义类别数。它们与 encoder 一起学习，提供的是所有图像共用的比较坐标。两个 view 的向量不必逐坐标相同，但应当能预测对方对这些参照的判断。
+
+训练还需要一个目标分布 $q$，也叫 assignment 或 code。它同样来自 prototype scores，不过要把 **batch 内许多图像的 scores 放在一起**，通过 Sinkhorn 求一个均衡的分配。先把这个步骤看作目标生成器，下一小节再展开它为什么必要。
 
 <SwappedAssignments />
 
-**交换的是 assignment，不是逐坐标匹配两个 projection。** Prototype 是可学习的向量，没有预先指定的「猫」「狗」类别含义。
-
-<details>
-<summary>Prototype scores 与 swapped prediction loss</summary>
-
-设归一化后的图像 projection 为 $z\in\mathbb R^d$，有 $K$ 个 prototype $c_1,\ldots,c_K$，模型预测
-
-$$
-p_k(z)=\frac{\exp(c_k^\top z/\tau)}
-{\sum_{r=1}^K\exp(c_r^\top z/\tau)}.
-$$
-
-Prototype 是表征空间中的可学习向量，没有预先指定「猫」「狗」等含义。它也不等于已知语义类别；多个 prototype 可以表达同一语义的不同变化。
-
-接下来，为 view $1$ 的表征计算 assignment $q^{(1)}$，为 view $2$ 计算 $q^{(2)}$。训练让 view $2$ 预测 $q^{(1)}$，反过来让 view $1$ 预测 $q^{(2)}$：
+读图时，沿交叉的虚线看：$q^{(1)}$ 去监督 $p^{(2)}$，$q^{(2)}$ 去监督 $p^{(1)}$。两项合起来是
 
 $$
 \mathcal L_{\mathrm{swap}}
 =H(\operatorname{sg}(q^{(1)}),p^{(2)})
 +H(\operatorname{sg}(q^{(2)}),p^{(1)}),
-\qquad H(q,p)=-\sum_kq_k\log p_k.
+\qquad H(q,p)=-\sum_{k=1}^K q_k\log p_k.
 $$
 
-**交换的是 assignment，匹配的不是两个 projection 的每个坐标。** 两个 view 即使在外观上不同，也应对共享的 prototypes 给出一致判断。
+例如，假设只有两个 prototypes，view 1 得到目标 $q^{(1)}=(0.9,0.1)$，view 2 却预测 $p^{(2)}=(0.2,0.8)$。第一项 loss 就会推动 view 2 提高第一个 prototype 的概率。它拿不到原图标签，监督来自同一张图的另一种观察。这里的数字只用于说明一次更新，不代表实际训练结果。
 
-</details>
+$\operatorname{sg}$ 表示本次更新把 $q$ 当作固定目标，不沿 Sinkhorn 求导；梯度经过 $p$ 更新 encoder、projection head 和 prototypes。下一步用更新后的参数重新生成 $q$。两份 view 共享这套参数，没有另设 EMA teacher，也不需要先遍历全数据集做一次离线聚类。
 
 ### 为什么需要 balanced assignment
 
-若 assignment 只是随手对当前 scores 做 argmax，所有样本都偏向同一个 prototype 会形成反馈：它越常被选中，就越常成为训练目标。
+如果每张图都独立选分数最高的 prototype，模型很容易陷入自我强化：所有图都选第一个 prototype，它就成为所有图的训练目标。交换 view 并不能阻止这种情况，因为两个 view 完全可以一起输出同一个答案。
 
-SwAV 在整个 batch 上联合平衡分配：每个样本分配一份概率质量，每个 prototype 分到相同的总质量。它约束的是 **batch 的总分配**，不是让每张图输出均匀分布。
+SwAV 为目标分配加入两条约束：**每张图分出一份概率质量，每个 prototype 在 batch 中收到相同的总质量。** 下面用四张图、两个 prototypes 比较三种分配；每行是一张图，格内数字是分配给该 prototype 的质量。
+
+<SwAVBalance />
+
+中间的矩阵说明，均衡约束仍允许每张图有很强的偏好：前两张偏向第一个 prototype，后两张偏向第二个，总量正好各为 $2$。这里均衡的是**列和**，并不要求每行都为 $(0.5,0.5)$。SwAV 保留 soft assignment，因此也不要求把每张图硬塞进唯一一个 cluster。
+
+但右边的矩阵也满足约束。**Balanced assignment 排除了全部挤进一个 prototype，却没有单独排除所有图都输出均匀分布。** 为了在均衡的前提下保留图像间的差异，目标求解还会偏向相似度较高的分配，并用较小的 entropy regularization 控制平滑程度。它与跨 view 预测、数据增强及优化配方共同起作用，不能把均衡约束当成绝不会 collapse 的保证。
 
 <details>
-<summary>Sinkhorn 在这里求什么？</summary>
+<summary>Sinkhorn 如何把 scores 变成均衡的 soft assignment？</summary>
 
-SwAV 在一个 batch 上联合计算 assignment。把 $B$ 个样本的分配写为 $Q\in\mathbb R_+^{B\times K}$，使用每行和为 $1$ 的约定：
+对某一种 global view，把 $B$ 张图的 scores 写成 $S\in\mathbb R^{B\times K}$，其中 $S_{ik}=z_i^\top c_k$。目标矩阵 $Q\in\mathbb R_+^{B\times K}$ 的第 $i$ 行就是该图的 $q_i$。这里采用每行和为 $1$ 的约定：
 
 $$
 \sum_{k=1}^K Q_{ik}=1,\qquad
 \sum_{i=1}^B Q_{ik}=\frac BK.
 $$
 
-第一条表示每个样本分配一份概率质量，第二条要求每个 prototype 分到相同的总质量。它约束的是 **batch 的总分配**，不是要求每张图都输出均匀分布。
-
-令 $S_{ik}=z_i^\top c_k$，SwAV 求解带 entropy regularization 的分配问题：
+满足约束的矩阵有很多，SwAV 选择其中兼顾相似度与熵的一个：
 
 $$
 \max_{Q\ge0}\;
 \sum_{i,k}Q_{ik}S_{ik}+\epsilon H(Q),
-\qquad
-H(Q)=-\sum_{i,k}Q_{ik}\log Q_{ik},
+\qquad H(Q)=-\sum_{i,k}Q_{ik}\log Q_{ik}.
 $$
 
-并满足上面的行、列约束。Sinkhorn-Knopp 迭代交替调整行、列的尺度，让分配逐渐满足这两个边际条件。原论文也常用总质量为 $1$ 的矩阵约定；乘上 $B$ 后就得到这里的写法。
+第一项偏好把质量分给更相似的 prototype；第二项使分配更平滑，$\epsilon$ 越大，越容易趋向均匀分配。这个 $\epsilon$ 控制**目标求解**，前面的 $\tau$ 控制**预测 softmax**，两者作用不同。
 
-训练将得到的 assignment 当作固定目标，通过预测分支更新 encoder 和 prototypes，不需要沿 assignment 求解器反向传播。
+这个带熵正则的 optimal transport 问题可以通过 Sinkhorn-Knopp 迭代求解。先令 $A_{ik}=\exp(S_{ik}/\epsilon)$，再交替缩放列与行：
+
+$$
+A_{ik}\leftarrow A_{ik}\frac{B/K}{\sum_j A_{jk}},
+\qquad
+A_{ik}\leftarrow\frac{A_{ik}}{\sum_r A_{ir}}.
+$$
+
+列缩放把每个 prototype 收到的总质量调到 $B/K$，行缩放恢复每张图的总质量为 $1$；一次缩放通常会扰动另一组约束，所以需要交替迭代。原论文常用总质量为 $1$、形状为 $K\times B$ 的矩阵；转置并乘上 $B$ 就得到这里的约定。官方实现通常只做 $3$ 轮迭代，因此有限步的列和只是近似均衡；上图中间画的是一个精确满足约束的示例，并非声称它是某组 scores 经过三轮迭代的输出。
 
 </details>
 
-Balanced assignment 排除了「整个 batch 全分给一个 prototype」，但本身没有排除每张图都输出相同均匀分布。还需要结合有区分度的 assignment、跨 view 预测以及具体优化配方理解训练。有限 batch 的均衡约束也只是一种训练先验，并不表示真实数据的语义类别频率相同。
+<details>
+<summary>对照官方代码：batch、queue 与训练稳定性</summary>
 
-SwAV 还引入 multi-crop：少数大裁剪配合更多小裁剪，在增加 view 数量的同时控制计算量。局部 view 被要求与更大范围的图像内容建立联系，这个设计后来也进入了 DINO。
+[官方实现的训练与 Sinkhorn 代码](https://github.com/facebookresearch/swav/blob/main/main_swav.py) 可以直接对照图读：先计算各份 crop 的 scores，在 `no_grad` 中为指定 global crops 求 $q$，再让其余 crops 的预测与这个 $q$ 计算 cross-entropy，最后反向传播。
+
+分布式训练中的均衡统计跨 GPU 汇总，不只看某一张卡的本地 batch。小 batch 时还可以加入 queue 中近期图像的特征，用当前 prototypes 重新计算它们的 scores，一起求 assignment；loss 只使用当前 batch 对应的目标。这个 queue 是为了扩大分配时的样本集合。
+
+较大的 $\epsilon$ 可能使目标过于均匀，过小又可能带来数值问题。官方配方还在开头若干步冻结 prototypes，帮助训练稳定；[仓库的 collapse 说明](https://github.com/facebookresearch/swav#common-issues) 讨论了均匀目标这个退化解。均衡是训练先验，不意味着真实数据的语义类别出现频率相同。
+
+</details>
+
+### Multi-crop：让局部观察预测更完整的观察
+
+现在把开头的两份 view 扩展为两份 global crops 加若干 local crops。小裁剪覆盖的区域更少，也缩放到更低的输入分辨率，所以能以较小的额外计算量增加训练视图。下面沿用同一幅鸟的示意图：局部可能只看到头部或身体的一块。
+
+<SwAVMultiCrop />
+
+**只有两份 global crops 产生 assignment，所有 crops 都做预测。** 每个 global target 监督其余 views，跳过产生它自身的那份 crop；local crops 因而要预测两个 global targets。图中只画两个 local crops，数量可以更多。这里预测的是同一张图在 prototypes 上的分配，不是从鸟头恢复整张图的像素。
+
+这个任务鼓励模型把局部与更大范围的内容联系起来，同时依赖一个假设：裁剪之间还保留了可共享的信息。如果 local crop 只剩一片无关背景，这个监督就会变得含糊。Crop 尺度与增强强度因此是任务设计的一部分。下一节的 DINO 也使用 global/local crops，但把目标生成器换成了 EMA teacher。
 
 ### DINO：让 teacher 提供一个分布
 

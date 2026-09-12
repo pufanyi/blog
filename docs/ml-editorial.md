@@ -35,15 +35,19 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   while retaining the intermediate reasoning a first-time reader needs.
   For wording corrections, fix the specific ambiguity without expanding
   familiar basics into a tutorial or adding redundant examples.
-- Use illustrations generously when they make an idea clear at a glance.
-  Make diagrams the primary explanation for model architectures, training flows,
-  tensor layouts, and comparisons. Introduce each major mechanism with a visual
-  that readers can follow before reading its equations: show inputs, intermediate
-  representations, prediction targets, and gradient or parameter-update paths.
-  Use short prose to connect the visual to the problem and explain essential
-  assumptions or tradeoffs; remove prose that merely repeats visible steps.
-  Keep only equations needed to read the mechanism in the main flow, with full
-  objectives, derivations, and implementation refinements in native `<details>`.
-  Preserve rigor and attribution. Prefer actual spatial or data relationships to
-  paragraphs placed inside boxes, and provide meaningful diagram descriptions
+- Choose the medium with the greater explanatory value. Use figures generously
+  where spatial relationships, concrete vision examples, training flows, tensor
+  layouts, or comparisons become clearer visually; do not require a figure for
+  every mechanism. Keep definitions, reasoning, and caveats in prose when that
+  is more direct. Information density means useful relationships a reader can
+  grasp, not the number of labels squeezed into a figure.
+  For vision examples, show what the model actually sees and must predict.
+  Derive related crops or masks from the same scene, mark their source regions,
+  and distinguish illustrative images and values from real model outputs.
+  In training flows, distinguish per-example predictions from batch-computed
+  targets, show which view supervises which prediction, and identify where
+  gradients stop. Use short prose to explain assumptions and what to notice;
+  avoid repeating every visible step. Keep essential equations in the main
+  flow and put longer derivations or implementation refinements in `<details>`.
+  Preserve rigor and attribution, and provide meaningful figure descriptions
   for Markdown exports and accessible reading. Follow the [Post Diagrams conventions](../content/AGENTS.md#post-diagrams).
