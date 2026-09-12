@@ -212,6 +212,108 @@ test.afterEach(async ({ page }) => {
   expect(await page.pageErrors()).toEqual([]);
 });
 
+function deferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
+
+async function interceptSearchEngine(page: Page, beforeResponse: () => Promise<boolean>) {
+  await page.route('**/*.js', async (route) => {
+    if (!route.request().url().startsWith(new URL(page.url()).origin)) return route.fallback();
+    const response = await route.fetch();
+    const body = await response.text();
+    // Identify the engine by its tokenizer and result field, independently of
+    // production chunk hashes. The dialog must load while this response waits.
+    if (body.includes('Intl.Segmenter') && body.includes('matchField')) {
+      if (!(await beforeResponse())) return route.abort('failed');
+    }
+    return route.fulfill({ response, body });
+  });
+}
+
+test('search opens and stays interactive while its index downloads', async ({ page }) => {
+  const requested = deferred();
+  const release = deferred();
+  let engineRequests = 0;
+  await interceptSearchEngine(page, async () => {
+    engineRequests++;
+    requested.resolve();
+    await release.promise;
+    return true;
+  });
+  await page.goto('/');
+  expect(engineRequests).toBe(0);
+  const { trigger, input } = await openSearch(page);
+  await requested.promise;
+  await expect(page.getByRole('status')).toContainText('Loading search');
+  await input.fill('attention');
+  await input.fill('模型');
+  expect(
+    await page
+      .locator('.search-input-wrap')
+      .evaluate((element) => element.scrollWidth <= element.clientWidth),
+  ).toBe(true);
+  await expect(page.getByRole('listbox')).toHaveAttribute('aria-busy', 'true');
+  await expect(page.getByText('No results', { exact: false })).toHaveCount(0);
+  await input.press('Enter');
+  await input.press('Escape');
+  await expect(trigger).toBeFocused();
+  await openSearch(page);
+  await input.fill('模型');
+  release.resolve();
+  await expect(page.getByRole('option').filter({ hasText: diffusion.title })).toBeVisible();
+  await expect(page.getByRole('option').filter({ hasText: vae.title })).toBeVisible();
+  await expect(page.getByRole('listbox')).toHaveAttribute('aria-busy', 'false');
+  await expect(page).toHaveURL('/');
+  await input.press('Escape');
+  await openSearch(page);
+  await input.fill('attention');
+  await expect(page.getByRole('option').first()).toContainText('Attention');
+  expect(engineRequests).toBe(1);
+});
+
+test('Enter during the first download opens the latest query after loading', async ({ page }) => {
+  const release = deferred();
+  await interceptSearchEngine(page, async () => {
+    await release.promise;
+    return true;
+  });
+  await page.goto('/');
+  const { input } = await openSearch(page);
+  await input.fill('attention');
+  await input.press('Enter');
+  await input.fill('Diffusion');
+  await input.press('Enter');
+  release.resolve();
+  await expect(page).toHaveURL(`/blog/${diffusion.slug}`);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+
+test('search offers a page reload after an index download fails', async ({ page }) => {
+  const fail = deferred();
+  let engineRequests = 0;
+  await interceptSearchEngine(page, async () => {
+    if (++engineRequests > 1) return true;
+    await fail.promise;
+    return false;
+  });
+  await page.goto('/');
+  const { input } = await openSearch(page);
+  await input.fill('模型');
+  fail.resolve();
+  await expect(page.getByRole('alert')).toContainText('Search could not load');
+  await page.getByRole('button', { name: 'Reload page' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await openSearch(page);
+  await input.fill('模型');
+  await expect(page.getByRole('option').filter({ hasText: diffusion.title })).toBeVisible();
+  await expect(input).toHaveValue('模型');
+  expect(engineRequests).toBe(2);
+});
+
 test('code inside details keeps its layout, scrolling and copy behavior', async ({
   page,
   context,

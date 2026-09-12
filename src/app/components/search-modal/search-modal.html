@@ -30,11 +30,20 @@
       </button>
     </div>
 
+    @if (failed()) {
+      <div class="search-empty">
+        <p role="alert">Search could not load. Reload the page to try again.</p>
+        <button class="search-reload" type="button" (click)="reload()">Reload page</button>
+      </div>
+    } @else if (loading()) {
+      <div class="search-empty" role="status">Loading search… You can keep typing.</div>
+    }
+
     <!-- The combobox owns keyboard navigation; keep the scrollable list out of the Tab order. -->
-    <div id="search-results" role="listbox" tabindex="-1" aria-label="Search results" class="search-results">
-      @if (query() && results().length === 0) {
+    <div id="search-results" role="listbox" tabindex="-1" aria-label="Search results" [attr.aria-busy]="loading()" class="search-results">
+      @if (!loading() && !failed() && query() && results().length === 0) {
         <div class="search-empty">No results for "{{ query() }}"</div>
-      } @else if (!query()) {
+      } @else if (!loading() && !failed() && !query()) {
         <div class="search-empty">Type to search posts</div>
       } @else {
         @for (result of results(); track result.slug; let i = $index) {

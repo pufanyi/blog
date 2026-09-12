@@ -126,10 +126,17 @@ Project guidance for agents working in this repository.
 - Run formatting and lint checks with `pnpm biome:check`.
 - Apply automatic Biome fixes with `pnpm biome:write`.
 - Generated `POSTS` contains summaries only. Load article HTML/TOC through
-  `loadPost` and the generated per-slug loaders. The serialized search index
-  and plaintext snippets belong to the deferred search modal; avoid importing
-  search services into the eager shell. Assess payloads on served production
-  pages, since CLI initial totals exclude lazy chunks and external scripts.
+  `loadPost` and the generated per-slug loaders. Load the search engine, serialized
+  index and plaintext snippets through a separate dynamic import after the deferred
+  search dialog opens; neither the dialog nor the eager shell should statically
+  import that corpus. Idle prefetch may load the small dialog without initializing
+  the engine. Discard outdated query results after edits or dismissal. Offer a
+  page reload after loading fails: Chromium can cache failed module imports, so
+  calling `import()` again need not retry the network request. Assess payloads on
+  served production pages, since CLI initial totals exclude lazy chunks and external scripts.
+  Measure cold search opening separately from warm queries and result rendering.
+  Include worker requests when measuring search transfers; window resource timing
+  omits those requests and can substantially undercount a worker-based index.
 - Keep article presentation in `PostComponent`, DOM enhancement and cleanup
   in `PostContentDirective`, and TOC interaction in `PostNavigationComponent`.
   Use render hooks and cleanup callbacks rather than retrying DOM queries.

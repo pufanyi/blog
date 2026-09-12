@@ -59,6 +59,7 @@
 
 .search-input-wrap input {
   flex: 1;
+  min-width: 0;
   border: none;
   outline: none;
   background: transparent;
@@ -121,6 +122,21 @@
   text-align: center;
   color: var(--text-secondary);
   font-size: 0.9rem;
+}
+
+.search-reload {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  color: var(--link-color);
+  background: var(--paper-bg);
+  font: inherit;
+  cursor: pointer;
+}
+
+.search-reload:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: 3px;
 }
 
 .search-result-item {

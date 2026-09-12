@@ -75,7 +75,7 @@
   </div>
 </div>
 
-@defer (when searchOpen()) {
+@defer (when searchOpen(); prefetch on idle) {
   @if (searchOpen()) {
     <app-search-modal (closed)="searchOpen.set(false)" />
   }
