@@ -34,11 +34,15 @@ export class SearchModalComponent implements OnDestroy {
   private readonly previousBodyOverscrollBehavior = this.document.body.style.overscrollBehavior;
   private dismissed = false;
   private restoreFocus = true;
+  private requestVersion = 0;
+  private pendingNavigation: number | undefined;
 
   readonly closed = output<void>();
   readonly query = signal('');
   readonly results = signal<SearchResult[]>([]);
   readonly activeIndex = signal(0);
+  readonly loading = signal(true);
+  readonly failed = signal(false);
 
   constructor() {
     afterNextRender(() => {
@@ -46,10 +50,13 @@ export class SearchModalComponent implements OnDestroy {
       this.inputEl().nativeElement.focus();
       this.document.body.style.overflow = 'hidden';
       this.document.body.style.overscrollBehavior = 'contain';
+      void this.updateResults();
     });
   }
 
   ngOnDestroy(): void {
+    this.dismissed = true;
+    this.requestVersion++;
     this.dialog().nativeElement.close();
     this.document.body.style.overflow = this.previousBodyOverflow;
     this.document.body.style.overscrollBehavior = this.previousBodyOverscrollBehavior;
@@ -59,8 +66,37 @@ export class SearchModalComponent implements OnDestroy {
   onInput(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.query.set(value);
-    this.results.set(this.searchService.search(value));
+    if (!this.failed()) void this.updateResults();
+  }
+
+  reload(): void {
+    this.document.defaultView?.location.reload();
+  }
+
+  private async updateResults(): Promise<void> {
+    const version = ++this.requestVersion;
+    const query = this.query();
+    this.pendingNavigation = undefined;
+    this.results.set([]);
     this.activeIndex.set(0);
+    this.failed.set(false);
+    this.loading.set(true);
+    try {
+      await this.searchService.prepare();
+      if (!this.isCurrent(version)) return;
+      const results = await this.searchService.search(query);
+      if (!this.isCurrent(version)) return;
+      this.results.set(results);
+      if (this.pendingNavigation === version && results.length) this.goTo(results[0]);
+    } catch {
+      if (this.isCurrent(version)) this.failed.set(true);
+    } finally {
+      if (this.isCurrent(version)) this.loading.set(false);
+    }
+  }
+
+  private isCurrent(version: number): boolean {
+    return !this.dismissed && version === this.requestVersion;
   }
 
   onKeydown(event: KeyboardEvent): void {
@@ -75,6 +111,9 @@ export class SearchModalComponent implements OnDestroy {
       this.document
         .getElementById(`search-result-${this.activeIndex()}`)
         ?.scrollIntoView({ block: 'nearest' });
+    } else if (event.key === 'Enter' && this.loading() && this.query().trim()) {
+      event.preventDefault();
+      this.pendingNavigation = this.requestVersion;
     } else if (event.key === 'Enter' && length) {
       event.preventDefault();
       this.goTo(this.results()[this.activeIndex()]);
@@ -99,6 +138,7 @@ export class SearchModalComponent implements OnDestroy {
   close(): void {
     if (this.dismissed) return;
     this.dismissed = true;
+    this.requestVersion++;
     this.dialog().nativeElement.close();
     this.closed.emit();
   }
