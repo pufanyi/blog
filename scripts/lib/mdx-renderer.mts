@@ -260,95 +260,99 @@ function postprocessMdxHtml(
   citations: CitationRecord[] = [],
 ) {
   const dom = new JSDOM(`<body>${html}</body>`);
-  const { document } = dom.window;
-  addCitationMetadata(document, citations);
-  repairCollapsedCitationLinks(document, citations);
-  ensureBibliographyHeading(document);
+  try {
+    const { document } = dom.window;
+    addCitationMetadata(document, citations);
+    repairCollapsedCitationLinks(document, citations);
+    ensureBibliographyHeading(document);
 
-  // React 19 may emit image preload hints during static rendering. Angular owns
-  // the document shell, so post content should contain only authored content.
-  for (const preload of document.querySelectorAll('link[rel="preload"][as="image"]')) {
-    preload.remove();
-  }
-
-  for (const code of Array.from(document.querySelectorAll('code.math-inline'))) {
-    const span = document.createElement('span');
-    span.className = 'math-inline';
-    span.textContent = `\\(${code.textContent ?? ''}\\)`;
-    code.replaceWith(span);
-  }
-
-  for (const code of Array.from(document.querySelectorAll('code.math-display'))) {
-    const container = code.parentElement?.tagName === 'PRE' ? code.parentElement : code;
-    const div = document.createElement('div');
-    div.className = 'math-display';
-    div.textContent = `\\[\n${code.textContent ?? ''}\n\\]`;
-    container.replaceWith(div);
-  }
-
-  for (const table of Array.from(document.querySelectorAll('table'))) {
-    if (table.parentElement?.classList.contains('table-wrapper')) continue;
-    const wrapper = document.createElement('div');
-    wrapper.className = 'table-wrapper';
-    table.replaceWith(wrapper);
-    wrapper.append(table);
-  }
-
-  // Keep disclosure spacing off its children: code blocks, tables and nested
-  // disclosures each own their internal padding and borders.
-  for (const details of document.querySelectorAll('details')) {
-    const summary = details.querySelector(':scope > summary');
-    const content = document.createElement('div');
-    content.className = 'details-content';
-    for (const child of Array.from(details.childNodes)) {
-      if (child !== summary) content.append(child);
+    // React 19 may emit image preload hints during static rendering. Angular owns
+    // the document shell, so post content should contain only authored content.
+    for (const preload of document.querySelectorAll('link[rel="preload"][as="image"]')) {
+      preload.remove();
     }
-    details.append(content);
-  }
 
-  for (const image of Array.from(document.querySelectorAll('img'))) {
-    const authoredSrc = image.getAttribute('src')?.trim();
-    if (!authoredSrc) continue;
-    const src = normalizePostImageHref(authoredSrc, slug);
-    const dimensions = getPostImageDimensions(authoredSrc, slug);
-    image.src = src;
-    if (dimensions && (!image.hasAttribute('width') || !image.hasAttribute('height'))) {
-      image.width = dimensions.width;
-      image.height = dimensions.height;
+    for (const code of Array.from(document.querySelectorAll('code.math-inline'))) {
+      const span = document.createElement('span');
+      span.className = 'math-inline';
+      span.textContent = `\\(${code.textContent ?? ''}\\)`;
+      code.replaceWith(span);
     }
-    image.setAttribute('loading', 'lazy');
-    image.setAttribute('decoding', 'async');
-    image.setAttribute('data-zoom-src', src);
-  }
 
-  const postPath = `/blog/${slug.split('/').map(encodeURIComponent).join('/')}`;
-  // Each PDF gets its own document because the viewer uses global DOM IDs.
-  for (const frame of document.querySelectorAll('iframe[src]')) {
-    const src = frame.getAttribute('src')?.trim();
-    if (!src || !/^\/(?:posts|assets)\/[^?#]+\.pdf$/i.test(src)) continue;
-    frame.setAttribute('src', `/pdf-viewer?${new URLSearchParams({ file: src })}`);
-    frame.setAttribute('loading', 'lazy');
-    frame.classList.add('post-pdf');
-  }
-
-  for (const anchor of document.querySelectorAll('a[href^="#"]')) {
-    const href = anchor.getAttribute('href');
-    if (href) {
-      anchor.setAttribute('href', `${postPath}${href}`);
+    for (const code of Array.from(document.querySelectorAll('code.math-display'))) {
+      const container = code.parentElement?.tagName === 'PRE' ? code.parentElement : code;
+      const div = document.createElement('div');
+      div.className = 'math-display';
+      div.textContent = `\\[\n${code.textContent ?? ''}\n\\]`;
+      container.replaceWith(div);
     }
+
+    for (const table of Array.from(document.querySelectorAll('table'))) {
+      if (table.parentElement?.classList.contains('table-wrapper')) continue;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'table-wrapper';
+      table.replaceWith(wrapper);
+      wrapper.append(table);
+    }
+
+    // Keep disclosure spacing off its children: code blocks, tables and nested
+    // disclosures each own their internal padding and borders.
+    for (const details of document.querySelectorAll('details')) {
+      const summary = details.querySelector(':scope > summary');
+      const content = document.createElement('div');
+      content.className = 'details-content';
+      for (const child of Array.from(details.childNodes)) {
+        if (child !== summary) content.append(child);
+      }
+      details.append(content);
+    }
+
+    for (const image of Array.from(document.querySelectorAll('img'))) {
+      const authoredSrc = image.getAttribute('src')?.trim();
+      if (!authoredSrc) continue;
+      const src = normalizePostImageHref(authoredSrc, slug);
+      const dimensions = getPostImageDimensions(authoredSrc, slug);
+      image.src = src;
+      if (dimensions && (!image.hasAttribute('width') || !image.hasAttribute('height'))) {
+        image.width = dimensions.width;
+        image.height = dimensions.height;
+      }
+      image.setAttribute('loading', 'lazy');
+      image.setAttribute('decoding', 'async');
+      image.setAttribute('data-zoom-src', src);
+    }
+
+    const postPath = `/blog/${slug.split('/').map(encodeURIComponent).join('/')}`;
+    // Each PDF gets its own document because the viewer uses global DOM IDs.
+    for (const frame of document.querySelectorAll('iframe[src]')) {
+      const src = frame.getAttribute('src')?.trim();
+      if (!src || !/^\/(?:posts|assets)\/[^?#]+\.pdf$/i.test(src)) continue;
+      frame.setAttribute('src', `/pdf-viewer?${new URLSearchParams({ file: src })}`);
+      frame.setAttribute('loading', 'lazy');
+      frame.classList.add('post-pdf');
+    }
+
+    for (const anchor of document.querySelectorAll('a[href^="#"]')) {
+      const href = anchor.getAttribute('href');
+      if (href) {
+        anchor.setAttribute('href', `${postPath}${href}`);
+      }
+    }
+    const toc = buildTableOfContents(document, postPath);
+    // Export before Shiki transforms annotation comments and adds presentation markup.
+    const markdownHtml = document.body.innerHTML;
+    const renderCode = createCodeRenderer(highlighter);
+    for (const code of Array.from(document.querySelectorAll('pre > code'))) {
+      const pre = code.parentElement;
+      if (!pre) continue;
+      const languageClass = Array.from(code.classList).find((name) => name.startsWith('language-'));
+      const lang = languageClass?.slice('language-'.length) || '';
+      replaceWithHtml(document, pre, renderCode({ text: code.textContent ?? '', lang }));
+    }
+    return { html: document.body.innerHTML, toc, markdownHtml };
+  } finally {
+    dom.window.close();
   }
-  const toc = buildTableOfContents(document, postPath);
-  // Export before Shiki transforms annotation comments and adds presentation markup.
-  const markdownHtml = document.body.innerHTML;
-  const renderCode = createCodeRenderer(highlighter);
-  for (const code of Array.from(document.querySelectorAll('pre > code'))) {
-    const pre = code.parentElement;
-    if (!pre) continue;
-    const languageClass = Array.from(code.classList).find((name) => name.startsWith('language-'));
-    const lang = languageClass?.slice('language-'.length) || '';
-    replaceWithHtml(document, pre, renderCode({ text: code.textContent ?? '', lang }));
-  }
-  return { html: document.body.innerHTML, toc, markdownHtml };
 }
 
 export async function renderMdx(

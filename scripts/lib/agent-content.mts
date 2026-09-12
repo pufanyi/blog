@@ -1,11 +1,10 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
 import type { SiteConfig } from '../../src/app/models/config.model';
 import type { CvData } from '../../src/app/models/cv.model';
 import type { PostSummary } from '../../src/app/models/post.model';
 import { blogDirectoryPath, buildBlogDirectories } from '../../src/app/utils/blog-directories';
 import { comparePostsByPublication } from '../../src/app/utils/blog-pagination';
 import { htmlToAgentMarkdown } from './agent-markdown.mts';
+import { publishGeneratedFiles } from './generated-files.mts';
 
 export interface AgentPost extends PostSummary {
   markdownHtml: string;
@@ -152,10 +151,5 @@ export function buildAgentFiles(
 
 /** Write only into the dedicated generated asset directory, pruning removed/draft posts. */
 export function writeAgentFiles(directory: string, files: Map<string, string>): void {
-  rmSync(join(directory, 'blog'), { recursive: true, force: true });
-  for (const [path, content] of files) {
-    const filename = join(directory, path);
-    mkdirSync(dirname(filename), { recursive: true });
-    writeFileSync(filename, content);
-  }
+  publishGeneratedFiles([{ directory, files }]);
 }
