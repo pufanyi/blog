@@ -54,13 +54,9 @@ These YAML files are read at build time. Field names, value types, and page-size
 constraints are validated. Write booleans as unquoted `true` or `false`.
 Unknown settings produce an error identifying the file and field.
 
-If the development server is already running, run:
-
-```bash
-pnpm generate:data
-```
-
-Wait for the development server to finish compiling, then refresh the page.
-`pnpm start`, `pnpm check`, `pnpm test`, and `pnpm build` also generate the data
-automatically. Run `pnpm build` again before deploying.
+`pnpm start` and `pnpm watch` regenerate these files automatically on save.
+Wait for compilation, then refresh the page. Invalid edits retain the last
+successful preview and report the offending field. Use `pnpm generate:data`
+for a one-off refresh. Check, test, and build also generate content; run
+`pnpm build` again before deploying.
 The generated files under `src/app/data/*-config.ts` should not be edited by hand.

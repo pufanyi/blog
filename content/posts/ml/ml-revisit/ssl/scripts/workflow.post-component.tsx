@@ -124,7 +124,7 @@ function SimCLRBatch() {
         选第一行作 anchor：提高同图另一 view 相对于其余候选的概率
       </Label>
       <Label x={330} y={330} note>
-        棕框：当前 anchor 行　　绿色 +：positive　　空白格：negatives
+        棕框：当前 anchor 行&#x3000;&#x3000;绿色 +：positive&#x3000;&#x3000;空白格：negatives
       </Label>
       <Label x={330} y={350} note>
         矩阵表示候选关系，不是训练得到的相似度数值

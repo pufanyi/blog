@@ -8,7 +8,7 @@ prerendered routes, and a shared Morandi theme.
 Use the Node version in `.nvmrc` and pnpm version in `package.json`.
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm start
 ```
 
@@ -19,14 +19,15 @@ directories such as `/blog/contents/oi-icpc` list their immediate folders and
 posts. `/blog/contents` is the root directory. Folder dates use the latest
 descendant article's publication `date`, ignoring `updated`.
 `/blog` remains the paginated archive.
-See `AGENTS.md` for content conventions.
-`pnpm generate:data` rebuilds derived data, and also runs before start, build,
-test, and check commands.
+See [content/AGENTS.md](content/AGENTS.md) for content conventions.
+`pnpm start` watches MDX, YAML, assets, and post-local components automatically.
+The generator caches unchanged articles and preserves identical output files.
+`pnpm generate:data` refreshes once; build, test, and check also generate data.
 
 Site settings live in [`configs/`](configs/README.md): archive page size and
 display options, site metadata and citation authorship, footer, comments, and
-redirects. The default archive page size is 10. After editing YAML while the
-development server is running, run `pnpm generate:data` to refresh the app.
+redirects. The default archive page size is 10. The running
+development watcher refreshes the app after YAML edits.
 
 Node tooling and executable configuration use `.mts`; Angular/shared code uses
 `.ts`, and authored JSX uses `.tsx`. Standalone scripts run directly on Node 24.
@@ -75,7 +76,7 @@ export, and writes the Worker entry outside the public asset directory.
 Agents can request the generated Markdown directly at the original page URL:
 
 ```bash
-curl -H 'Accept: text/markdown' http://127.0.0.1:8787/blog/cf77c
+curl -H 'Accept: text/markdown' http://127.0.0.1:8787/blog/oi-icpc/codeforces/cf77c
 ```
 
 Home and CV requests return `/profile.md`, blog archive pages return
@@ -123,19 +124,24 @@ Subscribe through the footer links or discover the feeds in HTML metadata and
 ```bash
 pnpm check
 pnpm test --watch=false
-pnpm exec playwright install chromium
+pnpm exec playwright install --with-deps chromium webkit
 pnpm test:e2e
 ```
 
-`check` runs tooling formatting, content/tooling and browser-test typechecks,
-Angular lint, and MDX/BibTeX checks. Unit tests cover content rendering and Angular
+`check` runs source formatting, Angular application/strict-template compilation,
+content/tooling and browser-test typechecks, full-source ESLint, and MDX/BibTeX checks. Unit tests cover content rendering and Angular
 behavior. `test:e2e` builds production output and tests desktop/mobile Chromium:
 search keyboard/focus behavior, Chinese queries, route metadata, scroll/history,
 TOC anchors, prerendered 404 behavior, and deferred network loading.
 The Cloudflare project verifies HTTP discovery and content negotiation against
 the local Worker, including all published Markdown exports and missing routes.
 
-Browser tests simulate delayed MathJax layout and stub analytics/comments so
-third-party outages do not determine CI results. Inspect the served site with
-real MathJax after changing formula rendering. CI runs the same validation and
-uploads Playwright reports, screenshots, and traces on failure.
+Focused reading tests simulate delayed MathJax layout; separate real-engine
+tests use pinned MathJax, fonts, and speech-worker assets in Chromium and WebKit.
+WebKit also checks search focus/navigation. Analytics/comments are stubbed.
+Served-route and cold-search resource budgets include worker requests. CI retains
+resource reports and diagram captures on success, plus full failure diagnostics.
+
+See [development](docs/development.md), [architecture](docs/architecture.md),
+[dependency policy](docs/dependencies.md), and the completed
+[maintenance task list](docs/maintenance/tasks.md) for contracts and evidence.
