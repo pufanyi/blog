@@ -47,8 +47,6 @@ $$
 | [JEPA：在表征空间里预测](#jepa) | 能否跳过难以预测的像素细节？ | I-JEPA、V-JEPA、V-JEPA 2/2.1 |
 | [LeJEPA 与 SIGReg](#lejepa) | 能否直接规定表征分布，让避免 collapse 的目标更明确？ | LeJEPA、随机投影、Gaussian matching |
 
-第一次读，可以按正文顺序理解这些机制；回顾时可以直接跳到相应章节。LeJEPA 一节会用到 VICReg 的分布约束思路，以及 JEPA 在特征空间构造预测任务的动机。
-
 <h2 id="contrastive-learning">Contrastive learning：SimCLR 与 MoCo</h2>
 
 没有类别标签时，我们仍然知道两次随机增强是否来自同一张图。Contrastive learning 把这个关系变成一个分类问题：给定一个 view，从一组候选中找出同一张图的另一个 view。SimCLR [@chen2020simclr] 和 MoCo [@he2020moco] 用的都是这个思路，主要区别在于**候选来自哪里，以及候选的表征怎样保持一致**。
