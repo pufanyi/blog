@@ -1,8 +1,15 @@
+import { createMathWorker } from './mathjax-worker';
+
 interface MathJaxApi {
   tex?: { inlineMath: string[][]; displayMath: string[][] };
-  startup?: { typeset?: boolean; promise?: Promise<unknown> };
+  startup?: {
+    typeset?: boolean;
+    promise?: Promise<unknown>;
+    adaptor?: { createWorker: typeof createMathWorker };
+  };
   typesetPromise?: (elements: HTMLElement[]) => Promise<unknown>;
   typesetClear?: (elements: HTMLElement[]) => void;
+  whenReady?: (action: () => void) => Promise<void>;
 }
 
 declare global {
@@ -35,8 +42,11 @@ function loadMathJax(): Promise<MathJaxApi> {
     script.onload = () => {
       const api = window.MathJax;
       void Promise.resolve(api?.startup?.promise).then(() => {
-        if (api?.typesetPromise) resolve(api);
-        else fail(new Error('MathJax did not initialize'));
+        if (api?.typesetPromise) {
+          // MathJax 4.1.3 revokes its worker URL before WebKit can load it.
+          if (api.startup?.adaptor) api.startup.adaptor.createWorker = createMathWorker;
+          resolve(api);
+        } else fail(new Error('MathJax did not initialize'));
       }, fail);
     };
     document.head.appendChild(script);

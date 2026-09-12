@@ -4,22 +4,27 @@ import {
   type SearchDocument,
   type SearchField,
   type SearchResult,
+  type SerializedSearchIndex,
 } from '../models/search.model';
 import { createSearchIndex, searchTerms } from './search-index';
 
 export class SearchEngine {
   private readonly index = createSearchIndex();
-  private readonly documents = new Map(SEARCH_DOCUMENTS.map((document) => [document.id, document]));
+  private readonly documents: Map<number, SearchDocument>;
 
-  constructor() {
-    for (const [key, data] of SEARCH_INDEX) this.index.import(key, data);
+  constructor(
+    documents: SearchDocument[] = SEARCH_DOCUMENTS,
+    serialized: SerializedSearchIndex = SEARCH_INDEX,
+  ) {
+    this.documents = new Map(documents.map((document) => [document.id, document]));
+    for (const [key, data] of serialized) this.index.import(key, data);
   }
 
   search(query: string): SearchResult[] {
     const q = query.trim();
     if (!q || !searchTerms(q).length) return [];
     const seen = new Map<number, { field: SearchField; document: SearchDocument }>();
-    for (const group of this.index.search(q, { limit: SEARCH_DOCUMENTS.length })) {
+    for (const group of this.index.search(q, { limit: this.documents.size })) {
       const field = SEARCH_FIELDS.find((candidate) => candidate === group.field);
       if (!field) continue;
       for (const id of group.result) {

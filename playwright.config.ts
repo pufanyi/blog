@@ -25,12 +25,18 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
+      testIgnore: 'webkit.spec.ts',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
     },
     {
       name: 'mobile',
-      testIgnore: 'performance.spec.ts',
+      testIgnore: ['performance.spec.ts', 'webkit.spec.ts'],
       use: { ...devices['Pixel 7'], defaultBrowserType: 'chromium' },
+    },
+    {
+      name: 'webkit',
+      testMatch: ['rendering.spec.ts', 'webkit.spec.ts'],
+      use: { browserName: 'webkit', viewport: { width: 390, height: 844 } },
     },
     {
       name: 'cloudflare',

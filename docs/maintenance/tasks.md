@@ -8,7 +8,7 @@ Work proceeds in dependency order. Every item includes implementation and its ta
 - [x] T4 — Maintainability: article-local styles/controllers with one lifecycle contract.
 - [x] T5 — Sustainable authoring: dependency-aware incremental generation, watching, and validated Angular caching.
 - [x] T6 — Performance: enforce served-route and cold-search resource budgets; measure improvements.
-- [ ] T7 — Test quality: lifecycle/failure cases, real MathJax, representative WebKit regressions, and focused E2E organization.
+- [x] T7 — Test quality: lifecycle/failure cases, real MathJax, representative WebKit regressions, and focused E2E organization.
 - [ ] T8 — Documentation/integration: scoped instructions, clear operator workflow, complete checks/unit/browser validation.
 
 ## Validation record
@@ -40,3 +40,7 @@ Angular caching initially reproduced a SQLite binary-serialization failure, incl
 ### T6 — Complete
 
 Production browser tests now constrain complete first-party program resources, HTML, inline styles, and cold-search resources with 10% headroom from measured baselines. Context-level response tracking includes workers; warm queries must add no resources. Per-request JSON reports and separate open/cold-ready/warm-query timings are retained. CF551C inline CSS fell 37.2%, HTML 28.1%, and program resources 5.3% against the audit. Home/search growth after merged content/toolchain changes is reported explicitly in [performance.md](performance.md). Checks, 129 unit tests, and 17 focused browser tests passed, including the blocked/failed search-download scenarios.
+
+### T7 — Complete
+
+The large browser spec is split into navigation, reading, metadata, and search, with shared setup in fixtures. Controlled unit cases cover search ranking/snippets, clipboard rejection/disposal, image-view release, and citation-preview teardown. Real pinned MathJax, fonts, speech workers, and rules are exercised in Chromium and WebKit, including SVG labels and both themes/widths. This exposed and fixed early Blob-URL revocation in MathJax's WebKit worker startup; see [mathjax-webkit.md](mathjax-webkit.md). CI installs matching WebKit and retains resource JSON and diagram captures on successful runs too. Checks, all 138 unit tests, production build, and all 72 browser tests passed (2 intentional Cloudflare-only duplicate skips). Actual WebKit narrow/desktop captures were inspected; these are diagnostic artifacts rather than pixel baselines.
