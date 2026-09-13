@@ -24,17 +24,10 @@
         "deployment.md",
         "documentation.md",
         "dependencies.md",
-        "browser-troubleshooting.md"
-      ]
-    },
-    {
-      "title": "Maintenance records",
-      "pages": [
-        "maintenance/tasks.md",
+        "browser-troubleshooting.md",
         "maintenance/performance.md",
         "maintenance/angular-cache.md",
-        "maintenance/mathjax-webkit.md",
-        "audits/2026-09-12-maintainability.md"
+        "maintenance/mathjax-webkit.md"
       ]
     }
   ]

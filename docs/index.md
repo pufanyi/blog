@@ -22,14 +22,10 @@ Follow [local development](development.md) to install the pinned toolchain and s
 | Article assets, `styles.css`, and `scripts/` | Images, diagrams, and interactive examples | Authors and developers |
 | `content/cv.yaml` | Profile and CV content | Authors |
 | `configs/` | Site, archive, comments, and redirect settings | Maintainers |
-| `docs/` | This handbook and maintenance records | Everyone changing the project |
+| `docs/` | The author and developer handbook | Everyone changing the project |
 | `src/app/` excluding `data/` | Angular routes, components, and browser behavior | Developers |
 | `scripts/` | Content generation, validation, and deployment preparation | Developers |
 | `src/app/data/`, `.generated/`, and `dist/` | Generated modules, exports, and production output | Build tools only |
-
-## Reading maintenance records
-
-The [ordered maintenance tasks](maintenance/tasks.md) explain the completed six-dimension review and its validation. The [original audit](audits/2026-09-12-maintainability.md) is a historical snapshot: its findings describe the code before those fixes. Use the current developer guides for present behavior and the records to understand decisions, measurements, and known tradeoffs.
 
 ## Documentation and changes
 

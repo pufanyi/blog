@@ -38,3 +38,15 @@ phases, and attaches it to the Playwright report. When a budget fails, inspect
 those requests before changing the baseline. Explain intentional growth in the
 change description; do not raise all budgets because one article grows. Keep
 unrelated diagram styles out of this representative article.
+
+## Long article runtime
+
+Payload budgets do not measure the browser's formula-processing or scrolling
+cost. When reviewing math-heavy articles, also use the real pinned MathJax engine
+and distinguish startup tasks, settled scrolling, and work deferred until a
+section becomes visible. An engine download being lazy does not mean its
+per-article typesetting is lazy. Closed disclosures can still incur that work.
+
+Real-engine rendering tests check correctness; they do not currently enforce
+long-article runtime budgets. Record runtime measurements with their tested
+revision and conditions before using them to justify an optimization.

@@ -45,8 +45,7 @@ instead of accumulating unrelated rules here.
   hosting: [architecture and contracts](docs/architecture.md).
 - Dependency/configuration exceptions: [dependency policy](docs/dependencies.md).
 - Browser setup problems: [local troubleshooting](docs/browser-troubleshooting.md).
-- Historical findings and completion evidence: [audit](docs/audits/2026-09-12-maintainability.md)
-  and [ordered maintenance tasks](docs/maintenance/tasks.md).
+- Agent investigations, plans, and completion evidence: [agent records](.agents/docs/README.md).
 
 ## Essential boundaries
 
@@ -61,6 +60,12 @@ instead of accumulating unrelated rules here.
   events, views, observers, and timers on navigation, including late imports.
 - Assess performance on served production routes, including lazy/worker
   requests. Keep the resource budgets and real MathJax/WebKit regressions.
+- For math-heavy articles, measure real-engine startup and scrolling separately.
+  Payload budgets stub MathJax; lazy output can move stalls into scrolling.
+  See the [runtime investigation](.agents/docs/audits/2026-09-13-long-article-performance.md).
+- Review long articles through the complete reading journey: navigation, text,
+  continuity, media, and responsiveness. Keep runtime findings within the
+  [reading design](.agents/docs/maintenance/long-article-reading.md), not as its substitute.
 
 ## Tutorial writing principles
 
@@ -74,6 +79,11 @@ instead of accumulating unrelated rules here.
   Connect the objective, mathematical quantities, and actual training or
   inference steps. Use a concrete worked example across these connections
   when it makes the reasoning easier to follow.
+  Before introducing a new formalism, work through the operation it represents:
+  what changes, what should be preserved, and why the proposed correction works.
+  In tutorial prose, derive the formula from that goal and those constraints
+  before presenting it as a result. Integrate the motivation into the derivation;
+  avoid announcing an unexplained formula and adding a separate justification later.
 - Derive essential results once, explain their meaning, and refer back to them
   later. Preserve assumptions, equations, tradeoffs, and practical implications;
   put lengthy derivations and implementation refinements in `<details>` when
@@ -96,9 +106,13 @@ instead of accumulating unrelated rules here.
 - Treat `docs/` as the human-facing source of truth, published at `/docs`. Update
   the relevant page in the same change as code, configuration, commands, tests,
   or authoring contracts. Use the [ownership map](docs/documentation.md#where-to-update).
+- Keep durable agent rules in the relevant `AGENTS.md`. Store detailed agent
+  audits, plans, handoffs, and validation records in `.agents/docs/`, linked from
+  its index. These records stay outside `docs/` and its public navigation.
 - Review the owning guide even for internal refactors; explain in the change
   description when the documented contract is unchanged. Do not add meaningless
   documentation edits simply to satisfy a file-touch checklist.
 - Register every handbook Markdown file in `docs/navigation.json`. Keep one
   source of prose, relative links, and stable headings; generation validates
-  local document links and anchors. Preserve dated records as historical evidence.
+  local document links and anchors. Preserve dated agent records as historical
+  evidence in `.agents/docs/`.

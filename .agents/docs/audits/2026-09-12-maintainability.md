@@ -66,8 +66,8 @@ P1 means the next maintenance iteration; P2 means a subsequent focused improveme
 
 Evidence:
 
-- [`PostComponent`](../../src/app/pages/post/post.ts), starting at line 38, registers every article stylesheet. Fifteen files under `styles/media/` contain 55,227 source bytes of article-specific CSS.
-- [`PostContentDirective`](../../src/app/directives/post-content.ts), line 58, knows about the FlashAttention selector and controller import directly.
+- [`PostComponent`](../../../src/app/pages/post/post.ts), starting at line 38, registers every article stylesheet. Fifteen files under `styles/media/` contain 55,227 source bytes of article-specific CSS.
+- [`PostContentDirective`](../../../src/app/directives/post-content.ts), line 58, knows about the FlashAttention selector and controller import directly.
 - The FlashAttention model and player live in `src/app/utils/flash-forward`, while their authored markup lives under the article tree. This shares the numerical source of truth, but places an article feature inside the general application source tree.
 - `collective-op/scripts/collectives.post-component.tsx` and `infra-tp/scripts/collectives.post-component.tsx` are byte-for-byte identical, 535-line files. `infra-tp/index.mdx` does not invoke the exported component. The component loader still imports every matching entrypoint in an article's scripts directory.
 - In the last 80 commits ending at the audited commit, `PostComponent` changed in 14 commits. This is a change-frequency observation, not proof that every change was unnecessary.
@@ -82,12 +82,12 @@ Acceptance criteria: adding an isolated article diagram/controller does not requ
 
 Evidence:
 
-- [`scripts/build-posts.mts`](../../scripts/build-posts.mts), lines 41–56, deletes and rebuilds the article output directory and unconditionally writes article modules.
+- [`scripts/build-posts.mts`](../../../scripts/build-posts.mts), lines 41–56, deletes and rebuilds the article output directory and unconditionally writes article modules.
 - The same generator recompiles all articles, rebuilds the complete search index, and emits all Markdown/feed exports.
-- [`package.json`](../../package.json), lines 6–16 and 30–32, runs generation before check, test, build, start, and E2E's build.
+- [`package.json`](../../../package.json), lines 6–16 and 30–32, runs generation before check, test, build, start, and E2E's build.
 - A measured no-change run took 16.296 seconds and rewrote all 227 outputs while changing none of their contents.
 - `start` and `watch` generate once, then watch Angular output; they do not watch authored MDX/BibTeX/YAML inputs themselves. The README correctly tells authors to invoke generation manually for configuration edits.
-- [`angular.json`](../../angular.json), lines 10–11, disables Angular's persistent cache. Git history shows this setting was introduced alongside a PDF hydration test fix, without a documented cache-specific reason in that change.
+- [`angular.json`](../../../angular.json), lines 10–11, disables Angular's persistent cache. Git history shows this setting was introduced alongside a PDF hydration test fix, without a documented cache-specific reason in that change.
 
 This increases filesystem events and unnecessary work during editing. A later generation error can also leave a partially updated set of derived artifacts because publication is not transactional. That partial-state risk was inferred from the write order; it was not reproduced as a production incident.
 
@@ -106,7 +106,7 @@ Acceptance criteria: a no-change generation preserves output mtimes; editing one
 
 Evidence:
 
-- [`biome.json`](../../biome.json), lines 3–4, includes only tooling `.mts` and two configuration files. Its linter is disabled at lines 18–19. `biome check .` is therefore not repository-wide code linting or formatting.
+- [`biome.json`](../../../biome.json), lines 3–4, includes only tooling `.mts` and two configuration files. Its linter is disabled at lines 18–19. `biome check .` is therefore not repository-wide code linting or formatting.
 - Angular lint targets only `src/**/*.ts` and `src/**/*.html` in `angular.json`, lines 103–109.
 - ESLint's TypeScript configuration matches `**/*.ts`, not `.mts` or `.tsx`. `eslint --print-config` returned `undefined` for both `scripts/build-posts.mts` and a post-local TSX helper.
 - The strict content typecheck is valuable, but it does not substitute for semantic linting. The post components, script code, E2E files, and CSS do not receive a common consistent formatting gate.

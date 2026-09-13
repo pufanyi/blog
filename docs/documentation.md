@@ -28,7 +28,7 @@ An internal refactor with unchanged contracts may need no prose change. Review t
 4. Link the new guide from its related guide or landing page. Keep one topic per page and avoid copying existing explanations.
 5. Run `pnpm generate:data`, inspect `/docs/<path-without-md>`, then run the relevant checks. A route or rendering change also needs a production build and browser tests.
 
-Existing maintenance reports remain under their original filenames. Treat dated audits and completed task records as historical evidence; correct current guides when behavior changes. Do not rewrite an old measurement to imply it was measured on new code.
+The published handbook contains current guidance for authors and developers. Keep agent audits, implementation plans, handoffs, and validation records in `.agents/docs/`, with an entry in that directory's index and an entry point from `AGENTS.md`. Keep durable agent rules in the relevant `AGENTS.md`. Preserve dates and measurement scope when moving historical records; they do not describe later code unless verified again.
 
 ## Rendering and links
 

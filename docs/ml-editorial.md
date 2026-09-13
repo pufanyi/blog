@@ -47,7 +47,13 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   and how the mechanism works. Connect the reasoning steps and explain what
   equations mean, so a first-time reader can follow the argument.
   Establish the problem, then introduce each prerequisite before using it in
-  the mechanism. Do not add a heading for every reasoning step. Keep long
+  the mechanism. Introduce new formalisms through concrete operations: explain
+  what changes, what should be preserved, and how a proposed correction achieves
+  that. Naming the operation or citing an identity is not a substitute for this
+  connection. Let the goal and constraints lead to the equation before presenting
+  it as a result; integrate the motivation into the derivation instead of appending
+  a separate explanation after an unexplained formula. Do not add a heading for
+  every reasoning step. Keep long
   derivations and implementation refinements in native `<details>` when they
   would interrupt the main explanation.
 - Preserve substantial technical content and rigor: mechanisms, assumptions,

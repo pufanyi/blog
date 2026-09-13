@@ -147,5 +147,5 @@ Served-route and cold-search resource budgets include worker requests. CI retain
 resource reports and diagram captures on success, plus full failure diagnostics.
 
 See [development](docs/development.md), [architecture](docs/architecture.md),
-[dependency policy](docs/dependencies.md), and the completed
-[maintenance task list](docs/maintenance/tasks.md) for contracts and evidence.
+[dependency policy](docs/dependencies.md), and [testing](docs/testing.md) for
+current contracts and validation workflows.

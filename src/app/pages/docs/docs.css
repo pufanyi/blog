@@ -19,6 +19,18 @@
   font-size: 0.9rem;
 }
 
+.docs-sidebar,
+.docs-mobile-menu nav {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--overlay-color) 55%, transparent) transparent;
+  scrollbar-gutter: stable;
+}
+
+.docs-sidebar:is(:hover, :focus-within),
+.docs-mobile-menu nav:is(:hover, :focus-within) {
+  scrollbar-color: var(--overlay-color) transparent;
+}
+
 .docs-home {
   font-family: var(--font-heading);
   font-size: 1.15rem;

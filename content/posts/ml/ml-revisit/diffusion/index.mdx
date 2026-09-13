@@ -380,58 +380,162 @@ $$
 
 ## ODE and SDE Sampling
 
-现在已经能学习 velocity 或 score，接下来要把它们用于采样。ODE 从初始 noise 出发，沿 velocity field 走到终点；给定这个初值，后续运动就确定了。
+前面已经学到了 velocity $u_t(x)$：给定当前状态和时间，它告诉我们样本应该怎样移动。现在的问题是，**生成时，每一步一定要完全按照这个方向走吗？如果再加一点随机扰动，还能得到同样的数据分布吗？**
 
-如果希望在中途保留随机探索，可以让每一步既沿一个方向移动，又加入新的 noise。这种连续时间模型叫 SDE：
+### Starting from a sampling step
+
+先看已经熟悉的 Euler update。把从 $t$ 到 $t+h$ 的时间间隔记为 $h$，一次更新是
 
 $$
-\mathrm dX_t=b_t(X_t)\,\mathrm dt+g_t\,\mathrm dW_t.
+x_{t+h}=x_t+h\,u_t(x_t).
 $$
 
-$b_t$ 是 drift，决定平均移动方向；$g_t$ 控制随机扰动的强度。$W_t$ 是 Brownian motion，也叫 Wiener process。长度为 $h$ 的时间增量满足
+假设 $x_t=2$，网络在这里给出的 velocity 是 $-1$，步长 $h=0.1$，那么下一状态就是 $1.9$。固定输入后重复这一步，答案总是相同的。ODE 生成的多样性来自一开始抽取的 noise；后面怎样走，由初值和 velocity field 决定。
+
+也可以让下一状态不再是唯一的 $1.9$，而是从它附近随机抽取。实现上，只需额外采样一个独立的标准 Gaussian noise：
+
+$$
+x_{t+h}=x_t+h\,u_t(x_t)+\sigma_{\mathrm{step}}\xi,
+\qquad \xi\sim\mathcal N(0,I).
+$$
+
+例如 $\sigma_{\mathrm{step}}=0.2$ 时，一维的下一状态服从 $\mathcal N(1.9,0.2^2)$。每一步都重新抽取 $\xi$，同一个初值就能走出不同的路线。后面的 RL post-training 会利用这种随机性，尝试不同的后续生成结果。
+
+但是，**改变一个 sample 的走法，也可能改变所有 samples 最后形成的分布。** 原来的 $u_t$ 已经负责把 noise 搬运成 data；直接在它上面叠加 noise，并不能保证仍然到达原来的目标。先用一个简单例子看清楚这个问题。
+
+### Adding noise changes the distribution
+
+暂时不做 noise 到图片的变换，考虑一个更容易检查的目标：已有一批 $X\sim\mathcal N(0,1)$ 的样本，希望它们随机动一动后，整体仍然服从 $\mathcal N(0,1)$。这里用 $X$ 表示随机变量，$x$ 表示一次具体取值；讨论 $X$ 的分布，就是讨论大量这样的取值整体如何分布。
+
+如果给每个样本都加上独立 noise $0.6\xi$，得到
+
+$$
+X'=X+0.6\xi,\qquad
+\operatorname{Var}(X')=1+0.6^2=1.36.
+$$
+
+虽然 noise 的均值为零，正负扰动平均起来会抵消，但**方差会相加**。所以均值仍然是 $0$，分布却变宽了。这就是“noise 把样本散开”的具体含义。
+
+为了给新增的 $0.36$ 方差留出空间，可以先把原有样本乘以 $0.8$：它们朝均值 $0$ 收缩，方差变成 $0.8^2=0.64$。再加上刚才的 noise：
+
+$$
+X'=0.8X+0.6\xi,\qquad
+\operatorname{Var}(X')=0.64+0.36=1.
+$$
+
+这时 $X'$ 仍然是 Gaussian，均值和方差也都没变，因此确实仍服从 $\mathcal N(0,1)$。单个样本的位置变了，整个分布却保持不变。
+
+<DiffusionNoiseBalance />
+
+这个例子说明了需要配合的两种作用：**随机扰动把分布摊开，确定性的移动补偿这部分变化。** 只加 noise 会越来越散；只向均值收缩，又会让样本越来越集中。
+
+### From this example to a score correction
+
+上面的 $0.8$ 和 $0.6$ 是为了方便看清两份方差。要把更新做成许多小步，先规定一个长度为 $h$ 的时间间隔新增 $h$ 的 noise variance，即加上 $\sqrt h\,\xi$。相应地，在这个标准 Gaussian 例子中，保持方差的更新是
+
+$$
+X'=\sqrt{1-h}\,X+\sqrt h\,\xi,
+\qquad 0<h<1.
+$$
+
+因为 $(1-h)+h=1$，它与刚才的例子完全相同；$h=0.36$ 时，两个系数恰好就是 $0.8$ 和 $0.6$。当 $h$ 很小时，$\sqrt{1-h}\approx1-h/2$，因此这一步近似为
+
+$$
+x'=x-\frac h2x+\sqrt h\,\xi.
+$$
+
+现在再看前面定义过的 score。对于 $p(x)=\mathcal N(x;0,1)$，
+
+$$
+s(x)=\frac{\mathrm d}{\mathrm dx}\log p(x)=-x.
+$$
+
+所以刚才那项“往回拉”的移动 $-hx/2$，恰好就是 $h\,s(x)/2$。在这个例子中，score 为正的位置向右移，为负的位置向左移；离均值越远，补偿移动越大。系数 $1/2$ 来自方差的平衡。
+
+真实生成过程中的 $p_t$ 会随时间变化，也可能有许多峰，不能一律往某个全局均值拉。所需的局部方向由当前分布的 $s_t(x)=\nabla_x\log p_t(x)$ 给出。若每单位时间加入 $g_t^2$ 的 noise variance，对应的补偿 velocity 是 $g_t^2s_t(x)/2$。
+
+于是，保留原来负责生成的 $u_t$，再配上补偿和新 noise，得到小步采样公式：
+
+$$
+\boxed{
+x_{t+h}=x_t
++\underbrace{h\,u_t(x_t)}_{\text{original flow}}
++\underbrace{\frac{h g_t^2}{2}s_t(x_t)}_{\text{score correction}}
++\underbrace{g_t\sqrt h\,\xi}_{\text{fresh noise}},
+\qquad \xi\sim\mathcal N(0,I).
+}
+$$
+
+这里 $g_t\ge0$ 控制新 noise 的强度，可以由 sampler 指定。$g_t=0$ 就回到原来的 Euler ODE update；$g_t>0$ 时，noise 与 score correction 必须成对加入，才能在连续时间下保持原来的分布演化 [@flowsanddiffusions2026]。上面的 Gaussian 计算解释了这种配合；一般分布下的证明放在下面的 details 中。
+
+### Reading the SDE notation
+
+为什么新 noise 是 $g_t\sqrt h\,\xi$，而不是 $g_th\,\xi$？因为我们希望**同一段时间积累的随机性，不随把它切成多少步而改变**。暂时固定 $g_t=g$：一个长度为 $h$ 的区间贡献方差 $g^2h$；拆成两个半步，每步贡献 $g^2h/2$，独立相加后仍然是 $g^2h$。若标准差与 $h$ 成正比，两个半步的总方差就会比一个整步少一半。
+
+把这些独立的 Gaussian 增量连续积累起来，就得到 **Brownian motion**，记为 $W_t$。它在长度为 $h$ 的区间上的增量满足
 
 $$
 W_{t+h}-W_t\sim\mathcal N(0,hI),
 $$
 
-不相交时间区间上的增量独立。由于增量的方差是 $h$，离散更新中的 noise 标准差是 $\sqrt h$。Euler–Maruyama sampler 因而使用
+不相交区间上的增量独立。$W_t$ 记录累积的随机扰动；采样代码每一步只需生成它的增量 $\sqrt h\,\xi$。
+
+连续时间下，把总的确定性移动速度记为 **drift**
 
 $$
-x_{t+h}=x_t+h\,b_t(x_t)+g_t\sqrt h\,\xi,
-\qquad \xi\sim\mathcal N(0,I).
+b_t(x)=u_t(x)+\frac{g_t^2}{2}s_t(x),
 $$
 
-新的 noise 会把样本向周围散开。如果目标仍然是跟随原来的 $p_t$，就需要补偿这部分扩散。Score 指向较高 density 的方向，恰好能提供对应的 correction：
+就可以把刚才的采样过程写成 **stochastic differential equation（SDE）**：
 
 $$
 \boxed{
-\mathrm dX_t=
-\left[u_t(X_t)+\frac{g_t^2}{2}s_t(X_t)\right]\mathrm dt
+\mathrm dX_t=b_t(X_t)\,\mathrm dt+g_t\,\mathrm dW_t
+=\left[u_t(X_t)+\frac{g_t^2}{2}s_t(X_t)\right]\mathrm dt
 +g_t\,\mathrm dW_t.
 }
 $$
 
-在相同初始分布、准确的 velocity 和 score、以及相应的正则性条件下，这个 SDE 与 $\mathrm dX_t=u_t(X_t)\mathrm dt$ 具有相同的 $p_t$ [@song2021sde]。也就是说，可以让单个 sample 走随机的路线，同时让所有 samples 在每个时刻保持相同的整体分布。这里使用递增的生成时间；改用递减的 noise level 计时，需要同时转换 drift 的符号。
+读这个式子时，$b_t\,\mathrm dt$ 对应小步公式里的 $h\,b_t$，$g_t\,\mathrm dW_t$ 对应 $g_t\sqrt h\,\xi$。前面的离散近似就叫 **Euler–Maruyama sampler**。$b_t$ 是在原 velocity 上加了补偿后的速度；$W_t$ 表示沿途新增的随机性。
 
-下图用一个有解析解的例子 $p_t=\mathcal N(t,(1-0.6t)^2)$ 比较两种过程。
+在相同初始分布、准确的 $u_t$ 和 $s_t$、以及保证方程成立的正则性条件下，这个连续时间 SDE 与原 ODE 在每个时刻具有相同的分布 $p_t$ [@song2021sde]。这里的“相同”指：各自生成大量 samples，在同一个时刻比较它们的位置分布；单个 sample 不需要走相同的路线。
 
 <DiffusionOdeSde />
 
-图中的共同色带来自理论 density。两组轨迹的形状不同，但在同一时刻观察大量独立 samples，会得到相同的 marginal distribution。联合分布还记录一个 sample 在不同时刻的关联，因此可以不同。
+图中 $p_t=\mathcal N(t,(1-0.6t)^2)$ 的均值逐渐右移、分布逐渐变窄。左边只有原来的 flow，右边还加入了配套的 score correction 和 noise。两边的理论分布相同，右边的具体轨迹却会不断随机偏转。
 
-把目标 density 固定下来，只保留它的 score drift 和 Brownian noise，就得到 Langevin dynamics。两者配合，使过程具有这个目标 stationary density；如果只沿 score 上升，轨迹会朝局部 density maxima 集中。
+连续时间的结论也不代表任意有限步长都精确。例如刚才的 Gaussian 更新用 $1-h/2$ 近似 $\sqrt{1-h}$ 后，方差变成 $(1-h/2)^2+h=1+h^2/4$，会留下一个小的误差。实际模型还存在 velocity 和 score 的预测误差；使用 SDE 并不自动保证生成质量更好。
 
 <details>
-<summary>从 Fokker–Planck equation 看这个抵消</summary>
+<summary>为什么一般分布下，score correction 也能抵消扩散？</summary>
 
-当 $g_t$ 只依赖时间时，SDE 的 density 满足
+关键是计算整批 samples 的 density 怎样变化。对于 ODE，原来的 velocity $u_t$ 搬运概率质量，满足 continuity equation：
 
 $$
-\partial_t p_t=-\nabla\cdot(p_tb_t)+\frac{g_t^2}{2}\Delta p_t.
+\partial_t p_t=-\nabla\cdot(p_tu_t).
 $$
 
-代入 $b_t=u_t+\frac{g_t^2}{2}\nabla\log p_t$，并使用
-$p_t\nabla\log p_t=\nabla p_t$：
+左侧是当前位置的 density 随时间的变化；右侧表示周围的样本移动造成了多少净流入。
+
+SDE 还会叠加随机扰动。当 $g_t$ 只依赖时间时，density 满足 Fokker–Planck equation：
+
+$$
+\partial_t p_t
+=\underbrace{-\nabla\cdot(p_tb_t)}_{\text{drift}}
++\underbrace{\frac{g_t^2}{2}\Delta p_t}_{\text{diffusion}},
+\qquad
+\Delta p_t=\sum_j\frac{\partial^2p_t}{\partial x_j^2}.
+$$
+
+其中 $\Delta$ 是 Laplacian，描述 density 的局部弯曲。在一维的峰顶附近，$p_t''<0$，diffusion 项使 density 降低；在向上弯曲的区域，它使 density 增加。这是随机扰动把分布摊开的数学形式。
+
+我们希望在加入 noise 后，仍得到原 ODE 的 $\partial_t p_t$，因此需要额外的 drift 恰好抵消 diffusion 项。利用 score 的定义：
+
+$$
+p_ts_t=p_t\nabla\log p_t=\nabla p_t,
+$$
+
+选取 $b_t=u_t+g_t^2s_t/2$ 后，额外 drift 对 density 的影响就是 $-g_t^2\Delta p_t/2$。两项相加：
 
 $$
 \partial_t p_t
@@ -441,11 +545,21 @@ $$
 =-\nabla\cdot(p_tu_t).
 $$
 
-这就是原 ODE 的 continuity equation。该推导也说明 drift correction 的系数和方向来自哪里。
+因此，补偿改变的是样本的移动，使新增随机性在 density 演化中的影响被抵消。这个推导要求密度与系数足够正则，并有适当的边界行为；$g_t$ 依赖位置时需要另外处理。
 
 </details>
 
-实际采样仍有两类误差：网络近似误差，以及有限步求解的误差。Euler 每一步只使用当前位置的 velocity；Heun 会先预测下一位置，再结合那里的 velocity 修正更新，通常需要更多 network evaluations。比较 sampler 时应同时看步数与 NFE（number of function evaluations）。加大 $g_t$ 会改变有限计算预算下的采样行为，连续时间的等价关系不保证任意大步长都同样准确。
+<details>
+<summary>与 Langevin dynamics 的关系，以及有限步 sampler 的选择</summary>
+
+如果目标分布固定为 $p$，不再沿时间改变它，就可以取 $u_t=0$。保留 $g_t^2\nabla\log p/2$ 的 drift 和 Brownian noise，得到 Langevin dynamics。目标 $p$ 是它的 stationary density：从 $p$ 开始，分布保持为 $p$。从其他初始分布出发是否收敛、多久收敛，还需要额外条件与分析。前面的标准 Gaussian 例子就是这种情形。
+
+实际采样还要选择数值求解方法。Euler 每一步只使用当前位置的 velocity；Heun 用于 ODE 时，会先预测下一位置，再结合那里的 velocity 修正更新，通常需要更多 network evaluations。比较 sampler 时应同时看步数与 NFE（number of function evaluations）。对于 SDE，增大 $g_t$ 也会改变有限计算预算下的采样行为。
+
+本文使用递增的生成时间。若改用递减的 noise level 计时，需要一起转换时间变量与 drift，不能直接照搬符号。
+
+</details>
+
 
 ## DDPM and DDIM
 
@@ -453,25 +567,75 @@ $$
 
 前面直接描述连续时间的分布运动。DDPM [@ho2020ddpm] 提供了一条容易构造训练问题的路线：先把真实图片逐步加噪，再学习每一步怎样把噪声去掉。
 
-这一节用离散索引 $k$ 记录加噪次数：$Y_0=z$ 是 data，$Y_K$ 接近标准 Gaussian。它与前面的生成时间 $t$ 方向相反。
+这一节用离散索引 $k$ 记录加噪次数：$Y_0=z$ 是 data，我们希望经过足够多步后，$Y_K$ 接近标准 Gaussian。它与前面的生成时间 $t$ 方向相反。
 
-选择每一步的新增 noise variance $0<b_k<1$，用 $q$ 表示我们规定的 forward noising process：
+先设计加噪的一步。为了逐渐抹去图片信息，可以把已有样本缩小一些，再加入独立的 Gaussian noise。暂时把两个系数留作未知量：
+
+$$
+Y_k=c_kY_{k-1}+d_k\xi_k,
+\qquad \xi_k\sim\mathcal N(0,I),
+$$
+
+其中 $c_k,d_k\ge0$，$\xi_k$ 与已有样本独立。$c_k$ 决定原有内容保留多大幅度，$d_k$ 决定新 noise 的标准差。
+
+还需要决定整个过程的数值尺度。既然选定的终点是 $\mathcal N(0,I)$，一个自然的要求是：**如果输入已经服从这个分布，再加一步噪声，它仍然服从这个分布。** 这样，在图片信息逐渐消失时，noise 的尺度有一个稳定的目标。
+
+先在一个坐标上检查这个要求。把一个随机变量乘以 $c_k$，它到均值的距离也乘以 $c_k$，所以平方距离的平均——方差——乘以 $c_k^2$。两项独立时，方差相加。因此，若当前样本与新 noise 的方差都是 $1$，更新后的方差就是
+
+$$
+\operatorname{Var}(c_kY_{k-1}+d_k\xi_k)
+=c_k^2+d_k^2.
+$$
+
+例如，直接各取一半会得到 $1/4+1/4=1/2$ 的方差：两个独立样本平均后，更容易靠近均值，分布就变窄了。要保持刚才选定的单位方差，所需的条件于是变成
+
+$$
+c_k^2+d_k^2=1.
+$$
+
+对于标准 Gaussian 输入，更新后的均值仍为零、结果仍是 Gaussian；各坐标合起来，covariance 为 $(c_k^2+d_k^2)I$。所以这个条件确实让 $\mathcal N(0,I)$ 保持不变。
+
+现在选择每一步想加入多少 noise variance，把它记为 $0<b_k<1$。新增方差为 $d_k^2=b_k$，剩下的方差份额就是 $c_k^2=1-b_k$。取非负系数，就得到了 DDPM 的一步更新：
+
+$$
+Y_k=\sqrt{1-b_k}\,Y_{k-1}+\sqrt{b_k}\,\xi_k.
+$$
+
+给定 $Y_{k-1}$ 后，第一项是确定的，第二项是 covariance 为 $b_kI$ 的 Gaussian。用 $q$ 表示这个人为规定的 forward process，便可以写成
 
 $$
 q(Y_k\mid Y_{k-1})
-=\mathcal N\left(\sqrt{1-b_k}\,Y_{k-1},b_kI\right),
-\qquad a_k=1-b_k,\quad\bar a_k=\prod_{j=1}^k a_j.
+=\mathcal N\left(\sqrt{1-b_k}\,Y_{k-1},b_kI\right).
 $$
 
-这条 Gaussian chain 可以合并成一次采样：
+这就是 DDPM 的 variance-preserving 选择。真实图片的各坐标未必有单位方差；若某个坐标当前的方差为 $v$，下一步就是 $(1-b_k)v+b_k$，它会向 $1$ 靠近。保持单位方差，是这个加噪规则的性质。
+
+接下来把多步更新合在一起。为了简化记号，令 $a_k=1-b_k$。第一步之后，图片系数是 $\sqrt{a_1}$，混入的 noise variance 是 $1-a_1$。第二步先把这两部分都乘以 $\sqrt{a_2}$，再加入方差为 $1-a_2$ 的新 noise：图片系数变为 $\sqrt{a_1a_2}$，累积的 noise variance 则是
 
 $$
-Y_k=\sqrt{\bar a_k}\,z+\sqrt{1-\bar a_k}\,\epsilon.
+a_2(1-a_1)+(1-a_2)=1-a_1a_2.
 $$
 
-因此 DDPM 训练也不需要真的连续加噪 $k$ 次：随机抽一个 $k$，直接构造 $Y_k$，预测 $\epsilon$ 即可。它使用的是满足 $\alpha^2+\beta^2=1$ 的路径；前面的线性 flow path 则是 $\alpha+\beta=1$。
+每多走一步，都会重复这个计算：图片系数继续相乘，累积的 noise variance 补上对应的剩余份额。因此记
 
-生成时，对 $k\ge2$ 使用下面的 Gaussian reverse transition：
+$$
+\bar a_k=\prod_{j=1}^k a_j,
+$$
+
+图片的系数就是 $\sqrt{\bar a_k}$，累积的独立 Gaussian noise 可以合并成方差为 $1-\bar a_k$ 的一项。于是，无需真的连续加噪 $k$ 次，就能直接采样同一个 $q(Y_k\mid z)$：
+
+$$
+\boxed{
+Y_k=\sqrt{\bar a_k}\,z+\sqrt{1-\bar a_k}\,\epsilon,
+\qquad \epsilon\sim\mathcal N(0,I).
+}
+$$
+
+这里 $\epsilon$ 是合并后的 noise，与 $z$ 独立。选择 schedule 和总步数，使 $\bar a_K$ 足够接近 $0$，图片的贡献就足够小，终点便接近标准 Gaussian。训练时随机抽一个 $k$，用上式构造 $Y_k$，让网络预测其中的 $\epsilon$。
+
+把这条路径写回 $\alpha z+\beta\epsilon$ 的形式，才得到 $\alpha=\sqrt{\bar a_k}$、$\beta=\sqrt{1-\bar a_k}$，以及 $\alpha^2+\beta^2=1$。前面的线性 flow path 则从两个端点的直线插值出发，选择 $\alpha+\beta=1$，允许中途的方差尺度发生变化。两者分别体现了不同的路径设计。
+
+训练好 noise predictor 后，要用它从 $Y_k$ 返回 $Y_{k-1}$。如果知道原图 $z$，forward chain 给出的 $q(Y_{k-1}\mid Y_k,z)$ 是可计算的 Gaussian；其 mean 和 variance 可以由 Gaussian conditioning 得到。生成时不知道 $z$，就用 noise prediction 估计它，再代入这个 posterior mean。对 $k\ge2$，整理后得到下面的 Gaussian reverse transition：
 
 $$
 p_\theta(Y_{k-1}\mid Y_k)
