@@ -5,152 +5,251 @@ updated: "2026-09-13"
 description: "从概率路径理解 flow matching、score matching、DDPM/DDIM 与 ODE/SDE 采样，再到 guidance 和 latent diffusion。"
 ---
 
-生成一张图片，可以理解成从图片的概率分布中抽取一个样本。我们只有数据集，并不知道这个分布的解析式；flow 和 diffusion models 的办法是从容易采样的 Gaussian noise 出发，学习如何一步步把它变成数据。
+生成模型需要做到一件有些特殊的事：面对同样的条件，它应该能给出许多不同、又都合理的结果。例如“一只坐在窗边的猫”可以对应不同的毛色、姿态和光照。训练数据提供了这些可能结果的例子，我们希望模型学到它们的分布。
 
-理解这类模型时，可以分开看三个问题：**中间的样本应该服从什么分布，网络要学什么，以及生成时怎样使用这个网络**。下面沿着这条线介绍连续数据上的 flow matching 和 diffusion models；在生成模型上做 RL 的部分，见 [Reinforcement Learning 中的 RL for diffusion models](/blog/ml/ml-revisit/rl#rl-for-diffusion-models)。
+Flow 和 diffusion models 从容易采样的 noise 出发，逐步改变样本。理解这个过程，需要把**生成时怎样走、训练时怎样知道往哪里走**联系起来。下面先从一个简单的分布变换理解生成，再构造能够训练这种变换的监督信号。
 
 ## Flow and Diffusion Models
 
-本文沿用 MIT 6.S184 2026 讲义 [@flowsanddiffusions2026] 的时间方向：$t=0$ 是 noise，$t=1$ 是 data。记真实数据为 $z\sim p_{\mathrm{data}}$，初始噪声为 $\epsilon\sim\mathcal N(0,I)$。它们独立采样。
+记真实数据为 $z\sim p_{\mathrm{data}}$，初始 noise 为 $\epsilon\sim p_0=\mathcal N(0,I)$。我们希望学到一个生成过程，把不同的 $\epsilon$ 变成不同的样本，使输出整体接近 $p_{\mathrm{data}}$。
 
-先人为指定一条 **probability path**：
-
-$$
-X_t=\alpha_t z+\beta_t\epsilon,\qquad
-p_t(x\mid z)=\mathcal N(x;\alpha_tz,\beta_t^2I),
-$$
-
-其中
-
-$$
-(\alpha_0,\beta_0)=(0,1),\qquad
-(\alpha_1,\beta_1)=(1,0).
-$$
-
-固定一张图片 $z$，这条路径从 Gaussian 逐渐收缩到 $z$，终点是 Dirac point mass $\delta_z$。对数据集里的所有图片取平均，才得到生成模型要跟随的分布：
-
-$$
-p_t(x)=\int p_t(x\mid z)p_{\mathrm{data}}(z)\,\mathrm dz,
-\qquad p_0=\mathcal N(0,I),\quad p_1=p_{\mathrm{data}}.
-$$
-
-最简单的选择是 $\alpha_t=t,\ \beta_t=1-t$：
-
-$$
-X_t=tz+(1-t)\epsilon.
-$$
-
-<DiffusionProbabilityPath />
-
-这张图用已知图片和噪声构造训练样本。**生成时没有 $z$ 可以代入**：需要网络看着当前的 $x_t$，决定下一步怎么走。训练中制造中间状态很便宜，生成中找到正确方向才是要学的事情。
-
-这里的 $\beta_t$ 是噪声的标准差系数；后面 DDPM 中的 $b_k$ 是每一步新增噪声的方差，SDE 中的 $g_t$ 是 Brownian motion 的系数。这三个量有不同的作用。
+本文统一使用生成方向的时间：$t=0$ 是 noise，$t=1$ 是 data，$x_t$ 表示中间状态。先讨论不带 prompt 的生成；后面再加入条件 $c$。模型可以在 pixels 上工作，也可以在压缩后的 latent space 中工作，这暂时不影响下面的推理。
 
 ## Normalizing flows and continuous flows
 
-Stanford CS236 的 normalizing flow notes [@groverNormalizingFlows] 与 Lecture 7 [@ermon2023flow7] 从另一个角度出发：设计可逆映射 $x=f_\theta(\epsilon)$，把简单分布变成复杂分布。可逆性让我们能把数据映射回 noise，并通过 change of variables 计算密度：
+### Transforming samples also transforms their density
+
+先看一个可以手算的例子。若
 
 $$
+\epsilon\sim\mathcal N(0,1),\qquad x=f(\epsilon)=2\epsilon+3,
+$$
+
+那么 $x\sim\mathcal N(3,2^2)$。每个 noise sample 都被拉伸两倍、再向右平移 $3$；对所有 samples 做同样的操作，就把整个分布变成了另一个分布。
+
+复杂数据需要更灵活的 $f_\theta$。**Normalizing flow** [@groverNormalizingFlows] 用一串可逆变换构成这个生成器：
+
+$$
+\epsilon=h_0
+\xrightarrow{f_1}h_1
+\xrightarrow{f_2}\cdots
+\xrightarrow{f_K}h_K=x.
+$$
+
+生成时，抽一个 $\epsilon$，依次计算这些变换即可。可逆性还让我们能处理另一个问题：**给定数据集中的一个样本 $z$，模型给它多大的 density？** 可以从 $z$ 沿变换反向计算，找到唯一对应的 $\epsilon=f_\theta^{-1}(z)$。
+
+这个 density 可以用来训练模型。Maximum likelihood 要让数据集中的样本得到较高的模型 density，等价于最小化
+
+$$
+\mathcal L_{\mathrm{NLL}}(\theta)
+=-\frac1N\sum_{i=1}^N\log p_\theta(z_i).
+$$
+
+因此，生成只需要计算变换；用 likelihood 训练还需要知道变换怎样改变 density。
+
+回到 $x=2\epsilon+3$。输入区间 $[-1,1]$ 被映射到输出区间 $[1,5]$，其中的样本比例保持不变，但区间宽度翻倍。**Density 是每单位长度上的概率质量，所以在对应位置要减半。**
+
+<DiffusionFlowDensity />
+
+于是，任意给定的 $x$ 对应 $\epsilon=(x-3)/2$，它的 density 是
+
+$$
+p_X(x)=\frac12p_0\!\left(\frac{x-3}{2}\right).
+$$
+
+例如计算 $x=5$ 的 density，要先找到输入位置 $\epsilon=1$，再把 $p_0(1)$ 除以局部拉伸倍数 $2$。只做平移时，局部长度没有变化，也就不需要这个除法。
+
+在 $d$ 维空间，长度换成局部体积，拉伸倍数由 Jacobian determinant 给出。对同维、光滑且 Jacobian 非奇异的可逆变换，change of variables [@ermon2023flow7] 写成
+
+$$
+\boxed{
 \log p_\theta(x)
-=\log p_0(f_\theta^{-1}(x))
-+\log\left|\det\frac{\partial f_\theta^{-1}(x)}{\partial x}\right|.
+=\log p_0(\epsilon)-\log|\det J_{f_\theta}(\epsilon)|,
+\qquad \epsilon=f_\theta^{-1}(x).
+}
 $$
 
-Jacobian determinant 负责修正局部体积的变化。例如把一个区间拉长两倍，同一份概率质量摊在两倍长度上，密度就要减半。
+这里 $J_{f_\theta}=\partial f_\theta/\partial\epsilon$。第一项找到输入位置原有的 density，第二项补偿变换造成的局部体积变化。等价地，也可以写成 $\log p_0(f_\theta^{-1}(x))+\log|\det J_{f_\theta^{-1}}(x)|$。
 
-CS236 Lecture 8 [@ermon2023flow8] 进一步介绍 coupling layers 等结构，让求逆和计算 determinant 都足够便宜。这里的约束来自 **maximum likelihood training**：不只要生成样本，还要高效计算它的密度。
+高维下，求逆和计算 determinant 可能很贵。Coupling layers [@ermon2023flow8] 通过限制每层的依赖关系，让这两步容易计算；再叠加多层，增加整体变换的表达能力。
 
 <details>
-<summary>RealNVP 怎样同时做到可逆和易算密度？</summary>
+<summary>RealNVP 怎样构造这样的可逆层？</summary>
 
-把输入分成两部分：
+RealNVP [@dinh2017realnvp] 把输入分成两部分，用第一部分决定第二部分的缩放和平移：
 
 $$
 x_a=\epsilon_a,\qquad
 x_b=\epsilon_b\odot\exp(s_\theta(\epsilon_a))+m_\theta(\epsilon_a).
 $$
 
-第一部分保持不变，因此求逆时已经知道 $s_\theta$ 和 $m_\theta$ 的输入：
+给定输出，先由 $x_a$ 找回 $\epsilon_a$，就能重新算出缩放和平移量，再恢复另一部分：
 
 $$
 \epsilon_a=x_a,\qquad
 \epsilon_b=(x_b-m_\theta(x_a))\odot\exp(-s_\theta(x_a)).
 $$
 
-Jacobian 是 block triangular，log determinant 只需把 $s_\theta(\epsilon_a)$ 的各个分量相加。网络 $s_\theta,m_\theta$ 本身不需要可逆；可逆的是整个 coupling transformation。交替变换不同分组，才能让所有维度相互影响。
+Jacobian 是 block triangular，forward log determinant 只需把 $s_\theta(\epsilon_a)$ 的各个分量相加。这里的 $s_\theta,m_\theta$ 是普通神经网络；可逆性来自整个变换的构造。各层交替处理不同分组，让所有维度都参与变化。
 
 </details>
 
-如果把有限层变换改成连续时间运动，就得到 **continuous normalizing flow**：
+### Replacing layers with a velocity field
+
+还可以用连续运动实现 noise 到 data 的变换。仍以 $x=2\epsilon+3$ 为目标，选一条从输入走到输出的轨迹：
+
+$$
+x_t=(1+t)\epsilon+3t.
+$$
+
+$t=0$ 时它等于 $\epsilon$，$t=1$ 时恰好等于 $2\epsilon+3$。对时间求导，得到每条轨迹的 velocity 是 $\epsilon+3$。为了让生成过程只依赖当前状态，利用 $\epsilon=(x_t-3t)/(1+t)$ 消去初值：
+
+$$
+\frac{\mathrm dx_t}{\mathrm dt}
+=\frac{x_t+3}{1+t}.
+$$
+
+这样，“把输入直接变成输出”就被改写为“在每个位置、每个时刻给出一个移动速度”。例如初始值 $\epsilon=1$ 会沿 $x_t=1+4t$ 运动，最终到达 $5$；别的初值也遵循同一个 velocity rule，形成同一个分布变换。
+
+对于真实数据，我们不知道合适的 velocity rule，就用网络 $u_t^\theta(x)$ 表示它。由此得到 **continuous normalizing flow（CNF）** [@chen2018neuralode]：
 
 $$
 X_0\sim p_0,\qquad
 \frac{\mathrm dX_t}{\mathrm dt}=u_t^\theta(X_t).
 $$
 
-$u_t^\theta(x)$ 是当前位置的 velocity。满足通常的存在唯一性条件时，ODE 的流映射可逆；沿轨迹的 log density 满足
-
-$$
-\frac{\mathrm d}{\mathrm dt}\log p_t(X_t)
-=-\nabla\cdot u_t^\theta(X_t).
-$$
-
-不过，训练这个 velocity network 不一定要最大化 likelihood。**Flow matching 是一种训练 continuous flow 的方法**：直接回归 velocity，不需要在每次训练更新中求解完整 ODE 或计算 divergence。采样器、模型的可逆流映射、训练目标，是相关但不同的概念。
-
-## Flow Matching
-
-### A regression target we can construct
-
-我们先考虑一对已知的 $(z,\epsilon)$。沿着 $x_t=\alpha_tz+\beta_t\epsilon$ 移动，velocity 就是
-
-$$
-\dot x_t=\dot\alpha_tz+\dot\beta_t\epsilon.
-$$
-
-因此可以随机选 $t$，构造 $x_t$，让网络预测这个已知的向量：
-
-$$
-\mathcal L_{\mathrm{CFM}}(\theta)
-=\mathbb E_{t,z,\epsilon}
-\left[\left\|u_t^\theta(x_t)
--(\dot\alpha_tz+\dot\beta_t\epsilon)\right\|^2\right].
-$$
-
-在线性路径上，这变成了尤其简单的训练目标：
-
-$$
-\boxed{
-\mathcal L_{\mathrm{CFM}}(\theta)
-=\mathbb E_{t,z,\epsilon}
-\left[\left\|u_t^\theta(tz+(1-t)\epsilon)-(z-\epsilon)\right\|^2\right].
-}
-$$
-
-Flow Matching [@lipman2023flowmatching] 把这类可构造的 conditional target 变成了生成模型的训练信号。Rectified Flow [@liu2023rectifiedflow] 也使用线性插值上的 velocity regression，并进一步研究如何通过 reflow 改善 noise 与 data 的配对，使生成轨迹更直。初始的独立配对并不保证学到的采样轨迹就是直线。
-
-<DiffusionTrainingSampling />
-
-训练时一次抽取一个时间点即可，不需要先从 $0$ 积分到 $t$。生成时则反过来：先抽取 noise，再反复调用同一个网络，例如用 Euler 更新
+网络的输入是当前状态和时间，输出是与状态同维的 velocity。要得到最后的样本，必须沿这个 velocity field 积分。最简单的 Euler sampler 用小步长 $h$ 近似：
 
 $$
 x_{t+h}=x_t+h\,u_t^\theta(x_t).
 $$
 
-这里每一步的输入依赖上一步输出；网络预测的是 velocity，步长由 sampler 决定。
+这一步与 residual update 很像：在当前状态上加一个小的变化量。采样器反复调用同一个网络；步长决定每次走多远，网络决定往哪个方向、以多大速度走。复杂的 velocity field 一般没有解析解，所以实际生成使用有限步数的数值近似。
+
+如果 velocity 足够光滑，且解在整个时间区间内存在并唯一，就能沿同一个 ODE 从终点反向积分，恢复初值。可逆的是这个完整的 flow map；velocity network 本身不需要设计成可逆网络。
+
+### How do we learn the velocity?
+
+到这里，我们定义了生成模型的形式，尚未决定怎么训练它。记当前网络诱导的分布为 $p_t^\theta$，训练希望让 $p_1^\theta$ 接近 $p_{\mathrm{data}}$。
+
+一种办法仍然是 maximum likelihood：从真实样本出发反向求解 ODE，同时累计沿途的 density 变化，得到 $\log p_1^\theta(z)$，再对它求梯度。连续运动也遵守“局部体积膨胀，density 降低”的关系，只是现在需要把这件事沿时间累计。
+
+<details>
+<summary>怎样沿 ODE 计算 density？</summary>
+
+Velocity field 的 divergence
+
+$$
+\nabla\cdot u_t^\theta(x)
+=\sum_{j=1}^d\frac{\partial u_{t,j}^\theta(x)}{\partial x_j}
+$$
+
+描述当前位置附近的体积膨胀率。沿着一条轨迹，density 满足
+
+$$
+\frac{\mathrm d}{\mathrm dt}\log p_t^\theta(X_t)
+=-\nabla\cdot u_t^\theta(X_t).
+$$
+
+所以
+
+$$
+\log p_1^\theta(X_1)
+=\log p_0(X_0)
+-\int_0^1\nabla\cdot u_t^\theta(X_t)\,\mathrm dt.
+$$
+
+在前面的例子里，$u_t(x)=(x+3)/(1+t)$，其 divergence 是 $1/(1+t)$。积分结果为 $\log2$，于是终点 log density 等于起点 log density 减去 $\log2$，正好对应那次两倍拉伸。
+
+给定真实样本 $z$，把它作为 $X_1$ 反向求解，就可以找到 $X_0$ 并累计上式中的积分。实际计算的精度取决于 ODE solver；较大维度时，也可以用 trace estimator 估计 divergence。
+
+</details>
+
+Likelihood training 把完整的生成映射及其 density 计算放进训练过程。另一种思路是：**如果能直接构造中间状态和正确的 velocity，就可以把网络训练成一个回归器。** 这就是下一节的 flow matching。
+
+两种训练方式得到的都是 velocity network，生成时都要解 ODE。区别在训练信号：前者提高数据的 likelihood，后者匹配给定的 velocity target。
+
+## Flow Matching
+
+### A regression target we can construct
+
+真实图片怎么从 noise 变来，我们并不知道。但训练时有一张已知图片 $z$，也能自己采样一份 $\epsilon$，于是可以人为连接这两个端点。
+
+最简单的连接是线性插值：
+
+$$
+x_t=tz+(1-t)\epsilon,\qquad t\in[0,1].
+$$
+
+当 $t$ 增大，data 的份额增加，noise 的份额减少。把这两个系数分别记为 $\alpha_t=t$ 和 $\beta_t=1-t$，图中的中间图像都可以直接算出来。
+
+<DiffusionProbabilityPath />
+
+这条已知轨迹的 velocity 也能直接算：$\mathrm dx_t/\mathrm dt=z-\epsilon$。因此，训练时随机抽取一张图片、一份独立 noise 和一个时间点，让网络看 $(x_t,t)$，预测 $z-\epsilon$：
+
+$$
+\boxed{
+\mathcal L_{\mathrm{CFM}}(\theta)
+=\mathbb E_{\substack{t\sim\mathcal U(0,1)\\z\sim p_{\mathrm{data}},\,\epsilon\sim p_0}}
+\left[\left\|u_t^\theta(tz+(1-t)\epsilon)-(z-\epsilon)\right\|^2\right].
+}
+$$
+
+**已知的 $z$ 用来制造训练输入和 target；网络只接收当前状态与时间。** 因此生成时即使没有目标图片，也能从 noise 开始，反复预测 velocity、更新状态。
+
+<DiffusionTrainingSampling />
+
+一次训练只需计算一个时间点的回归 loss，无需先跑一遍生成过程。采样时则从 $t=0$ 开始，每一步的输出成为下一步的输入；这时才需要 ODE solver。
+
+Flow Matching [@lipman2023flowmatching] 用这种可构造的 conditional velocity 监督网络。Rectified Flow [@liu2023rectifiedflow] 也使用线性插值上的 velocity regression，并通过 reflow 重新构造 noise 与 data 的配对，使后续学到的生成轨迹更直。
+
+为了同时描述其他 noise schedules，把插值写得更一般一些 [@flowsanddiffusions2026]：
+
+$$
+X_t=\alpha_tz+\beta_t\epsilon,\qquad
+(\alpha_0,\beta_0)=(0,1),\quad
+(\alpha_1,\beta_1)=(1,0).
+$$
+
+这里 $\alpha_t,\beta_t$ 决定每个时刻的 data 和 noise 份额。线性插值就是 $\alpha_t=t,\beta_t=1-t$；这也解释了图中两行系数的含义。一般形式的 velocity target 是
+
+$$
+\dot\alpha_tz+\dot\beta_t\epsilon,\qquad
+\mathcal L_{\mathrm{CFM}}
+=\mathbb E\left\|u_t^\theta(X_t)
+-(\dot\alpha_tz+\dot\beta_t\epsilon)\right\|^2.
+$$
 
 ### Why conditional targets give the right flow
 
-网络只看到了 $(x_t,t)$，并不知道构造这个样本的 $z$ 和 $\epsilon$。同一个附近的 $x_t$ 可能由许多不同配对产生，这些配对给出的 velocity 也会不同。MSE regression 会学到这些 target 在当前位置的条件均值：
+这里还有一个关键问题：训练时，我们随意把 noise 和图片配在一起。同一个附近的 $x_t$ 可能由不同配对产生，每个配对要求的 velocity 也可能不同，网络应该听谁的？
+
+平方误差回归会学到给定输入后的 target 均值。因此，理想网络在当前位置输出
 
 $$
 u_t(x)=\mathbb E[\dot\alpha_tz+\dot\beta_t\epsilon\mid X_t=x].
 $$
 
-这正是 **marginal velocity field**。它根据当前位置，综合各种可能的数据来源；生成时每走一步，都重新计算这个平均方向。
+这叫 **marginal velocity field**。它综合了所有可能经过这里的配对，给出一个确定的局部速度。
+
+要理解为什么这个平均速度有用，需要看整个分布。固定 $z$ 时，$X_t$ 的随机性来自 Gaussian noise，所以内部时刻有
+
+$$
+p_t(x\mid z)=\mathcal N(x;\alpha_tz,\beta_t^2I).
+$$
+
+让 $z$ 遍历数据分布，再把这些 conditional distributions 混合起来，就得到我们希望生成过程跟随的 **probability path**：
+
+$$
+p_t(x)=\int p_t(x\mid z)p_{\mathrm{data}}(z)\,\mathrm dz,
+\qquad p_0=\mathcal N(0,I),\quad p_1=p_{\mathrm{data}}.
+$$
+
+固定图片的 conditional distribution 在数据端点收缩成 point mass；所有图片的混合则恢复完整的数据分布。上面的平均 velocity 恰好能搬运这个混合分布。
 
 <DiffusionConditionalMarginal />
 
-图中左边的线是用于构造监督信号的配对插值；右边才是沿 marginal velocity 积分的轨迹。训练配对可以交叉，但同一个确定性 ODE 在同一时刻、同一位置只能给出一个 velocity。它不需要记住“这份 noise 当初配给了哪张图片”，只需要让整体分布沿着 $p_t$ 演化。
+图中每条训练直线都有自己配对的终点，平均 velocity 产生的轨迹则可能弯曲。生成过程需要实现的是**整体分布的变化**：每个时刻有哪些地方更拥挤、哪些地方更稀疏。它不要求某份 noise 最后到达训练时曾随机配给它的那张图片。
 
 <details>
 <summary>这个条件均值为什么能搬运整个分布？</summary>
@@ -170,7 +269,7 @@ $$
 =-\nabla\cdot\left(p_t(x\mid z)u_t(x\mid z)\right).
 $$
 
-对 $z$ 积分，再利用 Bayes' rule，就得到
+这表示一个区域内概率质量的变化，由穿过其边界的概率流决定。对 $z$ 积分，再利用 Bayes' rule，得到
 
 $$
 \partial_t p_t(x)=-\nabla\cdot(p_t(x)u_t(x)),
@@ -178,29 +277,32 @@ $$
 u_t(x)=\int u_t(x\mid z)p_t(z\mid x)\,\mathrm dz.
 $$
 
-所以 conditional paths 合成后的概率流，恰好由 marginal velocity 搬运。另一方面，平方误差的条件期望分解给出
+所以 conditional paths 合成后的概率流，正好由 marginal velocity 搬运。另一方面，记 $U_t=\dot\alpha_tz+\dot\beta_t\epsilon$，平方误差可以分解成
 
 $$
 \mathbb E\|u_t^\theta(X_t)-U_t\|^2
 =\mathbb E\|u_t^\theta(X_t)-u_t(X_t)\|^2
-+\mathbb E\|U_t-u_t(X_t)\|^2,
++\mathbb E\|U_t-u_t(X_t)\|^2.
 $$
 
-其中 $U_t=\dot\alpha_tz+\dot\beta_t\epsilon$。第二项与 $\theta$ 无关，这就是用 conditional target 训练仍能学到 marginal field 的原因。上述微分与除法关系用于 $\beta_t>0$ 的内部时刻；数据端点按极限理解。
+第二项与 $\theta$ 无关，因此用 conditional target 训练，等价于优化网络与 marginal velocity 之间的误差。这里的微分、除法与密度关系用于 $\beta_t>0$ 的内部时刻，数据端点按极限理解。
 
 </details>
 
+
 ## Score Matching
 
-Velocity 回答“下一步往哪里走”。另一个有用的量是 **score**：
+刚才直接监督了样本的移动速度。还可以从 denoising 出发：看到一张 noisy image，模型估计其中混入了什么 noise，再利用这个估计指导生成。
+
+连接 denoising 与分布运动的量叫 **score** [@wetzstein2026diffusion]：
 
 $$
 s_t(x)=\nabla_x\log p_t(x).
 $$
 
-它指向当前位置 log density 增长最快的方向，不需要知道 density 的归一化常数。对多峰分布，这个方向取决于当前位置，不是始终指向所有数据的平均值。
+它描述当前位置附近，log density 朝哪个方向增长、增长多快。例如在一维 Gaussian 中，score 指向均值；在多峰分布中，它根据附近各个峰的相对影响而变化。由于对 log density 求导，乘在 density 上的归一化常数会消失。
 
-我们同样不知道 $p_t(x)$，但知道加噪后的 conditional Gaussian：
+直接监督 $\nabla_x\log p_t(x)$ 仍然困难，因为我们只有数据 samples，没有 $p_t$ 的解析式。不过，对一张已知的 clean image 加噪，conditional distribution 是前面写出的 Gaussian，其 score 可以手算：
 
 $$
 \nabla_x\log p_t(x\mid z)
@@ -208,7 +310,7 @@ $$
 =-\frac{\epsilon}{\beta_t}.
 $$
 
-于是可以做 denoising score matching：
+这里的 $\epsilon$ 就是我们自己加入的 noise。它提供了一个已知 target，可以做 denoising score matching：
 
 $$
 \mathcal L_{\mathrm{DSM}}
@@ -216,18 +318,20 @@ $$
 \left[w(t)\left\|s_t^\theta(x_t)+\frac{\epsilon}{\beta_t}\right\|^2\right].
 $$
 
-和 flow matching 一样，回归 conditional score 会得到 marginal score。若令 $s_t^\theta=-\epsilon_\theta/\beta_t$，并取 $w(t)=\beta_t^2$，就是熟悉的 noise prediction loss：
+其中 $w(t)>0$ 控制不同时间点的训练权重，$\beta_t$ 是所加入 noise 的标准差系数。
+
+这与 flow matching 的训练逻辑相同：网络只看 $(x_t,t)$，平方误差使它学到 conditional targets 的均值；这个均值正是 marginal score。令 $s_t^\theta=-\epsilon_\theta/\beta_t$，并取 $w(t)=\beta_t^2$，上式就变成直接预测 noise：
 
 $$
 \mathcal L_\epsilon
 =\mathbb E\|\epsilon_\theta(x_t,t)-\epsilon\|^2.
 $$
 
-Stanford EE367 2026 Lecture 12 [@wetzstein2026diffusion] 从 score 与 Langevin sampling 解释 diffusion；MIT 6.S978 2024 Lecture 5 [@he2024diffusion] 则把这个 denoising loss 与 latent-variable model 的训练联系起来。
+因此，“预测加入的 noise”给出了学习 score 的简单训练方式。生成时，我们再把这个预测转换成需要的 denoising direction 或 sampler update。
 
 ### Noise, data, and velocity prediction
 
-同一条 Gaussian path 下，预测 noise、预测 clean data 和预测 velocity 可以相互换算。以线性路径为例：
+一张 noisy image 里，clean data 和 noise 通过同一个混合公式联系在一起。知道其中一个的估计，就能推出另一个；对同一条 path，也能换算出 velocity。以 $x_t=tz+(1-t)\epsilon$ 为例：
 
 $$
 \hat z=x_t+(1-t)u_t^\theta(x_t),\qquad
@@ -242,15 +346,15 @@ $$
 | Velocity $u_t^\theta$ | $z-\epsilon$ | $\mathbb E[z-\epsilon\mid x_t]$ |
 | Score $s_t^\theta$ | $-\epsilon/(1-t)$ | $\nabla\log p_t(x_t)$ |
 
-**可以换算输出，不代表用未经加权的 MSE 训练它们完全一样。** 例如在线性路径上，由 $\hat z=x_t+(1-t)u_t^\theta$ 得到
+这些输出表达了相关的信息，但各自的 MSE 会给训练误差不同的权重。例如在线性路径上，由 $\hat z=x_t+(1-t)u_t^\theta$ 得到
 
 $$
 \|\hat z-z\|^2=(1-t)^2\|u_t^\theta-(z-\epsilon)\|^2.
 $$
 
-它们对不同时间点的误差赋予了不同权重。读论文时应一起看 probability path、prediction target、时间采样分布和 loss weighting。
+同样大小的 velocity error，在靠近 data 的时刻对应更小的 clean-data error。因此选择训练目标时，prediction target、时间采样分布和 loss weighting 需要一起考虑。
 
-另外，$\hat z$ 是对 clean data 的条件均值。噪声很大时，许多不同图片都可能解释当前输入，因此这个均值可能模糊；模型不需要在第一步就给出最终清晰图片。反复更新当前状态，才会逐渐消除不确定性。
+当噪声很大时，许多不同图片都能解释当前输入，$\hat z=\mathbb E[z\mid x_t]$ 可能只是一个模糊的平均结果。随着 sampler 更新状态，网络获得的信息改变，之后的预测也会改变。这解释了为什么一个擅长 denoising 的网络仍然需要多步生成。
 
 <details>
 <summary>一般 Gaussian path 下，怎样从 score 得到 velocity？</summary>
@@ -270,32 +374,34 @@ u_t(x)
 -\dot\beta_t\beta_t\right)s_t(x).
 $$
 
-公式只在相关分母非零时直接使用，端点需要使用原始网络参数化或取极限。对于 variance-preserving schedule，还有常见的 $v$-prediction target $v=\alpha_t\epsilon-\beta_tz$；这个 $v$ 的命名不表示它自动等于任意时间参数化下的 ODE velocity。
+这些换算在分母非零的内部时刻使用，端点通过原始网络参数化或极限处理。对于 variance-preserving schedule，常见的 $v$-prediction target 是 $v=\alpha_t\epsilon-\beta_tz$；它与 ODE velocity 的关系还取决于 $\alpha_t,\beta_t$ 对时间的导数。
 
 </details>
 
 ## ODE and SDE Sampling
 
-给定初始 noise，ODE 的后续轨迹是确定的。SDE 则在沿着 drift 移动的同时，不断加入新的随机扰动：
+现在已经能学习 velocity 或 score，接下来要把它们用于采样。ODE 从初始 noise 出发，沿 velocity field 走到终点；给定这个初值，后续运动就确定了。
+
+如果希望在中途保留随机探索，可以让每一步既沿一个方向移动，又加入新的 noise。这种连续时间模型叫 SDE：
 
 $$
 \mathrm dX_t=b_t(X_t)\,\mathrm dt+g_t\,\mathrm dW_t.
 $$
 
-$W_t$ 是 Brownian motion，也叫 Wiener process。长度为 $h$ 的时间增量满足
+$b_t$ 是 drift，决定平均移动方向；$g_t$ 控制随机扰动的强度。$W_t$ 是 Brownian motion，也叫 Wiener process。长度为 $h$ 的时间增量满足
 
 $$
 W_{t+h}-W_t\sim\mathcal N(0,hI),
 $$
 
-且不相交时间区间上的增量独立。Euler–Maruyama 的一步因此是
+不相交时间区间上的增量独立。由于增量的方差是 $h$，离散更新中的 noise 标准差是 $\sqrt h$。Euler–Maruyama sampler 因而使用
 
 $$
 x_{t+h}=x_t+h\,b_t(x_t)+g_t\sqrt h\,\xi,
 \qquad \xi\sim\mathcal N(0,I).
 $$
 
-新的噪声会把分布扩散开，因而不能只在原 ODE 上加噪声、同时还要求 $p_t$ 保持不变。对应的 drift 要加上 score correction：
+新的 noise 会把样本向周围散开。如果目标仍然是跟随原来的 $p_t$，就需要补偿这部分扩散。Score 指向较高 density 的方向，恰好能提供对应的 correction：
 
 $$
 \boxed{
@@ -305,15 +411,15 @@ $$
 }
 $$
 
-在相同初始分布、准确的 velocity 和 score、以及相应的正则性条件下，这个 SDE 与 $\mathrm dX_t=u_t(X_t)\mathrm dt$ 具有相同的 $p_t$。这是 score-based SDE 与 probability flow ODE 的联系 [@song2021sde]，也是 MIT 6.S184 讲义中的 SDE extension。这里采样时间递增；若把时间定义为 noise level 并倒着走，公式中的符号也要随时间方向转换。
+在相同初始分布、准确的 velocity 和 score、以及相应的正则性条件下，这个 SDE 与 $\mathrm dX_t=u_t(X_t)\mathrm dt$ 具有相同的 $p_t$ [@song2021sde]。也就是说，可以让单个 sample 走随机的路线，同时让所有 samples 在每个时刻保持相同的整体分布。这里使用递增的生成时间；改用递减的 noise level 计时，需要同时转换 drift 的符号。
 
 下图用一个有解析解的例子 $p_t=\mathcal N(t,(1-0.6t)^2)$ 比较两种过程。
 
 <DiffusionOdeSde />
 
-在这个关系里，随机扰动让样本散开，score correction 向高密度区域收拢，二者对边缘密度的额外影响恰好抵消。相同的是每个时间点的分布，单条轨迹和跨时刻的联合分布可以不同。
+图中的共同色带来自理论 density。两组轨迹的形状不同，但在同一时刻观察大量独立 samples，会得到相同的 marginal distribution。联合分布还记录一个 sample 在不同时刻的关联，因此可以不同。
 
-把时间固定，暂时令 $u_t=0$，上述“score correction 加 Brownian noise”就是 Langevin dynamics。它提供的是一种 sampling 机制；只沿 score 上升而不加噪声，更像是在找 density 的局部最大值。
+把目标 density 固定下来，只保留它的 score drift 和 Brownian noise，就得到 Langevin dynamics。两者配合，使过程具有这个目标 stationary density；如果只沿 score 上升，轨迹会朝局部 density maxima 集中。
 
 <details>
 <summary>从 Fokker–Planck equation 看这个抵消</summary>
@@ -345,7 +451,11 @@ $$
 
 ### DDPM: learning the reverse of a noising chain
 
-DDPM [@ho2020ddpm] 从离散加噪过程出发。为了与原论文对齐，**本小节用 $Y_k$ 表示加噪方向**：$Y_0=z$ 是 data，$Y_K$ 近似 noise。它与前面 $X_t$ 的生成时间方向相反。
+前面直接描述连续时间的分布运动。DDPM [@ho2020ddpm] 提供了一条容易构造训练问题的路线：先把真实图片逐步加噪，再学习每一步怎样把噪声去掉。
+
+这一节用离散索引 $k$ 记录加噪次数：$Y_0=z$ 是 data，$Y_K$ 接近标准 Gaussian。它与前面的生成时间 $t$ 方向相反。
+
+选择每一步的新增 noise variance $0<b_k<1$，用 $q$ 表示我们规定的 forward noising process：
 
 $$
 q(Y_k\mid Y_{k-1})
@@ -381,7 +491,7 @@ $$
 <details>
 <summary>Noise prediction loss 与 ELBO 有什么关系？</summary>
 
-DDPM 把 $Y_1,\ldots,Y_K$ 看作一串 latent variables。负 ELBO 可以整理为
+还可以把同一个生成过程看成 hierarchical latent-variable model [@he2024diffusion]：$Y_K$ 是最深层的 noise，各层 $Y_k$ 逐步补回图片结构，最后生成 $z$。对 $Y_1,\ldots,Y_K$ 使用已知的 forward noising chain 作为 variational distribution，负 ELBO 可以整理为
 
 $$
 \mathcal L_{\mathrm{VLB}}
@@ -395,13 +505,13 @@ $$
 
 真实 reverse conditional $q(Y_{k-1}\mid Y_k)$ 一般并不是易算的 Gaussian；但在训练时还知道 $z$，所以 $q(Y_{k-1}\mid Y_k,z)$ 是可以解析计算的 Gaussian。固定模型 variance 后，中间这些 KL 变成两个 mean 的加权平方差；使用上述 noise parameterization，就变成按 $k$ 加权的 noise MSE。
 
-DDPM 常用的 simplified loss $\mathbb E\|\epsilon_\theta(Y_k,k)-\epsilon\|^2$ 去掉了这些随时间变化的权重。因此它与 ELBO 有明确联系，却不是不加条件地逐项相等。MIT 6.S978 Lecture 5 的 hierarchical VAE 视角适合补充理解这个推导。
+这给出了 denoising 的另一种含义：修正每一步的 mean，就是改善这个 latent-variable model 的 likelihood bound。常用的 simplified loss $\mathbb E\|\epsilon_\theta(Y_k,k)-\epsilon\|^2$ 进一步去掉了随时间变化的权重；它保留 noise regression 的形式，同时改变了各个时间点对训练的贡献。
 
 </details>
 
 ### DDIM: predicting endpoints, then changing the mixture
 
-训练网络的时间点与生成必须走过的时间点，不必完全相同。DDIM [@song2021ddim] 构造了一族共享训练 marginals 的过程，让同一个 noise predictor 可以采用不同的 sampling trajectory，包括确定性采样。
+训练完成后，网络在各个 noise levels 都能估计 noise。我们可以利用这项能力，直接从较 noisy 的状态走到较 clean 的状态，而不必经过每一个训练索引。DDIM [@song2021ddim] 构造了共享训练 marginals 的过程，使同一个 noise predictor 支持这样的采样。
 
 在 $Y_k$ 处先估计 clean sample：
 
@@ -435,7 +545,7 @@ $\eta=0$ 时，给定初始 noise，采样过程确定；使用相邻时间点�
 
 ### Classifier-free guidance
 
-若希望生成结果遵循 prompt $c$，可以把网络改成 $u_t^\theta(x_t,c)$ 或 $\epsilon_\theta(x_t,t,c)$，学习 conditional distribution。
+到目前为止，模型只需要生成“像数据”的结果。加入 prompt $c$ 后，我们希望生成的是符合这个条件的样本，例如一只猫，而不是数据集中任意一种动物。为此，网络也接收 $c$，学习相应的 conditional velocity 或 noise prediction。
 
 从 score 看，Bayes' rule 给出
 
@@ -444,7 +554,9 @@ $$
 =\nabla_x\log p_t(x)+\nabla_x\log p_t(c\mid x).
 $$
 
-这启发了 classifier guidance：额外训练能读 noisy inputs 的 classifier，用它的梯度加强条件约束。Classifier-free guidance（CFG）[@ho2022cfg] 则让同一个生成网络同时学 conditional 与 unconditional prediction；训练时随机丢弃条件，采样时组合两次预测：
+等式右侧第二项衡量：当前 noisy sample 朝哪个方向变化，会更符合条件 $c$。Classifier guidance 使用能读取 noisy inputs 的 classifier 来估计这个方向。
+
+也可以利用同一个生成网络的两次预测来表达条件带来的变化。Classifier-free guidance（CFG）[@ho2022cfg] 在训练时随机丢弃条件，使网络既学 conditional prediction，也学 unconditional prediction。采样时组合两者：
 
 $$
 u_{\mathrm{CFG}}(x_t,c)
@@ -452,33 +564,35 @@ u_{\mathrm{CFG}}(x_t,c)
 +w\left(u_t^\theta(x_t,c)-u_t^\theta(x_t,\varnothing)\right).
 $$
 
-本式 $w=0$ 是 unconditional，$w=1$ 是普通 conditional prediction，$w>1$ 沿条件带来的变化继续外推。同样的 affine combination 也可以用于 noise 或 score prediction。它通常加强条件遵循，但较大 guidance 也可能降低多样性、产生过饱和等 artifacts；$w$ 不是越大越好。
+差值 $u_t^\theta(x_t,c)-u_t^\theta(x_t,\varnothing)$ 提取条件带来的方向变化。$w=0$ 使用 unconditional prediction，$w=1$ 使用普通 conditional prediction，$w>1$ 进一步加强这个变化。同样的组合也能用于 noise 或 score prediction。更强的 guidance 往往提高条件遵循，同时可能降低多样性或产生过饱和等 artifacts。
 
 在每个固定 $t$，理想 CFG score 可以写成 $p_t(x\mid c)^w p_t(x)^{1-w}$ 的 log gradient。但这并不自动保证完整采样过程的终点就精确服从这个形式的重加权数据分布：引导后各个时刻的 density 还要满足同一套动力学。
 
 ### Where the neural network operates
 
-Latent Diffusion Models [@rombach2022latent] 先用 autoencoder 把图片压缩到 latent space，再在这个空间里加噪和生成。前面的 $z$ 此时表示 clean latent，而不是 RGB pixels；采样完成后由 decoder 还原为图片。
+对于高分辨率图片，直接在 pixels 上反复调用大网络非常昂贵。Latent Diffusion Models [@rombach2022latent] 先用 autoencoder 把图片压缩到较小的 latent tensor，在那里训练和采样，最后通过 decoder 还原图片。此时，前面的 clean data $z$ 就是图片的 latent representation。
 
 <DiffusionLatentPipeline />
 
-通常先训练 autoencoder，训练 diffusion backbone 时将它固定。Backbone 接收 noisy latent、时间和条件，输出与 latent 同形状的预测。U-Net 通过多尺度下采样、上采样与 skip connections 处理它；Diffusion Transformer（DiT）[@peebles2023dit] 则将 latent patchify 后用 Transformer 处理，再还原空间布局。网络架构不决定它一定预测 noise 还是 velocity，训练 target 与 sampler 仍要另外指定。
+通常先训练 autoencoder，再固定它来训练 diffusion backbone。训练一张图片时，encoder 产生 clean latent，然后加噪、计算 target、更新 backbone；生成时从 latent noise 开始，反复调用 backbone 和 sampler，最后只需调用 decoder。
 
-因此，“latent diffusion”“DiT”“flow matching”“Euler sampler”描述的是不同层次的选择：在哪里生成、用什么网络、怎样训练、怎样求解。它们可以出现在同一个系统里。
+Backbone 负责读入 noisy latent、时间和条件，输出同形状的预测。U-Net 用多尺度结构与 skip connections 交换信息；Diffusion Transformer（DiT）[@peebles2023dit] 把 latent 切成 patches，用 Transformer 处理后再恢复空间布局。这两种架构都可以配合相应的 noise 或 velocity target。
+
+实际系统可以同时使用 latent space、DiT、flow matching 和 Euler sampler：latent space 决定数据表示，DiT 参数化预测函数，flow matching 提供训练 target，Euler 把网络预测变成一步步的生成过程。
 
 ## Reinforcement Learning
 
-以上解决的是如何从数据学习生成分布，以及如何采样。若还希望提高 prompt 遵循、文字渲染、审美或视频运动质量，就可以用 reward 进一步训练生成模型。
+学会生成之后，还可以根据最终结果继续改进模型。例如图片虽然清晰，却画错了物体数量；视频虽然符合 prompt，运动却不自然。这些要求可以通过 reward 表达，用于 post-training。
 
-[RL for diffusion models](/blog/ml/ml-revisit/rl#rl-for-diffusion-models) 介绍如何把一次完整生成写成 MDP，为什么 Flow-GRPO 和 DanceGRPO 需要可计算的逐步 transition density，以及 group rewards 如何作用于这些采样步骤。
+[RL for diffusion models](/blog/ml/ml-revisit/rl#rl-for-diffusion-models) 从最终 reward 出发，把它分配给生成过程中的采样决策，进而建立 Flow-GRPO 和 DanceGRPO 的训练循环。
 
 <span id="coefficients-preserving-sampling" />
 
-Coefficients-Preserving Sampling（CPS）[@wang2025cps] 针对这类 RL 训练中的随机 rollout：重新分配 retained noise 与 fresh noise 的系数，减少采样噪声伪影对 reward 评估的干扰。它的动机、推导、配图和 policy 更新细节放在 [RL 的 CPS 小节](/blog/ml/ml-revisit/rl#coefficients-preserving-sampling)。
+Flow-GRPO 和 DanceGRPO 的逐步 policy 更新使用随机 rollout。Coefficients-Preserving Sampling（CPS）[@wang2025cps] 调整 retained noise 与 fresh noise 的分配，改善 rollout 的采样质量，使最终 reward 更好地评价生成内容。[RL 的 CPS 小节](/blog/ml/ml-revisit/rl#coefficients-preserving-sampling) 接着这里的采样知识解释它的构造。
 
 ## Further reading
 
-- MIT 6.S184 2026 讲义 [@flowsanddiffusions2026]：本文 probability path、conditional/marginal field、score、ODE/SDE 与 guidance 的主线；课程还有从 toy distribution 到 latent image generation 的 labs。
-- Stanford CS236：normalizing flow notes [@groverNormalizingFlows] 与 2023 年的 Lecture 7 [@ermon2023flow7]、Lecture 8 [@ermon2023flow8]，适合补可逆变换、Jacobian 与 likelihood 的视角。
-- Stanford EE367 2026 Lecture 12 [@wetzstein2026diffusion]：从 score-based modeling 与图像生成理解 denoising。
-- MIT 6.S978 2024 Lecture 5 [@he2024diffusion]：从 hierarchical VAE、ELBO、denoising 与 energy-based modeling 连接不同推导路线。
+- MIT 6.S184, IAP 2026：*Introduction to Flow Matching and Diffusion Models* [@flowsanddiffusions2026]。
+- Stanford CS236：*Normalizing Flow Models* notes [@groverNormalizingFlows]；Fall 2023 Lecture 7 [@ermon2023flow7]、Lecture 8 [@ermon2023flow8]。
+- Stanford EE367, Winter 2026：*A Gentle Introduction to Diffusion Models* [@wetzstein2026diffusion]。
+- MIT 6.S978, Fall 2024：*Diffusion Models* [@he2024diffusion]。

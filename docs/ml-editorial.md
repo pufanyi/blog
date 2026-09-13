@@ -36,6 +36,12 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   encountering the specific topic for the first time. The series should support
   both initial learning and review. Briefly establish necessary prerequisites
   and introduce the terms needed to follow the explanation.
+- Use courses and papers to develop a coherent explanation for students.
+  Organize the prose around the reader's questions, mechanisms, and worked
+  examples; explain the subject directly instead of narrating how different
+  lecturers teach it. Keep attribution beside the relevant idea and collect
+  optional reading resources separately. Multiple perspectives should reveal
+  connections within the subject, not become a comparison of teaching materials.
 - Use plain language, concrete examples, and intuition to explain the problem
   and how the mechanism works. Connect the reasoning steps and explain what
   equations mean, so a first-time reader can follow the argument.
