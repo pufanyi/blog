@@ -1,8 +1,8 @@
 ---
 title: "Reinforcement Learning"
 date: "2024-10-16"
-updated: "2026-09-12"
-description: "RL 学习笔记：policy gradient、actor-critic、TRPO、PPO、DPO 与 GRPO，以及 human feedback 和 binary rewards 的一些推导。"
+updated: "2026-09-13"
+description: "RL 学习笔记：policy gradient、actor-critic、TRPO、PPO、DPO 与 GRPO，以及 human feedback、binary rewards 和 diffusion models 的 RL post-training。"
 ---
 
 [Berkeley CS285](https://rail.eecs.berkeley.edu/deeprlcourse/) / [Stanford CS224R](https://cs224r.stanford.edu/) / [Yezhen 学长推荐嘟](https://zhuanlan.zhihu.com/p/7461863937) / [Li Bo 学长推荐嘟](https://hijkzzz.notion.site/Jian-Hu-s-Blogpost-147d9a33ecc980d89400c3006d4173c2)
@@ -1054,6 +1054,212 @@ $$
 ### Reinforcement Learning from Verifiable Rewards
 
 Tülu 3 [@lambert2024t]。阅读笔记待续。
+
+## RL for diffusion models
+
+Diffusion 和 flow matching 的预训练目标，是从数据中学会生成。进入 post-training 后，我们还可能关心一些不容易写进 denoising loss 的要求：图片里是否有指定数量的物体，文字有没有拼对，视频的运动是否自然，或者人更喜欢哪一个结果。
+
+这些要求可以通过 reward 表达：给定条件 $c$，生成结果 $y$，最大化
+
+$$
+J(\theta)=\mathbb E_{c,\,y\sim p_\theta(\cdot\mid c)}[r(y,c)].
+$$
+
+基础的 probability path、noise/velocity prediction 与 ODE/SDE sampling，见另一篇 [Diffusion](/blog/ml/ml-revisit/diffusion)。本节沿用那里的生成时间方向：$t=0$ 是 noise，$t=1$ 是 data。Flow-GRPO、DanceGRPO 原论文常以 noise level 计时、从 $1$ 走向 $0$；阅读实现时需要一起转换时间和 velocity 的方向。
+
+### Denoising as an MDP
+
+一次生成不是一次孤立的预测，而是一连串采样决策。DDPO [@black2024ddpo] 将这条 denoising chain 写成 MDP，从而使用 policy gradient 优化最终图片的 reward。
+
+取生成网格 $0=t_0<\cdots<t_K=1$，简写 $x_k=x_{t_k}$：
+
+| RL 中的量 | 生成模型中的含义 |
+| --- | --- |
+| State $s_k$ | $(c,t_k,x_k)$：条件、时间、当前 noisy sample |
+| Action $a_k$ | 采样得到的下一个 sample $x_{k+1}$ |
+| Policy $\pi_\theta(a_k\mid s_k)$ | Sampler 定义的 transition density $p_\theta(x_{k+1}\mid x_k,c)$ |
+| Environment transition | 把刚得到的 $x_{k+1}$ 放入下一个 state，并推进时间 |
+| Reward | 中间步骤为 $0$，最后对输出 $y$ 计算 $r(y,c)$ |
+
+对于 latent model，$y=D(x_K)$，其中 $D$ 是固定的 decoder。Action 是整个下一步 latent tensor；网络预测的 velocity 决定 transition 的 mean。这里 policy 可以是随机的，而 action 选定之后的 environment transition 仍是确定的。
+
+整条 trajectory 的条件密度是
+
+$$
+p_\theta(\tau\mid c)
+=p_0(x_0)\prod_{k=0}^{K-1}p_\theta(x_{k+1}\mid x_k,c).
+$$
+
+初始 noise 不依赖参数，因此在非退化随机 transition 下，前面介绍的 score-function gradient 直接给出
+
+$$
+\nabla_\theta J
+=\mathbb E\left[r(y,c)
+\sum_{k=0}^{K-1}\nabla_\theta\log p_\theta(x_{k+1}\mid x_k,c)\right].
+$$
+
+这个任务通常取 $\gamma=1$：最终 reward 评价整次生成。计算 policy gradient 时把采样得到的 states、actions 和 rewards 固定，重新计算这些 actions 在当前 policy 下的 log density；不需要让梯度穿过整条生成过程或 reward model。
+
+### From a deterministic flow to a stochastic policy
+
+给定 $x_k$，Euler ODE sampler 只有一个确定的下一状态：
+
+$$
+x_{k+1}=x_k+h_k u_\theta(x_k,t_k,c),\qquad h_k=t_{k+1}-t_k.
+$$
+
+不同初始 seeds 当然能产生不同图片。但在一个**固定 state** 上，这个 transition 是 point mass，不能直接套用普通 Gaussian policy 的 log density 和 PPO ratio。Flow-GRPO 与 DanceGRPO 使用随机 transition，使每一步都有可计算的 density，并提供中途探索。
+
+对线性 path $x_t=tz+(1-t)\epsilon$，由 velocity 得到 noise estimate
+
+$$
+\hat\epsilon_\theta=x_t-tu_\theta(x_t,t,c),\qquad
+s_\theta(x_t,t,c)=-\frac{\hat\epsilon_\theta}{1-t}.
+$$
+
+采用带 score correction 的 SDE，并做 Euler–Maruyama 离散化：
+
+$$
+\mu_\theta(s_k)=x_k+h_k
+\left[u_\theta(x_k,t_k,c)+\frac{g_{t_k}^2}{2}s_\theta(x_k,t_k,c)\right],
+$$
+
+$$
+\boxed{
+\pi_\theta(a_k\mid s_k)
+=\mathcal N\left(a_k;\mu_\theta(s_k),\nu_k^2I\right),
+\qquad \nu_k^2=g_{t_k}^2h_k.
+}
+$$
+
+网络仍然预测原来的 velocity，变化发生在 sampler：它根据 velocity 构造 mean，再加入新 noise。连续时间的 marginal equivalence 与有限步误差，见 [Diffusion 的 ODE/SDE 部分](/blog/ml/ml-revisit/diffusion#ode-and-sde-sampling)。
+
+<details>
+<summary>Deterministic sampler 就不能做 RL 吗？</summary>
+
+不能直接套用上述随机 policy density，并不意味着 deterministic generation 无法优化。如果 decoder、reward 和 sampling steps 都可微，可以考虑对完整生成映射做 pathwise differentiation；代价是需要保存或重算多步计算图，而且不适用于只有离散评判结果的 black-box reward。
+
+CNF 的 divergence formula 可以计算由随机初始 noise 诱导的 marginal density，但它不会把一个固定输入上的确定性 transition 变成非退化 Gaussian。这里引入随机 sampler，是为了得到适合逐步 likelihood-ratio 更新的 policy。
+
+</details>
+
+### Group rewards and policy updates
+
+对于同一个 prompt，先用 $\theta_{\mathrm{old}}$ 生成 $G$ 个完整结果，再在组内比较 reward：
+
+$$
+r_i=r(y_i,c),\qquad
+\bar r=\frac1G\sum_{i=1}^G r_i,\qquad
+\hat A_i=\frac{r_i-\bar r}{\sqrt{\frac1G\sum_{j=1}^G(r_j-\bar r)^2}+\varepsilon_A}.
+$$
+
+这里使用 population standard deviation 的组内计算方式，并用 $\varepsilon_A>0$ 处理零方差。若同组 reward 全相等，所有中心化后的 advantage 都是零，这一组就没有相对优劣信号。
+
+<DiffusionRlGroup />
+
+同一张图片对应的所有采样步骤共享 $\hat A_i$，但 **probability ratio 仍按 transition 计算**：
+
+$$
+\rho_{i,k}(\theta)
+=\frac{p_\theta(x_{k+1}^{(i)}\mid x_k^{(i)},c)}
+{p_{\theta_{\mathrm{old}}}(x_{k+1}^{(i)}\mid x_k^{(i)},c)}.
+$$
+
+这样就能复用前面的 PPO clipping。以包含可选 reference regularization 的形式写出最大化目标：
+
+$$
+\mathcal J(\theta)
+=\mathbb E_{c,\{\tau_i\}\sim\pi_{\theta_{\mathrm{old}}}}
+\left[\frac1{GK}\sum_{i=1}^G\sum_{k=0}^{K-1}
+\left(
+\min\left\{\rho_{i,k}\hat A_i,
+\operatorname{clip}(\rho_{i,k},1-\epsilon,1+\epsilon)\hat A_i\right\}
+-\beta D_{i,k}(\theta)
+\right)\right],
+$$
+
+$$
+D_{i,k}(\theta)
+=D_{\mathrm{KL}}\left(\pi_\theta(\cdot\mid s_k^{(i)})
+\|\pi_{\mathrm{ref}}(\cdot\mid s_k^{(i)})\right).
+$$
+
+这里 $\theta_{\mathrm{old}}$ 是本轮 rollout policy，$\theta_{\mathrm{ref}}$ 是固定的 reference。Flow-GRPO 使用 reference KL；DanceGRPO 原论文展示的核心目标不含这项。它们共有的是 group-relative advantage 与逐步 clipped surrogate，不需要额外训练 value network。
+
+<DiffusionRlReplay />
+
+一轮训练先保存 trajectory、old log density 和 reward，随后对保存的 transitions 重新评估当前 policy，做若干次更新，再刷新 rollout policy。提高某张高分图片的相关 action density，是对生成它的采样决策施加正向权重；这不是把终点图片直接当成新的 clean target 做 denoising regression。
+
+共享终点 advantage 也没有解决细粒度 credit assignment：它并不知道具体是哪一步修正了文字、数量或运动。因此，rollout 长度、组内多样性和 reward 的分辨能力都会影响学习信号。
+
+### Flow-GRPO and DanceGRPO
+
+**Flow-GRPO** [@liu2025flowgrpo] 聚焦 flow matching 的 online RL。除了 ODE-to-SDE 转换，另一个主要设计是 **Denoising Reduction**：用更少的采样步骤收集训练 trajectories，推理时仍保留较多步骤。例如论文的 SD3.5-M 实验使用 10 步 rollout、40 步 inference。它减少的是在线数据收集的成本，并不等于把模型蒸馏成 10 步，也不保证任意模型减到同样步数都有效。
+
+**DanceGRPO** [@xue2025dancegrpo] 将同一套 group-relative 更新用于 noise-prediction diffusion 与 rectified flow，并覆盖 text-to-image、text-to-video、image-to-video。条件 $c$ 可以包含文字和参考图，reward 也可以分别评价审美、文本对齐和运动质量。它的重点是说明这套更新怎样跨模型与任务使用；模型生成的是视频，并不意味着 RL action 必须是一帧，action 仍可是一整段视频 latent 的下一步状态。
+
+| 比较项 | Flow-GRPO 原论文 | DanceGRPO 原论文 |
+| --- | --- | --- |
+| 主要范围 | Flow matching 的 text-to-image alignment | Diffusion 与 rectified flow，图像与视频任务 |
+| 随机性 | ODE-to-SDE，构造 Gaussian transition | 为不同生成参数化构造随机 sampler |
+| Flow 的 noise schedule | 本文时间下 $g_t=a\sqrt{(1-t)/t}$ | Flow 分支可用常数 $g_t=a$ |
+| Advantage | 同 prompt 的 group-relative reward | 同 prompt 的 group-relative reward |
+| 重点设计 | Denoising Reduction；reference KL 的作用 | 多任务、多 reward；还考察从较大 sample pool 选取高低分样本 |
+
+表中 $a$ 控制探索强度。Flow-GRPO 的解析 schedule 在本文 $t=0$ 处有奇异性，实际实现会对端点作特殊处理；不能把公式未经处理直接代入第一步。比较模型时，也应检查用的是 SDE rollout 还是 ODE evaluation，以及有没有启用 guidance。
+
+Reward 的不同维度可能相互牵制。DanceGRPO 的 FLUX 实验中，仅优化 HPS 提高了偏好分数，却降低了 GenEval；增加 CLIP reward 后出现了不同的权衡。因而除了训练 reward，还应检查独立指标、图片或视频内容与多样性。Reference KL 能限制偏离，但不是防止 reward hacking 的保证。
+
+### Sampling details that change the RL objective
+
+CPS 的采样原理见 [Coefficients-Preserving Sampling](/blog/ml/ml-revisit/diffusion#coefficients-preserving-sampling)。它把下一步的 noise 份额分给 retained noise 与 fresh noise，可以替换这里的随机 sampler。对 $t_k\to t_{k+1}$，它的 mean 和 standard deviation 是
+
+$$
+\mu_\theta^{\mathrm{CPS}}
+=t_{k+1}\hat z_\theta
++(1-t_{k+1})\cos\left(\frac{\eta\pi}{2}\right)\hat\epsilon_\theta,
+\qquad
+\nu_k^{\mathrm{CPS}}=(1-t_{k+1})\sin\left(\frac{\eta\pi}{2}\right).
+$$
+
+只要 $\nu_k>0$，它仍然定义 Gaussian transition。但应区分 **CPS sampler** 和 Flow-CPS 论文 [@wang2025cps] 为稳定训练额外修改的 surrogate；换了采样公式，并不意味着代码中的任何 `log_prob` 都自动是它的严格 density。
+
+<details>
+<summary>Gaussian density、按维度取平均与去掉 variance denominator</summary>
+
+对于 $d$ 维 action、固定且与参数无关的 $\nu_k>0$，严格 log density 为
+
+$$
+\ell_\theta
+=-\frac{\|a-\mu_\theta(s)\|^2}{2\nu_k^2}
+-d\log\nu_k-\frac d2\log(2\pi).
+$$
+
+同一个 state、action 和 noise schedule 下，ratio 是
+
+$$
+\log\rho
+=-\frac{\|a-\mu_\theta(s)\|^2-\|a-\mu_{\mathrm{old}}(s)\|^2}
+{2\nu_k^2}.
+$$
+
+两项 additive normalization constants 会相消，**乘在平方误差前面的 $1/(2\nu_k^2)$ 不会相消**。同 covariance 的 reference KL 也有解析式：
+
+$$
+D_{\mathrm{KL}}(\pi_\theta\|\pi_{\mathrm{ref}})
+=\frac{\|\mu_\theta-\mu_{\mathrm{ref}}\|^2}{2\nu_k^2}.
+$$
+
+官方实现中还有两个需要单独理解的改动：
+
+- Flow-GRPO 的 sampler [@flowgrpoImplementation] 把逐坐标 log density **取平均**后再计算 ratio。对固定 $d$，这相当于使用 $\rho^{1/d}$，而不是整个 latent tensor 的 joint density ratio；同样的 clip threshold 也因此具有不同含义。
+- Flow-CPS 的论文与实现 [@flowcpsImplementation] 进一步使用负平方误差，省略 variance denominator，并相应调整 reference regularization。这改变了不同时间点的权重，是一个额外的训练 surrogate；它不是通过“删去相消常数”得到的严格 Gaussian likelihood ratio。
+
+当前 Flow-GRPO 官方仓库也已加入 CPS 分支。阅读后续实现时，应一起检查 sampler、log-density reduction、variance weighting 和 clip 设置，不能只凭算法名称假设它仍与原论文的全部细节相同。
+
+</details>
+
+当 $\eta=0$ 或 CPS 到达最终 $t_{k+1}=1$ 时，$\nu_k=0$，transition 退化为确定映射。不能把零 variance 填进 Gaussian log density。使用严格随机 policy 目标时，应显式处理这些步骤；如果只训练部分随机 steps、把其余生成步骤视为冻结的后续过程，需说明优化的是这个受限制的 policy。若多个步骤共享参数并同时改变，跳过它们的 score 项也不应再宣称是完整生成目标的无偏梯度。
 
 ## Q Learning
 
