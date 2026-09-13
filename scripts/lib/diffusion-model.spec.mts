@@ -1,14 +1,16 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  CPS_EXAMPLE,
-  cpsCoefficients,
   flowTrajectory,
   gaussianScale,
   gaussianTransition,
   INITIAL_POINTS,
   mixture,
 } from '../../content/posts/ml/ml-revisit/diffusion/scripts/model';
+import {
+  CPS_EXAMPLE,
+  cpsCoefficients,
+} from '../../content/posts/ml/ml-revisit/rl/scripts/cps-model';
 
 const close = (actual: number, expected: number, tolerance = 1e-10) => {
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} differs from ${expected}`);

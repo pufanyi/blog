@@ -105,11 +105,6 @@
   stroke: var(--accent-blue);
   stroke-width: 1.5;
 }
-.df-bar {
-  fill: color-mix(in srgb, currentColor 30%, var(--paper-bg));
-  stroke: currentColor;
-  stroke-width: 1;
-}
 .df-math {
   display: flex;
   align-items: center;

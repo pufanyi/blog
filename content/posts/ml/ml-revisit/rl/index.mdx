@@ -1210,9 +1210,106 @@ $$
 
 Reward 的不同维度可能相互牵制。DanceGRPO 的 FLUX 实验中，仅优化 HPS 提高了偏好分数，却降低了 GenEval；增加 CLIP reward 后出现了不同的权衡。因而除了训练 reward，还应检查独立指标、图片或视频内容与多样性。Reference KL 能限制偏离，但不是防止 reward hacking 的保证。
 
+### Coefficients-Preserving Sampling
+
+随机 rollout 的质量会直接影响 RL 的学习信号：生成结果先交给 reward model 打分，分数再决定 group-relative advantage。如果采样引入明显的噪声伪影，reward 和组内排序也可能受到干扰。
+
+Flow-CPS [@wang2025cps] 在 flow matching 的 RL post-training 中研究这个问题，提出 **Coefficients-Preserving Sampling（CPS）**。它修改的是 Flow-GRPO、DanceGRPO 等方法的 rollout sampler：通过重新分配 noise coefficients 保留探索所需的随机性，并减少论文实验中观察到的采样噪声伪影；后续仍由 reward、advantage 和 policy update 完成 RL 训练。
+
+沿用本节的生成时间方向：$t=0$ 是 noise，$t=1$ 是 data。下面固定条件 $c$，省略预测函数中的 $c$。设在线性路径上，从 $t$ 前进到 $s=t+h$。先用当前的 velocity prediction 得到
+
+$$
+\hat z=x_t+(1-t)u_t^\theta(x_t),\qquad
+\hat\epsilon=x_t-tu_t^\theta(x_t).
+$$
+
+Euler 的一步可以重写成
+
+$$
+x_s=x_t+h\,u_t^\theta(x_t)
+=s\hat z+(1-s)\hat\epsilon.
+$$
+
+它已经把下一时刻的 data coefficient 改为 $s$，noise coefficient 改为 $1-s$。如果还想加入独立的 $\rho\xi$，就应该同时减少原有 noise 的份额：
+
+$$
+\boxed{
+x_s=s\hat z
++\sqrt{(1-s)^2-\rho^2}\,\hat\epsilon
++\rho\xi,
+\qquad 0\le\rho\le1-s.
+}
+$$
+
+CPS 在系数层面把 $\hat\epsilon$ 当作单位方差的 noise estimate。此时它保留两件事：data coefficient 仍为 $s$；两份独立 noise 的**方差相加**为 $(1-s)^2$。因此不能把两个 noise 的标准差直接相加。
+
+<DiffusionRlCpsBudget />
+
+例如目标 noise coefficient 是 $0.25$，想加入标准差为 $0.20$ 的新噪声，就应把 retained noise coefficient 设为
+
+$$
+\sqrt{0.25^2-0.20^2}=0.15.
+$$
+
+Flow-CPS 使用一个便于控制范围的参数化：
+
+$$
+\rho=(1-s)\sin\left(\frac{\eta\pi}{2}\right),\qquad
+x_s=s\hat z
++(1-s)\cos\left(\frac{\eta\pi}{2}\right)\hat\epsilon
++(1-s)\sin\left(\frac{\eta\pi}{2}\right)\xi,
+\quad\eta\in[0,1].
+$$
+
+$\eta=0$ 恢复 Euler；$\eta=1$ 把该步 noise 份额全部交给 fresh noise。到 $s=1$ 时两项 noise coefficient 都归零，最后输出 $\hat z$。这只是系数上的去噪终点，不保证模型的预测本身没有误差。
+
+#### What happens to the SDE equivalence?
+
+前面的 SDE 关系针对连续时间。Euler–Maruyama 把 drift 在当前点冻结，有限步更新未必精确保留目标系数。
+
+对线性路径，有 $s_t^\theta=-\hat\epsilon/(1-t)$。于是 SDE 的离散一步可以写成
+
+$$
+x_s=s\hat z
++\left(1-s-\frac{g_t^2h}{2(1-t)}\right)\hat\epsilon
++g_t\sqrt h\,\xi.
+$$
+
+在 CPS 使用的 noise coefficient 分析下，两项 noise 的合成方差为
+
+$$
+\left(1-s-\frac{g_t^2h}{2(1-t)}\right)^2+g_t^2h
+=(1-s)^2
++\frac{g_t^2h^2}{1-t}
++\frac{g_t^4h^2}{4(1-t)^2}.
+$$
+
+后两项就是这个有限步公式多出的部分。图中 $t=0.5,h=0.25,g_t=0.4$，合成 noise coefficient 是 $0.29$，大于目标 $0.25$。步长较大、靠近端点或探索噪声较强时，需要特别留意这种偏差。
+
+这不否定连续时间 ODE/SDE 的 marginal equivalence，也不说明所有 SDE samplers 都会留下同样的 artifacts。CPS 针对的是具体离散更新的 noise bookkeeping；若令 $\rho=g_t\sqrt h$ 并对平方根做小步长展开，可以重新得到相应的 SDE 近似。固定 $\eta$ 的 Flow-CPS 本身则是离散随机采样器，无需将每一步解释成 Brownian increment。
+
+<details>
+<summary>保持系数，是否就保证真实 marginal 完全正确？</summary>
+
+上面的方差计算把 $\hat\epsilon$ 当作具有单位方差的 noise estimate，并让 fresh noise 与它独立。新的 $\xi$ 确实可以独立采样，但 MSE 网络的理想输出是 $\mathbb E[\epsilon\mid x_t]$；它一般并不具有标准 Gaussian noise 的全部分布性质，也可能与 $\hat z$ 相关。论文修订版也明确列出了 noise estimate 的假设。
+
+所以 CPS 精确保留的是 **sampling formula 中规定的系数关系**。它不是“任意网络、任意步长都能精确采样 $p_s$”的证明。相比直接往 ODE 结果上叠加噪声，这个构造控制了信号与噪声的预定份额；实际分布仍受网络误差、有限步更新和 guidance 影响。
+
+更一般地，对 Gaussian path，可以使用
+
+$$
+x_s=\alpha_s\hat z
++\sqrt{\beta_s^2-\rho^2}\,\hat\epsilon+\rho\xi,
+\qquad 0\le\rho\le\beta_s.
+$$
+
+DDIM 与线性路径的 Flow-CPS 都呈现这个结构，但不同模型仍需要各自一致的预测参数化和 schedule。
+
+</details>
+
 ### Sampling details that change the RL objective
 
-CPS 的采样原理见 [Coefficients-Preserving Sampling](/blog/ml/ml-revisit/diffusion#coefficients-preserving-sampling)。它把下一步的 noise 份额分给 retained noise 与 fresh noise，可以替换这里的随机 sampler。对 $t_k\to t_{k+1}$，它的 mean 和 standard deviation 是
+把上面的 CPS 更新放回 RL 的 transition policy。对 $t_k\to t_{k+1}$，它的 mean 和 standard deviation 是
 
 $$
 \mu_\theta^{\mathrm{CPS}}
@@ -1222,7 +1319,7 @@ $$
 \nu_k^{\mathrm{CPS}}=(1-t_{k+1})\sin\left(\frac{\eta\pi}{2}\right).
 $$
 
-只要 $\nu_k>0$，它仍然定义 Gaussian transition。但应区分 **CPS sampler** 和 Flow-CPS 论文 [@wang2025cps] 为稳定训练额外修改的 surrogate；换了采样公式，并不意味着代码中的任何 `log_prob` 都自动是它的严格 density。
+只要 $\nu_k>0$，它仍然定义 Gaussian transition。但应区分 **CPS sampler** 和 Flow-CPS 论文为稳定训练额外修改的 surrogate；换了采样公式，并不意味着代码中的任何 `log_prob` 都自动是它的严格 density。
 
 <details>
 <summary>Gaussian density、按维度取平均与去掉 variance denominator</summary>

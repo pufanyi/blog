@@ -17,6 +17,9 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   continuous-time ODE/SDE equivalence from finite-step errors, and CPS coefficient
   preservation from exact marginal sampling. In diffusion RL, distinguish joint
   Gaussian density ratios from dimension-averaged or variance-rescaled surrogates.
+  Keep the full CPS explanation and figure under RL for diffusion models, where
+  rollout quality motivates the method; the Diffusion article links to it after
+  establishing the sampling prerequisites. Preserve the old Diffusion CPS anchor.
 
 - The visual SSL overview is one long article at `ssl/index.mdx`, with shared
   SVG primitives in `ssl/scripts/elements.tsx` and styles in `ssl/styles.css`.

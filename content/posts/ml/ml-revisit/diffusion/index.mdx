@@ -2,7 +2,7 @@
 title: "Diffusion"
 date: "2026-09-03"
 updated: "2026-09-13"
-description: "从概率路径理解 flow matching、score matching、DDPM/DDIM 与 ODE/SDE 采样，再到 guidance、latent diffusion 和 Coefficients-Preserving Sampling。"
+description: "从概率路径理解 flow matching、score matching、DDPM/DDIM 与 ODE/SDE 采样，再到 guidance 和 latent diffusion。"
 ---
 
 生成一张图片，可以理解成从图片的概率分布中抽取一个样本。我们只有数据集，并不知道这个分布的解析式；flow 和 diffusion models 的办法是从容易采样的 Gaussian noise 出发，学习如何一步步把它变成数据。
@@ -429,7 +429,7 @@ $$
 
 $\eta=0$ 时，给定初始 noise，采样过程确定；使用相邻时间点且 $\eta=1$ 时，恢复前面 fixed posterior variance 的 DDPM 更新。减少采样时间点可以降低 NFE，但跳得更远仍会放大预测和数值误差。
 
-这里值得记住的是三个项的分工：**下一步 data 的系数由 schedule 决定，noise 的份额则在保留的预测噪声与新噪声之间分配。** 后面的 CPS 会把这个结构用到 flow matching 上。
+这里值得记住的是三个项的分工：**下一步 data 的系数由 schedule 决定，noise 的份额则在保留的预测噪声与新噪声之间分配。** [RL 章节中的 CPS](/blog/ml/ml-revisit/rl#coefficients-preserving-sampling) 会把这个结构用到 flow matching 的随机 rollout 上。
 
 ## Conditioning and latent diffusion
 
@@ -466,106 +466,15 @@ Latent Diffusion Models [@rombach2022latent] 先用 autoencoder 把图片压缩�
 
 因此，“latent diffusion”“DiT”“flow matching”“Euler sampler”描述的是不同层次的选择：在哪里生成、用什么网络、怎样训练、怎样求解。它们可以出现在同一个系统里。
 
-## Coefficients-Preserving Sampling
-
-使用 flow model 做 RL 时，往往希望采样包含额外随机性，让同一个中间状态有机会产生不同后续结果。除了前面的 SDE，Flow-CPS [@wang2025cps] 提供了一个从**有限步更新的系数**出发的构造，名为 Coefficients-Preserving Sampling（CPS）。
-
-下面回到全文的时间方向：$t=0$ 是 noise，$t=1$ 是 data。设在线性路径上，从 $t$ 前进到 $s=t+h$。先用当前的 velocity prediction 得到
-
-$$
-\hat z=x_t+(1-t)u_t^\theta(x_t),\qquad
-\hat\epsilon=x_t-tu_t^\theta(x_t).
-$$
-
-Euler 的一步可以重写成
-
-$$
-x_s=x_t+h\,u_t^\theta(x_t)
-=s\hat z+(1-s)\hat\epsilon.
-$$
-
-它已经把下一时刻的 data coefficient 改为 $s$，noise coefficient 改为 $1-s$。如果还想加入独立的 $\rho\xi$，就应该同时减少原有 noise 的份额：
-
-$$
-\boxed{
-x_s=s\hat z
-+\sqrt{(1-s)^2-\rho^2}\,\hat\epsilon
-+\rho\xi,
-\qquad 0\le\rho\le1-s.
-}
-$$
-
-CPS 在系数层面把 $\hat\epsilon$ 当作单位方差的 noise estimate。此时它保留两件事：data coefficient 仍为 $s$；两份独立 noise 的**方差相加**为 $(1-s)^2$。因此不能把两个 noise 的标准差直接相加。
-
-<DiffusionCpsBudget />
-
-例如目标 noise coefficient 是 $0.25$，想加入标准差为 $0.20$ 的新噪声，就应把 retained noise coefficient 设为
-
-$$
-\sqrt{0.25^2-0.20^2}=0.15.
-$$
-
-Flow-CPS 使用一个便于控制范围的参数化：
-
-$$
-\rho=(1-s)\sin\left(\frac{\eta\pi}{2}\right),\qquad
-x_s=s\hat z
-+(1-s)\cos\left(\frac{\eta\pi}{2}\right)\hat\epsilon
-+(1-s)\sin\left(\frac{\eta\pi}{2}\right)\xi,
-\quad\eta\in[0,1].
-$$
-
-$\eta=0$ 恢复 Euler；$\eta=1$ 把该步 noise 份额全部交给 fresh noise。到 $s=1$ 时两项 noise coefficient 都归零，最后输出 $\hat z$。这只是系数上的去噪终点，不保证模型的预测本身没有误差。
-
-### What happens to the SDE equivalence?
-
-前面的 SDE 关系针对连续时间。Euler–Maruyama 把 drift 在当前点冻结，有限步更新未必精确保留目标系数。
-
-对线性路径，有 $s_t^\theta=-\hat\epsilon/(1-t)$。于是 SDE 的离散一步可以写成
-
-$$
-x_s=s\hat z
-+\left(1-s-\frac{g_t^2h}{2(1-t)}\right)\hat\epsilon
-+g_t\sqrt h\,\xi.
-$$
-
-在 CPS 使用的 noise coefficient 分析下，两项 noise 的合成方差为
-
-$$
-\left(1-s-\frac{g_t^2h}{2(1-t)}\right)^2+g_t^2h
-=(1-s)^2
-+\frac{g_t^2h^2}{1-t}
-+\frac{g_t^4h^2}{4(1-t)^2}.
-$$
-
-后两项就是这个有限步公式多出的部分。图中 $t=0.5,h=0.25,g_t=0.4$，合成 noise coefficient 是 $0.29$，大于目标 $0.25$。步长较大、靠近端点或探索噪声较强时，需要特别留意这种偏差。
-
-这不否定连续时间 ODE/SDE 的 marginal equivalence，也不说明所有 SDE samplers 都会留下同样的 artifacts。CPS 针对的是具体离散更新的 noise bookkeeping；若令 $\rho=g_t\sqrt h$ 并对平方根做小步长展开，可以重新得到相应的 SDE 近似。固定 $\eta$ 的 Flow-CPS 本身则是离散随机采样器，无需将每一步解释成 Brownian increment。
-
-<details>
-<summary>保持系数，是否就保证真实 marginal 完全正确？</summary>
-
-上面的方差计算把 $\hat\epsilon$ 当作具有单位方差的 noise estimate，并让 fresh noise 与它独立。新的 $\xi$ 确实可以独立采样，但 MSE 网络的理想输出是 $\mathbb E[\epsilon\mid x_t]$；它一般并不具有标准 Gaussian noise 的全部分布性质，也可能与 $\hat z$ 相关。论文修订版也明确列出了 noise estimate 的假设。
-
-所以 CPS 精确保留的是 **sampling formula 中规定的系数关系**。它不是“任意网络、任意步长都能精确采样 $p_s$”的证明。相比直接往 ODE 结果上叠加噪声，这个构造控制了信号与噪声的预定份额；实际分布仍受网络误差、有限步更新和 guidance 影响。
-
-更一般地，对 Gaussian path，可以使用
-
-$$
-x_s=\alpha_s\hat z
-+\sqrt{\beta_s^2-\rho^2}\,\hat\epsilon+\rho\xi,
-\qquad 0\le\rho\le\beta_s.
-$$
-
-DDIM 与线性路径的 Flow-CPS 都呈现这个结构，但不同模型仍需要各自一致的预测参数化和 schedule。
-
-</details>
-
 ## Reinforcement Learning
 
 以上解决的是如何从数据学习生成分布，以及如何采样。若还希望提高 prompt 遵循、文字渲染、审美或视频运动质量，就可以用 reward 进一步训练生成模型。
 
-[RL for diffusion models](/blog/ml/ml-revisit/rl#rl-for-diffusion-models) 介绍如何把一次完整生成写成 MDP，为什么 Flow-GRPO 和 DanceGRPO 需要可计算的逐步 transition density，以及 group rewards 如何作用于这些采样步骤。CPS 可以作为其中的随机 sampler；但采样公式和 RL 的 probability ratio 必须对应，尤其要区分严格 Gaussian log density 与实现中经过缩放的训练 surrogate。
+[RL for diffusion models](/blog/ml/ml-revisit/rl#rl-for-diffusion-models) 介绍如何把一次完整生成写成 MDP，为什么 Flow-GRPO 和 DanceGRPO 需要可计算的逐步 transition density，以及 group rewards 如何作用于这些采样步骤。
+
+<span id="coefficients-preserving-sampling" />
+
+Coefficients-Preserving Sampling（CPS）[@wang2025cps] 针对这类 RL 训练中的随机 rollout：重新分配 retained noise 与 fresh noise 的系数，减少采样噪声伪影对 reward 评估的干扰。它的动机、推导、配图和 policy 更新细节放在 [RL 的 CPS 小节](/blog/ml/ml-revisit/rl#coefficients-preserving-sampling)。
 
 ## Further reading
 
