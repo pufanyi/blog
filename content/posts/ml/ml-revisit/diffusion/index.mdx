@@ -635,22 +635,154 @@ $$
 
 把这条路径写回 $\alpha z+\beta\epsilon$ 的形式，才得到 $\alpha=\sqrt{\bar a_k}$、$\beta=\sqrt{1-\bar a_k}$，以及 $\alpha^2+\beta^2=1$。前面的线性 flow path 则从两个端点的直线插值出发，选择 $\alpha+\beta=1$，允许中途的方差尺度发生变化。两者分别体现了不同的路径设计。
 
-训练好 noise predictor 后，要用它从 $Y_k$ 返回 $Y_{k-1}$。如果知道原图 $z$，forward chain 给出的 $q(Y_{k-1}\mid Y_k,z)$ 是可计算的 Gaussian；其 mean 和 variance 可以由 Gaussian conditioning 得到。生成时不知道 $z$，就用 noise prediction 估计它，再代入这个 posterior mean。对 $k\ge2$，整理后得到下面的 Gaussian reverse transition：
+<span id="ddpm-reverse-step" />
+
+现在开始反向生成。给定 $Y_k$，我们希望找回噪声更少的 $Y_{k-1}$。但加噪时引入了随机性，同一个 $Y_k$ 可能由不同的 $Y_{k-1}$ 产生。因此需要学习的是 **上一状态的条件分布**，再从中采样。
+
+先利用训练时已有的信息来建立这个分布：如果原图 $z$ 也已知，怎样判断某个候选值 $v$ 是否可能是 $Y_{k-1}$？它需要同时符合两条线索：
+
+- 从原图 $z$ 加噪到第 $k-1$ 步，能得到怎样的 $v$？
+- 从这个 $v$ 再加一步噪声，能否得到已经观察到的 $Y_k$？
+
+前面的 forward process 已经给出了这两个概率。先考虑 $k\ge2$：
+
+$$
+q(v\mid z)
+=\mathcal N\left(v;\sqrt{\bar a_{k-1}}z,(1-\bar a_{k-1})I\right),
+$$
+
+$$
+q(Y_k\mid v)
+=\mathcal N\left(Y_k;\sqrt{a_k}v,b_kI\right).
+$$
+
+用 Bayes' rule 把两条线索合起来，得到
+
+$$
+q(v\mid Y_k,z)\propto q(Y_k\mid v)q(v\mid z).
+$$
+
+这里固定了 $Y_k,z$，只比较不同的候选 $v$。两个 Gaussian 的 density 相乘，取负 log 后，就变成两个误差项相加：
+
+$$
+-\log q(v\mid Y_k,z)
+=\frac{\|v-\sqrt{\bar a_{k-1}}z\|^2}{2(1-\bar a_{k-1})}
++\frac{\|Y_k-\sqrt{a_k}v\|^2}{2b_k}
++\text{const}.
+$$
+
+第一项要求 $v$ 符合原图加噪后的分布；第二项要求它能解释当前观察 $Y_k$。每项除以对应的 variance，表示不确定性较小的线索有更强的约束。
+
+这个负 log 是关于 $v$ 的二次函数，因此 posterior 仍是 Gaussian。先求它的中心：对 $v$ 求导并令其为零，posterior mean $\tilde\mu_k$ 就满足
+
+$$
+\frac{\tilde\mu_k-\sqrt{\bar a_{k-1}}z}{1-\bar a_{k-1}}
++\frac{a_k\tilde\mu_k-\sqrt{a_k}Y_k}{b_k}=0.
+$$
+
+整理同类项后，得到
+
+$$
+\tilde\mu_k
+=\frac{
+\dfrac{\sqrt{\bar a_{k-1}}}{1-\bar a_{k-1}}z
++\dfrac{\sqrt{a_k}}{b_k}Y_k
+}{
+\dfrac1{1-\bar a_{k-1}}+\dfrac{a_k}{b_k}
+}.
+$$
+
+再看分布的宽度。Gaussian 的负 log 中，$\|v\|^2$ 的系数是 variance 倒数的一半；刚才两项提供的系数相加，所以 posterior variance 是
+
+$$
+\tilde b_k
+=\left(\frac1{1-\bar a_{k-1}}+\frac{a_k}{b_k}\right)^{-1}
+=\frac{1-\bar a_{k-1}}{1-\bar a_k}b_k.
+$$
+
+最后一步用到了 $\bar a_k=a_k\bar a_{k-1}$ 与 $a_k+b_k=1$。用同样的关系整理 mean，就得到已知原图时的反向分布：
+
+$$
+q(Y_{k-1}\mid Y_k,z)
+=\mathcal N\left(\tilde\mu_k(Y_k,z),\tilde b_kI\right),
+$$
+
+$$
+\tilde\mu_k(Y_k,z)
+=\frac{\sqrt{\bar a_{k-1}}b_k}{1-\bar a_k}z
++\frac{\sqrt{a_k}(1-\bar a_{k-1})}{1-\bar a_k}Y_k.
+$$
+
+这解释了反向 mean 的来源：它结合原图提供的信息与当前 noisy sample 提供的信息，决定上一状态应该落在哪里。$\tilde b_k$ 则描述给定这两条信息后，上一状态还剩下多少不确定性。
+
+生成时没有原图 $z$，但网络已经能预测累积到第 $k$ 步的 noise。由前面推出的 $Y_k=\sqrt{\bar a_k}z+\sqrt{1-\bar a_k}\epsilon$，先移走 noise 项，再除以 data coefficient，就能构造原图的估计：
+
+$$
+\hat z_\theta
+=\frac{Y_k-\sqrt{1-\bar a_k}\,\epsilon_\theta(Y_k,k)}{\sqrt{\bar a_k}}.
+$$
+
+然后把 posterior mean 中的 $z$ 换成 $\hat z_\theta$。利用 $\sqrt{\bar a_k}=\sqrt{a_k}\sqrt{\bar a_{k-1}}$，代入后的 mean 是
+
+$$
+\begin{aligned}
+\mu_\theta(Y_k,k)
+={}&\frac{b_k}{\sqrt{a_k}(1-\bar a_k)}
+\left(Y_k-\sqrt{1-\bar a_k}\,\epsilon_\theta(Y_k,k)\right)\\
+&+\frac{\sqrt{a_k}(1-\bar a_{k-1})}{1-\bar a_k}Y_k.
+\end{aligned}
+$$
+
+合并两处 $Y_k$ 的系数时，分子中的 $b_k+a_k(1-\bar a_{k-1})=1-\bar a_k$ 恰好约去分母。于是得到采样代码里的 noise-prediction 写法：
+
+$$
+\boxed{
+\mu_\theta(Y_k,k)
+=\frac1{\sqrt{a_k}}
+\left(Y_k-\frac{b_k}{\sqrt{1-\bar a_k}}\epsilon_\theta(Y_k,k)\right).
+}
+$$
+
+这里 $\epsilon_\theta$ 预测的是**从原图累积到当前时刻的总 noise**。它先用于估计原图，再通过 posterior mean 决定回退一步的中心；前面的系数由这两次换算产生。
+
+为什么训练这个 noise predictor 就能学习反向 mean？平方误差的理想预测是 $\mathbb E[\epsilon\mid Y_k]$，因此上面的 $\hat z_\theta$ 对应 $\mathbb E[z\mid Y_k]$。而 $\tilde\mu_k(Y_k,z)$ 对 $z$ 是线性的，把这个条件均值代进去，就得到 $\mathbb E[Y_{k-1}\mid Y_k]$。这把训练时能算出的 posterior，连接到了生成时只有 $Y_k$ 的情形。
+
+但 mean 还不是一次完整的采样。我们需要上一状态的分布，而只取 mean 会丢掉这个分布的宽度。DDPM 用一个 Gaussian 来建模它：
 
 $$
 p_\theta(Y_{k-1}\mid Y_k)
-=\mathcal N(\mu_\theta(Y_k,k),\tilde b_kI),
+=\mathcal N\left(\mu_\theta(Y_k,k),\sigma_k^2I\right).
 $$
 
+因此，一次反向更新是
+
 $$
-\mu_\theta(Y_k,k)
-=\frac1{\sqrt{a_k}}
-\left(Y_k-\frac{b_k}{\sqrt{1-\bar a_k}}\epsilon_\theta(Y_k,k)\right),
-\qquad
-\tilde b_k=\frac{1-\bar a_{k-1}}{1-\bar a_k}b_k.
+Y_{k-1}=\mu_\theta(Y_k,k)+\sigma_k\xi_k,
+\qquad \xi_k\sim\mathcal N(0,I).
 $$
 
-从 $Y_K\sim\mathcal N(0,I)$ 开始，预测 mean，再按 transition variance 加入新噪声，逐步走到 $Y_0$。这里展示 fixed posterior variance 的常见写法；也有使用其他 fixed variance 或学习 variance 的模型。最后一步通常直接返回重建值，不再加噪声。
+新增 noise 用来抽取一种可能的上一状态。下一状态比当前更干净，指的是整个反向分布沿着较低 noise level 演化；它仍然可以包含不确定性。例如 $\mu_\theta=0.7$、$\sigma_k=0.1$ 时，下一状态从 $\mathcal N(0.7,0.01)$ 抽取，而不会每次都固定为 $0.7$。
+
+接下来才需要选 $\sigma_k^2$。已知 $z$ 时，刚才算出的条件方差是 $\tilde b_k$；只知道 $Y_k$ 时，还存在“原图可能是什么”的不确定性，真实的 reverse conditional 一般是多个 Gaussian 的混合。DDPM 的单个 Gaussian 是对它的建模近似，因此 variance 还有设计空间。原论文 [@ho2020ddpm] 使用过两种固定选择：
+
+| Reverse variance | 对应的采样更新 | 含义 |
+| --- | --- | --- |
+| $\sigma_k^2=\tilde b_k$ | $Y_{k-1}=\mu_\theta+\sqrt{\tilde b_k}\xi_k$ | 沿用已知原图时的 posterior variance |
+| $\sigma_k^2=b_k$ | $Y_{k-1}=\mu_\theta+\sqrt{b_k}\xi_k$ | 直接使用 forward schedule 的 variance，通常比 $\tilde b_k$ 大 |
+
+所以 `sqrt(beta)` 对应第二种选择。反向 mean 的推导确定了网络预测如何转换成 mean，额外采样多少 noise 则由选定的 reverse variance 决定。也有让模型学习 variance 的做法。
+
+把这些步骤放回生成循环：从 $Y_K\sim\mathcal N(0,I)$ 开始，依次处理 $k=K,K-1,\ldots,1$。每一步先预测 $\epsilon_\theta(Y_k,k)$，再计算上面推导出的 $\mu_\theta$，最后执行
+
+$$
+Y_{k-1}=\begin{cases}
+\mu_\theta(Y_k,k)+\sigma_k\xi_k,&k>1,\quad\xi_k\sim\mathcal N(0,I),\\
+\mu_\theta(Y_1,1),&k=1.
+\end{cases}
+$$
+
+在本文的索引里，最后一步是 $Y_1\to Y_0$，常用采样流程直接输出重建 mean，停止加噪。代码里的 `alpha`、`beta`、`alpha_bar` 分别对应 $a_k$、$b_k$、$\bar a_k$；若同一组 steps 存在从 $0$ 开始的数组里，代码索引就是 $t=k-1$，对应条件便写成 `t > 0`。此时数组索引 $t=0$ 表示最后一次 denoising 调用，区别于数学记号中已经干净的 $Y_0$。
+
 
 <details>
 <summary>Noise prediction loss 与 ELBO 有什么关系？</summary>
@@ -667,7 +799,7 @@ D_{\mathrm{KL}}(q(Y_K\mid z)\|p(Y_K))
 \right].
 $$
 
-真实 reverse conditional $q(Y_{k-1}\mid Y_k)$ 一般并不是易算的 Gaussian；但在训练时还知道 $z$，所以 $q(Y_{k-1}\mid Y_k,z)$ 是可以解析计算的 Gaussian。固定模型 variance 后，中间这些 KL 变成两个 mean 的加权平方差；使用上述 noise parameterization，就变成按 $k$ 加权的 noise MSE。
+中间的 KL 比较的是刚才推导出的 posterior $q(Y_{k-1}\mid Y_k,z)$ 与模型的 Gaussian reverse transition。固定模型 variance 后，这些 KL 中依赖参数的部分就是两个 mean 的加权平方差；使用上述 noise parameterization，就变成按 $k$ 加权的 noise MSE。
 
 这给出了 denoising 的另一种含义：修正每一步的 mean，就是改善这个 latent-variable model 的 likelihood bound。常用的 simplified loss $\mathbb E\|\epsilon_\theta(Y_k,k)-\epsilon\|^2$ 进一步去掉了随时间变化的权重；它保留 noise regression 的形式，同时改变了各个时间点对训练的贡献。
 
@@ -677,13 +809,7 @@ $$
 
 训练完成后，网络在各个 noise levels 都能估计 noise。我们可以利用这项能力，直接从较 noisy 的状态走到较 clean 的状态，而不必经过每一个训练索引。DDIM [@song2021ddim] 构造了共享训练 marginals 的过程，使同一个 noise predictor 支持这样的采样。
 
-在 $Y_k$ 处先估计 clean sample：
-
-$$
-\hat z=\frac{Y_k-\sqrt{1-\bar a_k}\,\epsilon_\theta(Y_k,k)}{\sqrt{\bar a_k}}.
-$$
-
-然后直接走到噪声更小的 $j<k$：
+沿用刚才从 noise prediction 得到的 clean-sample estimate $\hat z_\theta$，简记为 $\hat z$。接下来直接走到噪声更小的 $j<k$：
 
 $$
 Y_j=

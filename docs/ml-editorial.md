@@ -21,6 +21,9 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   figures and references, in `diffusion/index.mdx` after the sampling foundations.
   The RL article keeps a short entry linking to that chapter. Preserve legacy
   RL section anchors and the Diffusion reinforcement-learning and CPS anchors.
+  Derive DDPM's reverse mean and variance from the known-image posterior before
+  substituting the learned noise prediction. Distinguish posterior variance from
+  other sampler variance choices, and mathematical step numbers from array indexes.
 
 - The visual SSL overview is one long article at `ssl/index.mdx`, with shared
   SVG primitives in `ssl/scripts/elements.tsx` and styles in `ssl/styles.css`.
