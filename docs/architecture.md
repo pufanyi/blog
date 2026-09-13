@@ -114,6 +114,15 @@ version. Its worker compatibility adapter and removal criteria are documented in
   service. Clear page-specific structured data when navigating away.
   `PageScrollService` consumes router scroll events and corrects saved positions
   or fragments after fonts/formulas settle, unless the reader has scrolled.
+  It saves one viewport snapshot in tab-local session storage on `pagehide` and
+  when the tab becomes hidden, without writing on every scroll. Only a browser
+  reload restores this snapshot, including when the URL still contains an older
+  fragment. The snapshot must match the full URL and applies only to initial
+  navigation; new article/fragment navigation and router history restoration keep
+  their own behavior. Hydrated pages restore after the first render and again
+  when content settles. Storage failures must not prevent navigation. Avoid
+  saving into history state during `pagehide`: Chromium has already captured
+  the state that the replacement document will receive.
 
 - The shared 404 experience lives in `src/app/pages/not-found` and is also used
   for missing blog slugs. Keep its recovery and peer-review interactions

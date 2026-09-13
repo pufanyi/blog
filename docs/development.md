@@ -80,7 +80,8 @@ copying a live worktree can capture another task's incomplete edits.
 Install browsers with `pnpm exec playwright install --with-deps chromium webkit`.
 CI uses `--only-shell chromium` and the default Chromium channel. Desktop/mobile
 Chromium cover navigation, search, history, metadata, PDFs and content assets;
-WebKit covers documentation navigation/layout, search, and real MathJax with SVG labels. The Cloudflare project
+WebKit covers documentation navigation/layout, search, reload scroll restoration,
+and real MathJax with SVG labels. The Cloudflare project
 exercises actual Worker/static-asset routing. Its two corresponding Chromium
 checks are intentionally skipped to avoid claiming Node preview reproduces
 Cloudflare behavior.

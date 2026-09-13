@@ -35,7 +35,13 @@ export default defineConfig({
     },
     {
       name: 'webkit',
-      testMatch: ['rendering.spec.ts', 'math.spec.ts', 'webkit.spec.ts', 'docs.spec.ts'],
+      testMatch: [
+        'rendering.spec.ts',
+        'math.spec.ts',
+        'webkit.spec.ts',
+        'docs.spec.ts',
+        'scroll-restoration.spec.ts',
+      ],
       use: { browserName: 'webkit', viewport: { width: 390, height: 844 } },
     },
     {

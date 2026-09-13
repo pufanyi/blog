@@ -126,6 +126,31 @@ for (const article of ['ssl', 'ar']) {
             });
           }
         }
+        if (article === 'ar') {
+          const heading = page.locator('.post-body #references');
+          await heading.scrollIntoViewIfNeeded();
+          const position = await page.evaluate(() => scrollY);
+          const offset = await heading.evaluate((element) => element.getBoundingClientRect().top);
+          await page.reload();
+          await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+          await page.waitForFunction(
+            () => document.querySelectorAll('.post-body mjx-container').length > 20,
+          );
+          await page.evaluate(async () => {
+            await window.MathJax!.whenReady!(() => undefined);
+            await document.fonts.ready;
+            await new Promise<void>((resolve) =>
+              requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+            );
+          });
+          await expect.poll(() => page.evaluate(() => scrollY)).toBe(position);
+          expect(
+            Math.abs(
+              (await heading.evaluate((element) => element.getBoundingClientRect().top)) - offset,
+            ),
+          ).toBeLessThan(3);
+          await expect(page.locator('mjx-merror, [data-mjx-error]')).toHaveCount(0);
+        }
       }
       expect(assets.some((path) => path.endsWith('/tex-chtml.js'))).toBe(true);
       expect(assets.some((path) => path.endsWith('.woff2'))).toBe(true);
