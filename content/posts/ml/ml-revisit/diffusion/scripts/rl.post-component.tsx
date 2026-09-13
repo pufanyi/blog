@@ -1,4 +1,4 @@
-import { Box, Edge, Figure, MathLabel } from './diffusion-elements';
+import { Box, Edge, Figure, MathLabel } from './rl-elements';
 
 const examples = [1, 2, 3].map((count, i) => ({ count, i, reward: count === 2 ? 1 : 0 }));
 const rewardMean = examples.reduce((sum, row) => sum + row.reward, 0) / examples.length;

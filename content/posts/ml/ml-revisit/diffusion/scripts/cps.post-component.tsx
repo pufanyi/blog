@@ -1,5 +1,5 @@
 import { CPS_EXAMPLE, cpsCoefficients } from './cps-model';
-import { Figure, MathLabel } from './diffusion-elements';
+import { Figure, MathLabel } from './rl-elements';
 
 export function DiffusionRlCpsBudget() {
   const id = 'rl-diffusion-cps-budget';

@@ -2,7 +2,7 @@
 title: "Diffusion"
 date: "2026-09-03"
 updated: "2026-09-13"
-description: "从概率路径理解 flow matching、score matching、DDPM/DDIM 与 ODE/SDE 采样，再到 guidance 和 latent diffusion。"
+description: "从概率路径理解 flow matching、score matching、DDPM/DDIM 与 ODE/SDE 采样，再到 guidance、latent diffusion，以及 Flow-GRPO、DanceGRPO 和 CPS 的 RL post-training。"
 ---
 
 生成模型需要做到一件有些特殊的事：面对同样的条件，它应该能给出许多不同、又都合理的结果。例如“一只坐在窗边的猫”可以对应不同的毛色、姿态和光照。训练数据提供了这些可能结果的例子，我们希望模型学到它们的分布。
@@ -539,7 +539,7 @@ $$
 
 $\eta=0$ 时，给定初始 noise，采样过程确定；使用相邻时间点且 $\eta=1$ 时，恢复前面 fixed posterior variance 的 DDPM 更新。减少采样时间点可以降低 NFE，但跳得更远仍会放大预测和数值误差。
 
-这里值得记住的是三个项的分工：**下一步 data 的系数由 schedule 决定，noise 的份额则在保留的预测噪声与新噪声之间分配。** [RL 章节中的 CPS](/blog/ml/ml-revisit/rl#coefficients-preserving-sampling) 会把这个结构用到 flow matching 的随机 rollout 上。
+这里值得记住的是三个项的分工：**下一步 data 的系数由 schedule 决定，noise 的份额则在保留的预测噪声与新噪声之间分配。** [后面的 CPS](#coefficients-preserving-sampling) 会把这个结构用到 flow matching 的随机 rollout 上。
 
 ## Conditioning and latent diffusion
 
@@ -580,15 +580,325 @@ Backbone 负责读入 noisy latent、时间和条件，输出同形状的预测�
 
 实际系统可以同时使用 latent space、DiT、flow matching 和 Euler sampler：latent space 决定数据表示，DiT 参数化预测函数，flow matching 提供训练 target，Euler 把网络预测变成一步步的生成过程。
 
-## Reinforcement Learning
+<span id="reinforcement-learning" />
 
-学会生成之后，还可以根据最终结果继续改进模型。例如图片虽然清晰，却画错了物体数量；视频虽然符合 prompt，运动却不自然。这些要求可以通过 reward 表达，用于 post-training。
+## RL for diffusion models
 
-[RL for diffusion models](/blog/ml/ml-revisit/rl#rl-for-diffusion-models) 从最终 reward 出发，把它分配给生成过程中的采样决策，进而建立 Flow-GRPO 和 DanceGRPO 的训练循环。
+假设 prompt 要求“两个圆，在方块左侧”。一个已经预训练好的模型，可能生成了画面清晰、位置正确、但只有一个圆的图片。继续降低已有数据上的 noise prediction loss，并没有直接告诉模型：这次生成的数量错了。
 
-<span id="coefficients-preserving-sampling" />
+RL post-training 让模型从**自己生成的结果**中获得反馈。可以用检测器检查物体数量，用偏好模型评价审美，也可以用视频 reward 评价运动。给定条件 $c$ 和完整输出 $y$，把这个反馈记为 $r(y,c)$，目标是提高生成结果的期望 reward：
 
-Flow-GRPO 和 DanceGRPO 的逐步 policy 更新使用随机 rollout。Coefficients-Preserving Sampling（CPS）[@wang2025cps] 调整 retained noise 与 fresh noise 的分配，改善 rollout 的采样质量，使最终 reward 更好地评价生成内容。[RL 的 CPS 小节](/blog/ml/ml-revisit/rl#coefficients-preserving-sampling) 接着这里的采样知识解释它的构造。
+$$
+J(\theta)=\mathbb E_{c,\,y\sim p_\theta(\cdot\mid c)}[r(y,c)].
+$$
+
+我们会建立这样一个训练循环：对同一个 prompt 生成一组结果，比较 reward，再调整产生这些结果的采样决策。Reward 只需要为输出打分，可以来自不可微的评判程序。
+
+本节把前面的 velocity prediction 与 ODE/SDE sampling 接到这个训练循环中，继续使用 $t=0$ 为 noise、$t=1$ 为 data 的时间方向。Policy gradient 和 clipped policy update 的一般原理，分别见 [RL 的 policy gradient](/blog/ml/ml-revisit/rl#direct-policy-differentiation) 与 [PPO](/blog/ml/ml-revisit/rl#proximal-policy-optimization)；下面直接在生成过程上建立它们所需的量。
+
+### Denoising as an MDP
+
+最终 reward 是对整张图片打分，模型参数却参与了许多次 denoising updates。要把两者连接起来，可以把每次“从当前 noisy sample 采样下一状态”看成一次 action。这就把生成过程写成了 Markov decision process（MDP），能够使用 policy gradient；DDPO [@black2024ddpo] 采用了这种建模方式。
+
+取生成网格 $0=t_0<\cdots<t_K=1$，简写 $x_k=x_{t_k}$：
+
+| RL 中的量 | 生成模型中的含义 |
+| --- | --- |
+| State $s_k$ | $(c,t_k,x_k)$：条件、时间、当前 noisy sample |
+| Action $a_k$ | 采样得到的下一个 sample $x_{k+1}$ |
+| Policy $\pi_\theta(a_k\mid s_k)$ | Sampler 定义的 transition density $p_\theta(x_{k+1}\mid x_k,c)$ |
+| Environment transition | 把刚得到的 $x_{k+1}$ 放入下一个 state，并推进时间 |
+| Reward | 中间步骤为 $0$，最后对输出 $y$ 计算 $r(y,c)$ |
+
+对于 latent model，$y=D(x_K)$，其中 $D$ 是固定的 decoder。这里的 action 是整个下一步 latent tensor；policy 则是当前状态下，这个 tensor 的采样分布。Velocity network 的预测会参与构造这个分布，例如决定 Gaussian transition 的 mean。
+
+一旦采样出 action $x_{k+1}$，环境只需把它放进下一状态，并推进时间。因此，随机性来自 policy 的采样，环境的状态更新可以是确定的。
+
+### From a deterministic flow to a stochastic policy
+
+给定 $x_k$，Euler ODE sampler 只有一个确定的下一状态：
+
+$$
+x_{k+1}=x_k+h_k u_\theta(x_k,t_k,c),\qquad h_k=t_{k+1}-t_k.
+$$
+
+这个更新在固定的 $x_k$ 上只给出一个结果，对应 point mass。为了通过每一步的 log density 计算 policy gradient，我们需要一个具有非零 variance 的 transition distribution。加入中途随机性，也让模型能从同一个状态尝试不同的后续方向。
+
+一种做法是把确定性 ODE 改成 SDE，并离散成 Gaussian transition。随机扰动会把样本散开，所以同时加入 score correction，补偿它对目标分布的影响。
+
+对线性 path $x_t=tz+(1-t)\epsilon$，由 velocity 得到 noise estimate
+
+$$
+\hat\epsilon_\theta=x_t-tu_\theta(x_t,t,c),\qquad
+s_\theta(x_t,t,c)=-\frac{\hat\epsilon_\theta}{1-t}.
+$$
+
+将 score correction 放入 drift，再用 Euler–Maruyama 更新，得到 transition mean：
+
+$$
+\mu_\theta(s_k)=x_k+h_k
+\left[u_\theta(x_k,t_k,c)+\frac{g_{t_k}^2}{2}s_\theta(x_k,t_k,c)\right],
+$$
+
+$$
+\boxed{
+\pi_\theta(a_k\mid s_k)
+=\mathcal N\left(a_k;\mu_\theta(s_k),\nu_k^2I\right),
+\qquad \nu_k^2=g_{t_k}^2h_k.
+}
+$$
+
+这样，网络的一次预测确定 $\mu_\theta$，sampler 再从 $\mathcal N(\mu_\theta,\nu_k^2I)$ 中抽取下一状态。给定实际抽到的 action，我们也能计算它的 log density，policy-gradient 训练所需的量就齐了。连续时间下的分布关系与数值误差，见 [ODE/SDE sampling](#ode-and-sde-sampling)。
+
+整条 trajectory 的条件密度是
+
+$$
+p_\theta(\tau\mid c)
+=p_0(x_0)\prod_{k=0}^{K-1}p_\theta(x_{k+1}\mid x_k,c).
+$$
+
+初始 noise 不依赖参数。在非退化随机 transition 下，利用 $\nabla_\theta p_\theta=p_\theta\nabla_\theta\log p_\theta$，把期望 reward 的梯度写成可以用 trajectories 估计的形式：
+
+$$
+\nabla_\theta J
+=\mathbb E\left[r(y,c)
+\sum_{k=0}^{K-1}\nabla_\theta\log p_\theta(x_{k+1}\mid x_k,c)\right].
+$$
+
+每个 transition 的 log density 都参与同一个最终 reward 的梯度。这正是终点反馈能够影响前面采样步骤的原因，这里不对终点 reward 做时间折扣，对应 RL 中的 $\gamma=1$。
+
+计算这个梯度时，保存下来的 states、actions 和 reward 都作为固定数据，只对当前 policy 给这些 actions 的 log density 求导。因此，reward model 无需提供梯度，训练也无需反向传播穿过整条已采样的生成链。
+
+<details>
+<summary>如果 reward 可微，也可以直接对生成过程求导</summary>
+
+如果 decoder、reward 和 sampling steps 都可微，可以把生成看成一个完整的计算图，对最终 reward 做 pathwise differentiation。这要求保存或重算多步计算图。
+
+本节采用 score-function 路线，利用随机 actions 的 log density 学习，适用于只返回分数的 black-box reward。初始 noise 的随机性提供了输出多样性，逐步随机 transition 则为这种 policy 更新提供了条件密度。
+
+</details>
+
+### Group rewards and policy updates
+
+回到“两个圆”的例子。如果一组生成结果分别画了一个、两个、三个圆，reward 可以把数量正确的结果排在前面。我们希望增强生成高分结果的采样决策，并减弱相对低分结果的决策。
+
+具体地，固定本轮 rollout policy $\theta_{\mathrm{old}}$，对同一个 prompt 生成 $G$ 个结果。先在组内减去平均 reward，再用标准差归一化，得到每个结果的 advantage：
+
+$$
+r_i=r(y_i,c),\qquad
+\bar r=\frac1G\sum_{i=1}^G r_i,\qquad
+\hat A_i=\frac{r_i-\bar r}{\sqrt{\frac1G\sum_{j=1}^G(r_j-\bar r)^2}+\varepsilon_A}.
+$$
+
+这样得到的 $\hat A_i$ 表示“这个结果比同组结果好多少”，而不是它的绝对分数。上式使用 population standard deviation，$\varepsilon_A>0$ 保证分母非零；同组 reward 全相等时，所有 advantage 都为零。
+
+<DiffusionRlGroup />
+
+更新时，我们重新计算保存下来的每个 action 在当前 policy 下的 density，并与 rollout 时比较：
+
+$$
+\rho_{i,k}(\theta)
+=\frac{p_\theta(x_{k+1}^{(i)}\mid x_k^{(i)},c)}
+{p_{\theta_{\mathrm{old}}}(x_{k+1}^{(i)}\mid x_k^{(i)},c)}.
+$$
+
+若 $\hat A_i>0$，提高 $\rho_{i,k}$ 会提高 $\rho_{i,k}\hat A_i$，因而鼓励模型增加这个 action 的 density；$\hat A_i<0$ 时方向相反。同一条 trajectory 的各步骤共享终点 advantage，ratio 则各自计算。
+
+多次更新后，当前 policy 可能逐渐偏离收集数据时的 policy。[PPO clipping](/blog/ml/ml-revisit/rl#ppo-clip) 限制 surrogate 对过大更新的激励；还可以加 reference KL，约束它偏离预训练模型的程度。把两者写在一起，得到最大化目标：
+
+$$
+\mathcal J(\theta)
+=\mathbb E_{c,\{\tau_i\}\sim\pi_{\theta_{\mathrm{old}}}}
+\left[\frac1{GK}\sum_{i=1}^G\sum_{k=0}^{K-1}
+\left(
+\min\left\{\rho_{i,k}\hat A_i,
+\operatorname{clip}(\rho_{i,k},1-\epsilon,1+\epsilon)\hat A_i\right\}
+-\beta D_{i,k}(\theta)
+\right)\right],
+$$
+
+$$
+D_{i,k}(\theta)
+=D_{\mathrm{KL}}\left(\pi_\theta(\cdot\mid s_k^{(i)})
+\|\pi_{\mathrm{ref}}(\cdot\mid s_k^{(i)})\right).
+$$
+
+两个参照有不同作用：$\theta_{\mathrm{old}}$ 记录这批 trajectories 是怎样生成的，用于 probability ratio；$\theta_{\mathrm{ref}}$ 是固定的模型，用于 KL regularization。Flow-GRPO 使用 reference KL，DanceGRPO 原论文的核心目标对应 $\beta=0$。Group-relative advantage 直接由 rewards 算出，因此这里不需要额外训练 value network。
+
+<DiffusionRlReplay />
+
+图中的新旧 Gaussian 评价的是**同一个已经保存的 action**。更新参数会改变它的 density，从而改变 ratio；如果重新采样一个 action，再拿它与旧 action 比较，就不再是上式的 ratio。
+
+实际的一轮训练先保存 trajectories、old log densities 和 rewards，再对这批固定数据做若干次 policy 更新，随后用新模型收集下一批数据。学习信号始终来自“哪些采样决策带来了更好的最终结果”。
+
+终点 advantage 提供的是整条 trajectory 的评价，无法单独指出是哪一步修正了数量或文字。组内需要有可比较的结果，reward 也要能分辨这些差别，才有清晰的训练信号。
+
+### Flow-GRPO and DanceGRPO
+
+在线 RL 的一项主要成本，是每轮都要重新生成一组图片。**Flow-GRPO** [@liu2025flowgrpo] 用 ODE-to-SDE 建立随机 policy，再用 **Denoising Reduction** 降低收集数据的成本：rollout 使用较少步骤，inference 保留较多步骤。其 SD3.5-M 实验使用 10 步 rollout、40 步 inference。这里改变的是 RL 数据收集过程；缩短到什么程度仍能有效训练，取决于模型和任务。
+
+换成视频或 image-to-video，整套 RL 建模仍然适用：state 包含条件和当前视频 latent，action 是下一步的视频 latent，终点 reward 评价完整视频。**DanceGRPO** [@xue2025dancegrpo] 将 group-relative 更新用于 noise-prediction diffusion 与 rectified flow，覆盖 text-to-image、text-to-video 和 image-to-video。变化主要落在 sampler、条件 $c$ 和 reward 上；action 可以是一整段视频 latent 的更新。
+
+| 比较项 | Flow-GRPO 原论文 | DanceGRPO 原论文 |
+| --- | --- | --- |
+| 主要范围 | Flow matching 的 text-to-image alignment | Diffusion 与 rectified flow，图像与视频任务 |
+| 随机性 | ODE-to-SDE，构造 Gaussian transition | 为不同生成参数化构造随机 sampler |
+| Flow 的 noise schedule | 本文时间下 $g_t=a\sqrt{(1-t)/t}$ | Flow 分支可用常数 $g_t=a$ |
+| 重点设计 | Denoising Reduction；reference KL 的作用 | 多任务、多 reward；还考察从较大 sample pool 选取高低分样本 |
+
+表中 $a$ 控制探索强度。Flow-GRPO 的解析 schedule 在本文 $t=0$ 处有奇异性，实际 sampler 需要单独处理这个端点。原论文及实现常用从 $1$ 递减到 $0$ 的 noise level 计时，转换到本文时间时，要同时转换 velocity 的方向。
+
+训练采样器的随机性、步数和 guidance 会改变模型实际看到的 trajectories。评估时也需要说明这些设置，特别是是否改回 ODE sampler，才能判断 reward 的变化来自参数更新还是采样策略。
+
+选择 reward 就是在选择优化方向。DanceGRPO 的 FLUX 实验中，仅优化 HPS 提高了偏好分数，却降低了 GenEval；加入 CLIP reward 后，权衡也随之改变。因此需要同时观察训练 reward、独立指标和实际输出。Reference KL 可以约束模型偏离 reference 的程度，reward 本身是否准确仍需另行检验。
+
+### Coefficients-Preserving Sampling
+
+随机性有助于探索，但 sampler 也要控制加入多少 noise。如果 rollout 输出带着明显噪声伪影，偏好或审美 reward 可能主要在评价伪影，而无法准确区分生成内容的优劣。这会进一步影响组内 advantage。
+
+**Coefficients-Preserving Sampling（CPS）** [@wang2025cps] 从每一步的系数分配解决这个问题：先确定下一 noise level 需要多少 noise，再把这份额度分给已有的 noise estimate 和新采样的 noise。它可以用作 Flow-GRPO、DanceGRPO 等方法的 rollout sampler，后续继续使用 reward 和 policy update。
+
+下面固定条件 $c$，省略预测函数中的 $c$。沿线性路径，从生成时间 $t$ 前进到 $s=t+h$。当前 velocity prediction 同时给出 clean data 和 noise 的估计：
+
+$$
+\hat z=x_t+(1-t)u_t^\theta(x_t),\qquad
+\hat\epsilon=x_t-tu_t^\theta(x_t).
+$$
+
+Euler 的一步可以重写成
+
+$$
+x_s=x_t+h\,u_t^\theta(x_t)
+=s\hat z+(1-s)\hat\epsilon.
+$$
+
+这个式子揭示了下一步的两份组成：$s\hat z$ 和 $(1-s)\hat\epsilon$。为了给探索留出空间，我们要把后者的一部分换成独立的新 noise $\rho\xi$，同时保持预定的总 noise coefficient：
+
+$$
+\boxed{
+x_s=s\hat z
++\sqrt{(1-s)^2-\rho^2}\,\hat\epsilon
++\rho\xi,
+\qquad 0\le\rho\le1-s.
+}
+$$
+
+这个构造在系数分析中把 $\hat\epsilon$ 视为单位方差的 noise estimate，并独立采样 $\xi$。于是 data coefficient 仍然是 $s$，两份 noise 的方差之和仍然是 $(1-s)^2$。这里需要匹配的是**方差之和**，所以 retained noise 的系数带一个平方根。
+
+<DiffusionRlCpsBudget />
+
+例如目标 noise coefficient 是 $0.25$，想加入标准差为 $0.20$ 的新噪声，就应把 retained noise coefficient 设为
+
+$$
+\sqrt{0.25^2-0.20^2}=0.15.
+$$
+
+Flow-CPS 使用一个便于控制范围的参数化：
+
+$$
+\rho=(1-s)\sin\left(\frac{\eta\pi}{2}\right),\qquad
+x_s=s\hat z
++(1-s)\cos\left(\frac{\eta\pi}{2}\right)\hat\epsilon
++(1-s)\sin\left(\frac{\eta\pi}{2}\right)\xi,
+\quad\eta\in[0,1].
+$$
+
+$\eta$ 控制这份 noise 中有多少来自新采样：$\eta=0$ 恢复 Euler，$\eta=1$ 全部使用 fresh noise。到 $s=1$ 时两项 noise coefficient 都归零，输出当前的 $\hat z$；最终质量仍然取决于模型的预测。
+
+#### What happens to the SDE equivalence?
+
+连续时间的 score correction 与 noise 可以保持同一条 marginal path。实际的 Euler–Maruyama step 却把整段 drift 固定为当前点的值，步长有限时就会出现系数误差。把这个误差展开，才能看出 CPS 与它的差别。
+
+对线性路径，有 $s_t^\theta=-\hat\epsilon/(1-t)$。于是 SDE 的离散一步可以写成
+
+$$
+x_s=s\hat z
++\left(1-s-\frac{g_t^2h}{2(1-t)}\right)\hat\epsilon
++g_t\sqrt h\,\xi.
+$$
+
+在 CPS 使用的 noise coefficient 分析下，两项 noise 的合成方差为
+
+$$
+\left(1-s-\frac{g_t^2h}{2(1-t)}\right)^2+g_t^2h
+=(1-s)^2
++\frac{g_t^2h^2}{1-t}
++\frac{g_t^4h^2}{4(1-t)^2}.
+$$
+
+右侧后两项给出了这个离散公式多出的 noise variance。图中 $t=0.5,h=0.25,g_t=0.4$，合成 noise coefficient 是 $0.29$，大于目标 $0.25$。较大的步长、更强的探索噪声或接近端点的更新，都可能放大这种偏差，进而干扰 rollout 的 reward。
+
+CPS 直接在有限步公式中保持这份系数关系。若令 $\rho=g_t\sqrt h$ 并对平方根做小步长展开，可以得到相应的 SDE 近似；固定 $\eta$ 时则可以把它作为离散随机采样器使用。这里比较的是具体离散更新的系数，连续时间的 marginal equivalence 与其他 SDE solvers 的误差需要分别分析。
+
+<details>
+<summary>保持系数，是否就保证真实 marginal 完全正确？</summary>
+
+新的 $\xi$ 可以独立采样，但 $\hat\epsilon$ 来自网络。MSE 网络的理想输出是 $\mathbb E[\epsilon\mid x_t]$；这个条件均值一般不具有单位方差，也可能与 $\hat z$ 相关。因此，上面的 noise variance 计算依赖对 noise estimate 的理想化假设，CPS 的理论分析也需要这个假设。
+
+CPS 精确保留的是 **sampling formula 中规定的系数关系**。这种约束控制了信号与噪声的预定份额，实际输出分布还取决于网络误差、有限步更新和 guidance。系数保持本身不足以证明任意网络都能精确采样目标 $p_s$。
+
+更一般地，对 Gaussian path，可以使用
+
+$$
+x_s=\alpha_s\hat z
++\sqrt{\beta_s^2-\rho^2}\,\hat\epsilon+\rho\xi,
+\qquad 0\le\rho\le\beta_s.
+$$
+
+DDIM 与线性路径的 Flow-CPS 都呈现这个结构，但不同模型仍需要各自一致的预测参数化和 schedule。
+
+</details>
+
+### Sampling details that change the RL objective
+
+把上面的 CPS 更新放回 RL 的 transition policy。对 $t_k\to t_{k+1}$，它的 mean 和 standard deviation 是
+
+$$
+\mu_\theta^{\mathrm{CPS}}
+=t_{k+1}\hat z_\theta
++(1-t_{k+1})\cos\left(\frac{\eta\pi}{2}\right)\hat\epsilon_\theta,
+\qquad
+\nu_k^{\mathrm{CPS}}=(1-t_{k+1})\sin\left(\frac{\eta\pi}{2}\right).
+$$
+
+当 $\nu_k>0$ 时，这些参数定义了一个 Gaussian transition，可以用它计算前面的 probability ratio。Sampler 决定采到什么 action，log-density 公式决定怎样为这个 action 更新 policy；两者共同确定实际的 RL 目标。
+
+<details>
+<summary>Gaussian density、按维度取平均与去掉 variance denominator</summary>
+
+对于 $d$ 维 action、固定且与参数无关的 $\nu_k>0$，严格 log density 为
+
+$$
+\ell_\theta
+=-\frac{\|a-\mu_\theta(s)\|^2}{2\nu_k^2}
+-d\log\nu_k-\frac d2\log(2\pi).
+$$
+
+同一个 state、action 和 noise schedule 下，ratio 是
+
+$$
+\log\rho
+=-\frac{\|a-\mu_\theta(s)\|^2-\|a-\mu_{\mathrm{old}}(s)\|^2}
+{2\nu_k^2}.
+$$
+
+两项 additive normalization constants 会相消，**乘在平方误差前面的 $1/(2\nu_k^2)$ 不会相消**。同 covariance 的 reference KL 也有解析式：
+
+$$
+D_{\mathrm{KL}}(\pi_\theta\|\pi_{\mathrm{ref}})
+=\frac{\|\mu_\theta-\mu_{\mathrm{ref}}\|^2}{2\nu_k^2}.
+$$
+
+高维 latent 的 log density 会累加大量坐标的贡献。实现中为了控制更新的数值尺度，还会使用经过缩放的 surrogate：
+
+- Flow-GRPO 的 sampler [@flowgrpoImplementation] 把逐坐标 log density **取平均**后再计算 ratio。对固定 $d$，这相当于使用 $\rho^{1/d}$，而不是整个 latent tensor 的 joint density ratio；同样的 clip threshold 也因此具有不同含义。
+- Flow-CPS 的论文与实现 [@flowcpsImplementation] 进一步使用负平方误差，省略 variance denominator，并相应调整 reference regularization。这改变了不同时间点的权重，是一个额外的训练 surrogate；它不是通过“删去相消常数”得到的严格 Gaussian likelihood ratio。
+
+当前 Flow-GRPO 官方仓库也已加入 CPS 分支。确定一次实验实际优化什么，需要一起看 sampler、log-density reduction、variance weighting 和 clip 设置。上面的公式给出了区分这些目标的依据。
+
+还需要选择参与 policy 更新的 steps。当 $\eta=0$ 或 CPS 到达最终 $t_{k+1}=1$ 时，$\nu_k=0$，transition 是确定映射，Gaussian log-density 公式不再适用。一种受限制的训练方式是只更新随机 steps，并把其余生成步骤冻结为后续过程。如果多个步骤共享参数、会一起改变，跳过部分 score 项的更新一般就不再是完整生成目标的无偏梯度。
+
+</details>
 
 ## Further reading
 

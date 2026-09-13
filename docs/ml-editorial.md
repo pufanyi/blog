@@ -11,15 +11,16 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   The GAE section is a complete tutorial: introduce rollout horizons and their
   mixture before the estimator, keeping bias definitions in supplementary details.
 
-- Diffusion and its linked RL chapter use increasing generation time: noise at
+- Diffusion and its RL post-training chapter use increasing generation time: noise at
   `t=0`, data at `t=1`. Keep discrete DDPM noising indices explicitly separate.
   Distinguish conditional training pairs from marginal sampling trajectories,
   continuous-time ODE/SDE equivalence from finite-step errors, and CPS coefficient
   preservation from exact marginal sampling. In diffusion RL, distinguish joint
   Gaussian density ratios from dimension-averaged or variance-rescaled surrogates.
-  Keep the full CPS explanation and figure under RL for diffusion models, where
-  rollout quality motivates the method; the Diffusion article links to it after
-  establishing the sampling prerequisites. Preserve the old Diffusion CPS anchor.
+  Keep RL for diffusion models, including Flow-GRPO, DanceGRPO, CPS, and their
+  figures and references, in `diffusion/index.mdx` after the sampling foundations.
+  The RL article keeps a short entry linking to that chapter. Preserve legacy
+  RL section anchors and the Diffusion reinforcement-learning and CPS anchors.
 
 - The visual SSL overview is one long article at `ssl/index.mdx`, with shared
   SVG primitives in `ssl/scripts/elements.tsx` and styles in `ssl/styles.css`.

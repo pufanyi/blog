@@ -62,6 +62,35 @@ instead of accumulating unrelated rules here.
 - Assess performance on served production routes, including lazy/worker
   requests. Keep the resource budgets and real MathJax/WebKit regressions.
 
+## Tutorial writing principles
+
+- Write for students learning or reviewing the subject. Assume relevant general
+  background, but introduce the prerequisites and terms needed for this topic.
+- Learn from authoritative courses and original papers, then build a coherent
+  explanation in the article's own voice. Explain the subject directly;
+  multiple perspectives should help readers understand the same mechanism.
+  Avoid narrating how individual lecturers teach or organize their material.
+- Start with the problem and explain why the method or derivation is needed.
+  Connect the objective, mathematical quantities, and actual training or
+  inference steps. Use a concrete worked example across these connections
+  when it makes the reasoning easier to follow.
+- Derive essential results once, explain their meaning, and refer back to them
+  later. Preserve assumptions, equations, tradeoffs, and practical implications;
+  put lengthy derivations and implementation refinements in `<details>` when
+  they interrupt the main explanation.
+- Turn review feedback into a standalone tutorial. Resolve the underlying
+  conceptual gap without carrying the conversation, rebuttals, or a reader's
+  personal mistake into the prose. Remove redundant explanations while keeping
+  the intermediate reasoning a first-time reader needs.
+- Use diagrams when they reveal useful relationships at a glance: concrete
+  inputs and outputs, transformations, supervision, or training and sampling
+  flows. Prefer vectors for technical diagrams. Keep prose when it is clearer;
+  avoid decorative diagrams, paragraph-filled boxes, and unnecessary labels.
+- Attribute methods, specific claims, and adapted figures beside the relevant
+  idea. Keep optional reading separate from the explanatory narrative. Follow
+  the detailed [ML editorial principles](docs/ml-editorial.md) and
+  [content agreements](content/AGENTS.md) for the series and media conventions.
+
 ## Keep the handbook current
 
 - Treat `docs/` as the human-facing source of truth, published at `/docs`. Update
