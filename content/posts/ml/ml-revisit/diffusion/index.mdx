@@ -185,7 +185,7 @@ $$
 
 <DiffusionProbabilityPath />
 
-这条已知轨迹的 velocity 也能直接算：$\mathrm dx_t/\mathrm dt=z-\epsilon$。因此，训练时随机抽取一张图片、一份独立 noise 和一个时间点，让网络看 $(x_t,t)$，预测 $z-\epsilon$：
+这条已知轨迹的 velocity 也能直接算：$\frac{\mathrm{d}x_t}{\mathrm dt}=z-\epsilon$。因此，训练时随机抽取一张图片、一份独立 noise 和一个时间点，让网络看 $(x_t,t)$，预测 $z-\epsilon$：
 
 $$
 \boxed{
