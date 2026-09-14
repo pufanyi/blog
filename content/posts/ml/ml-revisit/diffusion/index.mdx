@@ -1,7 +1,7 @@
 ---
 title: "Diffusion"
 date: "2026-09-03"
-updated: "2026-09-13"
+updated: "2026-09-14"
 description: "从概率路径理解 flow matching、score matching、DDPM/DDIM 与 ODE/SDE 采样，再到 guidance、latent diffusion，以及 Flow-GRPO、DanceGRPO 和 CPS 的 RL post-training。"
 ---
 
@@ -302,15 +302,23 @@ $$
 
 它描述当前位置附近，log density 朝哪个方向增长、增长多快。例如在一维 Gaussian 中，score 指向均值；在多峰分布中，它根据附近各个峰的相对影响而变化。由于对 log density 求导，乘在 density 上的归一化常数会消失。
 
-直接监督 $\nabla_x\log p_t(x)$ 仍然困难，因为我们只有数据 samples，没有 $p_t$ 的解析式。不过，对一张已知的 clean image 加噪，conditional distribution 是前面写出的 Gaussian，其 score 可以手算：
+直接监督 $\nabla_x\log p_t(x)$ 仍然困难，因为我们只有数据 samples，没有 $p_t$ 的解析式。不过，对一张已知的 clean image 加噪，conditional distribution 是前面写出的 Gaussian，其 score 可以手算。固定 $z$ 和 $t$，将图片看作 $d$ 维向量，在 $\beta_t>0$ 时，这个 Gaussian 的 log density 为
+
+$$
+\log p_t(x\mid z)
+=-\frac d2\log(2\pi\beta_t^2)
+-\frac{\|x-\alpha_tz\|^2}{2\beta_t^2}.
+$$
+
+对 $x$ 求梯度时，第一项是常数，导数为零；平方距离的梯度是 $2(x-\alpha_tz)$，因此
 
 $$
 \nabla_x\log p_t(x\mid z)
-=-\frac{x-\alpha_tz}{\beta_t^2}
-=-\frac{\epsilon}{\beta_t}.
+=-\frac{1}{2\beta_t^2}\,2(x-\alpha_tz)
+=-\frac{x-\alpha_tz}{\beta_t^2}.
 $$
 
-这里的 $\epsilon$ 就是我们自己加入的 noise。它提供了一个已知 target，可以做 denoising score matching：
+在实际构造的样本 $x_t=\alpha_tz+\beta_t\epsilon$ 处，$x_t-\alpha_tz=\beta_t\epsilon$，所以这个条件 score 就是 $-\epsilon/\beta_t$。这里的 $\epsilon$ 是我们自己加入的 noise，因此可以用 $-\epsilon/\beta_t$ 作为已知 target，做 denoising score matching：
 
 $$
 \mathcal L_{\mathrm{DSM}}
