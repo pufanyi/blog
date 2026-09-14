@@ -32,4 +32,4 @@ Generation prunes obsolete generated modules and exports. A full production buil
 
 ## Deployment handoff
 
-Use [deployment and production preview](../deployment.md) to build and inspect the exact output. Before every push, both `pnpm check` and `pnpm test --watch=false` must pass after the final change. CI also runs browser regressions. Publishing uses the existing repository deployment workflow; this checklist does not replace its credentials or branch configuration.
+Use [deployment and production preview](../deployment.md) to build and inspect the exact output. Before every push, both `pnpm check` and `pnpm test --watch=false` must pass after the final change. Run browser regressions locally when relevant; GitHub CI runs source checks and unit tests. Publishing uses the existing repository deployment workflow; this checklist does not replace its credentials or branch configuration.

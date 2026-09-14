@@ -78,8 +78,8 @@ copying a live worktree can capture another task's incomplete edits.
 ## Browser coverage
 
 Install browsers with `pnpm exec playwright install --with-deps chromium webkit`.
-CI uses `--only-shell chromium` and the default Chromium channel. Desktop/mobile
-Chromium cover navigation, search, history, metadata, PDFs and content assets;
+Desktop/mobile Chromium cover navigation, search, history, metadata, PDFs and
+content assets;
 WebKit covers documentation navigation/layout, search, reload scroll restoration,
 and real MathJax with SVG labels. The Cloudflare project
 exercises actual Worker/static-asset routing. Its two corresponding Chromium
@@ -93,14 +93,16 @@ Cloudflare behavior.
 Focused navigation/reading tests use a delayed MathJax stub to control layout
 races. `rendering.spec.ts` separately uses pinned real engine/font/worker bytes;
 keep both kinds of coverage. Resource budgets retain per-request JSON, and real
-rendering retains light/dark diagram captures even on success. CI retains full
-failure traces/reports. Screenshots are review evidence, not pixel snapshots.
+rendering retains light/dark diagram captures even on success. Local runs retain
+failure traces/screenshots. Screenshots are review evidence, not pixel snapshots.
 See [performance budgets](maintenance/performance.md),
 [MathJax compatibility](maintenance/mathjax-webkit.md), and
 [local host troubleshooting](browser-troubleshooting.md).
 
-The quality and browser CI jobs run independently. The final required `check`
-job must require both to succeed. `pnpm check` does not run tests or build.
+GitHub CI runs source checks and unit tests in the quality job. The final required
+`check` job requires that job to succeed. Browser tests run locally with
+`pnpm test:e2e` when relevant and are not part of CI. `pnpm check` does not run
+tests or build.
 Use a focused behavior test for a regression; avoid assertions that merely mirror
 implementation details or depend on unrelated authored prose.
 

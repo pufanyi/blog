@@ -40,7 +40,8 @@ instead of accumulating unrelated rules here.
   The ML series additionally uses [editorial principles](docs/ml-editorial.md).
 - Tooling, watchers, validation, or CI: [development](docs/development.md).
   Keep lifecycle-hooked and `*:generated` commands aligned; the final required
-  CI `check` must require both quality and browser jobs to succeed.
+  CI `check` must require the quality job to succeed. Browser tests run locally
+  when relevant and are not part of GitHub CI.
 - Generation, routes, metadata, article lifecycle, Markdown/feeds, PDFs, or
   hosting: [architecture and contracts](docs/architecture.md).
 - Dependency/configuration exceptions: [dependency policy](docs/dependencies.md).

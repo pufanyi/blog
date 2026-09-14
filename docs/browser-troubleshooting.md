@@ -1,8 +1,8 @@
 # Local browser environment
 
-Prefer Playwright's matching supported host and browser installation. CI installs
-Chromium's headless shell and WebKit with `--with-deps`; do not add temporary host
-workarounds to project dependencies or CI.
+Prefer Playwright's matching supported host and browser installation. Install
+Chromium and WebKit locally with `pnpm exec playwright install --with-deps chromium webkit`;
+do not add temporary host workarounds to project dependencies or CI.
 
 - For Linux browser screenshots, verify a CJK fallback font is available. On
   WSL, a temporary Fontconfig configuration can load Windows fonts without

@@ -7,10 +7,9 @@ Choose validation around the behavior a change can break. This repository combin
 ```bash
 pnpm check
 pnpm test --watch=false
-pnpm test:e2e
 ```
 
-Run these sequentially. Their lifecycle hooks write shared generated files, and `test:e2e` builds production output before launching Playwright. Before every push, run both check and noninteractive unit tests after the final change. If anything changes afterward, run them again.
+Run these sequentially. Their lifecycle hooks write shared generated files. Before every push, run both check and noninteractive unit tests after the final change. If anything changes afterward, run them again. For changes that need browser validation, run `pnpm test:e2e` locally; it builds production output before launching Playwright.
 
 `pnpm check` includes Biome formatting, Angular application and strict-template compilation, strict tooling and E2E typechecks, ESLint, and article MDX/BibTeX checks. Documentation structure, internal links, and anchors are validated by its generation hook. It does not execute tests or build production pages.
 
@@ -55,6 +54,6 @@ Wait for `.post-body[data-rendered="true"]` before testing attached article cont
 
 ## CI and performance evidence
 
-The quality workflow runs source checks/unit tests and browser tests in parallel in separate jobs. The quality job generates once and uses `*:generated` commands afterward; the final required `check` status depends on both jobs. Keep generated and normal commands aligned when adding checks.
+The quality workflow runs source checks and unit tests. The quality job generates once and uses `*:generated` commands afterward; the final required `check` status depends only on that job. Browser tests are not run in GitHub CI; run them locally when relevant. Keep generated and normal commands aligned when adding checks.
 
-Resource budgets cover representative production pages and cold search with worker traffic included. Warm queries must add no resources. Use the per-request reports to explain changes rather than increasing a threshold without investigation. CI retains reports and visual diagnostics, including successful rendering captures; screenshots are diagnostic artifacts rather than pixel baselines. See [performance records](maintenance/performance.md).
+Resource budgets cover representative production pages and cold search with worker traffic included. Warm queries must add no resources. Use the per-request reports to explain changes rather than increasing a threshold without investigation. Local browser runs retain reports and visual diagnostics, including successful rendering captures; screenshots are diagnostic artifacts rather than pixel baselines. See [performance records](maintenance/performance.md).
