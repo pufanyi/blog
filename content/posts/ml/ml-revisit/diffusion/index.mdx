@@ -1,7 +1,7 @@
 ---
 title: "Diffusion"
 date: "2026-09-03"
-updated: "2026-09-14"
+updated: "2026-09-13"
 description: "从概率路径理解 flow matching、score matching、DDPM/DDIM 与 ODE/SDE 采样，再到 guidance、latent diffusion，以及 Flow-GRPO、DanceGRPO 和 CPS 的 RL post-training。"
 ---
 
@@ -201,10 +201,7 @@ $$
 
 一次训练只需计算一个时间点的回归 loss，无需先跑一遍生成过程。采样时则从 $t=0$ 开始，每一步的输出成为下一步的输入；这时才需要 ODE solver。
 
-这种用条件速度直接监督网络的目标，正是 Flow Matching [@lipman2023flowmatching] 与 Rectified Flow [@liu2023rectifiedflow] 的共同起点。两者的关系可以从基础目标与算法拓展两方面来理解：
-
-- **基础目标等价**：初次训练的 1-Rectified Flow 在数学上等价于采用线性插值路径（Optimal Transport CFM / OT-CFM）的 Flow Matching，两者都在 $x_t=tz+(1-t)\epsilon$ 上用 $z-\epsilon$ 监督局部速度；
-- **侧重点与后续拓展**：Flow Matching 侧重建立涵盖任意条件概率路径（包括非线性扩散路径与流形路径）的通用生成框架；而 Rectified Flow 则深耕直线路径，其关键增量是提出了 **reflow** 操作——利用初版模型生成的轨迹终点重新构造因果对齐的 $(X_0,X_1)$ 配对再进行训练，递归消除直线交叉，使生成流逼近最优传输映射（Monge map），从而可以用极少步数甚至单步完成生成。
+Flow Matching [@lipman2023flowmatching] 用这种可构造的 conditional velocity 监督网络。Rectified Flow [@liu2023rectifiedflow] 也使用线性插值上的 velocity regression，并通过 reflow 重新构造 noise 与 data 的配对，使后续学到的生成轨迹更直。
 
 为了同时描述其他 noise schedules，把插值写得更一般一些 [@flowsanddiffusions2026]：
 
@@ -253,8 +250,6 @@ $$
 <DiffusionConditionalMarginal />
 
 图中每条训练直线都有自己配对的终点，平均 velocity 产生的轨迹则可能弯曲。生成过程需要实现的是**整体分布的变化**：每个时刻有哪些地方更拥挤、哪些地方更稀疏。它不要求某份 noise 最后到达训练时曾随机配给它的那张图片。
-
-这也直观解释了为什么初次训练得到的生成轨迹会弯曲：独立采样的配对直线互相交叉，条件速度在交点处平均后改变了方向。前面提到的 reflow 正是沿右图积分得到的终点重新配对 $(X_0,X_1)$；这些新端点之间不再有轨迹交叉，再次以此做直线插值训练时，学到的流动就会显著变直。
 
 <details>
 <summary>这个条件均值为什么能搬运整个分布？</summary>
