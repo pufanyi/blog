@@ -96,6 +96,12 @@
   stroke: currentColor;
   stroke-width: 1.5;
 }
+.df-score-tangent {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-dasharray: 6 3;
+}
 .df-band {
   fill: color-mix(in srgb, var(--accent-teal) 12%, transparent);
   stroke: none;

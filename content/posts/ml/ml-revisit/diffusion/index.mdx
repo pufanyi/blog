@@ -302,6 +302,8 @@ $$
 
 它描述当前位置附近，log density 朝哪个方向增长、增长多快。例如在一维 Gaussian 中，score 指向均值；在多峰分布中，它根据附近各个峰的相对影响而变化。由于对 log density 求导，乘在 density 上的归一化常数会消失。
 
+<DiffusionScore />
+
 直接监督 $\nabla_x\log p_t(x)$ 仍然困难，因为我们只有数据 samples，没有 $p_t$ 的解析式。不过，对一张已知的 clean image 加噪，conditional distribution 是前面写出的 Gaussian，其 score 可以手算。固定 $z$ 和 $t$，将图片看作 $d$ 维向量，在 $\beta_t>0$ 时，这个 Gaussian 的 log density 为
 
 $$
