@@ -11,70 +11,174 @@ for (let step = 0; step < STEPS; step++) {
   const { a, b, c } = COEFFICIENTS;
   iterates.push(iterates[step]!.map((value) => a * value + b * value ** 3 + c * value ** 5));
 }
-const finalValues = iterates[STEPS]!;
-const display = (values: number[]) => values.map((value) => value.toFixed(3)).join(', ');
+function Arrowhead({ id }: { id: string }) {
+  return (
+    <defs>
+      <marker
+        id={id}
+        viewBox="0 0 10 8"
+        refX="9"
+        refY="4"
+        markerWidth="7"
+        markerHeight="6"
+        orient="auto"
+      >
+        <path d="M 0 0 L 10 4 L 0 8 Z" className="muon-flow-arrow" />
+      </marker>
+    </defs>
+  );
+}
 
-function MuonSpectrum() {
-  const panels = [
-    { title: 'Frobenius normalization', values: iterates[0]!, note: 'Same ratio: 16 : 4 : 1' },
-    {
-      title: 'Ideal polar factor',
-      values: SINGULAR_VALUES.map(() => 1),
-      note: 'All nonzero values become 1',
-    },
-    { title: 'Five quintic steps', values: finalValues, note: 'Similar scale, not exactly 1' },
-  ];
-  const baseline = 230;
-  const scale = 125;
+function MuonPolarGeometry() {
+  const marker = 'muon-polar-arrow';
+  const circleRadius = 48;
+  const ellipseRadiusY = circleRadius / (SINGULAR_VALUES[0]! / SINGULAR_VALUES[2]!);
   return (
     <Diagram
-      id="muon-spectrum"
-      title="整体归一化、理想 polar 变换与五步近似的奇异值"
-      height={314}
-      description={`示例矩阵的奇异值为 ${SINGULAR_VALUES.join(', ')}。Frobenius 归一化后为 ${display(iterates[0]!)}，理想 polar 变换后为 1, 1, 1，五步五次迭代后为 ${display(finalValues)}。三栏共用相同纵轴尺度，柱子始终按原始奇异方向排列，不按迭代后的数值重新排序。`}
-      caption="三栏使用相同尺度，虚线标出 1；颜色和下标跟踪同一个原始奇异方向。整体归一化保留比例，理想 polar 变换将非零奇异值设为 1，实际五步近似只将它们拉到相近尺度。"
+      id="muon-polar-geometry"
+      title="同一个单位圆经过原矩阵与理想 polar factor 后的几何对比"
+      height={340}
+      description="取最大和最小奇异方向张成的二维截面。上路中，归一化后的原矩阵把输入单位圆映成横纵半轴比例为 16 比 1 的细长椭圆；下路中，polar factor 把相同的输入单位圆映成单位圆。两条映射都把输入主轴 v_1 和 v_3 对应到输出主轴 u_1 和 u_3，区别只在输出半轴长度分别为 1 与十六分之一，或 1 与 1。"
+      caption="为比较形状，上路先除以最大奇异值；正的整体缩放不改变 polar factor。原矩阵与 polar factor 保留同一组输入—输出主轴对应关系，但前者产生不均匀伸缩，后者把所有非零半轴长度设为 1。"
     >
-      {panels.map((panel, panelIndex) => {
-        const left = panelIndex * 220;
-        return (
-          <g key={panel.title}>
-            <text x={left + 110} y="30" className="muon-heading">
-              {panel.title}
-            </text>
+      <Arrowhead id={marker} />
+      {[104, 250].map((centerY) => (
+        <g key={centerY}>
+          <path d={`M 38 ${centerY} H 158`} className="muon-polar-axis" />
+          <path d={`M 98 ${centerY - 60} V ${centerY + 60}`} className="muon-polar-axis" />
+          <circle cx="98" cy={centerY} r={circleRadius} className="muon-polar-input" />
+          <circle cx="98" cy={centerY} r="2.5" className="muon-flow-junction" />
+        </g>
+      ))}
+      <path d="M 163 104 H 352" className="muon-polar-map" markerEnd={`url(#${marker})`} />
+      <MathLabel x={190} y={55} width={136} tex={String.raw`M/\lVert M\rVert_2`} />
+      <path d="M 163 250 H 352" className="muon-polar-map" markerEnd={`url(#${marker})`} />
+      <MathLabel x={184} y={202} width={148} tex={String.raw`Q=\operatorname{Polar}(M)`} />
+      {[104, 250].map((centerY) => (
+        <g key={centerY}>
+          <path d={`M 355 ${centerY} H 505`} className="muon-polar-axis" />
+          <path d={`M 430 ${centerY - 67} V ${centerY + 67}`} className="muon-polar-axis" />
+          <circle cx="430" cy={centerY} r="2.5" className="muon-flow-junction" />
+        </g>
+      ))}
+      <ellipse
+        cx="430"
+        cy="104"
+        rx={circleRadius}
+        ry={ellipseRadiusY}
+        className="muon-polar-ellipse"
+      />
+      <circle cx="430" cy="250" r={circleRadius} className="muon-polar-circle" />
+      <MathLabel x={500} y={84} width={44} tex={String.raw`u_1`} />
+      <MathLabel x={447} y={35} width={48} tex={String.raw`u_3`} />
+      <MathLabel x={500} y={230} width={44} tex={String.raw`u_1`} />
+      <MathLabel x={447} y={181} width={48} tex={String.raw`u_3`} />
+      <MathLabel x={521} y={78} width={126} height={52} tex={String.raw`(1,\;1/16)`} />
+      <MathLabel x={521} y={224} width={126} height={52} tex={String.raw`(1,\;1)`} />
+      <text x="98" y="169" className="muon-note">
+        input unit circle
+      </text>
+      <text x="98" y="315" className="muon-note">
+        input unit circle
+      </text>
+    </Diagram>
+  );
+}
+
+function MuonNewtonSchulzStep() {
+  const marker = 'muon-ns-step-arrow';
+  const firstStep = iterates[0]!.map((value, index) => ({
+    index,
+    input: value,
+    gain: iterates[1]![index]! / value,
+    output: iterates[1]![index]!,
+  }));
+  const boxes = [
+    { x: 18, width: 80, note: 'iterate', tex: String.raw`X_k` },
+    { x: 124, width: 140, note: 'Gram matrix', tex: String.raw`A_k=X_kX_k^\top` },
+    {
+      x: 300,
+      width: 170,
+      note: 'polynomial gain',
+      tex: String.raw`P_k=aI+bA_k+cA_k^2`,
+    },
+    { x: 506, width: 138, note: 'next iterate', tex: String.raw`X_{k+1}=P_kX_k` },
+  ];
+  return (
+    <Diagram
+      id="muon-newton-schulz-step"
+      title="一次 Newton–Schulz 迭代怎样用 Gram matrix 计算方向增益"
+      height={478}
+      description={`上半部分展示实际矩阵计算：从 X_k 计算 A_k 等于 X_k X_k 转置，再计算多项式增益矩阵 P_k 等于 aI 加 bA_k 加 cA_k 平方，最后左乘 X_k 得到 X_{k+1}。下半部分沿单个奇异方向展开同一运算：先平方奇异值，代入增益多项式，再乘回原奇异值。示例第一步中，三个奇异值和增益分别为 ${firstStep.map(({ input, gain, output }) => `${input.toFixed(3)} 乘 ${gain.toFixed(3)} 得 ${output.toFixed(3)}`).join('；')}。`}
+      caption="上半部分是实现真正执行的矩阵乘法，不需要求出 SVD；下半部分只是用 SVD 坐标解释这些乘法。Gram matrix 将奇异值变成平方，矩阵多项式据此给每个方向算出增益，再乘回原矩阵：第一步压低最强方向，同时快速放大两个较弱方向。"
+    >
+      <Arrowhead id={marker} />
+      <text x="330" y="27" className="muon-heading">
+        Matrix computation · no SVD required
+      </text>
+      {boxes.map((box, index) => (
+        <g key={box.note} className={index === 1 ? 'muon-clay' : 'muon-teal'}>
+          <rect x={box.x} y="59" width={box.width} height="91" rx="7" className="muon-flow-box" />
+          <text x={box.x + box.width / 2} y="83" className="muon-note">
+            {box.note}
+          </text>
+          <MathLabel x={box.x + 5} y={91} width={box.width - 10} height={45} tex={box.tex} />
+          {index < boxes.length - 1 && (
             <path
-              d={`M ${left + 24} ${baseline - scale} H ${left + 207}`}
-              className="muon-reference"
+              d={`M ${box.x + box.width + 5} 104 H ${boxes[index + 1]!.x - 7}`}
+              className="muon-ns-arrow"
+              markerEnd={`url(#${marker})`}
             />
-            <text x={left + 15} y={baseline - scale + 4} className="muon-note">
-              1
-            </text>
-            <path d={`M ${left + 24} ${baseline} H ${left + 207}`} className="muon-axis" />
-            {panel.values.map((value, index) => {
-              const center = left + 53 + index * 59;
-              const top = baseline - value * scale;
-              return (
-                <g key={index} className={`muon-${TONES[index]}`}>
-                  <rect
-                    x={center - 15}
-                    y={top}
-                    width="30"
-                    height={baseline - top}
-                    rx="3"
-                    className="muon-bar"
-                  />
-                  <text x={center} y={top - 10} className="muon-value">
-                    {value.toFixed(3)}
-                  </text>
-                  <MathLabel x={center - 26} y={236} width={52} tex={`\\sigma_${index + 1}`} />
-                </g>
-              );
-            })}
-            <text x={left + 110} y="295" className="muon-note">
-              {panel.note}
-            </text>
-          </g>
-        );
-      })}
+          )}
+        </g>
+      ))}
+      <path d="M 28 181 H 632" className="muon-ns-divider" />
+      <text x="330" y="211" className="muon-heading">
+        The same step along singular direction i
+      </text>
+      <text x="65" y="244" className="muon-note">
+        axis length
+      </text>
+      <text x="205" y="244" className="muon-note">
+        square it
+      </text>
+      <text x="380" y="244" className="muon-note">
+        compute gain
+      </text>
+      <text x="570" y="244" className="muon-note">
+        multiply back
+      </text>
+      <MathLabel x={20} y={250} width={90} height={48} tex={String.raw`\sigma_i^{(k)}`} />
+      <path d="M 112 274 H 132" className="muon-ns-arrow" markerEnd={`url(#${marker})`} />
+      <MathLabel x={135} y={250} width={140} height={48} tex={String.raw`z_i=(\sigma_i^{(k)})^2`} />
+      <path d="M 277 274 H 297" className="muon-ns-arrow" markerEnd={`url(#${marker})`} />
+      <MathLabel x={300} y={250} width={160} height={48} tex={String.raw`g_i=a+bz_i+cz_i^2`} />
+      <path d="M 462 274 H 482" className="muon-ns-arrow" markerEnd={`url(#${marker})`} />
+      <MathLabel
+        x={485}
+        y={250}
+        width={170}
+        height={48}
+        tex={String.raw`\sigma_i^{(k+1)}=g_i\sigma_i^{(k)}`}
+      />
+      <text x="330" y="329" className="muon-heading">
+        First iteration in the running example
+      </text>
+      {firstStep.map(({ index, input, gain, output }, row) => (
+        <g key={index} className={`muon-${TONES[index]}`}>
+          <circle cx="121" cy={363 + 42 * row} r="4" className="muon-ns-sample" />
+          <MathLabel
+            x={140}
+            y={342 + 42 * row}
+            width={342}
+            height={42}
+            tex={String.raw`\sigma_${index + 1}:\;${input.toFixed(3)}\times${gain.toFixed(3)}\longrightarrow${output.toFixed(3)}`}
+          />
+          <text x="542" y={367 + 42 * row} className="muon-note">
+            {gain < 1 ? 'gain < 1 · shrink' : 'gain > 1 · expand'}
+          </text>
+        </g>
+      ))}
     </Diagram>
   );
 }
@@ -173,4 +277,4 @@ function MuonIteration() {
   );
 }
 
-export const POST_COMPONENTS = { MuonSpectrum, MuonIteration };
+export const POST_COMPONENTS = { MuonPolarGeometry, MuonNewtonSchulzStep, MuonIteration };

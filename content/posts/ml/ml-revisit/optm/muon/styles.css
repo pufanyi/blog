@@ -37,12 +37,6 @@
   color: var(--accent-clay);
 }
 
-.muon-bar {
-  fill: color-mix(in srgb, currentColor 20%, var(--paper-bg));
-  stroke: currentColor;
-  stroke-width: 1.5;
-}
-
 .muon-axis,
 .muon-reference,
 .muon-grid {
@@ -73,6 +67,44 @@
   fill: var(--paper-bg);
   stroke: currentColor;
   stroke-width: 2;
+}
+
+.muon-polar-axis {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 1;
+}
+
+.muon-polar-input {
+  fill: color-mix(in srgb, var(--accent-blue) 5%, var(--paper-bg));
+  stroke: var(--accent-blue);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.muon-polar-ellipse,
+.muon-polar-circle {
+  fill: color-mix(in srgb, var(--accent-teal) 14%, var(--paper-bg));
+  stroke: var(--accent-teal);
+  stroke-width: 2;
+}
+
+.muon-polar-map,
+.muon-ns-arrow {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+}
+
+.muon-ns-divider {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 1;
+  stroke-dasharray: 4 5;
+}
+
+.muon-ns-sample {
+  fill: currentColor;
 }
 
 .muon-flow-box {
@@ -110,8 +142,7 @@
 }
 
 .muon-heading,
-.muon-note,
-.muon-value {
+.muon-note {
   fill: var(--text-color);
   text-anchor: middle;
   font-family: var(--font-body);
@@ -123,10 +154,6 @@
 }
 .muon-note {
   fill: var(--text-secondary);
-  font-size: 11px;
-}
-.muon-value {
-  font-family: var(--font-mono);
   font-size: 11px;
 }
 
