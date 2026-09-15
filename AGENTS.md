@@ -85,6 +85,12 @@ instead of accumulating unrelated rules here.
   In tutorial prose, derive the formula from that goal and those constraints
   before presenting it as a result. Integrate the motivation into the derivation;
   avoid announcing an unexplained formula and adding a separate justification later.
+  When possible, guide the reader through designing the method: make the next
+  operation answer a question or limitation exposed by the previous one, compare
+  it with the simplest plausible alternative, and present the assembled algorithm
+  only after its parts have become necessary. If the full derivation is too
+  involved, still give an operational or geometric intuition for every essential
+  design choice instead of asking the reader to accept a recipe.
 - Derive essential results once, explain their meaning, and refer back to them
   later. Preserve assumptions, equations, tradeoffs, and practical implications;
   put lengthy derivations and implementation refinements in `<details>` when

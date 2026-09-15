@@ -55,8 +55,14 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   that. Naming the operation or citing an identity is not a substitute for this
   connection. Let the goal and constraints lead to the equation before presenting
   it as a result; integrate the motivation into the derivation instead of appending
-  a separate explanation after an unexplained formula. Do not add a heading for
-  every reasoning step. Keep long
+  a separate explanation after an unexplained formula. Prefer a guided design over
+  a recipe: let each step solve a need or failure revealed by the previous step,
+  contrast it with the simplest plausible alternative, and assemble the final
+  algorithm only after its parts are motivated. When a first-principles derivation
+  would overwhelm the main explanation, give enough operational or geometric
+  intuition for readers to understand why every essential operation is present
+  and what would change without it. Do not add a heading for every reasoning step.
+  Keep long
   derivations and implementation refinements in native `<details>` when they
   would interrupt the main explanation.
 - Preserve substantial technical content and rigor: mechanisms, assumptions,

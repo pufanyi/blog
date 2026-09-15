@@ -5,54 +5,74 @@ updated: "2026-09-15"
 description: "从一个具体的矩阵更新出发理解 Muon，以及奇异值、Newton–Schulz 近似、学习率缩放和大规模训练中的取舍。"
 ---
 
-如果第一次听说 Muon，可以先把它理解成一种**专门处理神经网络二维权重矩阵的 optimizer** [@jordan2024muon]。它不改变模型结构、loss 或 backpropagation；forward 和 backward 仍然照常进行。改变的是 backward 之后的一小步：optimizer 怎样把算出的梯度变成权重更新。
+如果第一次听说 Muon，可以先把它理解成一种**专门处理神经网络二维权重矩阵的 optimizer** [@jordan2024muon]。它不改变模型结构、loss 或 backpropagation；forward 和 backward 仍然照常进行。改变的是 backward 之后的 optimizer step：算出的梯度最终怎样变成权重更新。
 
-为什么二维矩阵值得单独对待？以 linear layer 的 $y=Wx$ 为例，$W$ 不只是一张参数表，它还描述了每个输入方向如何影响输出。SGD 直接使用梯度矩阵，AdamW 主要按单个元素的历史尺度调整它；Muon 则把更新看成一个完整的线性映射，调整其中不同输入—输出方向的强弱。
+但梯度本身还没有完整回答“应该走哪一步”。它能用一阶近似比较不同更新谁更可能降低 loss，却没有规定多大的更新才算同样大。对向量参数，我们常把 Euclidean norm 当作默认尺度；对 linear layer 的矩阵 $W$，还可以直接关心它作为映射 $y=Wx$ 时，**一步更新最多会让输出特征改变多少**。选择不同的尺度，就会设计出不同的 optimizer。
 
-Muon 的核心过程可以先用一句话概括：**用 momentum 汇总近期梯度，保留更新矩阵指向的方向，但把各方向悬殊的强度拉到相近尺度，最后再乘 learning rate 更新权重。** 名字 **MomentUm Orthogonalized by Newton–Schulz** 正好概括了前两步。后文会分别解释这里的“方向”“orthogonalized”和 Newton–Schulz；现在只需先看清它在训练流程中的位置。
+因此本文不从背诵 Muon 的流程开始，而是假设我们正在自己设计它，依次回答三个问题：
 
-下面以 Transformer 的常见参数分组为例。Muon 通常负责隐藏层里的 attention projection 和 MLP 权重，embedding、LM head、bias 与 normalization 参数仍交给 AdamW；$\theta_t$ 表示整个模型在第 $t$ 步的参数。
+1. mini-batch 梯度有噪声，先怎样得到比较稳定的更新意图？
+2. 如果限制一次矩阵更新对特征的最大影响，怎样在这个限制内尽量降低 loss？
+3. 理想答案需要 SVD，训练时怎样只用 GPU 擅长的矩阵乘法逼近它？
+
+回答完这三个问题，momentum、polar factor 和 Newton–Schulz 就不再是突然出现的名词，而是分别解决一个具体困难。Muon 的名字 **MomentUm Orthogonalized by Newton–Schulz** 正好概括了最终得到的主要步骤。
+
+下面先看它在 Transformer 训练中的位置。Muon 通常负责隐藏层里的 attention projection 和 MLP 权重，embedding、LM head、bias 与 normalization 参数仍交给 AdamW；$\theta_t$ 表示整个模型在第 $t$ 步的参数。
 
 <MuonTrainingStep />
 
-## 从逐元素缩放到矩阵更新
+## 先决定怎样衡量“走了一步”
 
-先用一个刻意简化的例子看 Muon 想做什么。暂时不管 learning rate、weight decay 和 momentum 从何而来，假设 optimizer 准备处理的矩阵是
+设 $W\in\mathbb{R}^{m\times n}$，当前 mini-batch 经过 backward 后得到梯度 $G_t=\nabla_W\mathcal{L}_t$。如果打算加入更新 $\Delta W$，loss 在当前位置附近满足
+
+$$
+\mathcal{L}(W+\Delta W)
+\approx\mathcal{L}(W)+\langle G_t,\Delta W\rangle_F,
+\qquad \langle A,B\rangle_F=\operatorname{tr}(A^\top B).
+$$
+
+于是 $\langle G_t,\Delta W\rangle_F$ 越负，一阶近似下这一步越有利。但如果不给 $\Delta W$ 限制，把它无限放大就能让这个线性式无限减小；所以设计更新方向之前，必须先定义“一步最多走多远”。
+
+对 $y=Wx$，权重改变 $\Delta W$ 会带来 $\Delta y=\Delta W x$，而
+
+$$
+\max_{x\ne0}\frac{\lVert\Delta y\rVert_2}{\lVert x\rVert_2}
+=\lVert\Delta W\rVert_2.
+$$
+
+右边是 $\Delta W$ 的 spectral norm，也就是最大奇异值。因此，约束 $\lVert\Delta W\rVert_2\le\eta$ 有一个直接含义：**无论输入朝哪个方向，一步更新造成的输出变化都不超过输入长度的 $\eta$ 倍。** 这不是衡量矩阵步长的唯一方式，但它和 linear layer 对特征的作用直接相连。
+
+还有一个实际问题：单个 mini-batch 的 $G_t$ 很嘈杂，而后面要做的变换会主动抬高一些较弱方向。与其先把每个 noisy gradient 的强弱抹平再平均，不如先汇总几步的证据。Muon 因此先使用普通 momentum：
+
+$$
+M_t=\beta M_{t-1}+(1-\beta)G_t,
+\qquad M_{-1}=0.
+$$
+
+$M_t$ 仍然和 $W$ 同形状。它在时间上平滑梯度，接下来再把这个较稳定的矩阵当作“希望下降的方向”，求解
+
+$$
+\min_{\lVert\Delta W\rVert_2\le\eta}
+\langle M_t,\Delta W\rangle_F.
+$$
+
+先用一个刻意简化的 $M_t$ 看这个约束会把我们带到哪里。暂时省略时间下标，令
 
 $$
 M=\operatorname{diag}(8,2,0.5).
 $$
 
-把三个坐标轴上的单位输入依次记作 $e_1,e_2,e_3$，就有 $Me_1=8e_1$、$Me_2=2e_2$、$Me_3=0.5e_3$。也就是说，这个更新不改变三个轴的朝向，却会以 $8$、$2$ 和 $0.5$ 的强度改变它们；最强方向是最弱方向的 $16$ 倍。
-
-如果只把整个矩阵除以一个 norm，三个数会一起缩小，$16:4:1$ 的比例不会改变。Muon 的理想变换则把它们变成 $1,1,1$：保留三个方向，只重新平衡方向的强度。这些“方向强度”的正式名称是 **singular values（奇异值）**。实际实现不会精确得到三个 $1$，而是用后文的矩阵迭代把它们拉到相近尺度。
-
-这个对角矩阵只是为了让方向刚好和坐标轴重合。一般矩阵会混合坐标，Muon 调整的是由整个矩阵决定的奇异方向，**不是逐元素把矩阵变成 sign，也不是把所有元素改成一样大**。
-
-现在把例子放回 optimizer。设 $W\in\mathbb{R}^{m\times n}$，当前 mini-batch 经过 backward 后得到同形状的梯度 $G_t=\nabla_W\mathcal{L}_t$。SGD 直接沿着 $-G_t$ 更新。AdamW [@loshchilov2019decoupled] 则保存梯度的一阶、二阶矩估计 $m_t,v_t$，用经过 bias correction 的 $\widehat m_t,\widehat v_t$ 做逐元素缩放：
+把三个坐标轴上的单位输入依次记作 $e_1,e_2,e_3$，就有 $Me_1=8e_1$、$Me_2=2e_2$、$Me_3=0.5e_3$。这三个方向对下降的贡献强弱不同，但 spectral-norm budget 允许我们在**每个方向**上最多走 $\eta$。为了让内积尽可能负，最自然的选择不是继续保留 $8:2:0.5$ 的比例，而是在三个方向都用满预算：
 
 $$
-W_{t+1}=(1-\eta_t\lambda)W_t
--\eta_t\frac{\widehat m_t}{\sqrt{\widehat v_t}+\epsilon}.
+\Delta W=-\eta\operatorname{diag}(1,1,1).
 $$
 
-这里的除法和平方根都逐元素进行，$\eta_t$ 是 learning rate，$\lambda$ 是 decoupled weight decay 的系数。AdamW 能根据每个参数坐标的历史梯度调整步长，但不会显式分析这些元素合在一起形成了哪些矩阵方向。
+如果只把 $M$ 除以一个整体 norm，三个数会一起缩小，$16:4:1$ 的比例不变，较弱方向分到的步长预算仍然很少。把三个值都变成 $1$ 并非凭空规定的一条 heuristic；在这个例子里，它正是 spectral-norm 约束下的一阶最优解。这些“方向强度”的正式名称是 **singular values（奇异值）**。
 
-Muon 先保存一个和 $W$ 同形状的 momentum $M_t$，用它平滑不同 mini-batch 带来的梯度波动；然后对整个 $M_t$ 做矩阵变换。先看不带 Nesterov 的版本。令 $M_{-1}=0$，定义
+## 从约束推出 polar factor
 
-$$
-\begin{aligned}
-M_t&=\beta M_{t-1}+(1-\beta)G_t,\\
-O_t&\approx\operatorname{Polar}(M_t),\\
-W_{t+1}&=(1-\eta_t\lambda)W_t-\eta_t s_{m,n}O_t.
-\end{aligned}
-$$
-
-$\operatorname{Polar}$ 就是上例中“保留方向、平衡强度”的理想变换，实际的 $O_t$ 只是对它的近似。$s_{m,n}$ 用来控制不同形状矩阵的更新尺度。注意 **momentum 先于这个变换计算**：Muon 累积的是梯度历史，再变换平滑后的矩阵；它并不把每次变换后的结果继续累积到 momentum 里。
-
-## 把奇异值拉到相同尺度
-
-在刚才的对角例子中，矩阵方向恰好就是三个坐标轴。对一般的 momentum 矩阵，可以用 compact SVD 把同一件事写出来。暂时省略时间下标：
+在刚才的对角例子中，矩阵方向恰好就是三个坐标轴。一般矩阵会混合坐标，但 compact SVD 仍能找出它真正作用的方向。暂时省略时间下标：
 
 $$
 M=U\Sigma V^\top
@@ -60,16 +80,34 @@ M=U\Sigma V^\top
 \qquad r=\operatorname{rank}(M),\quad \sigma_i>0.
 $$
 
-$r$ 是矩阵的 rank。$v_i$ 是输入空间里的一个单位方向，$u_i$ 是对应的输出方向，两组向量各自正交。等式 $Mv_i=\sigma_i u_i$ 告诉我们：输入沿着 $v_i$ 变化时，$M$ 会把它转到 $u_i$，强度为 $\sigma_i$。这正是前面“方向”和“方向强度”在一般矩阵里的定义。如果奇异值相差很大，更新便主要集中在少数方向。
+$r$ 是矩阵的 rank。$v_i$ 是输入空间里的单位方向，$u_i$ 是对应的输出方向，两组向量各自正交。等式 $Mv_i=\sigma_i u_i$ 说的是：输入沿着 $v_i$ 变化时，$M$ 会把它转到 $u_i$，强度为 $\sigma_i$。所以 SVD 不是为了给算法增加一层抽象，而是在一般坐标中重新找到对角例子里的三根轴。
 
-Muon 的理想变换是
+现在回到前面的约束问题。把更新写成 $\Delta W=-\eta D$，那么 $\lVert D\rVert_2\le1$，我们需要让 $\langle M,D\rangle_F$ 尽可能大。对任意这样的 $D$，
 
 $$
-\operatorname{Polar}(M)=UV^\top
+\langle M,D\rangle_F
+=\sum_{i=1}^{r}\sigma_i u_i^\top Dv_i
+\le\sum_{i=1}^{r}\sigma_i,
+$$
+
+因为 $D$ 在任何单位输入方向上的输出长度都不超过 $1$。怎样同时取到每一项的上界？让 $D$ 把每个 $v_i$ 都映到对应的 $u_i$ 即可：
+
+$$
+D=UV^\top
 =\sum_{i=1}^{r}u_i v_i^\top.
 $$
 
-也就是保留每一对 $v_i\to u_i$，把每个非零奇异值变成 $1$。这和把整个矩阵除以 Frobenius norm 不一样：整体归一化保留奇异值之间的比例，polar 变换会改变这个比例。对于前面的 $\operatorname{diag}(8,2,0.5)$，这里的 $U,V$ 都是单位矩阵，所以理想 polar 结果就是 $I_3$。
+这个 $D$ 就叫 $M$ 的 **polar factor**：
+
+$$
+\operatorname{Polar}(M)=UV^\top,
+\qquad
+\Delta W^\star=-\eta\operatorname{Polar}(M).
+$$
+
+于是“把每个非零奇异值变成 $1$”不是先规定一条 heuristic、再寻找理由；它是 spectral-norm budget 下把每个有下降信号的奇异方向都用满后自然得到的结果 [@bernstein2024old; @su2025muon]。如果改用 Frobenius-norm budget，最优方向会是 $-M/\lVert M\rVert_F$，所有奇异值只按同一比例缩放。**选择怎样衡量一步，决定了怎样处理梯度。**
+
+对于前面的 $\operatorname{diag}(8,2,0.5)$，$U,V$ 都是单位矩阵，所以 polar factor 正是 $I_3$。一般矩阵的 $UV^\top$ 也会保留每一对 $v_i\to u_i$，只是去掉原来的 $\sigma_i$。
 
 这个变换也可以直接从几何上看。矩阵 $M$ 把输入空间的单位球映成椭球：$v_i$ 指向输入主轴，$u_i$ 指向对应的输出主轴，$\sigma_i$ 就是这条输出半轴的长度。$UV^\top$ 保留同一组 $v_i\to u_i$ 对应关系，但去掉 $\Sigma$ 带来的不均匀伸缩，因此把非零子空间里的单位球仍映成单位球。
 
@@ -77,7 +115,7 @@ $$
 
 <MuonPolarGeometry />
 
-这里的 orthogonalization 指的是**更新矩阵**。加上这个更新之后，权重 $W$ 本身不必正交，也不是在要求相邻两个训练 step 的更新互相垂直。对于满秩矩形矩阵，只能有 $O^\top O=I_n$（$m\ge n$）或 $OO^\top=I_m$（$m\le n$），所以更准确地说是 semi-orthogonal。
+这也解释了 Muon 名字中的 orthogonalized：它描述的是 **polar 处理后的更新矩阵**。加上这个更新之后，权重 $W$ 本身不必正交，也不是在要求相邻两个训练 step 的更新互相垂直。对于满秩矩形矩阵，只能有 $O^\top O=I_n$（$m\ge n$）或 $OO^\top=I_m$（$m\le n$），所以更准确地说是 semi-orthogonal。
 
 如果 $M$ 秩亏，上面的 compact SVD 只保留非零奇异值，$UV^\top$ 是一个 partial isometry，不能声称它的所有行或所有列都正交。多项式迭代也不会凭空生成缺失的方向：在精确算术下，零奇异值始终为零。
 
@@ -106,114 +144,95 @@ $$
 
 </details>
 
-为什么这种更新可能有用？如果小奇异值对应的方向也包含学习信号，拉平谱就能提高它们相对于主导方向的更新强度。不过，小方向也可能包含噪声；这种直觉本身并不保证泛化更好。Momentum 能平滑输入给变换的梯度，实际收益仍然需要实验验证。
+这个推导给出了 Muon 的局部设计原则，不是效果保证。如果较小奇异值对应的方向也包含可靠的学习信号，用满这些方向的预算可能比让最大方向主导更新更有效；但它们也可能只是噪声。Momentum 只能帮助平滑信号，不能保证 polar 处理后一定泛化更好。整个网络的特征还会随其他层一起改变，实际 Muon 又只做有限步近似，因此不能把单层的一阶问题当成完整训练动力学。
 
-另一个出发点是约束特征的变化。《为什么我们选择尝试 Muon？》[@su2025muon] 从这个角度解释了谱范数：固定这一层的输入 $x$，更新权重后有 $\Delta y=\Delta W x$，而
-
-$$
-\max_{x\ne0}\frac{\lVert\Delta y\rVert_2}{\lVert x\rVert_2}
-=\lVert\Delta W\rVert_2.
-$$
-
-所以，限制谱范数就是限制这个线性层的输出变化相对于输入的最大幅度，再在这个范围内尽量降低 loss。“下降最快”需要先说明怎样衡量一步的大小；Frobenius norm 和 spectral norm 给出的最优方向不同。
-
-<details>
-<summary>为什么 spectral norm 约束会给出这个方向？</summary>
-
-Bernstein 和 Newhouse [@bernstein2024old] 从 norm 约束下的 steepest descent 解释了这种矩阵更新。先忽略 momentum，用一阶近似
-
-$$
-\mathcal{L}(W+\Delta W)
-\approx\mathcal{L}(W)+\langle G,\Delta W\rangle_F,
-\qquad \langle A,B\rangle_F=\operatorname{tr}(A^\top B).
-$$
-
-如果限制 $\lVert\Delta W\rVert_F\le\eta$，最优方向是 $-G/\lVert G\rVert_F$。换成 spectral norm 约束
-
-$$
-\min_{\lVert\Delta W\rVert_2\le\eta}
-\langle G,\Delta W\rangle_F,
-$$
-
-其中 $\lVert A\rVert_2$ 是最大奇异值，就得到一个最优解 $\Delta W=-\eta UV^\top$。因为若 $G=\sum_i\sigma_i u_i v_i^\top$，则
-
-$$
-\langle G,\Delta W\rangle_F
-=\sum_i\sigma_i u_i^\top\Delta Wv_i
-\ge-\eta\sum_i\sigma_i,
-$$
-
-而 $-\eta UV^\top$ 能取到等号。这里 $\sum_i\sigma_i$ 也叫 nuclear norm。
-
-这解释了单层、固定输入下的更新方向。整个网络同时更新时，输入特征也会改变；带 momentum、有限步近似的实际 Muon，也不等于每一步都精确求解当前 loss 的这个问题。
-
-</details>
+与此相比，AdamW [@loshchilov2019decoupled] 保存一阶、二阶矩估计，并按参数坐标逐元素缩放。它选择的是另一种更新几何，不会显式把同一个权重矩阵分解成输入—输出方向。Muon 调整的是由整个矩阵共同决定的奇异方向，**不是逐元素取 sign，也不是把所有矩阵元素改成一样大**。
 
 ## 用 Newton–Schulz 避免 SVD
 
-SVD 适合解释方向，但每个 step 都对每个权重矩阵做 SVD，计算成本太高。Newton–Schulz 可以只用矩阵乘法近似这个变换，更适合 GPU。
+到这里，理想更新已经设计出来了，但直接实现会卡在 SVD：训练的每个 step 都要对许多权重矩阵分解，代价太高。我们需要一种不显式求 $U,\Sigma,V$，却能保留奇异向量并把奇异值推向 $1$ 的运算。
 
-先归一化
+先把行数较多的矩阵转置，使下面的 $X$ 满足行数不多于列数；最后再转置回来。暂且假设它满行秩，那么目标 polar factor 应满足
+
+$$
+XX^\top=I.
+$$
+
+这个等式也告诉我们当前还差多少。令
+
+$$
+R_k=I-X_kX_k^\top.
+$$
+
+如果某个奇异值是 $\sigma$，$R_k$ 在对应左奇异方向上的值就是 $1-\sigma^2$：轴太短时为正，太长时为负。把 $R_k$ 左乘回 $X_k$，就能在**不旋转奇异方向**的前提下，对短轴做正修正、对长轴做负修正。因此可以先尝试
+
+$$
+X_{k+1}=X_k+\alpha R_kX_k.
+$$
+
+沿一个奇异方向看，这等价于
+
+$$
+f_\alpha(\sigma)
+=\sigma+\alpha(1-\sigma^2)\sigma.
+$$
+
+$\sigma=1$ 自动是固定点。我们还希望固定点附近的一阶误差项直接消失，因此令 $f_\alpha'(1)=1-2\alpha=0$，得到 $\alpha=1/2$，也就推导出经典的三次 Newton–Schulz 迭代：
+
+$$
+X_{k+1}
+=\frac32X_k-\frac12X_kX_k^\top X_k.
+$$
+
+现在才需要选择起点。理想 polar factor 不受正的整体缩放影响，所以先取
 
 $$
 X_0=\frac{M}{\lVert M\rVert_F+\epsilon}.
 $$
 
-因为最大奇异值不超过 Frobenius norm，$X_0$ 的奇异值都小于 $1$。经典的三次迭代是
-
-$$
-X_{k+1}=\frac32X_k-\frac12X_kX_k^\top X_k.
-$$
-
-将 $X_k=U\Sigma_kV^\top$ 代入，得到
+因为最大奇异值不超过 Frobenius norm，$X_0$ 的奇异值都不超过 $1$，正好落在上述修正会把非零短轴向 $1$ 推动的区间。将 $X_k=U\Sigma_kV^\top$ 代入矩阵式，可以核对
 
 $$
 X_{k+1}=U\left(\frac32\Sigma_k-\frac12\Sigma_k^3\right)V^\top.
 $$
 
-矩阵乘法在这里实现了对每个奇异值分别应用 $f(x)=\frac32x-\frac12x^3$：奇异向量不变，位于 $(0,1)$ 的奇异值逐渐靠近 $1$。整个过程不需要显式算出 $U,\Sigma,V$。
+这说明矩阵乘法确实在保持 $U,V$ 的同时，对每个奇异值分别应用同一个标量函数。SVD 只用来解释发生了什么，实现并没有算它。
 
-实际的 [Muon 实现](https://github.com/KellerJordan/Muon/blob/master/muon.py) 使用更激进的五次多项式，常用 $5$ 步：
+经典三次式在原点的斜率只有 $f'(0)=1.5$，很小的奇异值经过少数几步仍可能很小。如果训练时只愿意支付固定的几次矩阵乘法，我们自然会问：能不能用更高次的多项式，换取零附近更大的放大倍率？把同类修正扩展到五次，可以用 Gram matrix 整理成
 
 $$
 \begin{aligned}
 A_k&=X_kX_k^\top,\\
 X_{k+1}&=aX_k+(bA_k+cA_k^2)X_k,\\
-(a,b,c)&=(3.4445,-4.7750,2.0315).
+f(\sigma)&=a\sigma+b\sigma^3+c\sigma^5.
 \end{aligned}
 $$
 
-对应的标量变换是 $f(x)=ax+bx^3+cx^5$。它在零附近的斜率更大，可以更快放大小奇异值；代价是它并不精确收敛到 $1$，例如 $f(1)=0.701$。所以实际输出是 $U\widetilde\Sigma V^\top$，把奇异值拉到相近尺度，而非严格得到 $UV^\top$。不能把更多迭代简单理解为更精确的正交化。
+这里 $A_k$ 是 Gram matrix：它保留左奇异方向，并把每个奇异值变成 $\sigma^2$。多项式 $aI+bA_k+cA_k^2$ 因而能根据 $\sigma^2$ 为每个方向算出不同增益，最后乘回 $X_k$。这正好满足“只改轴长、不显式寻找轴”的要求。
 
-只看展开后的 $f(x)$，还不容易看出代码里的矩阵乘法为什么能分别调整各个奇异方向。把一次迭代拆开来看：先用 $A_k=X_kX_k^\top$ 取得平方后的方向强度，再把 $A_k$ 代入矩阵多项式得到每个方向的增益，最后将增益乘回 $X_k$。整个计算只需要矩阵乘法；SVD 只用于解释它。
+Muon 的[参考实现](https://github.com/KellerJordan/Muon/blob/master/muon.py)选择
+
+$$
+(a,b,c)=(3.4445,-4.7750,2.0315),
+$$
+
+通常重复 $5$ 步。原作者用 ad-hoc gradient-based search 选择这组系数，目标是在有限步预算下尽量增大零附近的斜率 [@jordan2024muon]。这是一个有意的工程取舍：$f'(0)=a=3.4445$，小奇异值起初增长更快；但 $f(1)=0.701$，所以 $1$ 甚至不是固定点。它并不让所有奇异值严格收敛到 $1$，而是快速送进相近的范围。实际输出更像 $U\widetilde\Sigma V^\top$，不能把“多做几步”简单理解为“更接近精确 polar factor”。
 
 <MuonNewtonSchulzStep />
 
-上图展示的是一次 $X_k\to X_{k+1}$。把相同操作重复五次，三个奇异值便沿着下面的曲线变化。曲线可能越过 $1$ 再折返，而不是把椭球单调地磨成单位球。
+上图把一次实际的五次迭代拆成了“测量轴长—计算增益—乘回原矩阵”。把相同操作重复五次，三个奇异值便沿着下面的曲线变化。曲线可能越过 $1$ 再折返，而不是把椭球单调地磨成单位球。
 
 <MuonIteration />
 
-极小的非零奇异值在有限步后也可能仍然很小。苏剑林在 Newton–Schulz 专文 [@su2025newtonschulz] 中讨论了另一种改进：每一步采用不同的 $(a_k,b_k,c_k)$，针对剩余的奇异值区间设计后续变换。同样的迭代步数不必共享系数；上面的固定系数五步法只是一个具体实现，计算近似更准确也不自动意味着训练效果更好。
+极小的非零奇异值在有限步后仍可能很小。苏剑林在 Newton–Schulz 专文 [@su2025newtonschulz] 中讨论了下一步可以怎样继续设计：每一步采用不同的 $(a_k,b_k,c_k)$，根据前一步剩余的奇异值区间安排后续变换。同样的迭代步数不必共享系数；固定系数五步法只是一个具体的速度—精度选择，而近似 polar 更准确也不自动意味着训练效果更好。
 
-计算时可以先转置高矩阵，让参与 $X_kX_k^\top$ 的行数为 $\min(m,n)$，最后再转置回来。这样临时方阵更小。矩阵乘法可以在 BF16 下进行；上图用 FP64 演示标量递推，实际低精度结果会有差异。
+前面的转置还有计算上的理由：它让 $A_k=X_kX_k^\top$ 的边长为 $\min(m,n)$，临时方阵更小。矩阵乘法可以在 BF16 下进行；上图用 FP64 演示标量递推，实际低精度结果会有差异。如果输入秩亏，$\sigma=0$ 在这些奇函数下始终为零；迭代不会凭空创造缺失方向。
 
-## 完整的一步与更新尺度
+## 被 polar 抹掉的尺度怎样补回来
 
-前面为了说明机制使用了普通 momentum。作者实现默认使用 Nesterov-style momentum。现在放大训练总览中的 Muon 分支，看单个权重矩阵 $W_t$ 的一次更新。采用 EMA 记法，先从当前梯度和历史 momentum 得到 $M_t$，再与当前梯度组合成送入 Newton–Schulz 的 $H_t$。
+Polar factor 决定了更新的**形状**，也刻意抹掉了 $M$ 原有的整体大小。若直接令 $\Delta W=-\eta O$，learning rate $\eta$ 可以解释成 spectral norm 意义下的步长；但换一个形状的权重矩阵，同样的 $O$ 会有不同的逐元素尺度。把 Muon 用到宽窄各异的层、再与 AdamW 参数组共用训练配置时，我们还必须决定想让哪个量保持一致。
 
-<MuonMatrixStep />
-
-这里的 $t$ 是训练 step，$k$ 是一次更新内部的 Newton–Schulz 迭代。跨训练 step 保存的是 $M_t$；$X_0,\ldots,X_5$ 都在本次 optimizer step 内算完。图中的各步对应：
-
-1. 计算当前梯度 $G_t=\nabla_W\mathcal{L}_t$。
-2. 更新 $M_t=\beta M_{t-1}+(1-\beta)G_t$，初始 $M_{-1}=0$。
-3. 构造 $H_t=\beta M_t+(1-\beta)G_t$；不用 Nesterov 时取 $H_t=M_t$。
-4. 以 $H_t$ 为输入，归一化后执行 $K$ 次 Newton–Schulz，得到 $O_t$。
-5. 更新 $W_{t+1}=(1-\eta_t\lambda)W_t-\eta_t s_{m,n}O_t$。
-
-常用起点是 $\beta=0.95$、$K=5$。有些实现用不带 $(1-\beta)$ 的 momentum 累加式；配套的 Nesterov 写法也要一起对应，不能只替换其中一行。正的整体缩放会被进入迭代前的归一化消去，忽略 $\epsilon$ 和舍入时，两套配套写法可以等价。
-
-还需要选择 $s_{m,n}$。对满秩矩阵的理想 polar 结果，令 $r=\min(m,n)$，因为共有 $r$ 个值为 $1$ 的奇异值，
+先算出未经额外缩放的基准。对满秩矩阵的理想 polar 结果，令 $r=\min(m,n)$，因为共有 $r$ 个值为 $1$ 的奇异值，
 
 $$
 \lVert O\rVert_F^2=r,
@@ -223,15 +242,15 @@ $$
 =\frac1{\sqrt{\max(m,n)}}.
 $$
 
-如果直接使用 $O$，矩阵越大，平均每个元素的更新反而越小。Moonlight [@liu2025muon] 使用
+如果直接使用 $O$，矩阵越大，平均每个元素的更新反而越小。假如设计目标是让理想更新的元素 RMS 固定为某个值 $\rho$，上式直接给出
 
 $$
-s_{m,n}=0.2\sqrt{\max(m,n)},
+s_{m,n}=\rho\sqrt{\max(m,n)}.
 $$
 
-让理想更新的 RMS 为 $0.2$，方便与 AdamW 的更新尺度对齐。$0.2$ 来自该工作的经验选择，不是 AdamW 更新 RMS 的普适定理；有限步近似、秩亏也会使实际 RMS 偏离它。Weight decay 直接作用于 $W_t$，不放进正交化，也不乘这个形状系数。
+Moonlight [@liu2025muon] 取经验值 $\rho=0.2$，也就是 $s_{m,n}=0.2\sqrt{\max(m,n)}$，以便和 AdamW 的更新尺度对齐。这里的 $0.2$ 不是 AdamW update RMS 的普适定理；有限步近似和秩亏也会使实际 RMS 偏离目标。
 
-苏剑林的《Muon 优化器指南》[@su2025muonguide] 将常见缩放整理为四种约定。沿用本文 $y=Wx$ 的记号，$m$ 是输出维度，$n$ 是输入维度：
+这不是唯一合理的设计目标。例如，也可以要求模型宽度改变时，特征扰动的 RMS 尽量保持一致。苏剑林的《Muon 优化器指南》[@su2025muonguide] 将常见选择整理为四种约定。沿用本文 $y=Wx$ 的记号，$m$ 是输出维度，$n$ 是输入维度：
 
 | 约定 | $s_{m,n}$ | 缩放方式 |
 | --- | --- | --- |
@@ -240,7 +259,7 @@ $$
 | MuP 版 | $\sqrt{m/n}$ | 按输出与输入的维度比缩放 |
 | Moonlight 版 | $0.2\sqrt{\max(m,n)}$ | 将理想更新的元素 RMS 对齐到 $0.2$ |
 
-同一个 learning rate 数值不能脱离缩放约定比较。PyTorch 的 Muon 文档 [@pytorchmuon] 将 KellerJordan 版和 Moonlight 版分别称为 `original` 和 `match_rms_adamw`。维度比要按线性层的实际输入、输出判断：如果代码写成行向量形式的 `x @ W`，权重的存储形状就是 $[\text{in},\text{out}]$，不能照搬 PyTorch `Linear` 的轴顺序。为降低 Newton–Schulz 成本而临时转置矩阵，也不应改变缩放因子。
+这些公式不是对同一个目标的四种精度，而是在回答“什么应该跨层保持不变”的不同问题，所以同一个 learning rate 数值不能脱离缩放约定比较。PyTorch 的 Muon 文档 [@pytorchmuon] 将 KellerJordan 版和 Moonlight 版分别称为 `original` 和 `match_rms_adamw`。维度比要按 linear layer 的实际输入、输出判断：如果代码写成行向量形式的 `x @ W`，权重的存储形状就是 $[\text{in},\text{out}]$，不能照搬 PyTorch `Linear` 的轴顺序。为降低 Newton–Schulz 成本而临时转置矩阵，也不应改变缩放因子。
 
 <details>
 <summary>MuP 版与官方版的 max(1, ·) 分别在控制什么？</summary>
@@ -266,6 +285,35 @@ $$
 按这种平均尺度，取 $s_{m,n}=1$ 就够了；当 $m\ge n$ 时，相同计算则给出 $s_{m,n}=\sqrt{m/n}$，合起来正是官方版的 $\max(1,\cdot)$。这是一种依赖输入分布的解释。训练中输入与更新方向可能相关，不能据此认定该缩放在所有阶段都更优。
 
 </details>
+
+## 把设计装回完整的一步
+
+现在各个零件都有了来由：momentum 先汇总跨 mini-batch 的下降信号；polar factor 在 spectral-norm budget 内选择矩阵方向；Newton–Schulz 用有限次矩阵乘法近似它；$s_{m,n}$ 再赋予 learning rate 选定的跨层尺度。
+
+参考实现还在普通 momentum 上使用 Nesterov-style 组合。普通 $M_t$ 更偏向过去的平均方向；在进入非线性的 polar 处理前，再混入当前梯度，可以让本步信号更直接地影响待处理矩阵。采用本文的 EMA 记法，令
+
+$$
+H_t=\beta M_t+(1-\beta)G_t.
+$$
+
+不用 Nesterov 时只需取 $H_t=M_t$。下面放大训练总览中的 Muon 分支，虚线状态和实线计算也区分了两个时间尺度：$t$ 是外层训练 step，$k$ 是同一个 optimizer step 内部的 Newton–Schulz 迭代。
+
+<MuonMatrixStep />
+
+沿着图读，一个矩阵的完整更新是：
+
+1. backward 得到 $G_t=\nabla_W\mathcal{L}_t$；
+2. 更新并保存 $M_t=\beta M_{t-1}+(1-\beta)G_t$；
+3. 用 $H_t=\beta M_t+(1-\beta)G_t$ 构造本步要处理的方向；
+4. 归一化 $H_t$，在本步内部执行 $K$ 次 Newton–Schulz，得到 $O_t$；
+5. 按矩阵形状缩放 $O_t$，再与 decoupled weight decay 合并：
+
+$$
+W_{t+1}
+=(1-\eta_t\lambda)W_t-\eta_t s_{m,n}O_t.
+$$
+
+Weight decay 的目的在于收缩当前权重，不是在表达这次 mini-batch 的下降方向，因此它直接作用于 $W_t$，不送进 momentum 或 Newton–Schulz，也不乘 $s_{m,n}$。常用起点是 $\beta=0.95$、$K=5$。有些实现用不带 $(1-\beta)$ 的 momentum 累加式；配套的 Nesterov 写法也要一起对应，不能只替换其中一行。正的整体缩放会被 Newton–Schulz 前的归一化消去，所以忽略 $\epsilon$ 和舍入时，两套配套写法可以等价。
 
 <details>
 <summary>Weight decay 为什么能限制权重谱范数？</summary>
