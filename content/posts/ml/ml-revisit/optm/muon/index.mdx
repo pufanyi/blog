@@ -1,28 +1,46 @@
 ---
 title: "Muon"
 date: "2026-09-11"
-updated: "2026-09-12"
-description: "从矩阵更新的奇异值理解 Muon，以及 Newton–Schulz 近似、学习率缩放和大规模训练中的取舍。"
+updated: "2026-09-15"
+description: "从一个具体的矩阵更新出发理解 Muon，以及奇异值、Newton–Schulz 近似、学习率缩放和大规模训练中的取舍。"
 ---
 
-训练一个 linear layer 时，参数是矩阵，但 SGD 和 AdamW 的更新规则并没有充分利用这个矩阵的结构。Muon [@jordan2024muon] 的做法是：先用 momentum 平滑梯度，再调整更新矩阵的奇异值，让不同方向的更新具有相近的尺度。名字里的 **MomentUm Orthogonalized by Newton–Schulz**，说的就是这个过程。
+如果第一次听说 Muon，可以先把它理解成一种**专门处理神经网络二维权重矩阵的 optimizer** [@jordan2024muon]。它不改变模型结构、loss 或 backpropagation；forward 和 backward 仍然照常进行。改变的是 backward 之后的一小步：optimizer 怎样把算出的梯度变成权重更新。
 
-先把它放回一次完整的训练 step。Forward 和 backward 照常进行；Muon 接收 backward 算出的梯度，在 optimizer step 中构造参数更新。下面以 Transformer 的常见参数分组为例，$\theta_t$ 表示整个模型的参数。
+为什么二维矩阵值得单独对待？以 linear layer 的 $y=Wx$ 为例，$W$ 不只是一张参数表，它还描述了每个输入方向如何影响输出。SGD 直接使用梯度矩阵，AdamW 主要按单个元素的历史尺度调整它；Muon 则把更新看成一个完整的线性映射，调整其中不同输入—输出方向的强弱。
+
+Muon 的核心过程可以先用一句话概括：**用 momentum 汇总近期梯度，保留更新矩阵指向的方向，但把各方向悬殊的强度拉到相近尺度，最后再乘 learning rate 更新权重。** 名字 **MomentUm Orthogonalized by Newton–Schulz** 正好概括了前两步。后文会分别解释这里的“方向”“orthogonalized”和 Newton–Schulz；现在只需先看清它在训练流程中的位置。
+
+下面以 Transformer 的常见参数分组为例。Muon 通常负责隐藏层里的 attention projection 和 MLP 权重，embedding、LM head、bias 与 normalization 参数仍交给 AdamW；$\theta_t$ 表示整个模型在第 $t$ 步的参数。
 
 <MuonTrainingStep />
 
 ## 从逐元素缩放到矩阵更新
 
-设一层的计算是 $y=Wx$，其中 $W\in\mathbb{R}^{m\times n}$，梯度为 $G_t=\nabla_W\mathcal{L}_t$。SGD 直接沿着 $-G_t$ 更新。AdamW [@loshchilov2019decoupled] 则保存梯度的一阶、二阶矩估计 $M_t,V_t$，用经过 bias correction 的 $\widehat M_t,\widehat V_t$ 做逐元素缩放：
+先用一个刻意简化的例子看 Muon 想做什么。暂时不管 learning rate、weight decay 和 momentum 从何而来，假设 optimizer 准备处理的矩阵是
+
+$$
+M=\operatorname{diag}(8,2,0.5).
+$$
+
+把三个坐标轴上的单位输入依次记作 $e_1,e_2,e_3$，就有 $Me_1=8e_1$、$Me_2=2e_2$、$Me_3=0.5e_3$。也就是说，这个更新不改变三个轴的朝向，却会以 $8$、$2$ 和 $0.5$ 的强度改变它们；最强方向是最弱方向的 $16$ 倍。
+
+如果只把整个矩阵除以一个 norm，三个数会一起缩小，$16:4:1$ 的比例不会改变。Muon 的理想变换则把它们变成 $1,1,1$：保留三个方向，只重新平衡方向的强度。实际实现不会精确得到三个 $1$，而是用五步矩阵迭代得到相近的数值。下图中用 $\sigma_1,\sigma_2,\sigma_3$ 标出的“方向强度”，正式名称是 **singular values（奇异值）**；第三栏的计算会在 Newton–Schulz 一节展开。
+
+<MuonSpectrum />
+
+这个对角矩阵只是为了让方向刚好和坐标轴重合。一般矩阵会混合坐标，Muon 调整的是由整个矩阵决定的奇异方向，**不是逐元素把矩阵变成 sign，也不是把所有元素改成一样大**。
+
+现在把例子放回 optimizer。设 $W\in\mathbb{R}^{m\times n}$，当前 mini-batch 经过 backward 后得到同形状的梯度 $G_t=\nabla_W\mathcal{L}_t$。SGD 直接沿着 $-G_t$ 更新。AdamW [@loshchilov2019decoupled] 则保存梯度的一阶、二阶矩估计 $m_t,v_t$，用经过 bias correction 的 $\widehat m_t,\widehat v_t$ 做逐元素缩放：
 
 $$
 W_{t+1}=(1-\eta_t\lambda)W_t
--\eta_t\frac{\widehat M_t}{\sqrt{\widehat V_t}+\epsilon}.
+-\eta_t\frac{\widehat m_t}{\sqrt{\widehat v_t}+\epsilon}.
 $$
 
-这里的除法和平方根都逐元素进行，$\eta_t$ 是 learning rate，$\lambda$ 是 decoupled weight decay 的系数。AdamW 能根据每个坐标的历史梯度调整步长，但矩阵还描述了输入方向到输出方向的映射。Muon 从这些方向入手构造更新。
+这里的除法和平方根都逐元素进行，$\eta_t$ 是 learning rate，$\lambda$ 是 decoupled weight decay 的系数。AdamW 能根据每个参数坐标的历史梯度调整步长，但不会显式分析这些元素合在一起形成了哪些矩阵方向。
 
-先看不带 Nesterov 的版本。令 $M_{-1}=0$，定义
+Muon 先保存一个和 $W$ 同形状的 momentum $M_t$，用它平滑不同 mini-batch 带来的梯度波动；然后对整个 $M_t$ 做矩阵变换。先看不带 Nesterov 的版本。令 $M_{-1}=0$，定义
 
 $$
 \begin{aligned}
@@ -32,11 +50,11 @@ W_{t+1}&=(1-\eta_t\lambda)W_t-\eta_t s_{m,n}O_t.
 \end{aligned}
 $$
 
-$\operatorname{Polar}$ 是下面要解释的矩阵变换，$s_{m,n}$ 用来控制不同形状矩阵的更新尺度。**Momentum 先于这个变换计算**：累积的是梯度的历史，再变换平滑后的矩阵。
+$\operatorname{Polar}$ 就是上例中“保留方向、平衡强度”的理想变换，实际的 $O_t$ 只是对它的近似。$s_{m,n}$ 用来控制不同形状矩阵的更新尺度。注意 **momentum 先于这个变换计算**：Muon 累积的是梯度历史，再变换平滑后的矩阵；它并不把每次变换后的结果继续累积到 momentum 里。
 
 ## 把奇异值拉到相同尺度
 
-暂时省略时间下标，把待处理的 momentum 矩阵写成 compact SVD：
+在刚才的对角例子中，矩阵方向恰好就是三个坐标轴。对一般的 momentum 矩阵，可以用 compact SVD 把同一件事写出来。暂时省略时间下标：
 
 $$
 M=U\Sigma V^\top
@@ -44,7 +62,7 @@ M=U\Sigma V^\top
 \qquad r=\operatorname{rank}(M),\quad \sigma_i>0.
 $$
 
-$v_i$ 是输入空间里的一个单位方向，$u_i$ 是对应的输出方向，两组向量各自正交。等式 $Mv_i=\sigma_i u_i$ 告诉我们：这个更新在方向 $v_i$ 上的强度是 $\sigma_i$。如果奇异值相差很大，更新便主要集中在少数方向。
+$r$ 是矩阵的 rank。$v_i$ 是输入空间里的一个单位方向，$u_i$ 是对应的输出方向，两组向量各自正交。等式 $Mv_i=\sigma_i u_i$ 告诉我们：输入沿着 $v_i$ 变化时，$M$ 会把它转到 $u_i$，强度为 $\sigma_i$。这正是上图中“方向”和“方向强度”在一般矩阵里的定义。如果奇异值相差很大，更新便主要集中在少数方向。
 
 Muon 的理想变换是
 
@@ -53,11 +71,7 @@ $$
 =\sum_{i=1}^{r}u_i v_i^\top.
 $$
 
-也就是保留这些方向，把每个非零奇异值变成 $1$。这和把整个矩阵除以 Frobenius norm 不一样：整体归一化保留奇异值之间的比例，polar 变换会改变这个比例。
-
-例如 $M=\operatorname{diag}(8,2,0.5)$，除以 $\lVert M\rVert_F$ 以后，三个方向仍然相差 $16:4:1$；理想 polar 变换得到 $I_3$，三个方向的强度相同。下面也画出了实际五步迭代的结果，计算方法见下一节。
-
-<MuonSpectrum />
+也就是保留每一对 $v_i\to u_i$，把每个非零奇异值变成 $1$。这和把整个矩阵除以 Frobenius norm 不一样：整体归一化保留奇异值之间的比例，polar 变换会改变这个比例。对于前面的 $\operatorname{diag}(8,2,0.5)$，这里的 $U,V$ 都是单位矩阵，所以理想 polar 结果就是 $I_3$。
 
 这里的 orthogonalization 指的是**更新矩阵**。加上这个更新之后，权重 $W$ 本身不必正交，也不是在要求相邻两个训练 step 的更新互相垂直。对于满秩矩形矩阵，只能有 $O^\top O=I_n$（$m\ge n$）或 $OO^\top=I_m$（$m\le n$），所以更准确地说是 semi-orthogonal。
 
