@@ -1,0 +1,90 @@
+.vit-figure {
+  margin: 1.8rem 0;
+}
+
+.vit-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0.8rem;
+  background: var(--paper-bg);
+}
+
+.vit-scroll > svg {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  height: auto;
+}
+
+.vit-scroll text {
+  fill: var(--text-color);
+  font: 15px var(--font-body);
+}
+
+.vit-scroll .vit-small {
+  font-size: 12px;
+}
+
+.vit-arrow {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+.vit-grid {
+  fill: none;
+  stroke: var(--paper-bg);
+  stroke-width: 2;
+}
+
+.vit-menu-paper {
+  fill: var(--paper-bg);
+}
+
+.vit-scroll .vit-menu-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.vit-scroll .vit-menu-label {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.vit-menu-rule {
+  stroke: var(--border-color);
+  stroke-width: 1;
+}
+
+.vit-inject {
+  fill: none;
+  stroke: var(--accent-mauve);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 4;
+}
+
+.vit-token {
+  fill: var(--accent-bg);
+  stroke: var(--accent-blue);
+}
+
+.vit-group-0 {
+  fill: color-mix(in srgb, var(--accent-sage) 17%, var(--paper-bg));
+  stroke: var(--accent-sage);
+}
+
+.vit-group-1 {
+  fill: color-mix(in srgb, var(--accent-rose) 17%, var(--paper-bg));
+  stroke: var(--accent-rose);
+}
+
+.vit-group-2 {
+  fill: color-mix(in srgb, var(--accent-blue) 17%, var(--paper-bg));
+  stroke: var(--accent-blue);
+}
+
+.vit-group-3 {
+  fill: color-mix(in srgb, var(--accent-ochre) 17%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+}

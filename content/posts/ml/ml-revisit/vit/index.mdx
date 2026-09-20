@@ -1,0 +1,261 @@
+---
+title: "Vision Transformer：从图像 Patch 到多模态模型"
+date: "2026-09-19"
+description: "从 patch embedding、二维位置与计算量理解 ViT，再比较 SigLIP 2、DINOv3、Qwen2.5-VL / Qwen3-VL / Qwen3.5、InternVL3.5、MiniCPM-V 4.5 和 Gemma 3 / 4 的视觉设计。"
+---
+
+给模型一张菜单，问它「第二行的价格是多少」，模型需要先保留小字，再找到第二行，最后把数字读出来。如果预处理已经把字缩成模糊的一团，后面的语言模型再大，也无法从图像中找回被丢掉的笔画。**视觉模型的设计，首先是在决定保留哪些信息、让哪些区域交换信息，以及把多少信息交给下游。**
+
+Vision Transformer（ViT）把图像切成 patch，用 Transformer 在这些 patch 之间交换信息。今天许多多模态模型仍沿用这个骨架，但在分辨率、位置编码、预训练和输出压缩上有不同选择。本文先从输入推导基本 ViT，再沿着这些选择理解实际模型。Attention 的更多变体见[这一篇](/blog/ml/ml-revisit/attention)，视觉自监督目标见 [SSL](/blog/ml/ml-revisit/ssl)。
+
+模型部分是 **2026-09-19 核对的代表性公开模型快照**，不试图列全所有发布。这里的「开源模型」包括公开权重模型，不意味着每个模型都公开了完整训练数据或采用同一种许可证。具体配置以文中指定的 checkpoint 为准。
+
+## 怎样把一张图交给 Transformer
+
+### 从像素到 patch token
+
+Transformer 接受一串向量。最直接的办法是把每个像素当成一个 token，但一张 $224\times224$ 的图就有 $50{,}176$ 个像素；每对像素都做 attention，对普通图像分类来说太昂贵。另一个极端是把整张图压成一个向量，但这样第一步就失去了可分别处理的空间位置。
+
+折中的办法是先把相邻像素组成小块。设 RGB 图像为 $x\in\mathbb R^{H\times W\times C}$，其中 $C=3$，每块大小为 $P\times P$。暂时假设高宽都能被 $P$ 整除，得到
+
+$$
+N=\frac{H}{P}\frac{W}{P}
+$$
+
+个 patch。每块展平后有 $P^2C$ 个数。我们希望所有块进入同一个特征空间，才能共享后续网络，因此对每块使用同一个线性映射：
+
+$$
+z_i=\operatorname{vec}(x_i)E+b,
+\qquad E\in\mathbb R^{P^2C\times D}.
+$$
+
+这里使用 row vector，$D$ 是 hidden dimension。$224\times224$ 的图、$P=16$ 时，空间网格是 $14\times14$，所以 $N=196$；每个 RGB patch 有 $768$ 个数，可以映射到 $D=768$ 维。这是原始 ViT 的核心输入构造 [@dosovitskiy2020vit]。ViT-B/16 中的 B 表示模型规模，16 表示 patch 边长，**不是输出 token 数**。
+
+<ViTPatches />
+
+Patch embedding 不需要显式地切出一堆小图片：`Conv2d(C, D, kernel_size=P, stride=P)` 可以实现同一个线性操作，输出再从空间网格展平成序列。因而「ViT 不用卷积」通常指主体采用 Transformer，并不排斥卷积形式的输入投影。
+
+更小的 patch 会产生更密的空间采样，但也会增加序列长度。较大的 patch 则让最早的投影一次处理更大的区域；这不等于对区域取平均，块内像素仍有各自的权重。不过，若 $D<P^2C$，线性投影本身就不可能对任意输入保持可逆；即使维度足够，训练目标也不保证保留所有细节。
+
+### 序列顺序并不会自动告诉模型二维位置
+
+把 patch 按行展平之后，数组下标有了先后顺序，但没有位置输入的 self-attention 并不知道这个下标。若同时重排输入 token，输出也只会跟着重排。菜单上第二行和第三行即使有完全相同的价格，模型也需要知道哪个价格属于哪一行；只有内容向量还不够。
+
+原始 ViT 给每个 token 加一个 learned absolute position embedding。若任务是分类，还在前面放一个可学习的 CLS token，让它通过 attention 汇总整张图：
+
+$$
+Z^{(0)}=[z_{\mathrm{cls}};z_1;\ldots;z_N]+E_{\mathrm{pos}}.
+$$
+
+CLS 是一个额外的读出位置，不对应某块像素。图像分类可以读它，也可以对 patch features 做 pooling；分割、定位或多模态理解则往往需要保留 patch 序列。**ViT 不要求一定有 CLS，也不要求最后只输出一个向量。**
+
+当网格从 $14\times14$ 变成 $28\times28$，旧的位置表长度不够。一种办法是把 patch 位置表恢复为二维网格，再插值到新网格；CLS 的位置单独处理。插值让网络可以接收新尺寸，但并不保证未经训练就能在任意大分辨率上可靠工作。
+
+### 每个 patch 怎样借用其他区域的信息
+
+菜单上的一个笔画可能属于数字 3，也可能属于 8；只看局部不够，还需要同一个字符附近的笔画和整行布局。Attention 让每个 token 根据当前内容选择需要读取的其他 token。
+
+对 normalized features $X=\operatorname{LN}(Z)$，单个 attention head 先产生 query、key 和 value：
+
+$$
+Q=XW_Q,\qquad K=XW_K,\qquad V=XW_V.
+$$
+
+Query 与每个 key 的内积衡量匹配程度，经 softmax 变成一组和为 1 的读取权重，再对 value 加权求和：
+
+$$
+A=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{d_h}}\right),
+\qquad Y=AV.
+$$
+
+Softmax 沿每个 query 对应的 key 维度进行；$d_h$ 是 head dimension。多个 head 可以学习不同的读取关系，再拼接、投影回 $D$ 维。视觉 encoder 通常让同一张图内的 token 双向读取；它没有生成文字时「不能看未来答案」的因果限制。
+
+读到其他区域的信息后，还要在每个位置内组合特征。于是一个典型 pre-norm block 是
+
+$$
+U^{(\ell)}=Z^{(\ell)}+\operatorname{MSA}(\operatorname{LN}(Z^{(\ell)})),
+$$
+
+$$
+Z^{(\ell+1)}=U^{(\ell)}+\operatorname{MLP}(\operatorname{LN}(U^{(\ell)})).
+$$
+
+Attention 负责位置之间的信息交换，MLP 负责每个位置内部的通道变换，residual connection 保留原有表示。现代模型可能换成 RMSNorm、SwiGLU 等，但这个分工仍然有用。经过多层之后，一个 patch feature 已经包含上下文，不能再把它理解为原始小方块的独立描述。
+
+现在可以把位置问题再往前推进一步。找菜单中某道菜的价格时，「同一行、右边」比「图像第几个格子」更容易迁移到另一张排版相似的菜单。我们希望整对 patch 同时平移后，二者的空间关系不变；还希望加入位置时不任意放大内容向量。旋转正好满足第二个要求：它改变方向，保持长度；若两个向量都额外旋转相同角度，内积也不变，因此第一项要求也有了实现途径。
+
+具体地，把通道两两分组，让位置为 $u$ 的 query 旋转 $u\omega$，位置为 $v$ 的 key 旋转 $v\omega$。共同旋转的部分会抵消，剩下的角度就是 $(v-u)\omega$。对这一组通道，用 $R(u)$ 表示相应旋转，把 $q,k$ 暂记为 column vectors，就得到
+
+$$
+(R(u)q)^\top(R(v)k)=q^\top R(v-u)k.
+$$
+
+这就是 RoPE 把相对位移放进内容匹配的方式。2D RoPE 分别为行、列坐标分配通道组与旋转频率，使横向距离和纵向距离可区分。不同实现会选择不同的频率和坐标尺度；它解决的是空间关系的表示，超出训练尺度的泛化仍需验证。Absolute embedding 与 RoPE 也可以同时使用：前者给单个位置提供地址，后者直接影响两个位置之间的比较。
+
+有了这些部件，如何让网络真的学会识别？原始分类 ViT 在最终 CLS 上接 classification head，用真实类别的 cross-entropy 训练，梯度经过各层一直回到 patch projection。局部笔画检测、跨区域读取和全局汇总是共同学出来的。与卷积逐层扩展局部感受野相比，full attention 从第一层就允许远处位置交换信息，但「应该优先利用邻近结构」也更多交给数据与训练来学习。菜单问答的目标更细，不能只靠一个整图类别；接下来既要保留更密的输入，又要设计能利用这些位置的输出。
+
+## 分辨率为什么会变成设计的中心
+
+假设 patch size 固定，把高宽都放大两倍，token 数会变成四倍。Full attention 的矩阵大小是 $N\times N$，因此其元素数变成十六倍。以 $P=16$ 为例：
+
+| 输入尺寸 | patch 网格 | patch tokens | 单个 head 的 attention 矩阵元素数 |
+| --- | --- | --- | --- |
+| $224\times224$ | $14\times14$ | 196 | 38,416 |
+| $448\times448$ | $28\times28$ | 784 | 614,656 |
+| $896\times896$ | $56\times56$ | 3,136 | 9,834,496 |
+
+表中忽略 CLS 等额外 token。对固定宽度，attention 的两次核心矩阵乘法约为 $O(N^2D)$，projection 与 MLP 则约为 $O(ND^2)$。所以「分辨率翻倍，模型慢十六倍」并不成立：只有二次项这样增长，实际延迟还取决于宽度、内存访问和算子实现。FlashAttention 可以避免显式存储整个 attention 矩阵，但不会消除 full attention 的二次计算量。
+
+要保留菜单的小字，又不能无限增加计算，有三种不同层次的调整。
+
+**先改变输入。** 把整张图缩放到固定正方形最简单，却可能扭曲长宽比或丢掉小字。Dynamic resolution 根据原图比例和像素预算选择网格；「native resolution」在实际实现中通常仍包括预算限制、resize 和整除对齐，不等于始终逐像素使用原图。
+
+**再改变通信范围。** 每个 token 只在含 $M$ 个 token 的窗口内 attention，所有窗口加起来的二次项是 $(N/M)M^2=NM$，固定窗口大小时随 $N$ 线性增长。但窗口之间必须有交换信息的途径。Swin 用 shifted windows 建立跨窗口连接，并在 stage 之间合并 patch，形成多尺度层级 [@liu2021swin]；也可以让多数层使用局部窗口，少数层仍做全局 attention。
+
+**还可以切成多个 crop。** 对一张很长的菜单，把各段分别放大后送入已有的固定尺寸 encoder，就能在复用同一套权重的同时保住笔画。若每块有 $n$ 个 token、共 $k$ 块，attention 部分约为 $kn^2$，而一次处理全部 token 约为 $(kn)^2$。但菜名和价格若落在不同 crop，它们在 encoder 内无法直接通信；全图 thumbnail 可以补充整体排版，下游则需要结合各块恢复对应关系。Crop 数量增加时，视觉计算和下游 token 通常仍会增加。
+
+窗口与 crop 不是同一个操作：窗口可以在同一个 encoder 的后续全局层互相通信；独立 crop 在进入融合模块之前则是不同的视觉序列。两者也都不能替代位置编码。
+
+## 从 ViT 输出到 LLM 输入，还差什么
+
+一个 encoder 输出 $N\times D_v$ 的特征，LLM 却需要 $D_l$ 维输入，而且未必负担得起全部 $N$ 个位置。这里有两个独立任务：**变换通道维度，以及缩短序列。** 对每个 token 单独做 MLP 只能完成前者，不会自动减少 token 数。
+
+### 保留空间网格，合并相邻特征
+
+若希望压缩之后仍能对应图像区域，最直接的办法是每次合并相邻 $s\times s$ 个特征。先保留这些特征的不同通道，再让一个投影学习怎样融合它们：
+
+$$
+u_{a,b}=\operatorname{concat}\{h_{sa+i,sb+j}:0\le i,j<s\},
+\qquad v_{a,b}=\operatorname{MLP}(u_{a,b}).
+$$
+
+输入维度从 $D_v$ 变成 $s^2D_v$，输出为 $D_l$，空间位置数则变成 $N/s^2$。这里假设网格能被 $s$ 整除；实际 processor 往往提前保证这一点。实现里常见的 pixel shuffle 在这种下采样用法中，本质上是 spatial-to-channel 的重排；重排本身没有丢失数值，后续投影才学习压缩表示。
+
+<ViTMerge />
+
+也可以直接对邻域取平均，再投影。这样同样减少位置数，但平均会先抹掉组内差异；concat 则允许后续层区分「左上角是什么」与「右下角是什么」。这是一种表达能力与计算量的取舍，并不意味着 concat 在所有任务上都更好。
+
+### 让固定数量的 query 主动读取图像
+
+另一种目标是：无论输入有多少 patch，都只交给 LLM $K$ 个视觉摘要。此时可以学习 $K$ 个 query，让它们通过 cross-attention 从视觉特征 $H$ 读取信息：
+
+$$
+V_{\mathrm{out}}=
+\operatorname{softmax}\!\left(
+\frac{(Q_0W_Q)(HW_K)^\top}{\sqrt d}
+\right)(HW_V).
+$$
+
+其中 $Q_0$ 有 $K$ 行、$H$ 有 $N$ 行，输出便有 $K$ 行。位置编码可以加入 query/key 的构造；上式只展示一次读取的核心。与按邻域合并不同，这些输出不必一一对应固定的小方格。它更容易控制下游长度，但也形成固定容量的信息瓶颈：一张很密的表格与一张简单照片未必适合相同的 $K$。
+
+无论使用 merger、pooling 还是 resampler，**在 ViT 之后压缩，只节省压缩之后的计算**。ViT 已经处理过的 patch 不会因此变少。做延迟分析时，需要分别记录 encoder 的 token 数与送入 LLM 的 token 数。
+
+### 怎样从这些向量学会回答「18」
+
+到这里，我们只是让图像变成 LLM 可以接收的一串向量，尚未教会 LLM 使用它们。对图中的菜单，可以构造一个训练样本：输入菜单和「第二行的价格是多少」，目标答案是「18」。令视觉序列为 $V=g_\phi(f_\theta(x))$，问题为 $q$，答案 token 为 $a_1,\ldots,a_T$。训练时逐个位置要求模型提高正确下一个 token 的概率，于是得到
+
+$$
+\mathcal L=-\sum_{t=1}^{T}\log p_\psi(a_t\mid V,q,a_{<t}).
+$$
+
+这里 $f_\theta$ 是 ViT，$g_\phi$ 是 connector，$p_\psi$ 是 LLM。训练时提供真实的前缀 $a_{<t}$，推理时使用已经生成的前缀。答案不必真的只有一个 token，取决于 tokenizer；loss 中的求和覆盖完整答案。
+
+如果只更新 connector，梯度仍需穿过 LLM 才能告诉 connector 哪些视觉特征有用，但 ViT 和 LLM 的权重保持冻结；联合训练则可以继续调整它们。前一种方式先建立接口，后一种方式让视觉表示适应实际问答需求。这个 loss 只告诉网络最终答案是否正确，未显式标出「应该看哪一个 patch」；这也解释了为什么预训练特征、OCR 与定位数据会影响模型能否学到可靠的读取方式。
+
+## 同样的 ViT，为什么学到的东西不同
+
+Architecture 决定信息怎样流动，训练目标决定模型保留什么。假设一张菜单的配文只有「今日午餐」：模型认出这是一张菜单，就可能完成图文匹配，却没有理由精确区分价格 18 与 19。CLIP [@radford2021clip] 用匹配与不匹配的图文训练全局语义表征，适合检索；若下游要读小字或做分割，就还需要检查局部特征是否保留了足够的信息。
+
+SigLIP 2 [@tschannen2025siglip2] 的图文 sigmoid loss 分别判断一对图文是否匹配；它进一步加入需要描述区域、预测位置的训练，让只知道整图主题不再足够。Self-distillation 让局部 view 学习全图 teacher 的语义，masked prediction 则要求被遮住位置的特征匹配 teacher 的对应位置，把训练压力落实到局部表示。这里的 decoder 用于预训练，不意味着发布的视觉 encoder 本身就是一个问答 LLM。
+
+它也提供 **NaFlex**：训练时使用不同形状和长度的 patch 网格，让同一个 checkpoint 适应长宽比与分辨率变化。对长菜单，这意味着可以把预算分给有内容的长条区域，而不用先强行变成正方形。它与固定分辨率版本同时存在，下游模型也可能在初始化后重新训练自己的动态输入路径。
+
+DINOv3 [@simeoni2025dinov3] 的主要视觉预训练不依赖图文配对，其 ViT 使用 RoPE 并保留 dense features。这里有一个容易忽略的矛盾：网络既需要整合全图信息，又希望每个 patch 的输出忠实对应局部。Register 的出发点是，一些背景 patch 会被网络借作存放全局信息的空间，形成影响 dense features 的异常值；增加不对应像素的额外 token，给这种计算提供专门位置 [@darcet2023registers]。读出空间特征时排除 registers 和 CLS，剩下的才对应图像网格。
+
+Register 仍不能保证训练越久，局部关系越好。DINOv3 的 Gram anchoring 因而进一步约束「哪些 patch 彼此相似」：用较早、空间特征较好的 teacher 提供两两相似度，要求 student 保持这些关系。这样不必把每个特征向量锁死在 teacher 的数值上，仍允许整体表示继续变化。它保护的是局部结构，不能自动赋予「这个符号读作 18」的语言对应；接入 LLM 后还需要上一节的图文训练。更完整的训练目标见 [SSL 的 DINO 系列部分](/blog/ml/ml-revisit/ssl#clustering-and-self-distillation)。
+
+## 近期公开模型怎样组合这些部件
+
+前面得到的部件并不只有一种组合方式。继续用读菜单这个任务看：有的模型优先降低保留小字时的 encoder 成本，有的优先降低交给 LLM 的长度，有的则改善视觉信息进入语言计算的位置。
+
+### Qwen：动态网格、窗口与多层注入
+
+Qwen2.5-VL [@qwen2025qwen25vl] 让输入高宽对齐到 28 的倍数：先用 $14\times14$ patch，再按 $2\times2$ 合并。其 32 层 ViT 中，仅索引为 7、15、23、31 的四层使用 full attention，其余使用至多 $8\times8$ patches 的窗口。这样仍有全局信息交换，但多数层不需要比较整张图的所有位置。视觉 block 还使用 RMSNorm 与 SwiGLU。
+
+即使已经控制了 encoder 成本，还可能遇到另一个瓶颈：若只拿最终层特征接入 LLM，所有有用信息都必须经过同一个出口。识别「这是一张菜单」与分辨价格的一笔，可能需要不同层次的表示。最直接的补充办法是把中间层特征也接到输入序列上，但这样会增加 LLM 的上下文长度。
+
+Qwen3-VL [@qwen2025qwen3vl] 采用另一种补充途径：各层的特征仍对应同一批空间位置，先用各自 merger 对齐数量和维度，再加到 LLM 早期层的对应视觉位置。这就是它的 DeepStack。每次注入都更新现有位置上的向量，不增加位置数；额外代价来自中间特征、mergers 和加法。这种设计给不同深度的特征提供直接路径，并不保证某一层专门负责 OCR、另一层专门负责语义。
+
+<ViTDeepStack />
+
+该模型的 encoder 使用 SigLIP 2 初始化，并结合插值 absolute position embedding 与 2D RoPE。其 DeepStack 选择三个视觉深度，注入 LLM 前三层；这与原始 DeepStack 使用多尺度输入的方式也有区别。
+
+官方 Qwen3-VL-8B-Instruct 配置 [@qwen3vlconfig] 的视觉深度为 27，宽度为 1152，patch size 为 16，DeepStack 索引为 `[8, 16, 24]`。Qwen3.5-9B [@qwen35config] 具有相同的这些基本视觉尺寸，但 `deepstack_visual_indexes` 为 `[]`，未配置这三路注入。相同的张量尺寸可以兼容不同的数据流；权重来源与训练流程则需要另外核对。
+
+还要区分两处位置编码：ViT 内部的 2D RoPE 描述 patch 间的空间关系；LLM 侧的 MRoPE 则组织文字、图像和视频位置。不能把语言侧的时间编码当成视觉 encoder 已经进行了完整的跨帧 attention。
+
+### InternVL：把高分辨率拆成可复用的 tiles
+
+InternVL3.5 [@internvl35card] 延续 InternViT–MLP–LLM 路线，通过动态数量的 tiles 处理高分辨率图像。一个 $448\times448$ tile 在 $P=14$ 时产生 $32\times32=1024$ 个 patch features，再用 pixel shuffle 与投影变成 256 个 LLM tokens。这里 model card 中的大图像块与 ViT 的小 patch 是两个层级，不能混用。
+
+但各个 tile 未必需要同样的预算：菜单中的空白区域与密集价格表，包含的信息量不同。Flash 变体增加 Visual Resolution Router，为每个 tile 在 256 与 64 个输出 token 之间选择，把固定压缩率改成按内容分配。若四个 tiles 中两个走 256、两个走 64，它们贡献 $640$ 个 token；thumbnail 另外计数。这个路由主要作用于 ViT 之后，因此减少的是下游负担，也要求 router 在压缩前判断哪些内容值得保留。
+
+### MiniCPM-V：用 query 同时压缩空间与时间
+
+如果输入换成摄像头拍摄菜单的视频，相邻帧可能几乎一样。逐帧独立压缩仍会重复占用 token，但先平均像素又可能把镜头运动造成的文字位移混在一起。一种办法是先保留各帧的视觉特征和时间位置，再让 query 联合读取，以学习哪些内容重复、哪些变化需要保留。
+
+MiniCPM-V 4.5 的配置 [@minicpm45config] 给出 SigLIP 分支、patch size 14 和 `query_num=64`；它的 3D-Resampler 正是把时间坐标纳入读取。官方例子将六个 $448\times448$ 视频帧共同压缩成 64 个 token [@minicpm45card]。
+
+按原始 patch 计数，每帧有 $32^2=1024$ 个特征，六帧共有 6144 个，因此 $6144/64=96$，这才是该例中「96 倍压缩」的分母。它不是总延迟加速 96 倍，也不是把任意长度视频都压成 64 个 token；更长视频需要更多分组，high-resolution slices 也会影响总量。时序压缩能减少重复背景的占用，但快速变化的细节也必须经过同一个有限容量的出口。
+
+### Gemma：从固定视图到显式 token budget
+
+Gemma 3 的多模态版本 [@gemma3report] 用 SigLIP 处理 $896\times896$ 视图，$P=14$ 得到 $64\times64=4096$ 个空间位置，再 pooling 到 $16\times16=256$ 个视觉 token。Pan-and-scan 可以增加局部 crops，因而「每视图 256」不等于一张原始大图无论怎么处理都只占 256。
+
+还有一种选择是把预算交给调用者：只问「这是不是菜单」时，可以接受较少位置；要求逐行抄出小字时，则保留更密的空间采样。Gemma 4 的官方 model card [@gemma4card] 提供 70、140、280、560、1120 等视觉 token budget，并支持可变长宽比。以 31B checkpoint 为例 [@gemma4config]，patch size 为 16、pooling kernel 为 3、默认输出长度配置为 280。Processor 同时满足空间整除与预算限制，实际非 padding 长度还取决于输入形状。
+
+同一家族也有另一条路径：Gemma 4 **12B Unified** 的官方说明明确采用 encoder-free 结构，把图像 patch 通过轻量投影直接交给共享模型。它把视觉建模放入共享网络，省去独立 ViT；视觉输入的表示与计算预算仍然需要设计。
+
+回到整条数据流，可以把上述模型放在同一张表里。表中的 token 数按指定输入单元计数，不是相同画质下的性能比较。
+
+| 模型／版本 | 视觉输入与 encoder | 交给下游的方式 | 主要设计取舍 |
+| --- | --- | --- | --- |
+| SigLIP 2 | 固定分辨率或 NaFlex ViT | pooled embedding 或 patch features；不自带 LLM | 图文语义与局部特征共同训练 |
+| DINOv3 ViT | RoPE、CLS 与 registers | 全局和 dense features；不自带 LLM | 视觉表征与空间一致性 |
+| Qwen2.5-VL | $P=14$，动态网格，窗口与全局 attention 混合 | 每 $2\times2$ 个空间特征合成一个 token | 降低高分辨率 encoder 成本 |
+| Qwen3-VL-8B | $P=16$，SigLIP 2 初始化后继续训练 | $2\times2$ merger，额外 DeepStack 注入 | 为中间视觉特征提供直接路径 |
+| Qwen3.5-9B | $P=16$，27 层、宽度 1152 | $2\times2$ merger；本 checkpoint 的 DeepStack 索引为空 | 动态空间网格与下游压缩 |
+| InternVL3.5 / Flash | InternViT，动态数量的 $448\times448$ tiles | 标准每 tile 256 tokens；Flash 可路由为 64 或 256 | 按 tile 内容分配下游预算 |
+| MiniCPM-V 4.5 | SigLIP，$P=14$，高分辨率切片 | 64-query 3D-Resampler | 联合压缩帧间重复与空间信息 |
+| Gemma 3 多模态版本 | SigLIP，$896\times896$ 视图 | 每视图 256 tokens，可增加 crops | 固定视图预算与局部细节 |
+| Gemma 4-31B | $P=16$，可变长宽比 | $3\times3$ pooling，可配置视觉预算 | 根据任务选择保留多少细节 |
+
+## 把一张图的 token 账算清楚
+
+考虑预处理后恰好为 $448\times672$ 的 RGB 图像。下面只做由尺寸推导的算例，不表示两个模型具有相同画质、速度或准确率。
+
+Qwen2.5-VL 的 $P=14$ 给出 $32\times48=1536$ 个空间 patch；经过 $2\times2$ merger 后，是 $16\times24=384$ 个 LLM 视觉 token。Qwen3-VL-8B 的 $P=16$ 则给出 $28\times42=1176$ 个 patch，合并后为 $14\times21=294$ 个 token。两种设置的高宽都满足各自对齐约束。
+
+这些数字只计视觉特征位置，未包括边界标记、文字问题或视频时间戳。两者的 temporal patch size 都涉及帧分组；静态图像通过各自 processor 的图像路径处理，不能因为配置里有 2 就把上述静态图像 token 数再除以 2。
+
+如果采用一个 $K=64$ 的 resampler，单个输入单元的输出可以固定为 64，但原始图像若被切成多个单元，就需要把所有单元相加。比较模型时最好同时记录
+
+$$
+\text{原始尺寸}
+\;\longrightarrow\;
+\text{resize / crops 后的尺寸}
+\;\longrightarrow\;
+N_{\mathrm{ViT}}
+\;\longrightarrow\;
+N_{\mathrm{LLM}}.
+$$
+
+这条链也能帮助定位失败。小字在 resize 时消失，应该先检查输入预算；ViT 很慢，应该检查 patch 数和 attention 范围；LLM prefill 或上下文压力大，应该检查 merger 后的序列；局部特征已经存在却没有被答案使用，再检查 connector、注入方式与多模态训练。仅增加语言模型参数，不能自动解决所有这些问题。
+
+## 怎样读一个新模型的视觉实现
+
+先看 processor 实际输出的尺寸、crop 数、padding mask 和网格坐标，再沿 patch embedding 找到 encoder 的真实输入长度。随后检查位置编码、window/full attention 的分布，以及是否有 CLS 或 registers。最后追踪 connector 改变的是通道、位置数量还是注入层数，并核对送入 LLM 的实际张量。
+
+模型名称和 `image_size` 默认值只能提供线索，不能代替这条数据流。例如，`vision_config` 中的默认尺寸可能用于初始化位置表，而 processor 仍支持动态尺寸；语言模型的 MoE、linear attention 或 sliding attention 也不能直接推断到视觉分支上。
+
+读 ViT 时最有用的四个问题始终是：**模型看到了什么分辨率，哪些位置能交换信息，训练让它保留什么，最终下游收到多少特征？** 原始 ViT 给出一个简单骨架，而近期模型的不同设计，正是在这四个问题上作出不同回答。
