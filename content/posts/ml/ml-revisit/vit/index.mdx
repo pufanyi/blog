@@ -1,14 +1,14 @@
 ---
 title: "Vision Transformer：从图像 Patch 到多模态模型"
 date: "2026-09-19"
-description: "从 patch embedding、二维位置与计算量理解 ViT，再比较 SigLIP 2、DINOv3、Qwen2.5-VL / Qwen3-VL / Qwen3.5、InternVL3.5、MiniCPM-V 4.5 和 Gemma 3 / 4 的视觉设计。"
+description: "从 patch embedding、二维位置与计算量理解 ViT，再比较 SigLIP 2、DINOv3、Qwen、InternVL、MiniCPM-V、OneVision-Encoder 和 Gemma 的视觉设计。"
 ---
 
 给模型一张菜单，问它「第二行的价格是多少」，模型需要先保留小字，再找到第二行，最后把数字读出来。如果预处理已经把字缩成模糊的一团，后面的语言模型再大，也无法从图像中找回被丢掉的笔画。**视觉模型的设计，首先是在决定保留哪些信息、让哪些区域交换信息，以及把多少信息交给下游。**
 
 Vision Transformer（ViT）把图像切成 patch，用 Transformer 在这些 patch 之间交换信息。今天许多多模态模型仍沿用这个骨架，但在分辨率、位置编码、预训练和输出压缩上有不同选择。本文先从输入推导基本 ViT，再沿着这些选择理解实际模型。Attention 的更多变体见[这一篇](/blog/ml/ml-revisit/attention)，视觉自监督目标见 [SSL](/blog/ml/ml-revisit/ssl)。
 
-模型部分是 **2026-09-19 核对的代表性公开模型快照**，不试图列全所有发布。这里的「开源模型」包括公开权重模型，不意味着每个模型都公开了完整训练数据或采用同一种许可证。具体配置以文中指定的 checkpoint 为准。
+模型部分是 **2026-09-20 核对的代表性公开模型快照**，不试图列全所有发布。这里的「开源模型」包括公开权重模型，不意味着每个模型都公开了完整训练数据或采用同一种许可证。具体配置以文中指定的 checkpoint 为准。
 
 ## 怎样把一张图交给 Transformer
 
@@ -208,6 +208,34 @@ MiniCPM-V 4.5 的配置 [@minicpm45config] 给出 SigLIP 分支、patch size 14 
 
 按原始 patch 计数，每帧有 $32^2=1024$ 个特征，六帧共有 6144 个，因此 $6144/64=96$，这才是该例中「96 倍压缩」的分母。它不是总延迟加速 96 倍，也不是把任意长度视频都压成 64 个 token；更长视频需要更多分组，high-resolution slices 也会影响总量。时序压缩能减少重复背景的占用，但快速变化的细节也必须经过同一个有限容量的出口。
 
+### OneVision-Encoder：在进入 ViT 前选择变化
+
+3D-Resampler 已经缩短了送入 LLM 的序列，但它读取的是 ViT 处理后的特征：若 64 帧大多重复，encoder 仍先计算每一帧的全部 patch。能否把预算前移，让 ViT 本身不必反复编码没有变化的背景？OneVision-Encoder（简称 OV-Encoder，与 LLaVA-OneVision 不是同一个模型）把视频编码器已有的信息变成了一个选择器 [@tang2026onevisionencoder]。
+
+HEVC 把一段视频组织成 Group of Pictures（GOP）：I-frame 独立保存完整画面，P-frame 则利用参考帧、motion vector 和 prediction residual 表示变化。OV-Encoder 对 I-frame 保留全部空间 patch；对每个 P-frame，把 motion vector 的幅值与亮度 residual 的能量聚合到 ViT patch 网格，再在整段视频的固定预算内优先选择变化显著的位置。这里 motion vector 和 residual **只负责决定选哪里**；真正输入 ViT 的仍是解码后的 RGB patch，而不是压缩码流中的运动向量或残差。
+
+<OneVisionCodec />
+
+以论文的默认视频设置为例，64 帧、GOP 长度 32 会产生两个 I-frame。若每帧原本有 256 个 patch，dense 编码需要
+
+$$
+64\times256=16{,}384
+$$
+
+个 patch；总预算 $M=2048$ 时，两个 I-frame 占 $2\times256=512$，其余 1536 个名额由 62 个 P-frame 在 clip 范围内竞争。于是相对 dense baseline 的 patch 数减少
+
+$$
+1-\frac{2048}{16{,}384}=87.5\%.
+$$
+
+这是 **ViT 输入 patch 数**的减少，不代表端到端延迟恰好提升八倍；视频解码、筛选、attention 之外的层和后续模型都仍有成本。
+
+筛选也带来新的位置问题。某个 P-frame 可能只保留原网格的第 3、8、14 块，压紧后的序列下标却是连续的；若按下标做位置编码，模型会误以为这些 patch 在时空中相邻。OV-Encoder 因而让每个 token 携带原始 $(t,h,w)$ 坐标，并把通道分给时间、高度和宽度三组 3D RoPE。这样 attention 中的相对位移仍由 $(\Delta t,\Delta h,\Delta w)$ 决定；静态图像则退化为时间坐标固定的二维情形。
+
+同一个 ViT 因此可以接受三种序列：图像保留完整空间网格；普通视频可按时间 chunk 采一帧并保留整帧 patch；codec 路径则保留 dense 时间采样、稀疏选择每个 P-frame 的空间 patch。后者并非总是占优：它依赖可取得 motion vector 与 residual 的 HEVC 预处理，也假设「编码残差大」通常能代理「语义上值得看」。I-frame 为静态区域提供底图，但细微且低残差的事件仍可能被固定预算漏掉。
+
+最后还要回答这些 sparse patches 应该学到什么。OV-Encoder 先用冻结视觉教师离线聚类，得到图像的 object-level centers 与视频的 motion-level centers；每个样本可以对应多个正中心，再用 multi-label sigmoid loss 训练 pooled visual embedding。第二阶段提高图像分辨率、加入视频与 OCR 标签，使共享 backbone 同时学习物体、动作和文字线索。公开的 Large checkpoint 是约 0.3B 参数、$P=14$、24 层、宽度 1024 的 ViT [@onevisionencodercard]。它发布的是 encoder，而非已经接好 LLM 的问答模型；接入多模态系统时仍需 connector 和前文的图文对齐训练。
+
 ### Gemma：从固定视图到显式 token budget
 
 Gemma 3 的多模态版本 [@gemma3report] 用 SigLIP 处理 $896\times896$ 视图，$P=14$ 得到 $64\times64=4096$ 个空间位置，再 pooling 到 $16\times16=256$ 个视觉 token。Pan-and-scan 可以增加局部 crops，因而「每视图 256」不等于一张原始大图无论怎么处理都只占 256。
@@ -227,6 +255,7 @@ Gemma 3 的多模态版本 [@gemma3report] 用 SigLIP 处理 $896\times896$ 视�
 | Qwen3.5-9B | $P=16$，27 层、宽度 1152 | $2\times2$ merger；本 checkpoint 的 DeepStack 索引为空 | 动态空间网格与下游压缩 |
 | InternVL3.5 / Flash | InternViT，动态数量的 $448\times448$ tiles | 标准每 tile 256 tokens；Flash 可路由为 64 或 256 | 按 tile 内容分配下游预算 |
 | MiniCPM-V 4.5 | SigLIP，$P=14$，高分辨率切片 | 64-query 3D-Resampler | 联合压缩帧间重复与空间信息 |
+| OneVision-Encoder-Large | $P=14$；图像用完整网格，视频可用完整 I-frame 与稀疏 P-frame | 带 $(t,h,w)$ 坐标的 patch features 与 pooled embedding；不自带 LLM | 借助 codec 信号在 ViT 之前分配视频 token 预算 |
 | Gemma 3 多模态版本 | SigLIP，$896\times896$ 视图 | 每视图 256 tokens，可增加 crops | 固定视图预算与局部细节 |
 | Gemma 4-31B | $P=16$，可变长宽比 | $3\times3$ pooling，可配置视觉预算 | 根据任务选择保留多少细节 |
 
@@ -254,7 +283,7 @@ $$
 
 ## 怎样读一个新模型的视觉实现
 
-先看 processor 实际输出的尺寸、crop 数、padding mask 和网格坐标，再沿 patch embedding 找到 encoder 的真实输入长度。随后检查位置编码、window/full attention 的分布，以及是否有 CLS 或 registers。最后追踪 connector 改变的是通道、位置数量还是注入层数，并核对送入 LLM 的实际张量。
+先看 processor 实际输出的尺寸、crop 数、padding mask 和网格坐标，再沿 patch embedding 找到 encoder 的真实输入长度。对视频，还要确认抽帧或 patch 筛选发生在 ViT 之前，还是只在 ViT 之后压缩输出。随后检查位置编码、window/full attention 的分布，以及是否有 CLS 或 registers。最后追踪 connector 改变的是通道、位置数量还是注入层数，并核对送入 LLM 的实际张量。
 
 模型名称和 `image_size` 默认值只能提供线索，不能代替这条数据流。例如，`vision_config` 中的默认尺寸可能用于初始化位置表，而 processor 仍支持动态尺寸；语言模型的 MoE、linear attention 或 sliding attention 也不能直接推断到视觉分支上。
 

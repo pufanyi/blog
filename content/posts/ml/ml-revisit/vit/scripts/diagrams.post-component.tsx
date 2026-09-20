@@ -286,4 +286,107 @@ function ViTDeepStack() {
   );
 }
 
-export const POST_COMPONENTS = { ViTPatches, ViTMerge, ViTDeepStack };
+const codecFrames = [
+  { label: 'I', selected: patches.map(({ index }) => index) },
+  { label: 'P₁', selected: [1, 5, 6, 9] },
+  { label: 'P₂', selected: [2, 6, 10, 11] },
+  { label: 'P₃', selected: [3, 7, 11, 15] },
+] as const;
+
+const packedCodecPatches = codecFrames.flatMap((frame, time) =>
+  frame.selected.map((patch) => ({ kind: frame.label === 'I' ? 'i' : 'p', patch, time })),
+);
+
+function OneVisionCodec() {
+  return (
+    <figure className="vit-figure">
+      <div className="vit-scroll">
+        <svg viewBox="0 0 720 350" role="img" aria-labelledby="vit-codec-title vit-codec-desc">
+          <title id="vit-codec-title">OneVision-Encoder 在 ViT 前选择视频 patch</title>
+          <desc id="vit-codec-desc">
+            一个视频 GOP 包含完整保留的 I-frame 和三个 P-frame。运动向量与残差能量为 P-frame 的
+            patch 排序，图中每个 P-frame 只保留四个彩色位置。右侧把选中的 RGB patch
+            打包为不规则序列，并保留原始时间、高度和宽度坐标。
+          </desc>
+          <text x="245" y="25" textAnchor="middle">
+            一个 GOP 的 codec patchification（示意）
+          </text>
+          <rect x="108" y="43" width="274" height="42" rx="6" className="vit-codec-selector" />
+          <text x="245" y="61" textAnchor="middle" className="vit-small">
+            motion vector 幅值 + residual 能量
+          </text>
+          <text x="245" y="78" textAnchor="middle" className="vit-small">
+            只为 P-frame 的 RGB patches 排序
+          </text>
+          {codecFrames.map((frame, time) => {
+            const x = 27 + time * 116;
+            return (
+              <g key={frame.label}>
+                <text x={x + 40} y="111" textAnchor="middle">
+                  {frame.label}-frame
+                </text>
+                {patches.map(({ index, row, col }) => {
+                  const retained = frame.selected.some((selected) => selected === index);
+                  return (
+                    <rect
+                      key={index}
+                      x={x + col * 20}
+                      y={126 + row * 20}
+                      width="18"
+                      height="18"
+                      rx="2"
+                      className={
+                        retained
+                          ? frame.label === 'I'
+                            ? 'vit-codec-intra'
+                            : 'vit-codec-selected'
+                          : 'vit-codec-skipped'
+                      }
+                    />
+                  );
+                })}
+                <text x={x + 40} y="228" textAnchor="middle" className="vit-small">
+                  {frame.selected.length}/16
+                </text>
+                {time > 0 && <path d={`M${x + 40} 85V119`} className="vit-inject" />}
+              </g>
+            );
+          })}
+          <path d="M485 166H525M517 160L525 166L517 172" className="vit-arrow" />
+          <rect x="528" y="106" width="166" height="147" rx="7" className="vit-codec-pack" />
+          <text x="611" y="129" textAnchor="middle">
+            稀疏 ViT 输入
+          </text>
+          {packedCodecPatches.map(({ kind, patch, time }, index) => (
+            <rect
+              key={`${time}-${patch}`}
+              x={548 + (index % 7) * 19}
+              y={143 + Math.floor(index / 7) * 19}
+              width="15"
+              height="15"
+              rx="2"
+              className={kind === 'i' ? 'vit-codec-intra' : 'vit-codec-selected'}
+            />
+          ))}
+          <text x="611" y="237" textAnchor="middle" className="vit-small">
+            每块保留 (t, h, w)
+          </text>
+          <path d="M67 244V277H611V259" className="vit-arrow" />
+          <text x="340" y="303" textAnchor="middle">
+            I-frame 提供完整底图；P-frame 只补充变化区域
+          </text>
+          <text x="340" y="329" textAnchor="middle" className="vit-small">
+            序列相邻不等于时空相邻，3D RoPE 使用原坐标计算相对位移
+          </text>
+        </svg>
+      </div>
+      <figcaption>
+        图中用 4 × 4 网格和单个 GOP 展示数据流，保留比例仅为示意。I-frame 的所有位置和各 P-frame
+        选中的位置都以解码后 RGB patch 进入 ViT；motion vector 与 residual
+        只参与选择。右侧序列由同一组选中位置生成，并携带原始三维坐标。
+      </figcaption>
+    </figure>
+  );
+}
+
+export const POST_COMPONENTS = { ViTPatches, ViTMerge, ViTDeepStack, OneVisionCodec };

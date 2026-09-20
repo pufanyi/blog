@@ -88,3 +88,29 @@
   fill: color-mix(in srgb, var(--accent-ochre) 17%, var(--paper-bg));
   stroke: var(--accent-ochre);
 }
+
+.vit-codec-selector {
+  fill: color-mix(in srgb, var(--accent-mauve) 11%, var(--paper-bg));
+  stroke: var(--accent-mauve);
+}
+
+.vit-codec-pack {
+  fill: color-mix(in srgb, var(--accent-bg) 45%, var(--paper-bg));
+  stroke: var(--border-color);
+}
+
+.vit-codec-intra {
+  fill: color-mix(in srgb, var(--accent-blue) 22%, var(--paper-bg));
+  stroke: var(--accent-blue);
+}
+
+.vit-codec-selected {
+  fill: color-mix(in srgb, var(--accent-ochre) 28%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+}
+
+.vit-codec-skipped {
+  fill: var(--paper-bg);
+  stroke: var(--border-color);
+  stroke-dasharray: 2 2;
+}
