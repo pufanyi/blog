@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { JSDOM } from 'jsdom';
 import { isCalendarDate } from './front-matter.mts';
+import { parseHeadElements } from './html-head.mts';
 import { escapeXml } from './xml.mts';
 
 export function prepareSitemap(browserDirectory: string, siteUrl: string): number {
@@ -13,39 +13,46 @@ export function prepareSitemap(browserDirectory: string, siteUrl: string): numbe
 
   for (const route of Object.keys(manifest.routes)) {
     const html = readFileSync(join(browserDirectory, route, 'index.html'), 'utf8');
-    const dom = new JSDOM(html);
-    try {
-      const head = dom.window.document.head;
-      const noindex = Array.from(
-        head.querySelectorAll('meta[name="robots" i], meta[name="googlebot" i]'),
-      ).some((meta) =>
-        (meta.getAttribute('content') ?? '')
+    const elements = parseHeadElements(html);
+    const noindex = elements
+      .filter(
+        ({ tagName, attributes }) =>
+          tagName === 'meta' && ['robots', 'googlebot'].includes(attributes['name']?.toLowerCase()),
+      )
+      .some(({ attributes }) =>
+        (attributes['content'] ?? '')
           .toLowerCase()
           .split(/[\s,]+/)
           .some((directive) => directive === 'noindex' || directive === 'none'),
       );
-      if (noindex || head.querySelector('meta[http-equiv="refresh" i]')) continue;
+    const refresh = elements.some(
+      ({ tagName, attributes }) =>
+        tagName === 'meta' && attributes['http-equiv']?.toLowerCase() === 'refresh',
+    );
+    if (noindex || refresh) continue;
 
-      const canonical = head.querySelector('link[rel~="canonical" i]')?.getAttribute('href');
-      if (!canonical) throw new Error(`Missing canonical URL for prerendered route: ${route}`);
-      const url = new URL(canonical);
-      if (url.origin !== origin || url.search || url.hash) {
-        throw new Error(`Invalid sitemap canonical for ${route}: ${canonical}`);
-      }
-      const updated = head
-        .querySelector('meta[property="article:modified_time"]')
-        ?.getAttribute('content');
-      if (updated !== null && updated !== undefined && !isCalendarDate(updated)) {
-        throw new Error(`Invalid authored modification date for ${route}: ${updated}`);
-      }
-      const previous = urls.get(url.href);
-      if (previous && updated && previous !== updated) {
-        throw new Error(`Conflicting modification dates for ${canonical}`);
-      }
-      urls.set(url.href, updated ?? previous);
-    } finally {
-      dom.window.close();
+    const canonical = elements.find(
+      ({ tagName, attributes }) =>
+        tagName === 'link' && attributes['rel']?.toLowerCase().split(/\s+/).includes('canonical'),
+    )?.attributes['href'];
+    if (!canonical) throw new Error(`Missing canonical URL for prerendered route: ${route}`);
+    const url = new URL(canonical);
+    if (url.origin !== origin || url.search || url.hash) {
+      throw new Error(`Invalid sitemap canonical for ${route}: ${canonical}`);
     }
+    const updatedElement = elements.find(
+      ({ tagName, attributes }) =>
+        tagName === 'meta' && attributes['property']?.toLowerCase() === 'article:modified_time',
+    );
+    const updated = updatedElement ? (updatedElement.attributes['content'] ?? null) : undefined;
+    if (updated !== null && updated !== undefined && !isCalendarDate(updated)) {
+      throw new Error(`Invalid authored modification date for ${route}: ${updated}`);
+    }
+    const previous = urls.get(url.href);
+    if (previous && updated && previous !== updated) {
+      throw new Error(`Conflicting modification dates for ${canonical}`);
+    }
+    urls.set(url.href, updated ?? previous);
   }
 
   const entries = [...urls]

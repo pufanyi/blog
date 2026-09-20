@@ -11,6 +11,11 @@ pnpm preview
 
 The build generates source-derived modules first, prerenders routes, then prepares deployment metadata. The Node preview serves `dist/blog/browser` at `http://127.0.0.1:4173/` by default. It is useful for inspecting the production application but cannot reproduce every Cloudflare asset redirect.
 
+Postbuild metadata preparation scans only each prerendered document's `head`.
+Do not construct a full DOM merely to read canonicals, robots directives, dates,
+or Markdown discovery links: static formula markup makes article bodies large,
+and retaining their DOM representation can exhaust a constrained build heap.
+
 For actual Worker/static-asset behavior after building:
 
 ```bash
