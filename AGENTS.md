@@ -62,8 +62,12 @@ instead of accumulating unrelated rules here.
 - Assess performance on served production routes, including lazy/worker
   requests. Keep the resource budgets and real MathJax/WebKit regressions.
 - For math-heavy articles, measure real-engine startup and scrolling separately.
-  Payload budgets stub MathJax; lazy output can move stalls into scrolling.
-  See the [runtime investigation](.agents/docs/audits/2026-09-13-long-article-performance.md).
+  Article formulas are build-rendered; ordinary reading must not load the browser
+  engine or duplicate the initial body module. Exercise the real engine for
+  explicit formula-menu interaction. Keep build-time TeX state article-local.
+  Payload budgets alone miss layout/paint costs; lazy output can move stalls into
+  scrolling. See the [runtime implementation record](.agents/docs/maintenance/2026-09-20-long-article-implementation.md)
+  and [original investigation](.agents/docs/audits/2026-09-13-long-article-performance.md).
 - Review long articles through the complete reading journey: navigation, text,
   continuity, media, and responsiveness. Keep runtime findings within the
   [reading design](.agents/docs/maintenance/long-article-reading.md), not as its substitute.

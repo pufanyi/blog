@@ -29,6 +29,11 @@
                 "input": "public"
               },
               {
+                "glob": "*.woff2",
+                "input": "node_modules/@mathjax/mathjax-newcm-font/chtml/woff2",
+                "output": "assets/mathjax/woff2"
+              },
+              {
                 "glob": "**/*",
                 "input": ".generated/agent-content",
                 "output": "/"

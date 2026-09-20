@@ -2,4 +2,6 @@ export interface PostEnhancementModule {
   enhancePost(container: HTMLElement): () => void;
 }
 
-export type PostEnhancementLoader = () => Promise<PostEnhancementModule>;
+export type PostEnhancementLoader = (() => Promise<PostEnhancementModule>) & {
+  target?: string;
+};

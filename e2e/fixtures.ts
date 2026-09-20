@@ -5,10 +5,10 @@ export const test = base.extend<{ site: void }>({
   site: [
     async ({ page }, use) => {
       await page.route(
-        /https:\/\/(www\.googletagmanager\.com|.*google-analytics\.com|giscus\.app)\//,
+        /https:\/\/(www\.googletagmanager\.com|.*google-analytics\.com|giscus\.app|fonts\.googleapis\.com|fonts\.gstatic\.com)\//,
         (route) => route.fulfill({ body: '', contentType: 'text/javascript' }),
       );
-      await page.route('**/mathjax@*/tex-chtml.js', (route) =>
+      await page.route('**/mathjax@*/tex-mml-chtml.js', (route) =>
         route.fulfill({
           contentType: 'text/javascript',
           body: `window.MathJax = {

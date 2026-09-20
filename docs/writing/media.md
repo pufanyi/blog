@@ -55,6 +55,12 @@ Use TeX delimiters inside a sized HTML `foreignObject` for mathematical SVG labe
 
 Put browser controllers in `scripts/*.post-client.ts` and export `enhancePost(container)`. The enhancement receives the current article element and returns cleanup. Query within that container, attach listeners only to your own controls, and release timers, observers, events, and asynchronous work on navigation.
 
+For a heavy below-the-fold example, add `data-post-enhancement="forward"` to its
+static root to defer `forward.post-client.ts` until it nears the viewport or is
+focused/interacted with. Use the filename without `.post-client.ts`; multiple
+controllers use space-separated names. Without a matching marker, attachment
+remains immediate. Static content must stay useful before the controller loads.
+
 Render useful initial HTML in the build-time component. Keep playback opt-in, pause it when hidden or offscreen, and respect reduced motion. Mark transient controls with `data-agent-omit`, with a static explanation or transcript outside the omitted region. Follow the [architecture contracts](../architecture.md) when implementing controllers and readiness signals.
 
 ## PDFs and external embeds

@@ -41,6 +41,11 @@ loaders. Each module exports `enhancePost(container): () => void`.
 `bindPostEnhancements` owns async attachment and cleanup, including imports that
 finish after navigation. Share numerical models with build-time TSX via literal
 local imports. Adding an article must not require editing the application shell.
+Mark a static example with `data-post-enhancement="forward"` to defer
+`forward.post-client.ts` until its example is within 600px of the viewport or
+receives focus/pointer interaction. Multiple names are space-separated. Modules
+without matching markers retain immediate attachment. Comments use the same
+near-viewport boundary; navigation disposes pending observers and imports.
 
 - Generated `POSTS` contains summaries only. Load article HTML/TOC through
   `loadPost` and the generated per-slug loaders. Load the search engine, serialized
@@ -54,6 +59,10 @@ local imports. Adding an article must not require editing the application shell.
   Measure cold search opening separately from warm queries and result rendering.
   Include worker requests when measuring search transfers; window resource timing
   omits those requests and can substantially undercount a worker-based index.
+  On a direct article visit, transfer only the TOC and adopt the existing
+  prerendered body identified by its slug; do not import or rewrite that body.
+  This initial-only adoption is not cached as a full post. Subsequent SPA visits
+  still use the article loader, including returning to the initially opened post.
 
 - Keep article presentation in `PostComponent`, DOM enhancement and cleanup
   in `PostContentDirective`, and TOC interaction in `PostNavigationComponent`.
@@ -70,6 +79,16 @@ local imports. Adding an article must not require editing the application shell.
   `NgOptimizedImage` and `medium-zoom`. Do not add bare template `<img>` tags
   unless there is a concrete framework limitation.
 
+- Article formulas are compiled by `scripts/lib/static-math.mts` using pinned
+  MathJax CHTML, per-article adaptive CSS, assistive MathML and first-party fonts.
+  Serialize rendering and create a fresh TeX input parser per article so macros
+  and counters cannot leak between articles or incremental rebuilds. Search and
+  Markdown use the pre-typeset source, not expanded formula markup.
+  Formulas in closed disclosures are also static: opening them needs no engine.
+  Native copying uses retained TeX; printing opens disclosures temporarily and
+  restores their previous state afterward. Keep the complete article DOM.
+  Right-click or Enter on a formula loads the browser explorer and converts only
+  that formula from its resolved MathML. Failure leaves the static formula intact.
 - MathJax loads on demand through `src/app/utils/mathjax.ts`, with automatic
   typesetting disabled. Angular-authored views outside generated post content
   must call `typesetMath` after rendering when they contain TeX delimiters.
@@ -79,6 +98,11 @@ local imports. Adding an article must not require editing the application shell.
   Keep raw display TeX wrappable before MathJax initializes, without introducing
   another scroll container around the finished formula.
   Keep raw TeX wrappable while the renderer is loading or unavailable.
+
+- The heading spy caches document coordinates and uses binary search on scroll.
+  Refresh after article/body resize, disclosure changes, media loads and font
+  changes; never rescan every heading on every scroll frame. Disconnect all
+  observers/listeners and ignore late async completion when leaving an article.
 
 Keep the pinned real-rendering test packages synchronized with the MathJax CDN
 version. Its worker compatibility adapter and removal criteria are documented in

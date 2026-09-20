@@ -16,7 +16,7 @@ versions. Review them when updating their parent dependency.
 | `listr2: 10.2.2` allowed peer | Historical CLI dependency compatibility exception from `0a83d01`. Remove when the parent peer range accepts the installed version and strict peer validation succeeds. |
 | `allowBuilds` exact versions | Allow the installed native/build tools: Parcel watcher, esbuild, LMDB/msgpack extraction, and workerd. Authorize only versions needed by the resolved lockfile; remove stale entries when no installed dependency requires them. Both esbuild 0.28.1 and 0.28.2 are currently transitive dependencies. |
 | Angular build/CLI/SSR 22.1.8 | Repairs the reproduced SQLite cache typed-array serialization failure. See [cache evidence](maintenance/angular-cache.md). Keep framework/build peer ranges compatible on later upgrades. |
-| MathJax and NewCM font 4.1.3 exact dev dependencies | Deterministic real-browser assets matching the production CDN URL. Update runtime and test versions together; retain the [WebKit worker regression](maintenance/mathjax-webkit.md). |
+| MathJax and NewCM font 4.1.3 exact dev dependencies | Build-time article formulas, published local fonts, and deterministic real-browser assets matching the production CDN URL. Builds require dev dependencies. Update renderer, fonts and runtime/test versions together; retain the [WebKit worker regression](maintenance/mathjax-webkit.md). |
 
 Do not infer upgrade safety from an install alone. Preview Cloudflare routing
 when changing Wrangler/workerd; verify PDF canvases, engine assets, and the CMYK

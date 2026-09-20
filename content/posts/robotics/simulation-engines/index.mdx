@@ -1,0 +1,558 @@
+---
+title: "机器人仿真：从接触力到 MuJoCo、Isaac Sim、Genesis 与 Newton"
+date: "2026-09-20"
+description: "从机械臂推方块出发，理解刚体动力学、接触求解、GPU 并行与可微仿真，再比较 MuJoCo、Isaac Sim、Genesis World 和 Newton 的实现与适用场景。"
+---
+
+让机械臂把桌上的方块推到目标位置，看起来只需要回答一个问题：机械臂下一步往哪动？但在训练或测试控制器之前，我们还需要一个能回答“这样动会发生什么”的世界。电机输出多大的力矩，手指何时碰到方块，方块会滑动还是翻倒，相机会看到什么，都需要这个世界给出反馈。
+
+**仿真器的任务，是把动作变成下一时刻的状态和观测。** MuJoCo、Isaac Sim、Genesis 和 Newton 都能参与这件事，但它们负责的范围、采用的物理近似和组织计算的方式不同。理解这些区别，比记住某个项目宣称的 FPS 更有助于选择工具。
+
+本文沿着同一个推方块的任务展开：先搭出一个物理仿真步，理解为什么接触比自由运动难；再看四个项目分别怎样实现它；最后讨论并行训练、可微优化和实验选型。只需要基本的线性代数和牛顿力学背景，涉及机器人动力学的概念会在使用前介绍。
+
+> 调研快照为 **2026-09-20**。版本基线是 MuJoCo **3.13.0**、Isaac Sim **6.1.0**、Genesis World **1.4.1**、Newton **1.6.0**，分别对应官方 [MuJoCo release](https://github.com/google-deepmind/mujoco/releases/tag/3.13.0)、[Isaac Sim release](https://github.com/isaac-sim/IsaacSim/releases/tag/v6.1.0)、[Genesis release](https://github.com/Genesis-Embodied-AI/genesis-world/releases/tag/v1.4.1) 和 [Newton release](https://github.com/newton-physics/newton/releases/tag/v1.6.0)。Isaac Sim 7.0.0a1 已发布，但这里不把 alpha 能力当作稳定版基线。文中标明实现与版本的能力结论来自官方文档和源码；选型建议是基于这些机制的判断，本文没有运行四个引擎的性能对测。
+
+## 先分清我们在比较什么
+
+设整个仿真状态为 $s_t$，动作是 $u_t$，物理参数是 $\theta$，一步推进的时间是 $h$。一个物理引擎实现的是
+
+$$
+s_{t+1}=F_h(s_t,u_t;\theta).
+$$
+
+这里的状态不只是物体的位置，还可能包含速度、电机内部状态、软体形变和流体粒子。质量、摩擦系数、关节阻尼等则属于 $\theta$。相机和传感器在这个状态上生成观测：
+
+$$
+o_{t+1}=H(s_{t+1};\eta),
+$$
+
+其中 $\eta$ 包含相机内外参、光照、噪声和采样设置。训练框架还要管理 reward、reset、episode 和 policy update。这三层可以组合，但不是同一件事。
+
+| 项目 | 主要定位 | 最值得先理解的设计 |
+| --- | --- | --- |
+| MuJoCo | 面向多关节系统与控制的物理引擎 | Joint-space dynamics、soft contact，以及 CPU / JAX / Warp 的不同实现 |
+| Isaac Sim | 基于 Omniverse 的机器人仿真平台 | OpenUSD 场景、物理后端、RTX 传感器、数据生成与 ROS 2 工作流 |
+| Genesis World | Python 接口下的多物理仿真平台 | 多种 solver、跨 solver coupling、Quadrants 编译与批量环境 |
+| Newton | 基于 Warp、可扩展的物理引擎框架 | 共享 model/state 表示，以及 MuJoCo、XPBD 等可选择的 solver |
+
+MuJoCo 的原始目标就是让仿真进入控制优化的内循环 [@todorov2012mujoco]。Isaac Sim 的范围则覆盖机器人资产、传感器与应用集成 [@isaacOverview]。Genesis World 把物理、渲染和编译层一起暴露为 Python 工作流 [@genesisArchitecture]；Newton 把多种求解器组织在统一的模型和状态接口下 [@newtonOverview]。
+
+因此，这四个名字并不构成四套完全独立、互斥的物理算法。Newton 可以使用 MuJoCo Warp；Isaac Sim 6.1 的默认物理后端是 PhysX，也提供仍属 experimental 的 Newton 接入 [@isaacNewton]。选择 Isaac Sim 与选择 Newton，有时分别是在选择平台和平台内的物理后端。
+
+## 从推方块搭出一个物理步
+
+先不考虑相机。机械臂有若干关节，桌子固定，方块可以自由运动。我们知道当前关节角和速度，也知道电机接下来要输出的力矩。仿真器首先需要预测：在没有新接触力的情况下，这些力会怎样改变运动？
+
+### 为什么不能给每个零件随便更新位置
+
+假设机械臂有七个旋转关节。如果独立保存每段连杆在空间中的位置和朝向，再逐个执行 $F=ma$，相邻连杆很可能逐渐分离。我们还得在每步后把关节两侧重新拉回一起。这种为各刚体保存独立位姿、再求解连接约束的表示叫 **maximal coordinates**。
+
+另一种办法，是只保存七个关节角。给定这些角度，从底座沿连杆逐级计算，就能得到末端位置；机械臂的连接关系已经包含在表示里。这叫 **generalized coordinates**，对这样的开链机器人也常称 reduced coordinates。由关节变量求连杆位姿的过程就是 forward kinematics。
+
+两者在描述同一个机械臂，但数值问题不同：前者显式处理更多约束，后者把树状连接直接编码进运动学。闭环机构、关节限位、跨物体接触仍需额外处理；采用 generalized coordinates 并不会让所有约束消失。现代 PhysX 也支持 reduced-coordinate articulations [@physxArticulations]，所以不能沿用早年的印象，把它概括成“所有关节都靠位置纠正”。
+
+下面用 $q$ 表示 configuration，$v$ 表示 generalized velocity。对普通旋转关节，$v$ 就是角速度；但自由方块的姿态若用四元数表示，就有四个姿态数值、三个角速度自由度。因此一般情况下 $q$ 与 $v$ 的维度不相同，不能直接认定 $v=\dot q$。
+
+### 从单个质量到整个机械臂
+
+一个质点满足 $m\dot v=F$。在机械臂里，某个关节的加速会带动后面的连杆，也会影响其他关节感受到的惯性。标量质量于是变成随姿态变化的矩阵 $M(q)$。把重力、Coriolis 和 centrifugal 项收进 $c(q,v)$，把电机、外力和这里归入其中的被动力记作 $\tau$，自由运动满足
+
+$$
+M(q)\dot v+c(q,v)=\tau.
+$$
+
+这里的“自由”指暂时忽略待求的接触与其他约束力，不是把关节连接拆掉。先求出
+
+$$
+a_0=M(q)^{-1}\bigl(\tau-c(q,v)\bigr),
+$$
+
+就知道系统原本打算怎样加速。实际实现通常通过分解和回代计算 $M^{-1}x$，不显式构造逆矩阵。
+
+现在手指碰到了方块。接触点承受一个局部力 $f$，但动力学方程需要的是各关节上的力矩。把 joint velocity 映射为接触点相对速度的矩阵记作 $J$，则局部速度是 $Jv$。同一个力传回关节时应保持功率一致：
+
+$$
+f^\top(Jv)=(J^\top f)^\top v.
+$$
+
+于是接触力在 generalized coordinates 中的作用必然是 $J^\top f$，完整方程变成
+
+$$
+M(q)\dot v+c(q,v)=\tau+J(q)^\top f.
+$$
+
+这一步把“手指顶住方块”的空间作用，接到了“电机和关节怎样加速”的方程上。未知量最难的部分也随之明确：**接触力 $f$ 并不是预先给定的，它必须和运动一起求出来。**
+
+<SimulationStep />
+
+### 动作、控制和物理步不是同一个频率
+
+Policy 输出的动作常常不是力矩，而是目标关节角 $q^\star$。控制器需要根据位置误差产生恢复力矩，同时压制过大的速度。最简单的 PD control 因而写成
+
+$$
+\tau_{\mathrm{act}}
+=K_p(q^\star-q)-K_dv,
+$$
+
+实际还会加入力矩限制、传动比、延迟和电机动态。因此相同的目标角，在不同的 $K_p,K_d$ 和力矩上限下，会产生完全不同的推力。
+
+假设 policy 每 $20\,\mathrm{ms}$ 更新一次，而物理步长是 $2\,\mathrm{ms}$，则一次动作包含十个 physics steps。目标角可以保持不变，但 PD 力矩通常根据每一步的新状态重新计算。相机还可以按自己的频率采样。把这些都叫作“一个 step”，很容易同时算错速度、控制延迟和训练 horizon。
+
+## 接触为什么是最难的一步
+
+### 不穿透，还不足以确定接触力
+
+让 $\phi(q)$ 表示物体之间的 signed gap：正值是分离，零是接触，负值是穿透。理想、非黏附的刚性接触希望同时满足三件事：物体不穿透；表面只推不拉；分离时没有接触力。这三件事合起来是
+
+$$
+\phi\ge0,\qquad f_n\ge0,\qquad \phi f_n=0.
+$$
+
+这叫 complementarity。它表达的是理想接触条件，碰撞瞬间还需要 impulse 和 restitution 等额外规则，不能只靠这三个式子完成离散时间仿真。
+
+用一个最简单的例子看离散求解在做什么。质量为 $1\,\mathrm{kg}$ 的方块静止在水平桌面上，令向上为正，步长 $h=0.002\,\mathrm{s}$。如果只考虑重力，这一步后的法向速度是
+
+$$
+v_n^{\mathrm{free}}=-gh=-0.01962\,\mathrm{m/s}.
+$$
+
+桌面需要提供冲量 $p_n$，把这个即将向下的速度抵消。对没有弹跳、已接触的单个质量，所需修正恰好是
+
+$$
+v_n^+=v_n^{\mathrm{free}}+\frac{p_n}{m},
+\qquad
+p_n=\max\bigl(0,-m v_n^{\mathrm{free}}\bigr).
+$$
+
+得到 $p_n=0.01962\,\mathrm{N\,s}$，除以步长就是熟悉的 $9.81\,\mathrm{N}$ 支持力。如果方块正在向上离开桌面，$v_n^{\mathrm{free}}>0$，这个式子会返回零，不会把它拉回来。
+
+这个例子展示了 contact solver 的基本工作：**先预测自由运动，再计算使接触行为合理的修正。** 对多刚体系统，一处修正还会通过机械臂和其他接触点传到别处，不能分别对每个点做一次独立的 `max` 就结束。
+
+### 摩擦把各方向耦合起来
+
+法向支持力还限制了表面能提供多大的切向摩擦。以各向同性 Coulomb 模型为例，可行的切向力满足
+
+$$
+\lVert f_t\rVert_2\le\mu f_n.
+$$
+
+未滑动时，摩擦力可以在这个范围内平衡外力；滑动时，理想模型中的摩擦沿着与滑动速度相反的方向取边界值。这个可行集合叫 friction cone。把圆锥近似成多面体，可以让某些数值运算更简单，但也会引入方向相关的误差。
+
+回到方块，假设没有竖直方向的额外推力、不会翻倒，并且静摩擦与动摩擦系数都取 $0.5$。桌面能提供的最大静摩擦为 $0.5mg=4.905\,\mathrm{N}$。施加 $3\,\mathrm{N}$ 水平推力时，静摩擦可以把它抵消；施加 $6\,\mathrm{N}$ 并开始向前滑动时，水平方向的加速度约为
+
+$$
+a_x=\frac{6-4.905}{1}=1.095\,\mathrm{m/s^2}.
+$$
+
+这只是一个明确假设下的解析基准。实际机械臂可能从较高位置推方块，导致载荷重新分布甚至翻倒；手指—方块也有自己的摩擦。接触位置、法向方向和 torque 的计算，就和摩擦系数本身一样重要。
+
+### 为什么允许一点“软”，反而更容易求
+
+刚性接触要求某些条件精确成立，会在接触建立、解除和 stick–slip 切换时产生非光滑行为。一个自然的替代办法是允许很小的变形或约束误差，再对误差施加恢复作用。
+
+最直观的是弹簧：穿透越深，往外推得越强。但直接把弹簧刚度设得极大，会产生很快的振荡。若积分步长跟不上这个时间尺度，数值解可能发散。**“更硬”与“更准确”之间还隔着离散化和求解器。**
+
+MuJoCo 的 soft contact 并不是简单检测穿透后加一根大弹簧。它把接触和约束放进一个带 regularization 的优化问题，同时考虑惯性、驱动力与多个接触之间的耦合。这条路线的核心是选择一个可有效求解、可调节的接触近似 [@todorov2014contact]。
+
+<details>
+<summary>从“修正自由加速度”理解 regularized contact solve</summary>
+
+只看当前接触集合，固定这一瞬间的 $q,v$。不施加接触力时，接触坐标中的相对加速度是
+
+$$
+a_{\mathrm{free}}=Ja_0+\dot Jv.
+$$
+
+施加 $f$ 后，generalized acceleration 增加 $M^{-1}J^\top f$，因此接触加速度增加
+
+$$
+Af,\qquad A=JM^{-1}J^\top.
+$$
+
+$A$ 描述一个接触点的力如何改变所有接触点的运动。若接触已经略微穿透，我们希望它朝一个能恢复间隙、衰减相对速度的参考加速度 $a_{\mathrm{ref}}$ 修正。再允许一个由正定矩阵 $R$ 描述的柔顺项，则无约束形式要求
+
+$$
+(A+R)f+a_{\mathrm{free}}-a_{\mathrm{ref}}=0.
+$$
+
+这个式子恰好是下面二次目标的一阶条件；把只推不拉与摩擦限制加进可行集合 $\mathcal K$，就得到一个有代表性的接触力空间写法：
+
+$$
+\min_{f\in\mathcal K}
+\frac12f^\top(A+R)f
++f^\top(a_{\mathrm{free}}-a_{\mathrm{ref}}).
+$$
+
+它把“所有接触一起修正”和“允许可控的柔顺性”联系起来。这里为理解机制只写了接触力子问题；完整 MuJoCo 还处理 equality、joint limits、friction loss 等约束，并有对应的 primal/dual 表述和参数映射，应以 computation 文档为准 [@mujocoComputation]。这也不是声称四个引擎都求解同一个目标。
+
+</details>
+
+碰撞检测又是另一个独立环节。Broad phase 用包围体、空间划分或其他筛选方法找候选物体对；narrow phase 才计算距离、法向和接触点。视觉 mesh 很漂亮，并不意味着 collision geometry 同样精确：一个有把手的杯子若用单个 convex hull 做碰撞，把手的孔洞就会被填上。再精确的接触求解器，也无法从错误的几何中恢复真实的抓取行为。
+
+## MuJoCo：把多关节动力学做成可反复调用的内核
+
+MuJoCo 的全称是 **Multi-Joint dynamics with Contact**。它的一个典型使用方式，是构建一个机器人模型，然后在不同状态、动作和物理参数下重复评估动力学。控制优化、system identification 和机器人 RL 都符合这个模式 [@todorov2012mujoco]。
+
+### 模型先编译，状态反复推进
+
+MuJoCo 的主要实现是 C/C++ 核心与公开的 C API，Python binding 提供同一套核心能力。常用资产格式 MJCF 是 XML：不仅描述连杆和关节，还描述 actuator、sensor、tendon、接触设置与仿真选项。
+
+加载 MJCF 时，MuJoCo 把面向作者的树状描述编译成适合运算的数据结构。最重要的划分是：
+
+| 结构 | 保存什么 | 在推方块任务中的例子 |
+| --- | --- | --- |
+| `mjModel` / `MjModel` | 编译后的结构、物理参数与配置 | 连杆质量、关节类型、碰撞几何、actuator transmission |
+| `mjData` / `MjData` | 当前状态与计算工作区 | `qpos`、`qvel`、`ctrl`、接触集合、约束力 |
+
+这个划分意味着，同一个只读模型可以配多份独立状态，分别模拟不同轨迹；若并行修改模型参数，就需要另外管理副本和同步，不能继续把它当成共享常量。主要入口 `mj_step` 负责一次动力学计算与时间积分，`mj_forward` 则在不推进时间的情况下更新派生量 [@mujocoSimulation]。
+
+### 接触设计怎样影响实际使用
+
+对开链机器人，MuJoCo 使用 generalized coordinates；动力学计算利用 kinematic tree 的结构。约束求解可选 PGS、conjugate gradient 和 Newton 等方法。这里的 **Newton solver 是数值优化算法，不是后面介绍的 Newton 项目**。
+
+Soft contact 的直接价值是可以调节响应时间、阻尼和 impedance，使接触模型适配任务；代价是它并非严格的理想硬接触。比如夹持物体时，接触柔顺性会影响下陷、滑移和力的分布。调参应对照位移、力或真实实验，不能只以“画面不抖”为目标 [@mujocoComputation]。
+
+MuJoCo 也能处理 tendon、muscle 和 deformable 等模型，但“存在一种 deformable 表示”和“提供某任务所需的完整材料求解流程”是两件事。若任务核心是沙、水、复杂软体接触，应继续检查材料模型、碰撞支持与所选计算后端，不能仅按功能名称打勾。
+
+### CPU、MJX-JAX 与 MuJoCo Warp
+
+理解 MuJoCo 时，必须把物理模型和执行实现分开。
+
+| 执行路线 | 实现机制 | 适合先考虑的工作负载 |
+| --- | --- | --- |
+| 原生 MuJoCo | 编译后的 CPU 内核；可由应用并行运行多份状态 | 单场景调试、低延迟控制、模型检查 |
+| MJX-JAX | 用 JAX 表达动力学，经 XLA 编译；支持 batch 与 autodiff | JAX 工作流、需要动力学梯度且功能受支持的任务 |
+| MuJoCo Warp / MJX-Warp | Warp 内核面向 NVIDIA GPU；MJX 可作为 JAX 接口层 | 大批量 GPU rollout，尤其需要检查 contact-heavy 场景吞吐时 |
+
+MJX 文档明确区分这两种 accelerator 实现：MJX-JAX 大部分支持可微计算；**MJX-Warp 当前不支持 autodiff**。使用 JAX 接口调用一个后端，并不会自动使该后端可微。两条路线还有不同的功能支持、接触缓冲区和编译行为 [@mujocoMjx]。
+
+单个小场景未必能从 GPU 获益，因为 kernel launch、同步和数据搬运也要时间。相反，成千上万个同构环境可以把一次操作铺到大量状态上。MuJoCo 的选型问题因而不只是“用不用 MuJoCo”，还包括“用哪个实现、多少环境、怎样组织数据”。
+
+如果希望沿源码理解一帧，可从 [3.13.0 的 `src/engine`](https://github.com/google-deepmind/mujoco/tree/3.13.0/src/engine) 入手：`engine_forward.c` 串联 forward dynamics，`engine_core_smooth.c` 处理平滑动力学相关计算，`engine_collision_driver.c` 组织碰撞，`engine_solver.c` 处理约束求解。先跟住状态和力如何流动，再深入某个局部算法，通常比逐文件阅读更清楚。
+
+## Isaac Sim：让动力学进入完整的机器人系统
+
+如果任务只读关节角与方块坐标，物理引擎已经能提供主要反馈。但视觉机器人还需要相机，移动机器人可能需要 lidar，真实软件栈可能通过 ROS 2 收发消息。场景也不再只是几个几何体，而是带材质、灯光、层级和语义标签的房间或工厂。
+
+Isaac Sim 面向的就是这层系统问题。它基于 Omniverse Kit，使用 OpenUSD 组织场景，结合物理后端、RTX rendering、传感器、Replicator 数据生成与机器人集成工具 [@isaacOverview]。
+
+### USD 场景和运行时物理状态
+
+OpenUSD 的重要作用是组合场景：哪些资产被引用，哪些属性由当前 layer 覆盖，机器人和相机位于什么层级。USD Physics schema 可以表达刚体、关节等物理语义，但 **USD 本身不是动力学求解器**。
+
+开始仿真时，物理后端读取场景中的物理描述，创建自己的运行时对象。每步推进之后，物理状态再供渲染与传感器使用。Isaac Sim 的 Newton 集成就显式包含 USD 解析、Newton 对象构建、Fabric 状态同步和 tensor API [@isaacNewton]。
+
+对大批量训练，理想情况是一次读写整批 joint/state tensors。若在 Python 中逐个遍历 USD prim、为每个关节单独读取属性，即使物理求解在 GPU 上，外围开销也可能占主导。场景编辑的数据结构和高频训练的数据通路承担不同职责。
+
+### PhysX 的约束求解在做什么
+
+Isaac Sim 6.1 默认使用 PhysX。对刚体与 articulation，PhysX 需要完成前面讨论的碰撞检测、约束求解和时间推进。其 PGS 与 TGS solver 都是迭代处理约束的路线。
+
+PGS 的直觉是逐条修正：当前接触若仍有不合法的相对运动，就根据有效质量计算一次修正，再把冲量投影到合法范围。后面的约束立即使用前面已更新的状态。一轮结束后还有相互影响，就继续下一轮。
+
+TGS 更充分地考虑时间推进中的几何变化，使约束修正与运动更新更紧密地交织。PhysX 文档讨论了它在约束收敛、质量比和 joint drive 等方面的行为；具体选项要与所用 SDK 和场景配置对应 [@physxSimulation]。它既不是“把迭代次数无限加大”，也不能仅凭名字推断所有场景都更快。
+
+对于推方块，这些实现细节会体现为：高增益 position drive 是否稳定，手指与方块的接触是否能在有限迭代内收敛，较大质量比是否引入明显误差。求解迭代次数、物理步长、contact offset 和 collision mesh 都应属于实验配置。
+
+### 渲染逼真不等于整个任务都逼真
+
+物理渲染根据几何、材质、光照与相机设置生成图像；传感器还可能有自己的光学模型、噪声、延迟和采样方式。它解决的是观测模型 $H$ 的问题，而接触求解解决的是状态转移 $F_h$ 的问题。
+
+因此，一个金属方块可以反射得非常真实，却因为摩擦或质心错误而沿错误的轨迹滑动；也可能运动可信，但相机曝光、深度误差与真实设备不符。视觉 policy 同时依赖这两部分。
+
+Isaac Sim 的标准 RTX 平台也带来明确的硬件边界：6.1 requirements 文档要求受支持的 RTX 环境，并明确列出没有 RT cores 的 A100/H100 不受支持 [@isaacRequirements]。这和“某个 GPU 物理内核能否在 A100 上运行”不是同一个问题。做部署规划时，应分别检查物理计算、渲染、显存和软件版本要求。
+
+### Isaac Sim、Isaac Lab 与 Newton 的关系
+
+Isaac Lab 在机器人学习层提供环境、观测、action、reward、reset 等组织方式，可以采用 manager-based 或 direct workflow [@isaacLab]。可以把它理解成把仿真能力接到学习任务的一层框架，而不是另一个同名物理求解器。早期 Isaac Gym 的 benchmark 也不能直接当作当前 Isaac Sim 全平台的测试结果。
+
+Newton 接入说明了这套平台正在变得可替换后端：平台可以保留场景与部分上层接口，把物理推进交给另一个引擎。但在 6.1 中，这条接入仍标记为 experimental，存在资产、运行时修改、contact buffer 等限制，部分未使用 experimental core API 的工作流尚不支持 [@isaacNewton]。统一接口降低迁移成本，不代表物理参数和运行结果已经完全等价。
+
+## Genesis World：把多种材料放进同一个仿真循环
+
+如果把硬方块换成海绵、布袋、沙堆或装水的容器，刚体状态就不够了。刚体只记录整体位姿，而这些对象还需要描述内部形变、相互流动或颗粒重排。这是理解 Genesis 的自然入口。
+
+本文沿用大家熟悉的 Genesis 名称；当前仓库名为 **Genesis World**。在 1.4.1 中，它把 Python simulation interface、多物理引擎、Nyx / Luisa / Pyrender 渲染路径和 Quadrants 编译层组合起来。Quadrants 承接了早期 Taichi 路线，负责把 kernel 表达编译到不同硬件后端；它不是让 Python 解释器逐个计算粒子的受力 [@genesisArchitecture]。
+
+### Rigid solver：和 MuJoCo 接近，不等于直接调用 MuJoCo
+
+Genesis 的 rigid solver 使用 joint state、forward kinematics、质量矩阵与约束求解的结构。先计算不含接触的运动，再利用接触与其他约束修正。当前实现提供 Newton / CG 等 constraint solver，并包含不同积分和摩擦选项 [@genesisDynamics]。
+
+它的 soft constraint 路线与 MuJoCo 有联系，但应看具体配置。当前文档区分 pyramidal 与 elliptic friction cone，也区分 convex 与 Signorini contact resolution；某些组合有兼容性限制 [@genesisConstraints]。因此“Genesis 的 rigid solver 受 MuJoCo 启发”可以帮助理解设计来源，却不能推出“相同 MJCF 会得到相同轨迹”。
+
+从实现角度看，`gs.Scene` 负责组织 entity、solver、coupler 和传感器；`scene.build(...)` 建立仿真数据与批量布局。之后 Python 发送控制目标，编译后的 kernels 完成逐步推进。支持多个计算后端也不意味着每个 renderer、外部 solver 和可微路径在每个平台上都具有相同能力，仍需按具体组合验证。
+
+### 为什么需要 FEM、MPM 和粒子方法
+
+先想象挤压一块海绵。只更新整体位姿无法表示局部压缩；给每个小区域保存运动，就能描述形变，但还需要一个规则告诉我们“变形之后会产生多大的恢复力”。这就是 **constitutive model**。同样一份几何，用弹性、塑性或流体材料，行为会完全不同。
+
+| 方法 | 怎样表示材料 | 适合用来理解的任务 |
+| --- | --- | --- |
+| FEM | 在网格单元内近似形变，由材料能量或应力构造内力 | 挤压软块、弹性结构 |
+| MPM | 粒子携带材料状态，借助背景网格交换动量、计算受力 | 沙、雪、塑性体、大变形材料 |
+| SPH | 用邻近粒子的平滑加权近似连续场与空间导数 | 自由表面液体 |
+| PBD | 用粒子和几何约束表示结构，迭代修正位置 | 布、绳和形状约束 |
+
+这些名称主要描述数值离散或求解方式，不直接决定“真实性”。FEM 的网格与材料本构、MPM 的粒子与网格分辨率、SPH 的核与压力模型、PBD 的约束与柔顺性，都决定它实际模拟的对象。Genesis 文档分别列出这些 solver 与材料模型 [@genesisSoft]。
+
+以 MPM 为例，若只跟踪粒子，材料发生大形变很方便，但计算邻域内的力与动量交换比较麻烦；若只用固定网格，空间导数方便，却需要处理材料穿越网格的输运。MPM 让粒子保留材料历史，在每个步内暂时把质量和动量转到网格，在网格上更新，再把结果插回粒子。背景网格是计算媒介，不要求材料始终附着在某个网格单元上。
+
+<MaterialRepresentations />
+
+### 真正困难的是跨 solver 接触
+
+让刚性夹爪抓住 FEM 软块，不能只是让两个 solver 在同一屏幕上运行。软块要被夹爪挤压，夹爪也要感受到反作用力。否则夹爪推开了软块，却没有付出动量，系统行为就会不合理。
+
+Genesis 的 coupler 负责这种跨 solver 交互。其默认 legacy coupler 在 solver 推进之间交换接触响应，采用 signed distance、法向与切向速度分解以及 impulse 形式的修正。文档还列出 SAP 和基于 libuipc 的 IPC 路线，它们服务于不同的材料组合与接触需求，而非可无条件互换的质量档位 [@genesisCoupling]。
+
+选用多物理仿真时，应该具体问：“Rigid–FEM 是否双向作用？对应 coupler 是否支持我要的材料、精度和梯度？”只确认 rigid、FEM、MPM 分别存在，无法回答这些问题。
+
+### 批量环境与可微能力
+
+Genesis 的一个直接接口是 `scene.build(n_envs=B)`。同一场景被扩展为多份状态，控制与观测可以带一个 environment 维度；选定 `envs_idx` 还可以只更新部分环境。可以从 [1.4.1 的 parallel simulation 示例](https://github.com/Genesis-Embodied-AI/genesis-world/blob/v1.4.1/examples/tutorials/parallel_simulation.py) 看这条数据路径。
+
+可微方面，早期“只有 MPM / Tool solver 支持”的介绍已经不能代表本文版本。当前文档描述了 rigid simulation 的梯度路径，1.4.1 源码也包含 [rigid dynamics、collision、constraints 的梯度测试](https://github.com/Genesis-Embodied-AI/genesis-world/tree/v1.4.1/tests/grad)。启用方式包括 `SimOptions(requires_grad=True)`，状态 tensor 可以把 PyTorch loss 的梯度继续传回物理步骤 [@genesisDifferentiable]。
+
+但能力边界仍然具体：可微 rigid collision 使用 GJK 路径，elliptic friction cone 不支持该可微配置；默认 legacy coupler 有梯度通路，SAP coupler 没有。某些接触路径的梯度可能为零或未定义，长轨迹也需要付出状态存储和数值稳定性的代价。应验证整个任务链路，而不是只确认一个开关存在。
+
+源码阅读可以沿 [1.4.1 的 `genesis/engine`](https://github.com/Genesis-Embodied-AI/genesis-world/tree/v1.4.1/genesis/engine) 从 scene/simulator 进入 `solvers/rigid` 与 `couplers`，然后对照 `tests/grad` 理解哪些 forward/backward 行为有实际覆盖。
+
+## Newton：把求解器作为可以替换和组合的部件
+
+这里的 Newton 指由 Disney Research、Google DeepMind 和 NVIDIA 发起、基于 NVIDIA Warp 的开源项目，不是历史上的 Newton Game Dynamics，也不是泛指牛顿法。项目把机器人和仿真研究所需的 GPU 物理计算组织成可扩展框架 [@newtonProject]。
+
+Warp 允许用带类型的 Python kernel 描述并行计算，再编译为 CPU 或 CUDA 代码。Newton 在它上面定义模型、状态、碰撞和 solver；因此可以在 Python 工作流中插入自定义力、控制器或求解过程，而把大量状态计算留在设备上。
+
+### 一套状态接口，多种物理选择
+
+Newton 的主要对象有明确分工：`ModelBuilder` 构建或导入机器人，`Model` 保存模型数据，`State` 保存随时间变化的状态，`Control` 保存控制，`Contacts` 保存接触信息。Solver 接受这些对象，推进状态 [@newtonOverview]。
+
+下面是说明生命周期的伪代码，省略模型创建、控制器和 solver-specific 初始化；它不是可直接运行的完整程序：
+
+```python
+model = builder.finalize()
+state_in, state_out = model.state(), model.state()
+control = model.control()
+pipeline = newton.CollisionPipeline(model)
+contacts = pipeline.contacts()
+
+for step in range(num_steps):
+    state_in.clear_forces()
+    write_control_and_external_forces(state_in, control)
+    pipeline.collide(state_in, contacts)
+    solver.step(state_in, state_out, control, contacts, dt)
+    state_in, state_out = state_out, state_in
+```
+
+这里值得注意的是 input/output state 的交换，以及 collision 和 solve 的分离。对默认使用 MuJoCo 内部碰撞的 `SolverMuJoCo`，接触路径还有自身约定，不能把这段外部 collision loop 不加修改地套到所有 solver 上。
+
+### “Newton 用什么算法”需要继续问到 solver
+
+在 1.6.0 的支持矩阵里，不同 solver 的坐标、材料和可微能力差别很大 [@newtonSolvers]：
+
+| Solver | 主要路线 | 本文版本中需要知道的边界 |
+| --- | --- | --- |
+| `SolverMuJoCo` | Generalized coordinates，接入 MuJoCo / MuJoCo Warp | 面向 articulated rigid bodies；不支持 autodiff |
+| `SolverFeatherstone` | Generalized coordinates 的多刚体动力学 | 文档将 differentiability 标记为 basic |
+| `SolverSemiImplicit` | 半隐式推进，关节以 maximal-coordinate 约束处理 | 有基础 diffsim 示例；支持范围需按模型检查 |
+| `SolverXPBD` | 带 compliance 的位置约束求解 | 不应把它当成已支持 autodiff 的 solver |
+| `SolverVBD` | 围绕局部变量块优化隐式动力学目标 | 支持软体、布等；关节支持有限，API 仍有 experimental 部分 |
+| `SolverImplicitMPM` | 隐式 MPM | 用于相应材料与粒子任务，不是通用关节机器人 solver |
+
+这解释了为什么“Newton 是可微物理引擎”不能推出“Newton 的所有后端都可微”。自动微分基础设施只是条件之一，具体 kernel、状态管理和求解算法还必须提供正确的 backward。
+
+<details>
+<summary>XPBD 为什么引入 compliance？</summary>
+
+想象两个粒子之间有一根希望保持长度的线段。先预测位置，再把长度误差修正掉，是一种很自然的 PBD 思路。但若每次都纠正固定比例，迭代十次与迭代两次的“硬度”就不同；改变步长也会改变表现。
+
+XPBD 希望用材料的柔顺性决定目标响应，而不是让迭代次数承担材料参数的角色。对一个标量约束 $C(x)$，设粒子 inverse mass 为 $w_i$，compliance 为 $\alpha$，步长为 $h$，令 $\tilde\alpha=\alpha/h^2$。在一次局部线性化中，把已累积的约束 multiplier $\lambda$ 也带入，得到修正
+
+$$
+\Delta\lambda
+=\frac{-C(x)-\tilde\alpha\lambda}
+{\sum_i w_i\lVert\nabla_i C(x)\rVert^2+\tilde\alpha},
+\qquad
+\Delta x_i=w_i\nabla_i C(x)\Delta\lambda.
+$$
+
+分母衡量沿约束方向移动粒子的难易；分子在纠正几何误差的同时，保留柔顺材料允许的形变。这把约束对应到明确的 compliant dynamics [@macklin2016xpbd]。有限迭代、非线性接触和离散化仍然会产生误差，不能理解成任意步长和迭代次数都会得到完全相同的轨迹。
+
+</details>
+
+### MuJoCo Warp、接触管线与 hydroelastic contact
+
+Newton 的 `SolverMuJoCo` 把 MuJoCo 的动力学路线接入 Newton 的模型组织方式；项目使用 MuJoCo Warp 作为重要 GPU 后端。这样可以复用多关节接触算法，同时接上 Newton 的导入、传感器与扩展能力。
+
+碰撞也有可选择的路径。默认可以使用 MuJoCo 的碰撞管线；需要 Newton 提供的 SDF 或 hydroelastic 等接触生成方式时，可以选择 Newton collision pipeline，具体配置受 solver 支持范围约束 [@newtonCollisions]。
+
+为什么要关心接触生成？把杯子放在桌上时，一两个离散接触点可能足以让它不掉下去；但对夹持、插接和较宽接触面，接触区域怎样分布会影响 torque 与稳定性。Hydroelastic contact 用与体积内部深度、材料刚度等相关的压力场描述表面接触，再沿接触区域分布响应，使面接触具有更丰富的力学信息。它仍是一种接触近似，不等于把整个物体都改成完整 FEM，也不意味着所有 Newton solver 都支持相同的接触行为。
+
+可以沿 [1.6.0 的 `newton/_src`](https://github.com/newton-physics/newton/tree/v1.6.0/newton/_src) 查看 `sim`、`solvers` 与 geometry/collision 相关实现，再从 [basic pendulum 示例](https://github.com/newton-physics/newton/blob/v1.6.0/newton/examples/basic/example_basic_pendulum.py) 跟踪 model 创建、contact 生成、`step` 和 CUDA graph capture。
+
+## GPU 加速究竟把什么并行了
+
+同一个方块的第 $t+1$ 步依赖第 $t$ 步，这条时间依赖不会因为换成 GPU 就消失。仿真常见的并行性来自两处：**同一步里有很多物体、粒子或约束；同一个任务有很多互不依赖的环境副本。**
+
+RL 尤其适合第二种。我们把同一个机器人复制成 $B$ 个环境，它们共享或重复保存模型结构，但各自持有状态、随机参数和动作。Joint positions 可以组织成 $B\times n_q$，控制张量可以组织成 $B\times n_u$。一次 kernel 同时推进多个环境，policy 也可以一次处理一批 observation。
+
+<BatchedRollouts />
+
+难点在于，物理计算不像大矩阵乘法那样规整。某个环境没有接触，另一个环境有几十个接触；某些场景几步就收敛，另一些需要更多迭代。分支、动态接触集合、稀疏数据与不同大小的约束系统都会影响 GPU 利用率。
+
+固定上限的 contact buffer 可以让内存布局与 GPU 执行更容易管理，但上限不是纯粹的性能旋钮。如果容量不足，接触可能被丢弃或程序报错；前一种情况下，即便 FPS 更高，也已经改变了物理任务。JIT compilation 和 CUDA graph capture 则希望把重复执行的计算固定下来，减少每次从 Python 发起大量小 kernel 的开销。初次编译与稳定运行因此必须分开计时。
+
+更完整地看，一次训练迭代的耗时可能包含
+
+$$
+T_{\mathrm{iter}}
+\approx T_{\mathrm{physics}}
++T_{\mathrm{observation}}
++T_{\mathrm{policy}}
++T_{\mathrm{reset}}
++T_{\mathrm{transfer}}
++T_{\mathrm{update}}.
+$$
+
+这个式子是串行时间分解；有 overlap 时不能简单相加，应测实际 critical path。它提醒我们：物理内核快十倍，不代表端到端训练快十倍。若相机渲染或 policy update 占大部分时间，继续压缩 physics step 的收益可能很有限。
+
+## 可微仿真：梯度到底穿过了什么
+
+用 PPO 训练机器人，并不要求仿真器提供动力学梯度。Policy 可以采样动作、观察 reward，再用 policy gradient 更新。这时仿真器只需产生 rollout。
+
+另一类任务则想直接问：推力增加一点，方块最终位置会变化多少？若最终位置为 $x_T$、目标为 $x^\star$，我们可以定义
+
+$$
+\mathcal L=\frac12\lVert x_T-x^\star\rVert^2,
+$$
+
+然后沿每个 $s_{t+1}=F_h(s_t,u_t;\theta)$ 反向传播，优化动作序列、初始状态或材料参数。对一个较早的动作 $u_k$，后续影响由链式法则连起来：
+
+$$
+\frac{\partial s_T}{\partial u_k}
+=\frac{\partial F_{T-1}}{\partial s_{T-1}}
+\cdots
+\frac{\partial F_{k+1}}{\partial s_{k+1}}
+\frac{\partial F_k}{\partial u_k}.
+$$
+
+这里 $F_t$ 表示在第 $t$ 步状态、动作处求值的同一个离散仿真映射。若控制由 policy 产生，闭环梯度还应包含动作随状态变化的路径。
+
+### 可算出梯度，不保证梯度有用
+
+仍看推方块。若手指和方块还隔着一段距离，稍微改变动作却没有建立接触，方块最终位置对该动作的局部梯度可能仍然是零。优化器需要“先走到接触发生的位置”，但局部导数没有告诉它要跨过这段空隙。
+
+在刚好建立接触、碰撞特征改变或从静摩擦转为滑动时，局部映射还可能不光滑。Autodiff 能沿当前程序路径求导，不会自动把它变成平滑的优化目标。Soft contact 或平滑近似可以改善某些局部问题，同时也改变了被优化的动力学。
+
+另一种区别是，对“执行了有限次迭代的程序”求导，与对“已经收敛的约束解”做 implicit differentiation，不一定给出相同结果。Forward 残差、solver tolerance 和 backward 实现会共同影响梯度质量。
+
+| 路线 | 本文快照下的判断 |
+| --- | --- |
+| 原生 MuJoCo | 可用于有限差分和动力学导数相关工作；Python binding 不等于通用端到端 autograd |
+| MJX-JAX | 文档列出大部分可微支持；仍需检查特性覆盖和接触处梯度 |
+| MJX-Warp / MuJoCo Warp | 当前不支持 autodiff |
+| Isaac Sim + 默认 PhysX | 不应当作常规的端到端可微动力学接口 |
+| Genesis World | 已有包括 rigid 在内的可微路径；碰撞、摩擦 cone、coupler 有明确限制 |
+| Newton | 按 solver 判断；SemiImplicit / Featherstone 有 basic 支持，MuJoCo / XPBD 等不能据项目定位推定可微 |
+
+这里的边界应分别对照 [MuJoCo derivative API](https://mujoco.readthedocs.io/en/stable/APIreference/APIfunctions.html#derivatives)、MJX feature matrix [@mujocoMjx]、Genesis differentiable simulation [@genesisDifferentiable] 和 Newton solver matrix [@newtonSolvers]。把这些路线接入另一个平台，也不会自动扩大底层 solver 的梯度支持范围。
+
+实际使用前，可以选一个连续、短 horizon 的标量参数 $\theta_i$，比较 autodiff 与中心差分：
+
+$$
+\frac{\partial\mathcal L}{\partial\theta_i}
+\approx
+\frac{\mathcal L(\theta_i+\varepsilon)
+-\mathcal L(\theta_i-\varepsilon)}{2\varepsilon}.
+$$
+
+尝试几个数量级的 $\varepsilon$，并固定随机性和 solver 设置。过小会受浮点误差影响，过大又离开局部范围。接触切换附近应单独检查两侧轨迹；数值差分不稳定不必然意味着 backward 写错，也可能是在测一个本来就不光滑的点。
+
+## 用同一个任务比较，而不是比较宣传数字
+
+“一千万 FPS”缺少上下文时，几乎不能用于选型。它可能指一千万个单环境 physics steps 的聚合吞吐，也可能来自大量并行、没有相机的简单场景；这与单个视觉机器人的控制延迟不是同一个指标。
+
+假设 $B$ 个环境，每个推进 $K$ 次、每次物理时间为 $h$，实际耗时为 $T$，至少可以区分：
+
+$$
+\text{aggregate SPS}=\frac{BK}{T},\qquad
+\text{per-environment RTF}=\frac{Kh}{T}.
+$$
+
+RTF 表示每个环境的模拟时间相对现实时间的倍率；如果把环境数也乘进去，得到的是 aggregate RTF，必须明确标注。Policy action 每隔十个 physics steps 才更新时，action transitions 的计数又要再除以十。
+
+一个有意义的四引擎推方块实验，应先统一任务语义，再测下面这些维度：
+
+| 要固定或报告的量 | 为什么它会改变结论 |
+| --- | --- |
+| 版本、solver 与计算后端 | 同一项目内 CPU / JAX / Warp 或不同 solver 也可能差很多 |
+| 硬件、数值精度、环境数 | 决定并行利用率、显存与单环境开销 |
+| 同一物理时长、步长和 action rate | 更少的物理步可能只是少做了计算 |
+| 接触 geometry、过滤规则和容量 | 少算接触或丢失接触会改变物理问题 |
+| 求解 tolerance、iteration budget、softness | 稳定、准确与快之间存在取舍 |
+| 控制模式、增益、力矩与速度限制 | 相同 action 数值未必对应同样的物理驱动 |
+| 相机数量、分辨率、采样率与 renderer | 视觉训练可能被观测生成主导 |
+| JIT warm-up、同步与数据搬运 | GPU 异步提交的时间不是计算完成的时间 |
+| Reset、observation、policy 和 learner | 核心物理吞吐不代表训练端到端吞吐 |
+
+还必须同时评估误差。先用方块静置测试支持力、穿透与漂移，再用滑动测试速度曲线和停止距离，最后加入机械臂控制。逐步减少步长或增加 solver budget，检查关键量是否趋于稳定。在理想化设置中与解析解比较，在真实任务中则与测量数据比较。
+
+跨引擎迁移时，URDF/MJCF/USD 能否导入，只是起点。要逐项核对惯性坐标系、质量、joint axis、碰撞形状、摩擦组合规则、actuator 与单位。不能把不同引擎里同名的 stiffness 或 friction 参数直接视为同一套物理语义。
+
+## 四者放在一起，应该怎样选
+
+下面比较的是工作流特征，而不是统一硬件下的速度排名。MuJoCo 和 Newton 也有渲染、传感器或 viewer 支持；区别在于它们通常要求我们自己组合多少任务层的能力。
+
+| 维度 | MuJoCo | Isaac Sim | Genesis World | Newton |
+| --- | --- | --- | --- | --- |
+| 首先围绕什么组织代码 | 编译后的 model 与独立 data | USD 场景、平台扩展与运行时接口 | Scene、entity、solver 与 coupler | ModelBuilder、State 与可选 solver |
+| 多关节刚体 | 核心设计目标 | 默认 PhysX articulation；也可试 Newton 后端 | 独立实现的 rigid solver | MuJoCo / Featherstone 等多条路线 |
+| 多材料任务 | 需检查具体表示与后端覆盖 | 依赖平台与物理后端提供的功能 | 多 solver 与跨材料 coupling 是重点 | 选 solver 与 coupling，功能矩阵很重要 |
+| 大批量 rollout | 选择 MJX-JAX 或 Warp 等实现 | 通常结合 tensor API 与 Isaac Lab | `n_envs` 和 batch control | Warp world/state 布局与 solver 配置 |
+| 视觉与系统集成 | 适合按需构建观测与外围工具 | RTX、数据生成、资产、ROS 2 的整合度高 | 集成多条渲染与传感器路径 | 核心框架加 viewer/sensors，或接入上层平台 |
+| 可微优化 | 明确区分原生导数工具与 MJX 后端 | 不能从平台能力推定动力学可微 | 支持具体路径，限制需逐项验证 | 逐 solver 检查，不能统一打勾 |
+| 最先验证的风险 | 模型与后端 feature parity | 平台依赖、硬件、后端兼容与总开销 | 材料/coupler/梯度的组合是否可用 | Solver 能力、参数映射与扩展接口 |
+
+如果第一次搭建关节状态驱动的控制实验，我会先用 **原生 MuJoCo** 建立一个容易检查的最小模型：看清 actuator、接触和时间步，再决定是否切换到 accelerator 后端。这个判断来自它的 model/data 结构和控制内核定位，不是说它在所有任务中精度最高。
+
+如果核心交付是**带 RGB-D、lidar、ROS 2 和复杂场景的机器人系统**，我会先评估 Isaac Sim。平台已经提供的资产与接口可能节省大量集成时间；随后再测 headless 运行、渲染频率和训练总成本，而不是仅看 physics kernel。
+
+如果任务必须包含**刚体与软体、颗粒或流体交互**，Genesis 值得优先做最小可行性实验。应先验证具体材料与 coupler，再扩展并行规模；对当前 rigid autodiff 也应运行与任务相符的梯度检查。
+
+如果研究目标是**改物理求解器、插入自定义 Warp kernels，或在共享模型接口下比较多个 solver**，Newton 的架构很合适。若只是要稳定跑通一个现成机器人任务，先确认所选 solver 和平台接入是否覆盖需求，再考虑这种可扩展性是否值得额外工程成本。
+
+对于大规模 locomotion 或 manipulation RL，我不会预先指定唯一赢家。应拿同一个任务，对 MuJoCo Warp、Isaac Lab 对应后端、Genesis 和 Newton 的候选配置测量 quality–throughput tradeoff。对于需要动力学梯度的任务，则先从可微支持矩阵筛选，而不是从速度榜筛选。
+
+## 从最小实验走到 sim-to-real
+
+为了把前面的原则落实成实际工作，可以把推方块实验分成四次逐步增加复杂度的构建：
+
+1. **只有桌子与方块。** 检查单位、质量、惯性、重力方向、静置穿透和接触力。加一个已知水平力，比较滑动趋势与解析基准。
+2. **加入机械臂与 actuator。** 先做自由空间运动，再碰方块。记录实际力矩、末端轨迹和接触力，确认控制器没有因为过高增益而掩盖模型问题。
+3. **加入任务与并行。** 定义 observation、action、reward、termination 与 reset。保持单环境行为一致后，逐步增大 batch，测量吞吐、显存和接触容量。
+4. **加入真实观测与迁移因素。** 加相机、噪声、延迟、物理参数变化和真实设备约束。把它们对任务成功率的影响和纯物理误差区分开。
+
+可以把一次 action transition 写成下面的框架无关伪代码。它刻意把 policy rate、physics rate 和 sensor rate 分开：
+
+```python
+for action_step in range(horizon):
+    action = policy(observation)
+    target = decode_action(action)
+
+    for physics_step in range(control_decimation):
+        torque = controller(state, target)
+        state = physics_step_fn(state, torque, physics_dt)
+        sensors.sample_if_due(state)
+
+    observation = make_observation(state, sensors)
+    reward, terminated, truncated = evaluate_task(state)
+    save_transition(observation, reward, terminated, truncated)
+    reset_finished_environments(terminated | truncated)
+    observation = make_observation(state, sensors)
+```
+
+这里 `save_transition` 代表保存完整 transition 的任务层操作；实现中还要保存动作前观测、动作，以及 reset 前的最终观测，正确处理 timeout bootstrap。共享这套语义，比把四个项目的 API 都包装成名字相同的 `step()` 更重要。
+
+最后，sim-to-real 需要的不只是更多随机化。若方块质量未知，先从已知力下的加速度估计它；若摩擦未知，做可重复的滑动实验；若机器人推得过猛，检查 actuator 与控制延迟。**System identification 负责缩小模型误差，domain randomization 负责覆盖剩余的不确定性。** 把摩擦在很宽范围内随机化，不能修复一个被 convex hull 填死的孔洞，也不能修复错误的关节轴。
+
+这些工具最终都在实现我们最开始写下的 $F_h$ 和 $H$。选择它们时，真正要确定的是：任务需要哪些状态与材料，哪些接触近似可以接受，数据如何在控制、物理和观测之间流动，以及我们用什么证据相信这个虚拟世界对真实任务有用。

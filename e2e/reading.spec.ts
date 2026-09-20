@@ -166,10 +166,10 @@ test('home and search do not download article bodies or MathJax; reading loads o
   expect(mathRequests).toBe(0);
   await input.press('Enter');
   await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
-  expect((await Promise.all(scripts)).filter((script) => /contentHtml:/.test(script))).toHaveLength(
-    1,
-  );
-  expect(mathRequests).toBe(1);
+  expect(
+    (await Promise.all(scripts)).filter((script) => /contentHtml:\s*["'`]</.test(script)),
+  ).toHaveLength(1);
+  expect(mathRequests).toBe(0);
 });
 
 for (const layout of ['sidebar', 'drawer'] as const) {

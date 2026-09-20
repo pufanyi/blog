@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { dirname, join, relative, sep } from 'node:path';
+import { basename, dirname, join, relative, sep } from 'node:path';
 
 export function postStyles(sourcePath: string): string {
   const path = join(dirname(sourcePath), 'styles.css');
@@ -29,7 +29,8 @@ export function postEnhancementModule(
         .split(sep)
         .join('/')
         .replace(/\.ts$/, '');
-      return `() => import(${JSON.stringify(module)})`;
+      const target = basename(path, '.post-client.ts');
+      return `Object.assign(() => import(${JSON.stringify(module)}), { target: ${JSON.stringify(target)} })`;
     });
     return modules.length ? [`  [${JSON.stringify(slug)}, [${modules.join(', ')}]],`] : [];
   });

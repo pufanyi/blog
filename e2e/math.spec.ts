@@ -43,7 +43,7 @@ test.beforeEach(async ({ page, context, mathWorker }) => {
     const asset = path.slice(`/npm/${dependency.name}@${dependency.version}/`.length);
     await route.fulfill({
       body:
-        asset === 'tex-chtml.js'
+        asset === 'tex-mml-chtml.js'
           ? Buffer.concat([
               Buffer.from(
                 `window.MathJax.options = { worker: { path: ${JSON.stringify(mathWorker)}, maps: ${JSON.stringify(mathWorker + '/mathmaps')} } };\n`,
@@ -60,13 +60,13 @@ test.beforeEach(async ({ page, context, mathWorker }) => {
     });
   });
   await page.route(
-    /https:\/\/(www\.googletagmanager\.com|.*google-analytics\.com|giscus\.app)\//,
+    /https:\/\/(www\.googletagmanager\.com|.*google-analytics\.com|giscus\.app|fonts\.googleapis\.com|fonts\.gstatic\.com)\//,
     (route) => route.fulfill({ body: '', contentType: 'text/javascript' }),
   );
 });
 
-test('unrendered formulas wrap when MathJax is unavailable', async ({ page }) => {
-  await page.route('**/mathjax@*/tex-chtml.js', (route) => route.abort('internetdisconnected'));
+test('static formulas remain readable when browser MathJax is unavailable', async ({ page }) => {
+  await page.route('**/mathjax@*/tex-mml-chtml.js', (route) => route.abort('internetdisconnected'));
   await page.goto('/blog/ml/ml-revisit/rl');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   await page.locator('.post-body details').evaluateAll((elements) => {
@@ -74,7 +74,11 @@ test('unrendered formulas wrap when MathJax is unavailable', async ({ page }) =>
       (element as HTMLDetailsElement).open = true;
     });
   });
-  await expect(page.locator('mjx-container')).toHaveCount(0);
+  expect(await page.locator('mjx-container[data-static-math]').count()).toBeGreaterThan(20);
+  const formula = page.locator('.math-inline mjx-container[data-static-math]').first();
+  await formula.scrollIntoViewIfNeeded();
+  await formula.press('Enter');
+  await expect(formula).toBeVisible();
   expect(await page.locator('.math-display').count()).toBeGreaterThan(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(
@@ -91,7 +95,12 @@ for (const slug of ['rl', 'ssl']) {
   test(`display math in ${slug} grows vertically and scrolls horizontally`, async ({ page }) => {
     await page.goto(`/blog/ml/ml-revisit/${slug}`);
     await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+    const formula = page.locator('.math-inline mjx-container[data-static-math]').first();
+    await formula.scrollIntoViewIfNeeded();
+    await formula.press('Enter');
     await page.waitForFunction(() => !!window.MathJax?.typesetPromise);
+    await expect(page.locator('[role="menu"]').first()).toBeVisible();
+    await page.keyboard.press('Escape');
     const formulas = [
       // This three-row brace reproduced a 1–2 px vertical scrollbar in RL.
       String.raw`\operatorname{clip}(x,l,u)=\begin{cases}l,&x<l,\\x,&l\le x\le u,\\u,&x>u.\end{cases}`,

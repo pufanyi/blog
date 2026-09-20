@@ -8,6 +8,9 @@ test('forward tiles the full sequence and merges each range into one query outpu
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(article);
   const player = page.locator('[data-flash-forward]');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  await expect(player).not.toHaveAttribute('data-ready', 'true');
+  await player.scrollIntoViewIfNeeded();
   await expect(player).toHaveAttribute('data-ready', 'true');
   const layout = player.locator('[data-layout="4"]');
   const progress = player.getByRole('slider', { name: 'Forward 动画进度' });

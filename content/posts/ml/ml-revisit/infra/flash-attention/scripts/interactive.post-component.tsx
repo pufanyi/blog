@@ -228,6 +228,7 @@ function FlashForwardInteractive() {
       className="flash-player"
       id="flash-forward-interactive"
       data-flash-forward=""
+      data-post-enhancement="forward"
       data-phase="partition"
       aria-labelledby="flash-player-title"
     >

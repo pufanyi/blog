@@ -29,6 +29,7 @@ import { postEnhancementModule } from './lib/post-assets.mts';
 import { buildPostExcerpt } from './lib/post-excerpt.mts';
 import { discoverPostSources } from './lib/post-sources.mts';
 import { loadSiteConfiguration } from './lib/site-config.mts';
+import { renderStaticMath } from './lib/static-math.mts';
 import { buildSyndicationFeeds } from './lib/syndication.mts';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -207,13 +208,13 @@ export async function generateData(
           ...summary,
           slug,
           excerptHtml: buildPostExcerpt(rendered.markdownHtml),
-          contentHtml: rendered.html,
+          contentHtml: await renderStaticMath(rendered.html),
           toc: rendered.toc,
         };
         return remember({
           post,
           agent: { ...agent, markdownExport: renderArticleMarkdown(agent, configuration.site) },
-          searchText: searchableText(post.contentHtml),
+          searchText: searchableText(rendered.html),
         });
       }),
     );

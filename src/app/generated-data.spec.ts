@@ -16,27 +16,23 @@ describe('generated content data', () => {
     expect(CV_DATA).toBeTruthy();
   });
 
-  it('keeps generated table-of-contents data aligned with article headings', async () => {
-    for (const summary of POSTS) {
-      const post = await loadPost(summary.slug);
-      if (!post) throw new Error(`Missing post: ${summary.slug}`);
-      const document = new DOMParser().parseFromString(post.contentHtml, 'text/html');
-      const headingIds = Array.from(document.querySelectorAll('h2, h3')).map(
-        (heading) => heading.id,
+  it.each(POSTS)('keeps table-of-contents data aligned with headings: $slug', async (summary) => {
+    const post = await loadPost(summary.slug);
+    if (!post) throw new Error(`Missing post: ${summary.slug}`);
+    const document = new DOMParser().parseFromString(post.contentHtml, 'text/html');
+    const headingIds = Array.from(document.querySelectorAll('h2, h3')).map((heading) => heading.id);
+    const tocIds = flattenIds(post.toc);
+
+    expect(tocIds, post.slug).toEqual(headingIds);
+    expect(new Set(tocIds).size, post.slug).toBe(tocIds.length);
+
+    for (const heading of Array.from(document.querySelectorAll('h2, h3'))) {
+      expect(heading.getAttribute('tabindex'), post.slug).toBe('-1');
+      const permalink = heading.querySelector<HTMLAnchorElement>('.heading-permalink');
+      expect(permalink, post.slug).not.toBeNull();
+      expect(permalink?.getAttribute('href'), post.slug).toBe(
+        `/blog/${post.slug}#${encodeURIComponent(heading.id)}`,
       );
-      const tocIds = flattenIds(post.toc);
-
-      expect(tocIds, post.slug).toEqual(headingIds);
-      expect(new Set(tocIds).size, post.slug).toBe(tocIds.length);
-
-      for (const heading of Array.from(document.querySelectorAll('h2, h3'))) {
-        expect(heading.getAttribute('tabindex'), post.slug).toBe('-1');
-        const permalink = heading.querySelector<HTMLAnchorElement>('.heading-permalink');
-        expect(permalink, post.slug).not.toBeNull();
-        expect(permalink?.getAttribute('href'), post.slug).toBe(
-          `/blog/${post.slug}#${encodeURIComponent(heading.id)}`,
-        );
-      }
     }
   });
 });

@@ -19,6 +19,10 @@ for (const article of ['ssl', 'ar']) {
     const worker = await serveMathJaxWorker();
     try {
       const assets: string[] = [];
+      const fonts: string[] = [];
+      page.on('request', (request) => {
+        if (request.url().includes('/assets/mathjax/woff2/')) fonts.push(request.url());
+      });
       const failures: string[] = [];
       await context.route('https://**/*', async (route) => {
         const url = new URL(route.request().url());
@@ -42,7 +46,7 @@ for (const article of ['ssl', 'ar']) {
           throw new Error('MathJax asset escaped its package');
         try {
           await route.fulfill({
-            body: path.endsWith('/tex-chtml.js')
+            body: path.endsWith('/tex-mml-chtml.js')
               ? Buffer.concat([
                   Buffer.from(
                     `window.MathJax.options = { ...window.MathJax.options, worker: { path: ${JSON.stringify(worker.url)}, maps: ${JSON.stringify(worker.url + '/mathmaps')} } };\n`,
@@ -68,11 +72,11 @@ for (const article of ['ssl', 'ar']) {
         await page.waitForFunction(
           () => document.querySelectorAll('.post-body mjx-container').length > 20,
         );
-        // Join the existing queue without scheduling another typesetting pass.
+        // Static output and local fonts are readable before any browser math engine loads.
         await page.evaluate(async () => {
-          await window.MathJax!.whenReady!(() => undefined);
           await document.fonts.ready;
         });
+        expect(await page.evaluate(() => !!window.MathJax)).toBe(false);
         await expect(page.locator('mjx-merror, [data-mjx-error]')).toHaveCount(0);
         expect(
           await page.evaluate(() =>
@@ -137,7 +141,6 @@ for (const article of ['ssl', 'ar']) {
             () => document.querySelectorAll('.post-body mjx-container').length > 20,
           );
           await page.evaluate(async () => {
-            await window.MathJax!.whenReady!(() => undefined);
             await document.fonts.ready;
             await new Promise<void>((resolve) =>
               requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
@@ -152,8 +155,17 @@ for (const article of ['ssl', 'ar']) {
           await expect(page.locator('mjx-merror, [data-mjx-error]')).toHaveCount(0);
         }
       }
-      expect(assets.some((path) => path.endsWith('/tex-chtml.js'))).toBe(true);
-      expect(assets.some((path) => path.endsWith('.woff2'))).toBe(true);
+      const formula = page.locator('.math-inline mjx-container[data-static-math]').first();
+      await formula.scrollIntoViewIfNeeded();
+      await formula.press('Enter');
+      await page.waitForFunction(() => !!window.MathJax?.typesetPromise);
+      await page.evaluate(async () => {
+        await window.MathJax!.whenReady!(() => undefined);
+      });
+      await expect(page.locator('[role="menu"]').first()).toBeVisible();
+      await page.keyboard.press('Escape');
+      expect(assets.some((path) => path.endsWith('/tex-mml-chtml.js'))).toBe(true);
+      expect(fonts.length).toBeGreaterThan(0);
       expect(failures).toEqual([]);
       expect(await page.pageErrors()).toEqual([]);
       expect(worker.requests).toContain('/speech-worker.js');

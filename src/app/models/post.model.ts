@@ -23,4 +23,7 @@ export interface PostContent {
   toc: PostTocItem[];
 }
 
-export interface Post extends PostSummary, PostContent {}
+export interface Post extends PostSummary, PostContent {
+  /** Only the initial browser visit can adopt the existing prerendered article. */
+  prerendered?: boolean;
+}

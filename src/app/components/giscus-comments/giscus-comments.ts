@@ -12,6 +12,7 @@ import { COMMENTS_CONFIG } from '../../data/comments-config';
 import { SITE_CONFIG } from '../../data/site-config';
 import type { CommentsConfig } from '../../models/config.model';
 import { ThemeService } from '../../services/theme.service';
+import { whenNearViewport } from '../../utils/near-viewport';
 
 export const GISCUS_CONFIG = new InjectionToken<CommentsConfig>('Giscus configuration', {
   providedIn: 'root',
@@ -34,9 +35,12 @@ export class GiscusCommentsComponent implements OnDestroy {
   private readonly themeService = inject(ThemeService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private loaded = false;
+  private stopObserving: () => void = () => undefined;
 
   constructor() {
-    afterNextRender(() => this.load());
+    afterNextRender(() => {
+      this.stopObserving = whenNearViewport(this.host.nativeElement, () => this.load());
+    });
     effect(() => {
       const theme = this.themeService.theme();
       if (this.loaded) {
@@ -46,11 +50,12 @@ export class GiscusCommentsComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.stopObserving();
     this.loaded = false;
   }
 
   load(): void {
-    if (!this.config.enabled || typeof document === 'undefined') {
+    if (this.loaded || !this.config.enabled || typeof document === 'undefined') {
       return;
     }
 

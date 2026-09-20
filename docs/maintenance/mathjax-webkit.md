@@ -17,6 +17,12 @@ message, an error, or termination. Constructor failure also releases it.
 It preserves the configured worker path, rules path, and message listener;
 global `Worker` and `URL` behavior is unchanged. Speech and Braille remain enabled.
 
+Article formulas now arrive as build-rendered CHTML and assistive MathML. The
+browser engine (`tex-mml-chtml.js`) is requested only for explicit formula-menu
+interaction, converting the selected formula from MathML; ordinary reading does
+not start the worker. Keep this regression on the interactive path, not just the
+static initial DOM. The combined TeX-and-MathML bundle registers both input jax.
+
 Unit tests verify URL lifetime and failure cleanup. Production browser tests
 wait for the existing [MathJax queue](https://docs.mathjax.org/en/latest/web/typeset.html),
 check formula errors/font loading, and verify SVG-label placement in light/dark

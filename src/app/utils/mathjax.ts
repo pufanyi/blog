@@ -1,9 +1,12 @@
 import { createMathWorker } from './mathjax-worker';
 
 interface MathJaxApi {
+  loader?: { load: string[] };
+  chtml?: { fontURL: string };
   output?: { displayOverflow: 'scroll' };
   tex?: { inlineMath: string[][]; displayMath: string[][] };
   startup?: {
+    input?: string[];
     typeset?: boolean;
     promise?: Promise<unknown>;
     adaptor?: { createWorker: typeof createMathWorker };
@@ -20,16 +23,17 @@ declare global {
 }
 
 let loading: Promise<MathJaxApi> | undefined;
-const SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-chtml.js';
+const SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js';
 
 function loadMathJax(): Promise<MathJaxApi> {
   if (window.MathJax?.typesetPromise) return Promise.resolve(window.MathJax);
   if (loading) return loading;
   loading = new Promise<MathJaxApi>((resolve, reject) => {
     window.MathJax = {
+      chtml: { fontURL: '/assets/mathjax/woff2' },
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
       output: { displayOverflow: 'scroll' },
-      startup: { typeset: false },
+      startup: { typeset: false, input: ['tex', 'mml'] },
     };
     const script = document.createElement('script');
     script.id = 'MathJax-script';
@@ -76,4 +80,43 @@ export async function typesetMath(container: HTMLElement, signal?: AbortSignal):
 
 export function clearMath(container: HTMLElement): void {
   if (typeof window !== 'undefined') window.MathJax?.typesetClear?.([container]);
+}
+
+/** Activate a single precompiled formula, preserving resolved macros/references via MathML. */
+export async function activateStaticMath(
+  formula: HTMLElement,
+  signal: AbortSignal,
+  point: { x: number; y: number } | null,
+): Promise<void> {
+  const mathml = formula.querySelector('mjx-assistive-mml > math')?.cloneNode(true);
+  if (!mathml || signal.aborted) return;
+  const api = await loadMathJax();
+  if (signal.aborted || !formula.isConnected) return;
+  const wrapper = document.createElement('span');
+  wrapper.append(mathml);
+  formula.replaceWith(wrapper);
+  try {
+    await api.typesetPromise?.([wrapper]);
+    if (signal.aborted || !wrapper.isConnected) {
+      api.typesetClear?.([wrapper]);
+      return;
+    }
+    const rendered = wrapper.querySelector<HTMLElement>('mjx-container');
+    if (!rendered) throw new Error('Math options did not initialize');
+    rendered.dataset['tex'] = formula.dataset['tex'] ?? '';
+    rendered.focus({ preventScroll: true });
+    const rect = rendered.getBoundingClientRect();
+    rendered.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: point?.x ?? rect.left,
+        clientY: point?.y ?? rect.bottom,
+      }),
+    );
+  } catch (error) {
+    api.typesetClear?.([wrapper]);
+    if (wrapper.isConnected) wrapper.replaceWith(formula);
+    throw error;
+  }
 }

@@ -11,6 +11,39 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
+test('comments wait until the reader approaches the end of the article', async ({ page }) => {
+  let requests = 0;
+  page.on('request', (request) => {
+    if (request.url() === 'https://giscus.app/client.js') requests++;
+  });
+  await page.goto('/blog/ml/ml-revisit/rl');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
+  expect(requests).toBe(0);
+  await page.locator('app-giscus-comments').scrollIntoViewIfNeeded();
+  await expect.poll(() => requests).toBe(1);
+});
+
+test('formulas and closed derivations remain readable with JavaScript disabled', async ({
+  browser,
+  baseURL,
+}) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
+  try {
+    const page = await context.newPage();
+    await page.route('https://**/*', (route) => route.fulfill({ body: '' }));
+    await page.goto('/blog/ml/ml-revisit/rl');
+    expect(await page.locator('mjx-container[data-static-math]').count()).toBeGreaterThan(100);
+    const details = page
+      .locator('details')
+      .filter({ has: page.locator('mjx-container') })
+      .first();
+    await details.locator('summary').first().click();
+    await expect(details.locator('mjx-container').first()).toBeVisible();
+  } finally {
+    await context.close();
+  }
+});
+
 test('article styles render before JavaScript and disappear when navigating away', async ({
   page,
   request,
@@ -48,6 +81,7 @@ test('leaving an interactive article disposes its controls and build-only source
   }
   await page.goto('/blog/ml/ml-revisit/infra/flash-attention');
   const player = page.locator('[data-flash-forward]');
+  await player.scrollIntoViewIfNeeded();
   await expect(player).toHaveAttribute('data-ready', 'true');
   const retired = await player.elementHandle();
   await page.getByRole('link', { name: 'Home', exact: true }).click();

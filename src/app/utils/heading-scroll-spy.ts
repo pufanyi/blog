@@ -23,15 +23,14 @@ export function resolveActiveHeading(
     return headings.at(-1)?.id ?? '';
   }
 
-  let activeId = '';
-  for (const heading of headings) {
-    if (heading.top > activationLine) {
-      break;
-    }
-    activeId = heading.id;
+  let low = 0;
+  let high = headings.length;
+  while (low < high) {
+    const middle = (low + high) >>> 1;
+    if (headings[middle]!.top <= activationLine) low = middle + 1;
+    else high = middle;
   }
-
-  return activeId;
+  return headings[low - 1]?.id ?? '';
 }
 
 export function calculateReadingProgress(
@@ -53,6 +52,12 @@ export class HeadingScrollSpy {
   private headings: HTMLElement[] = [];
   private resizeObserver: ResizeObserver | null = null;
   private frameId: number | null = null;
+  private dirty = true;
+  private positions: HeadingPosition[] = [];
+  private articleTop = 0;
+  private articleHeight = 0;
+  private documentHeight = 0;
+  private activationLine = 0;
 
   observe(article: HTMLElement, tocItems: readonly PostTocItem[]): void {
     this.disconnect();
@@ -81,18 +86,24 @@ export class HeadingScrollSpy {
     this.activeHeadingId.set('');
 
     window.addEventListener('scroll', this.handleViewportChange, { passive: true });
-    window.addEventListener('resize', this.handleViewportChange, { passive: true });
+    window.addEventListener('resize', this.handleGeometryChange, { passive: true });
+    article.addEventListener('toggle', this.handleGeometryChange, true);
+    article.addEventListener('load', this.handleGeometryChange, true);
+    document.fonts?.addEventListener('loadingdone', this.handleGeometryChange);
     window.addEventListener('hashchange', this.handleLocationChange);
     window.addEventListener('popstate', this.handleLocationChange);
 
     if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver(this.handleViewportChange);
+      this.resizeObserver = new ResizeObserver(this.handleGeometryChange);
       this.resizeObserver.observe(article);
+      this.resizeObserver.observe(document.body);
     }
 
-    this.scheduleSync();
+    this.refresh();
 
-    void document.fonts?.ready.then(() => this.scheduleSync());
+    void document.fonts?.ready.then(() => {
+      if (this.article === article) this.refresh();
+    });
   }
 
   activate(id: string): void {
@@ -102,13 +113,14 @@ export class HeadingScrollSpy {
   }
 
   refresh(): void {
+    this.dirty = true;
     this.scheduleSync();
   }
 
   disconnect(): void {
     if (typeof window !== 'undefined') {
       window.removeEventListener('scroll', this.handleViewportChange);
-      window.removeEventListener('resize', this.handleViewportChange);
+      window.removeEventListener('resize', this.handleGeometryChange);
       window.removeEventListener('hashchange', this.handleLocationChange);
       window.removeEventListener('popstate', this.handleLocationChange);
 
@@ -117,14 +129,22 @@ export class HeadingScrollSpy {
       }
     }
 
+    this.article?.removeEventListener('toggle', this.handleGeometryChange, true);
+    this.article?.removeEventListener('load', this.handleGeometryChange, true);
+    if (typeof document !== 'undefined')
+      document.fonts?.removeEventListener('loadingdone', this.handleGeometryChange);
+
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
     this.frameId = null;
     this.article = null;
     this.headings = [];
+    this.positions = [];
+    this.dirty = true;
   }
 
   private readonly handleViewportChange = (): void => this.scheduleSync();
+  private readonly handleGeometryChange = (): void => this.refresh();
 
   private readonly handleLocationChange = (): void => {
     const hashId = this.readHashId();
@@ -155,26 +175,29 @@ export class HeadingScrollSpy {
       return;
     }
 
-    const activationLine = this.getActivationLine();
-    const documentHeight = Math.max(
-      document.documentElement.scrollHeight,
-      document.body.scrollHeight,
-    );
-    const atPageEnd = Math.ceil(window.scrollY + window.innerHeight) >= documentHeight - 2;
-    const activeId = resolveActiveHeading(
-      this.headings.map((heading) => ({
-        id: heading.id,
-        top: heading.getBoundingClientRect().top,
-      })),
-      activationLine,
-      atPageEnd,
-    );
-    const articleRect = this.article.getBoundingClientRect();
+    if (this.dirty) {
+      this.dirty = false;
+      const scrollY = window.scrollY;
+      this.activationLine = this.getActivationLine();
+      this.documentHeight = Math.max(
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight,
+      );
+      this.positions = this.headings
+        .filter((heading) => heading.getClientRects().length > 0)
+        .map((heading) => ({ id: heading.id, top: heading.getBoundingClientRect().top + scrollY }));
+      const rect = this.article.getBoundingClientRect();
+      this.articleTop = rect.top + scrollY;
+      this.articleHeight = rect.height;
+    }
+    const scrollY = window.scrollY;
+    const atPageEnd = Math.ceil(scrollY + window.innerHeight) >= this.documentHeight - 2;
+    const activeId = resolveActiveHeading(this.positions, scrollY + this.activationLine, atPageEnd);
     const progress = calculateReadingProgress(
-      articleRect.top,
-      articleRect.height,
+      this.articleTop - scrollY,
+      this.articleHeight,
       window.innerHeight,
-      activationLine,
+      this.activationLine,
     );
 
     if (this.activeHeadingId() !== activeId) {

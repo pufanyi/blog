@@ -34,8 +34,8 @@
 
 .vit-grid {
   fill: none;
-  stroke: var(--paper-bg);
-  stroke-width: 2;
+  stroke: var(--border-color);
+  stroke-width: 1;
 }
 
 .vit-menu-paper {

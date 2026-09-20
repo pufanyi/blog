@@ -75,6 +75,7 @@ function ViTPatches() {
                     <Scene />
                   </g>
                 </g>
+                <rect width="40" height="40" className="vit-grid" />
               </svg>
               <text x="12" y="80" textAnchor="middle" className="vit-small">
                 {index + 1}

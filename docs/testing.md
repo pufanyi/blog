@@ -48,7 +48,12 @@ pnpm exec playwright test e2e/docs.spec.ts --project=desktop --project=mobile
 
 Calling Playwright directly reuses existing production output, so build after changing source. `BLOG_PREVIEW_PORT` and `BLOG_CLOUDFLARE_PORT` select isolated server ports when defaults are occupied. Playwright owns its servers and does not reuse an existing development server. See [host troubleshooting](browser-troubleshooting.md) for Linux library, font, and workerd issues.
 
-Shared browser fixtures stub third-party analytics/comments and provide a deterministic MathJax delay for reading/scroll tests. Separate real-engine tests serve the pinned MathJax, font, and speech-worker assets. Do not use the delayed stub as evidence that formulas actually typeset.
+Shared browser fixtures stub third-party analytics/comments and external webfonts.
+Generated formulas are already static; reading/scroll tests must not load a browser
+math engine. Separate real-engine tests verify static output and then explicitly
+open a formula menu using pinned MathJax, local fonts and the real speech worker.
+Navigation tests wait for article/font readiness, not unrelated external images'
+`load` event. Do not use stubbed traffic as evidence that the explorer works.
 
 Wait for `.post-body[data-rendered="true"]` before testing attached article controls. This marker does not await lazy article-specific enhancements or MathJax; those have their own readiness conditions. Scroll offscreen controls into view before focusing them to avoid smooth-scroll races with the next navigation.
 

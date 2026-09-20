@@ -7,9 +7,9 @@ import { JSDOM } from 'jsdom';
 const baselines = {
   '/': { code: 466_159, html: 85_163, styles: 70_617 },
   '/blog': { code: 590_430, html: 95_147, styles: 71_166 },
-  '/blog/oi-icpc/codeforces/cf551c': { code: 718_922, html: 137_695, styles: 90_106 },
+  '/blog/oi-icpc/codeforces/cf551c': { code: 693_027, html: 162_790, styles: 103_450 },
 };
-const searchBaseline = 1_482_726;
+const searchBaseline = 1_748_669;
 const limit = (baseline: number) => Math.ceil(baseline * 1.1);
 
 for (const [path, baseline] of Object.entries(baselines)) {

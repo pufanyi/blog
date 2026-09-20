@@ -1,0 +1,119 @@
+.sim-figure {
+  margin: 2rem 0;
+}
+
+.sim-scroll {
+  overflow-x: auto;
+  padding: 0.75rem 0;
+  border: 1px solid var(--border-light);
+  border-radius: 0.75rem;
+  background: var(--paper-bg);
+}
+
+.sim-scroll svg {
+  display: block;
+  width: 720px;
+  min-width: 720px;
+  margin-inline: auto;
+  font-family: var(--font-body);
+  font-size: 15px;
+  text-anchor: middle;
+  fill: var(--text-color);
+}
+
+.sim-figure figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  line-height: 1.7;
+}
+
+.sim-heading {
+  font-weight: 600;
+}
+
+.sim-line,
+.sim-feedback {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 2;
+}
+
+.sim-feedback {
+  stroke-dasharray: 6 5;
+}
+
+.sim-arrowhead {
+  fill: var(--text-secondary);
+}
+
+.sim-ground {
+  stroke: var(--surface-strong);
+  stroke-width: 5;
+}
+
+.sim-arm {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 12;
+  stroke-linejoin: round;
+}
+
+.sim-joint {
+  fill: var(--paper-bg);
+  stroke: var(--accent-blue);
+  stroke-width: 3;
+}
+
+.sim-body,
+.sim-particle {
+  fill: color-mix(in srgb, var(--accent-clay) 22%, var(--paper-bg));
+  stroke: var(--accent-clay);
+  stroke-width: 2;
+}
+
+.sim-contact-edge {
+  stroke: var(--accent-blue);
+  stroke-width: 5;
+}
+
+.sim-target {
+  fill: none;
+  stroke: var(--accent-sage);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.sim-box {
+  fill: var(--accent-bg);
+  stroke: var(--accent-blue);
+  stroke-width: 1.5;
+}
+
+.sim-divider {
+  stroke: var(--border-color);
+  stroke-width: 1;
+}
+
+.sim-mesh {
+  fill: color-mix(in srgb, var(--accent-teal) 12%, var(--paper-bg));
+  stroke: var(--accent-teal);
+  stroke-width: 1.5;
+}
+
+.sim-dot {
+  fill: var(--text-color);
+}
+
+.sim-grid {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-dasharray: 3 3;
+}
+
+.sim-batch-column {
+  fill: color-mix(in srgb, var(--accent-sage) 8%, var(--paper-bg));
+  stroke: var(--accent-sage);
+  stroke-dasharray: 5 4;
+  stroke-width: 1.5;
+}

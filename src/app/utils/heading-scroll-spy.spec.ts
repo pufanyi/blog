@@ -1,5 +1,55 @@
-import { describe, expect, it } from 'vitest';
-import { calculateReadingProgress, flattenToc, resolveActiveHeading } from './heading-scroll-spy';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  calculateReadingProgress,
+  flattenToc,
+  HeadingScrollSpy,
+  resolveActiveHeading,
+} from './heading-scroll-spy';
+
+it('caches geometry during scrolling, invalidates on layout events and disconnects', () => {
+  let frame: FrameRequestCallback | undefined;
+  vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+    frame = callback;
+    return 1;
+  });
+  vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {
+    frame = undefined;
+  });
+  const flush = () => {
+    const callback = frame;
+    frame = undefined;
+    callback?.(0);
+  };
+  const article = document.createElement('article');
+  article.innerHTML = '<h2 id="one">One</h2>';
+  document.body.append(article);
+  const heading = article.querySelector('h2')!;
+  vi.spyOn(heading, 'getClientRects').mockReturnValue([{}] as unknown as DOMRectList);
+  const rect = vi.spyOn(heading, 'getBoundingClientRect');
+  const spy = new HeadingScrollSpy();
+  try {
+    spy.observe(article, [{ id: 'one', text: 'One', level: 2, children: [] }]);
+    flush();
+    expect(rect).toHaveBeenCalledTimes(1);
+    window.dispatchEvent(new Event('scroll'));
+    flush();
+    expect(rect).toHaveBeenCalledTimes(1);
+    article.dispatchEvent(new Event('toggle'));
+    flush();
+    expect(rect).toHaveBeenCalledTimes(2);
+    window.dispatchEvent(new Event('resize'));
+    flush();
+    expect(rect).toHaveBeenCalledTimes(3);
+    spy.disconnect();
+    article.dispatchEvent(new Event('load'));
+    window.dispatchEvent(new Event('scroll'));
+    expect(frame).toBeUndefined();
+  } finally {
+    spy.disconnect();
+    article.remove();
+    vi.restoreAllMocks();
+  }
+});
 
 describe('resolveActiveHeading', () => {
   const headings = [
