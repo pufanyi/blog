@@ -1,0 +1,45 @@
+.vision-example-bird__sky {
+  fill: color-mix(in srgb, var(--accent-sky) 12%, var(--paper-bg));
+}
+
+.vision-example-bird__foliage {
+  fill: color-mix(in srgb, var(--accent-sage) 20%, var(--paper-bg));
+}
+
+.vision-example-bird__branch,
+.vision-example-bird__feet {
+  fill: none;
+  stroke: var(--accent-clay);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.vision-example-bird__feet {
+  stroke-width: 2;
+}
+
+.vision-example-bird__leaf {
+  fill: var(--accent-sage);
+}
+
+.vision-example-bird__body {
+  fill: var(--accent-sky);
+}
+
+.vision-example-bird__wing {
+  fill: var(--accent-blue);
+  stroke: var(--paper-bg);
+  stroke-width: 0.7;
+}
+
+.vision-example-bird__accent {
+  fill: var(--accent-ochre);
+}
+
+.vision-example-bird__eye {
+  fill: var(--text-color);
+}
+
+.vision-example-bird__glint {
+  fill: var(--paper-bg);
+}

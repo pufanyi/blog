@@ -1,4 +1,5 @@
 @import "./styles/morandi.css";
+@import "./styles/vision-examples.css";
 
 ::selection {
   color: var(--text-color);

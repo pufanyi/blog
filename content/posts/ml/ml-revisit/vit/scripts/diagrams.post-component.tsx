@@ -1,13 +1,22 @@
+import { BIRD_SCENE_VIEW_BOX, BirdScene } from '../../../../../shared/vision-example';
+
 const patches = Array.from({ length: 16 }, (_, index) => ({
   index,
   row: Math.floor(index / 4),
   col: index % 4,
 }));
 
-const DOG_IMAGE = '/assets/examples/dog.avif';
-
 function Scene() {
-  return <image href={DOG_IMAGE} width="160" height="160" />;
+  return (
+    <svg
+      width="160"
+      height="160"
+      viewBox={BIRD_SCENE_VIEW_BOX}
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <BirdScene />
+    </svg>
+  );
 }
 
 function ViTPatches() {
@@ -17,7 +26,7 @@ function ViTPatches() {
         <svg viewBox="0 0 720 295" role="img" aria-labelledby="vit-patches-title vit-patches-desc">
           <title id="vit-patches-title">同一幅图像从二维 patch 网格展平为序列</title>
           <desc id="vit-patches-desc">
-            一张小狗图像被切成四行四列。右侧十六块来自同一幅图的对应位置，按行展开后再分别投影成向量。
+            一张小鸟图像被切成四行四列。右侧十六块来自同一幅图的对应位置，按行展开后再分别投影成向量。
           </desc>
           <defs>
             <clipPath id="vit-patch-clip">
@@ -68,7 +77,7 @@ function ViTPatches() {
       </div>
       <figcaption>
         图中只切成 4 × 4
-        块来展示对应关系；每个小块直接取自左侧的小狗图像，下方方柱表示投影后的向量，并非真实模型输出。相邻轮廓会落在不同
+        块来展示对应关系；每个小块直接取自左侧的小鸟图像，下方方柱表示投影后的向量，并非真实模型输出。相邻轮廓会落在不同
         patch 中，需要后续交换信息并利用位置重新建立联系。
       </figcaption>
     </figure>

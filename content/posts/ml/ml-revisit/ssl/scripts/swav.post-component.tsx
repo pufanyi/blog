@@ -1,3 +1,4 @@
+import { BIRD_SCENE_VIEW_BOX, BirdScene } from '../../../../../shared/vision-example';
 import { Arrow, Box, Figure, Label, MathLabel } from './elements';
 
 // Every view and source outline uses these same scene coordinates.
@@ -7,48 +8,6 @@ const crops = [
   { name: 'Local 1', x: 117, y: 21, size: 58, tone: 'clay' },
   { name: 'Local 2', x: 64, y: 64, size: 62, tone: 'clay' },
 ] as const;
-
-function BirdScene() {
-  return (
-    <g aria-hidden="true">
-      <rect width="240" height="180" className="ssl-swav-sky" />
-      <path
-        d="M 0 154 Q 35 96 74 145 T 158 131 T 240 119 V 180 H 0 Z"
-        className="ssl-swav-foliage"
-      />
-      <path
-        d="M -8 151 L 250 131 M 187 136 L 223 99 M 30 149 L 14 126"
-        className="ssl-swav-branch"
-      />
-      <path
-        d="M 209 114 Q 191 83 215 80 Q 232 94 209 114 M 222 105 Q 225 76 239 88 Q 246 101 222 105"
-        className="ssl-swav-leaf"
-      />
-      <path d="M 94 101 L 36 134 L 50 106 L 88 81 Z" className="ssl-swav-wing" />
-      <ellipse
-        cx="116"
-        cy="89"
-        rx="42"
-        ry="32"
-        transform="rotate(-23 116 89)"
-        className="ssl-swav-bird"
-      />
-      <circle cx="144" cy="49" r="25" className="ssl-swav-bird" />
-      <path
-        d="M 127 58 Q 153 58 155 82 Q 144 110 120 116 Q 146 86 127 58"
-        className="ssl-swav-breast"
-      />
-      <path d="M 91 78 Q 131 62 127 88 Q 116 108 84 105 Z" className="ssl-swav-wing" />
-      <path d="M 167 44 L 189 52 L 166 59 Z" className="ssl-swav-beak" />
-      <circle cx="153" cy="43" r="4" className="ssl-swav-eye" />
-      <circle cx="154" cy="42" r="1.1" className="ssl-swav-glint" />
-      <path
-        d="M 113 116 L 114 141 L 104 146 M 114 141 L 124 144 M 133 110 L 137 139 L 129 144 M 137 139 L 147 143"
-        className="ssl-swav-feet"
-      />
-    </g>
-  );
-}
 
 function Crop({ index, x, y, size }: { index: number; x: number; y: number; size: number }) {
   const crop = crops[index];
@@ -89,7 +48,7 @@ function SwAVViews() {
       <Label x={136} y={25}>
         原图：没有类别标签
       </Label>
-      <svg x="16" y="48" width="240" height="180" viewBox="0 0 240 180" aria-hidden="true">
+      <svg x="16" y="48" width="240" height="180" viewBox={BIRD_SCENE_VIEW_BOX} aria-hidden="true">
         <BirdScene />
         {crops.slice(0, 2).map((crop, i) => (
           <g key={crop.name} className={`ssl-${crop.tone}`}>
@@ -348,7 +307,7 @@ function SwAVMultiCrop() {
       caption="上方框线标出两个 local crops 在原场景中的位置；下方矩阵逐格列出监督关系。每个有圆点的格子是一项 cross-entropy：该列的预测学习该行的 global target。"
       height={417}
     >
-      <svg x="22" y="17" width="180" height="135" viewBox="0 0 240 180" aria-hidden="true">
+      <svg x="22" y="17" width="180" height="135" viewBox={BIRD_SCENE_VIEW_BOX} aria-hidden="true">
         <BirdScene />
         {crops.slice(2).map((crop, i) => (
           <g key={crop.name} className="ssl-clay">

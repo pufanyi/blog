@@ -35,6 +35,10 @@ Article `styles.css` is embedded in that article's rendered HTML under
 and keep same-document SVG fragment URLs intact. Styles exist before JavaScript
 and leave with the article DOM. Shared presentation remains in `PostComponent`.
 Build-only styles and scripts are excluded by Angular's article asset rules.
+Reusable build-time visual primitives live in `content/shared`; post components
+import them directly, and the content cache follows those imports so a shared
+change regenerates only its consumers. Their prefixed presentation styles are
+global because the same generated markup appears in more than one article.
 
 The generator discovers `scripts/*.post-client.ts` and generates per-slug lazy
 loaders. Each module exports `enhancePost(container): () => void`.

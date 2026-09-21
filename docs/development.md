@@ -53,8 +53,9 @@ copying a live worktree can capture another task's incomplete edits.
 - Prefer `.mts` for Node ESM scripts and executable configuration, `.ts` for
   Angular/shared code, and `.tsx` for JSX. `tsconfig.scripts.json` checks all
   tooling, script tests, and post-local components strictly, without `allowJs`.
-  Include post-local JSX helpers as well as component entrypoints: `tsx` needs
-  those files covered by this config to use the automatic React JSX runtime.
+  Include post-local JSX helpers and reusable `content/shared` components as well
+  as component entrypoints: `tsx` needs those files covered by this config to use
+  the automatic React JSX runtime.
   Keep build-time TSX files excluded from Angular's post asset copy rules.
   Keep native Node entrypoints compatible with type stripping; MDX generation
   and its tests use `tsx` because they load authored JSX components.
