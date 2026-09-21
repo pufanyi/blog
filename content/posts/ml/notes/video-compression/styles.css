@@ -1,0 +1,167 @@
+.vc-figure {
+  margin: 1.8rem 0;
+  break-inside: avoid;
+}
+
+.vc-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0.8rem;
+  background: var(--paper-bg);
+}
+
+.vc-scroll > svg {
+  display: block;
+  width: 100%;
+  min-width: 680px;
+  height: auto;
+}
+
+.vc-scroll text {
+  fill: var(--text-color);
+  font: 15px var(--font-body);
+}
+
+.vc-scroll .vc-small {
+  font-size: 12px;
+  fill: var(--text-secondary);
+}
+
+.vc-scroll .vc-label,
+.vc-scroll .vc-heading,
+.vc-scroll .vc-frame-label {
+  font-weight: 650;
+}
+
+.vc-scroll .vc-heading {
+  font-size: 16px;
+}
+
+.vc-cell,
+.vc-box,
+.vc-frame,
+.vc-sum {
+  stroke-width: 1.2;
+}
+
+.vc-cell {
+  stroke: var(--border-color);
+}
+
+.vc-source,
+.vc-source-box {
+  fill: color-mix(in srgb, var(--accent-blue) 17%, var(--paper-bg));
+  stroke: var(--accent-blue);
+}
+
+.vc-prediction,
+.vc-predict-box {
+  fill: color-mix(in srgb, var(--accent-sage) 18%, var(--paper-bg));
+  stroke: var(--accent-sage);
+}
+
+.vc-residual,
+.vc-transform-box {
+  fill: color-mix(in srgb, var(--accent-rose) 17%, var(--paper-bg));
+  stroke: var(--accent-rose);
+}
+
+.vc-coefficient,
+.vc-bit-box {
+  stroke: var(--accent-ochre);
+}
+
+.vc-bit-box {
+  fill: color-mix(in srgb, var(--accent-ochre) 18%, var(--paper-bg));
+}
+
+.vc-coefficient.vc-zero {
+  fill: var(--paper-bg);
+}
+
+.vc-coefficient.vc-nonzero {
+  fill: color-mix(in srgb, var(--accent-ochre) 22%, var(--paper-bg));
+}
+
+.vc-filter-box {
+  fill: color-mix(in srgb, var(--accent-mauve) 16%, var(--paper-bg));
+  stroke: var(--accent-mauve);
+}
+
+.vc-reference-box {
+  fill: var(--accent-bg);
+  stroke: var(--border-color);
+}
+
+.vc-sum {
+  fill: var(--paper-bg);
+  stroke: var(--text-secondary);
+}
+
+.vc-scroll .vc-number {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vc-scroll .vc-operator {
+  font-size: 22px;
+  font-weight: 650;
+}
+
+.vc-arrow,
+.vc-flow,
+.vc-control,
+.vc-reference,
+.vc-timeline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vc-arrow,
+.vc-timeline {
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+}
+
+.vc-flow {
+  stroke: var(--accent-blue);
+  stroke-width: 1.7;
+  marker-end: url("#vc-hybrid-arrow");
+}
+
+.vc-control {
+  stroke: var(--accent-mauve);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 4;
+  marker-end: url("#vc-hybrid-arrow");
+}
+
+.vc-arrow-head {
+  fill: var(--accent-blue);
+}
+
+.vc-frame-i {
+  fill: color-mix(in srgb, var(--accent-blue) 22%, var(--paper-bg));
+  stroke: var(--accent-blue);
+}
+
+.vc-frame-p {
+  fill: color-mix(in srgb, var(--accent-sage) 24%, var(--paper-bg));
+  stroke: var(--accent-sage);
+}
+
+.vc-frame-b {
+  fill: color-mix(in srgb, var(--accent-ochre) 20%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+}
+
+.vc-reference {
+  stroke: var(--accent-mauve);
+  stroke-width: 1.45;
+  marker-end: url("#vc-gop-arrow");
+}
+
+.vc-reference-head {
+  fill: var(--accent-mauve);
+}

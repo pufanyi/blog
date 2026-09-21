@@ -41,6 +41,16 @@ The directory path becomes the slug `notes/example` and the URL `/blog/notes/exa
 
 A category directory contains child categories or article directories. Keep supporting files inside an article directory, where discovery stops at `index.mdx`. Do not put notes, backups, or an `AGENTS.md` inside category directories.
 
+## Plan a technical tutorial
+
+Use the [technical tutorial editorial principles](../ml-editorial.md) for every
+technical subject, not only ML Revisited. Begin with the problem and a concrete
+example, let each mechanism answer a limitation exposed by the previous step,
+and derive important equations from the quantity that must be preserved or
+optimized. Compare alternatives only after their shared mechanism is clear.
+Use figures for relationships that are harder to understand in prose, and keep
+empirical claims attributable to their original or official sources.
+
 ## Front matter reference
 
 | Field | Required | Meaning |

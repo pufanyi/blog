@@ -1,6 +1,9 @@
-# ML Revisited editorial principles
+# Technical tutorial editorial principles
 
-These principles apply to the series under `content/posts/ml/ml-revisit/`.
+These principles apply to every technical tutorial in the blog. The filename is
+retained so existing links stay stable; the ML Revisited series remains the
+reference style, while topic-specific continuity rules below still apply only to
+their named articles.
 
 - The RL notes are one article at `rl/index.mdx`. Their Typst source and original
   bibliography remain under `tmp/typst-originals/`; preserve the later policy
@@ -36,10 +39,11 @@ These principles apply to the series under `content/posts/ml/ml-revisit/`.
   transform and show decoupled weight decay bypassing it. The spectrum plots
   distinguish ideal polar factors from the actual finite-step approximation.
 
-- Write for readers with some machine-learning or LLM background who may be
-  encountering the specific topic for the first time. The series should support
-  both initial learning and review. Briefly establish necessary prerequisites
-  and introduce the terms needed to follow the explanation.
+- Write for readers with relevant general background who may be encountering the
+  specific topic for the first time. A tutorial should support both initial
+  learning and review. Briefly establish necessary prerequisites and introduce
+  the terms needed to follow the explanation; do not assume ML background for a
+  non-ML subject.
 - Use courses and papers to develop a coherent explanation for students.
   Organize the prose around the reader's questions, mechanisms, and worked
   examples; explain the subject directly instead of narrating how different

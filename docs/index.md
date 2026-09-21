@@ -6,7 +6,7 @@ This handbook explains how to write for this blog, develop its application, and 
 
 Start with [your first post](writing/first-post.md), then use the references for [Markdown and math](writing/markdown.md), [images, diagrams, and embeds](writing/media.md), and [citations](writing/references.md). The [publishing checklist](writing/publishing.md) covers previewing, updates, and moving an existing article.
 
-Authors importing old material should also read [content migrations](content-migrations.md). The ML Revisited series has additional [editorial principles](ml-editorial.md).
+Authors importing old material should also read [content migrations](content-migrations.md). Every technical tutorial follows the detailed [editorial principles](ml-editorial.md), using the ML Revisited series as the reference style.
 
 ## For developers
 

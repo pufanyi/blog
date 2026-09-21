@@ -37,7 +37,8 @@ instead of accumulating unrelated rules here.
 ## Read the relevant guidance
 
 - Authored posts, CV, diagrams, and citations: [content/AGENTS.md](content/AGENTS.md).
-  The ML series additionally uses [editorial principles](docs/ml-editorial.md).
+  Every technical tutorial uses the detailed [editorial principles](docs/ml-editorial.md);
+  the filename is retained for compatibility even though the guidance is no longer ML-only.
 - Tooling, watchers, validation, or CI: [development](docs/development.md).
   Keep lifecycle-hooked and `*:generated` commands aligned; the final required
   CI `check` must require the quality job to succeed. Browser tests run locally
@@ -109,7 +110,7 @@ instead of accumulating unrelated rules here.
   avoid decorative diagrams, paragraph-filled boxes, and unnecessary labels.
 - Attribute methods, specific claims, and adapted figures beside the relevant
   idea. Keep optional reading separate from the explanatory narrative. Follow
-  the detailed [ML editorial principles](docs/ml-editorial.md) and
+  the detailed [tutorial editorial principles](docs/ml-editorial.md) and
   [content agreements](content/AGENTS.md) for the series and media conventions.
 
 ## Keep the handbook current

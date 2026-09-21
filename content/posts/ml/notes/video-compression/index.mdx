@@ -1,0 +1,245 @@
+---
+title: "视频压缩：从运动补偿到 AV1、VVC 与神经编码"
+date: "2026-09-21"
+description: "从预测、变换、量化和率失真优化推导现代视频编码器，再比较 H.264、HEVC、VP9、AV1、VVC、AV2 与神经视频压缩。"
+---
+
+假设一台固定相机拍着餐厅菜单：墙和菜单几乎不动，只有一张红色价格牌从左边移到右边。若把每一帧都当作独立照片保存，背景会被重复描述；若只保存「价格牌向右移动了多少」和无法预测的细小变化，数据就少得多。**视频压缩的核心不是把每一帧分别压小，而是建立一个双方都能重现的预测，再只编码预测失败的部分。**
+
+这条思路贯穿 H.264/AVC、HEVC/H.265、VP9、AV1 和 VVC/H.266。它们的差异主要在于：怎样切块、从哪里预测、怎样表示残差、怎样过滤重建图像，以及编码器愿意花多少搜索成本。AV2 已在 2026 年发布 1.0 规范，但「规范已经完成」不等于「设备与内容生态已经成熟」。神经视频压缩则在重新学习预测、概率模型乃至整条编码链，仍需面对硬件、互操作和部署成本。
+
+这篇笔记先从一个具体块推导混合视频编码器，再比较各代 codec 的设计和工程选择。文中的「当前」均以 **2026-09-21** 可查的标准、论文与官方资料为准。
+
+## 先算清楚究竟要省多少数据
+
+一帧 $1920\times1080$、每像素 24 bit 的 RGB 图像，以 30 fps 播放时，原始码率约为
+
+$$
+1920\times1080\times30\times24
+\approx 1.49\times10^9\ \text{bit/s}.
+$$
+
+十秒就是约 1.87 GB。即使先转成常见的 8-bit YCbCr 4:2:0，让四个亮度样本共享一组色度样本，仍需要平均 12 bit/pixel，也就是约 746 Mbit/s。若最终视频只有 5 Mbit/s，十秒的数据量是 6.25 MB：编码器需要把前面的数据压到约 $1/149$，同时让人仍觉得画面连贯。
+
+这里先分清四个经常混用的名字：
+
+- **Codec / 编码标准**规定合法 bitstream 以及 decoder 怎样重建图像，例如 H.264、AV1；
+- **Encoder 实现**决定怎样搜索一个合法而高效的 bitstream，例如 x264、SVT-AV1、硬件 NVENC；
+- **Container**把视频、音频、字幕和时间信息装在一起，例如 MP4、WebM；
+- **传输方式**决定文件怎样送到播放器，例如 HLS、DASH。
+
+同一个 codec 可以有多个 encoder，也可以出现在不同 container 中。标准通常精确定义 decoder，却不会规定 encoder 必须怎样搜索；这给实现留下了速度与压缩率的取舍。
+
+## 如果只压一张图，需要保留什么
+
+先忽略时间，只看菜单的一小块。直接记录像素当然可行，但相邻像素通常相近。与其写下每个值，不如先猜它，再保存猜错了多少。
+
+### 从已重建邻居预测当前块
+
+对帧内编码（intra coding），decoder 已经重建了当前块上方和左侧的像素。编码器与 decoder 可以约定一种预测模式：沿边缘向下延伸、向右延伸、取平滑渐变，或者使用更复杂的方向模式。设原始块为 $x$，双方得到的预测为 $p$，需要编码的是
+
+$$
+e=x-p.
+$$
+
+平坦墙面会得到接近零的 residual；文字边缘和红色价格牌则留下较大数值。预测并没有让信息凭空消失，它只是把「绝对亮度是多少」换成了更容易压缩的「与可推导值相差多少」。
+
+### 为什么还要变换和量化
+
+Residual 中相邻位置仍有关联。例如一条竖边会让一整列数值同时变大。离散余弦变换（DCT）一类的线性变换把空间图样分解为不同频率：平缓变化集中到低频，细碎边缘进入高频。变换本身可以近似无损地往返，真正显著减少数据的是随后量化：
+
+$$
+q_k=\operatorname{round}\!\left(\frac{c_k}{\Delta_k}\right),
+\qquad
+\hat c_k=q_k\Delta_k.
+$$
+
+$c_k$ 是变换系数，$\Delta_k$ 是量化步长。小系数除以较大的步长后会变成零；decoder 只能恢复 $\hat c_k$，不能找回原来的 $c_k$。因此量化是有损编码的主要不可逆步骤。4:2:0 色度降采样若被使用，同样已经丢失信息；预测和可逆变换本身则主要负责把信息重新组织得更集中。
+
+<PredictionResidual />
+
+量化后的系数往往包含连续的零和少量非零值。扫描顺序先把低频放在前面，再通过 run length、上下文概率与算术编码一类方法把符号写成 bitstream。熵编码不会继续改变画面；它利用「零很常见」「某种模式在当前上下文更可能」之类的统计规律，用较短的码表示更常见的事件。
+
+## 视频为什么能比逐帧图片省得更多
+
+下一帧中，墙面没有变化，价格牌只是移到了右边。此时当前帧自己的上、左邻居不是唯一参考：已经重建的其他帧通常更接近当前内容。
+
+### Motion vector 是一个块的位移假设
+
+把当前块记为 $x_t$，参考帧中已经重建的图像记为 $\hat x_r$。若编码器为该块选择位移 $v=(v_x,v_y)$，预测可以写成
+
+$$
+p_t(i,j)=\hat x_r(i+v_y,j+v_x),
+\qquad e_t=x_t-p_t.
+$$
+
+编码器发送参考帧编号、motion vector 和 residual。Decoder 用相同参考帧取出预测块，加上解码后的 residual，就得到当前块。
+
+这里的 motion vector 不是物体的真实运动，也不是稠密 optical flow。它只是编码器为一个块找到的平移预测假设：相机摇动、阴影改变、遮挡出现时，它都可能与语义上的「谁在移动」不同；纹理重复时，多种向量也可能产生近似预测。
+
+若价格牌发生旋转或露出新区域，仅靠平移不能完全预测，residual 会补上差异。现代 codec 还允许不同块大小、亚像素插值、多个参考帧和双向/复合预测，让假设更灵活，但基本账本不变：**模式和向量本身需要 bits，剩余误差也需要 bits。**
+
+### 为什么 encoder 必须在内部再解码一遍
+
+一个看似自然却会失败的做法，是让 encoder 总从未受损的原始参考帧预测，而 decoder 只能从量化后的参考帧预测。两边的参考像素从第一帧起就不同；误差会继续进入后续预测，形成 drift。
+
+所以 encoder 内部包含一条本地 decoder 路径：反量化、逆变换，把 residual 加回 prediction，再执行与 decoder 相同的 in-loop filters，最后把**重建帧**放入 reference buffer。之后所有预测都使用它，而不是原始帧。Deblocking、SAO、CDEF、loop restoration 或 ALF 等滤波器虽然名字不同，都必须在参考帧进入后续预测之前保持两端一致。
+
+<HybridCodec />
+
+### I、P、B frame 不是画质等级
+
+- **I-frame**只使用同一帧内的信息，能作为随机访问点，但通常占用更多 bits；
+- **P-frame**可以从较早的参考帧预测；
+- **B-frame**可以组合显示时间上之前和之后的参考帧，往往得到更好预测，但可能要求 decoder 先收到「未来」参考帧。
+
+因此显示顺序不一定等于解码顺序。更长的 Group of Pictures（GOP）让帧间冗余有更大利用空间，却增加 seek 距离、编码延迟和错误传播范围；实时通话常用更短、更简单的结构，点播视频则能接受重排与更深的搜索。I/P/B 是依赖结构，不应被理解为「I 最清晰、B 最模糊」；encoder 仍可给不同帧分配不同量化强度。
+
+<GopTimeline />
+
+## 编码器究竟怎样在许多合法方案中选择
+
+对同一个块，编码器可能选择帧内预测、从多个参考帧做运动补偿、拆成更小的块，或干脆不发送某些 residual。只比较预测误差会倾向于极小的块和复杂模式，却忘记描述这些选择也需要 bits；只比较文件大小则会把所有细节量化掉。
+
+实际 encoder 因而围绕率失真代价（rate–distortion cost）搜索。对候选模式 $m$，可以写成
+
+$$
+J(m)=D(x,\hat x_m)+\lambda R(m).
+$$
+
+$D$ 衡量重建误差，$R$ 包括块结构、预测模式、motion vector、量化系数等所有语法元素的预计 bits，$\lambda$ 控制二者的交换比。量化越强，通常 $R$ 越小而 $D$ 越大。Encoder preset 主要改变搜索范围、估计精度和计算预算；它不是另一个 codec，也不等于画质参数。同样的 AV1 bitstream 规范下，快速硬件 encoder 与慢速软件 encoder 可能在相同画质下产生很不一样的码率。
+
+Decoder 只需执行 bitstream 已经选好的路径，encoder 却要比较许多路径。这就是离线编码可以很慢、播放仍可实时的原因，也是「标准更先进」不能直接推出某个具体实现一定更快或一定更省的原因。
+
+## 各代主流 codec 改了什么
+
+各代标准不是把前面的链条推倒重来，而是在同一套 prediction–residual–quantization–entropy 骨架中扩大候选空间，再想办法让额外选择本身不占太多 bits。
+
+### H.264/AVC：今天仍重要的兼容基线
+
+H.264/AVC 以 16×16 macroblock 为基本组织单元，同时允许更小的 motion partitions；它加入多参考帧、可变块大小运动补偿、整数近似变换、in-loop deblocking，以及 CAVLC/CABAC 熵编码 [@wiegand2003h264]。这些设计形成了现代混合视频编码器的经典轮廓。
+
+它最大的现实优势不是每一项工具仍最强，而是软硬件支持极广、编码与解码成本可控。需要覆盖旧浏览器、低成本设备、编辑软件或不确定的播放环境时，H.264 仍常被用作安全基线。
+
+### HEVC/H.265：更大的树、更灵活的预测
+
+HEVC 用最大 64×64 的 Coding Tree Unit（CTU）替代固定 macroblock 层级，让平坦区域使用大块、复杂边缘继续递归切小；它扩展帧内方向、变换尺寸和 merge 候选，并加入 Sample Adaptive Offset（SAO）、tiles 与 Wavefront Parallel Processing [@sullivan2012hevc]。在高分辨率视频中，大块能用很少语法描述大片平滑区域。
+
+HEVC 已有成熟硬件生态，在 Apple 平台的 4K/HDR 流程等受控环境中尤其常见 [@applevideodocs]。但选型还要单独评估目标平台、专利与授权策略；技术工具相近，不代表所有 codec 的许可条件相同。
+
+### VP9：同一时代的开放 Web 路线
+
+VP9 同样采用 64×64 superblock 与递归分块，组合帧内/帧间预测、多个 reference buffers、sub-pixel motion、分段量化和 tiles [@mukherjee2013vp9]。它不是 HEVC 的换名版本：bitstream 语法、概率模型、参考帧语义和具体工具都不同。
+
+VP9 在 WebM、浏览器和既有在线视频管线中积累了大量部署。若已有稳定的 VP9 编码与设备覆盖，迁移价值要用自己的内容、编码成本和终端分布来衡量，不能只看一张跨论文的压缩率表。
+
+### AV1：把更多预测与环路工具装进开放标准
+
+AV1 把 superblock 扩到 128×128，并提供更丰富的矩形与递归分块；帧间侧包括 compound prediction、global/warped motion 等工具，环路中组合 deblocking、Constrained Directional Enhancement Filter（CDEF）和 loop restoration，还可把 film grain 作为参数合成，以免逐像素编码随机颗粒 [@han2021av1]。
+
+更多工具给 encoder 更大的率失真搜索空间，也提高了高质量编码的计算负担。近年来硬件解码与播放支持已经明显扩展：Netflix 在 2025 年披露，AV1 已约占其串流播放的 30%，并成为其第二常用 codec；该数字说明 AV1 已进入大规模部署，但不代表所有地区、设备或服务都有相同比例 [@netflix2025av1]。
+
+### VVC/H.266：继续扩大可表达的预测与变换
+
+VVC 的 quadtree with multi-type tree（QT+MTT）允许四叉、二叉与三叉切分组合；帧间侧加入更系统的 affine motion、geometric partition、decoder-side motion vector refinement（DMVR）和 bi-directional optical flow（BDOF），变换侧有 multiple transform selection（MTS）与 low-frequency non-separable transform（LFNST），环路还加入 adaptive loop filter（ALF）、cross-component ALF 与 luma mapping [@bross2021vvc]。
+
+这些工具让 VVC 能覆盖超高清、屏幕内容、360° 等更多场景，也意味着实现和搜索更复杂。VVC 是已完成并持续维护的国际标准；是否是某个产品的「主流」选择，仍取决于芯片、播放器、内容管线和授权条件，而不是标准发布日期本身。
+
+### AV2：已经发布的下一代规范，不等于已经普及
+
+Alliance for Open Media 在 2026 年 5 月发布 AV2 Bitstream & Decoding Process Specification 1.0.0。规范面向传统视频之外的 AR/VR、多画面与屏幕内容等场景 [@aomedia2026av2]。在本文时点，它适合被归为**刚完成标准化、开始评估与实现**，而不是与 H.264、HEVC、VP9 或 AV1 等量齐观的成熟部署生态。
+
+把常见选择放回实际状态，可以得到更有用的比较：
+
+| Codec | 2026 年的位置 | 典型优势 | 选型时首先检查 |
+| --- | --- | --- | --- |
+| H.264/AVC | 成熟兼容基线 | 设备覆盖广、实现成熟、成本可控 | 是否需要覆盖旧终端 |
+| HEVC/H.265 | 成熟的高效路线 | 4K/HDR 与硬件管线成熟 | 目标平台和授权策略 |
+| VP9 | 成熟的 Web 路线 | 既有浏览器、WebM 与在线视频生态 | 现有管线和编码成本 |
+| AV1 | 正在广泛部署 | 压缩工具丰富、开放生态、硬件覆盖增长 | 终端解码能力与编码吞吐 |
+| VVC/H.266 | 标准成熟、部署仍按场景推进 | 高压缩效率与多场景工具 | 芯片、软件和商业生态 |
+| AV2 | 1.0 新标准 | 面向下一代场景与进一步效率 | 实现可用性与早期互操作 |
+
+这张表故意不写一个脱离条件的「比上一代省 30%」。任何这类数字都依赖 encoder 版本、preset、内容、分辨率、bit depth、GOP、延迟约束和画质指标；把不同论文的数字直接并排，往往比 codec 本身的差异更误导。
+
+## 怎样公平比较两个 encoder
+
+如果只在某个码率导出一个文件，再凭肉眼或文件大小下结论，很容易把 preset、GOP 与 rate control 的影响错算到 codec 上。更稳妥的方法是在多个质量档编码同一组片段，画出 rate–distortion curve：横轴是 bitrate，纵轴是质量。
+
+最基础的 PSNR 从 mean squared error（MSE）得到。对峰值为 $L$ 的样本，
+
+$$
+\operatorname{PSNR}=10\log_{10}\!\left(\frac{L^2}{\operatorname{MSE}}\right).
+$$
+
+它可重复、容易计算，但对结构、时序稳定性与感知偏好并不总敏感。VMAF 把多种画质特征组合为预测分数，可作为另一视角，但依旧是模型化指标，不是所有观看条件下的人类判断 [@netflixvmaf]。严肃比较通常同时报告多个指标，并抽查真实片段中的暗部、颗粒、文字、快速运动和 scene cut。
+
+BD-rate 用重叠质量区间内两条曲线的平均码率差概括结果，比单个点更稳健；它仍不能挽救不一致的测试条件。至少应固定或明确：
+
+- encoder 名称、版本、preset 与线程配置；
+- 分辨率、帧率、bit depth、chroma format 与 HDR 转换；
+- GOP、随机访问间隔、B-frame/参考帧限制和低延迟要求；
+- rate-control 模式、目标码率或质量点；
+- 指标版本、裁切与对齐方式，以及测试片段是否有代表性。
+
+## Rate control 解决的是另一个问题
+
+前面的率失真搜索决定一个局部候选是否值得；rate control 决定整帧、整段或整个文件怎样分配有限 bits。常见目标并不相同：
+
+- **CRF / constant quality 一类模式**尽量维持视觉质量，让复杂片段使用更多 bits，最终文件大小不预先固定；
+- **两遍 VBR**先分析全片，再把 bits 分给最需要的位置，适合有文件大小或平均码率目标的点播内容；
+- **CBR/VBV 约束**控制发送速率与 decoder buffer，适合直播、实时通信或严格带宽上限，代价是复杂场景可能没有足够 bits。
+
+不同 encoder 对参数的命名和刻度并不统一。例如 SVT-AV1 同时提供 CRF/CQP、VBR 与 CBR 等模式 [@svtav1parameters]；不能把 x264 的 CRF 23 与另一个 encoder 的数值直接当成相同画质。
+
+实际串流还会制作 adaptive bitrate ladder：同一内容编码成不同分辨率与码率，播放器根据网络和设备切换。此时要优化的不只是单个 1080p 文件，而是整组表示的覆盖、切换稳定性、存储与编码成本。
+
+## 神经视频压缩在学习哪一部分
+
+传统 codec 由工程师设计候选模式，再由 encoder 做率失真搜索。Learned codec 则可以让网络学习分析变换、时序上下文和概率模型。用 $c_t$ 表示来自已重建帧的条件信息，一个抽象写法是
+
+$$
+y_t=g_a(x_t;c_t),\qquad
+\hat y_t=Q(y_t),\qquad
+\hat x_t=g_s(\hat y_t;c_t).
+$$
+
+Entropy model 为每个量化 latent 分配条件概率。理想码长近似为
+
+$$
+R\approx-\sum_i\log_2 p(\hat y_{t,i}\mid\text{context}),
+$$
+
+训练则最小化与传统编码器同源的目标
+
+$$
+\mathcal L=\mathbb E[R+\lambda D(x_t,\hat x_t)].
+$$
+
+DCVC 把 temporal context 放进 feature domain，让当前帧的 latent coding 直接以已解码特征为条件，而不是只生成一个像素级 motion-compensated frame [@li2021dcvc]。后续工作继续压缩计算：DCVC-RT 在论文设定下报告了实时的高分辨率吞吐与相对 VTM 的码率收益，但这些数字来自指定 GPU、数据集、指标与软件版本，不能直接等同于手机或浏览器部署 [@jia2025dcvcrt]。2026 年的 DCVC-UF 进一步用 chunk-based frame parallelization 减少逐帧依赖，展示了研究路线正把吞吐与并行性作为一等目标 [@li2026dcvcuf]。
+
+神经方法的困难并不只在模型能否得到更好的曲线：decoder 权重和版本怎样分发，跨设备数值是否稳定，怎样利用固定功能硬件，能耗与内存是否可接受，随机访问和丢包怎样处理，都是完整 codec 必须回答的问题。MPEG 的 neural-network-based video compression 仍以 exploration 的形式研究 hybrid 与 end-to-end 方案 [@mpegneuralvideo]。因此，把 learned codec 视为快速推进的研究与标准化方向更准确；它尚未取代 H.264、HEVC、VP9、AV1 等通用交付链路。
+
+## Codec 信号也能服务视觉模型
+
+视频 codec 为了避免重复编码，已经计算出 motion vector、residual 和 I/P-frame 结构。这些量并不只用于还原像素，也可作为「哪里发生了变化」的廉价线索。
+
+[OneVision-Encoder](/blog/ml/ml-revisit/vit#onevision-encoder在进入-vit-前选择变化) 就沿用了这个思路：它从 HEVC 提取 motion vector 幅值与亮度 residual 能量，为 P-frame 的空间区域排序，在进入 ViT 前只保留一部分解码后的 RGB patches。Motion vector 和 residual 是**选择器**，不是交给视觉模型的语义 token；I-frame 仍提供完整底图，稀疏 patch 还要携带原始 $(t,h,w)$ 坐标。这个例子也提醒我们，codec 的「变化显著」只是编码意义上的代理：低残差事件仍可能在语义上很重要。
+
+## 实际该选哪一个
+
+没有脱离约束的最佳 codec。可以从 decoder 端倒推：
+
+1. **先列终端。** 浏览器、手机、电视、编辑软件和硬件 decoder 真正支持什么？是否必须有 fallback？
+2. **再列服务目标。** 是低延迟通话、直播、点播、归档，还是中间制作格式？可接受多长 GOP、多少编码延迟？
+3. **确定画质与带宽。** 用代表性内容建立 R-D 曲线，不要只测一个漂亮片段或一个码率点。
+4. **计入编码成本。** 每节省 10% 带宽，要付出多少 CPU/GPU 时间、能耗、队列延迟和工程复杂度？
+5. **单独审查生态条件。** Container、DRM、专利授权、云转码、播放器与可观测性都可能改变最终选择。
+
+若目标是最大兼容性，H.264 常是基线；受控的 4K/HDR 设备链路可评估 HEVC；已有 Web 管线可继续使用 VP9；希望在现代设备上取得更高效率并接受更重编码成本时，AV1 通常值得优先测试；VVC 适合在已有终端与商业条件明确的场景评估；AV2 目前更像下一轮实现与互操作工作的起点。对超低延迟或边缘设备，硬件上已有的 encoder 往往比纸面上更先进、却只能软件运行的 codec 更实际。
+
+## 把整条链重新串起来
+
+现代视频编码器可以用一条因果链理解：颜色表示先减少人眼不敏感的样本；帧内与帧间预测把重复内容变成 residual；变换把相关 residual 集中到少量系数；量化决定真正舍弃多少信息；熵编码再用尽剩余统计冗余。Encoder 用 $D+\lambda R$ 在许多合法候选间搜索，并通过本地 decoder 保证后续参考与播放端完全一致。
+
+H.264、HEVC、VP9、AV1、VVC 和 AV2 的演进，本质上是在扩大这套候选语言并改善概率表达；代价是实现、搜索、硬件与生态复杂度。Learned codec 把更多环节改成数据驱动函数，却没有绕开 rate、distortion、参考一致性和可部署性这些根本约束。理解这些共同变量，比记住一张随年份失效的 codec 排名更有用。

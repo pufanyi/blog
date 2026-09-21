@@ -1,7 +1,9 @@
 # Content working agreements
 
-These instructions apply to authored CV data and posts. Before editing the
-ML Revisited series, read [its editorial principles](../docs/ml-editorial.md).
+These instructions apply to authored CV data and posts. Before creating or
+substantially revising any technical tutorial, read the detailed
+[editorial principles](../docs/ml-editorial.md). The path is historical; the
+principles apply beyond the ML Revisited series.
 For Jekyll, Hexo, or Typst imports, also read
 [content migrations](../docs/content-migrations.md).
 
@@ -187,7 +189,7 @@ For Jekyll, Hexo, or Typst imports, also read
   and supervision, and matrices for allocation or comparison. A figure should
   make a relationship easier to see than its equivalent prose; boxes containing
   paragraphs and decorative examples do not meet that test. Keep concise text
-  when it explains an idea better. Follow the ML series' editorial principles
+  when it explains an idea better. Follow the tutorial editorial principles
   for the balance between examples, mechanisms, and equations.
 - Prefer post-local build-time components for authored technical diagrams.
   Put them in `content/posts/<slug>/scripts/*.post-component.tsx`, export them
