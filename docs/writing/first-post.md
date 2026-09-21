@@ -65,6 +65,7 @@ empirical claims attributable to their original or official sources.
 | `updated` | No | Known substantive update date, on or after publication |
 | `coverImage` | No | Optional sharing/article image, such as `./images/cover.avif` |
 | `draft` | No | Boolean; `true` removes the article from generated article routes and indexes |
+| `private` | No | Reserved boolean marker for planned access control; currently does not hide the article or restrict access |
 
 Unknown fields, invalid dates, empty author lists, and duplicate author names fail generation. When `authors` is present, its order is used by the visible byline, BibTeX card, structured metadata, feeds, and Markdown export. When it is omitted, the article keeps the previous no-byline layout while machine-readable output and BibTeX fall back to the configured site author. The archive excerpt comes from opening prose rather than `description`, so make the opening paragraph useful on its own. Do not insert another level-one heading into the body.
 

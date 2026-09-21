@@ -1,10 +1,13 @@
 import { JSON_SCHEMA, load as loadYaml } from 'js-yaml';
 import type { PostSummary } from '../../src/app/models/post.model';
 
-export type PostMetadata = Omit<PostSummary, 'slug' | 'excerptHtml'> & { draft?: boolean };
+export type PostMetadata = Omit<PostSummary, 'slug' | 'excerptHtml'> & {
+  draft?: boolean;
+  private?: boolean;
+};
 
 const REQUIRED_FIELDS = ['title', 'date'];
-const OPTIONAL_FIELDS = ['authors', 'description', 'coverImage', 'draft', 'updated'];
+const OPTIONAL_FIELDS = ['authors', 'description', 'coverImage', 'draft', 'private', 'updated'];
 const ALLOWED_FIELDS = new Set([...REQUIRED_FIELDS, ...OPTIONAL_FIELDS]);
 const OPENING_DELIMITER = /^---[ \t]*(?:\r?\n|$)/;
 const CLOSING_DELIMITER = /^---[ \t]*(?:\r?\n|$)/gm;
@@ -77,8 +80,10 @@ function validateMetadata(
     }
   }
 
-  if (metadata['draft'] !== undefined && typeof metadata['draft'] !== 'boolean') {
-    fail(sourceName, 'front matter field "draft" must be a boolean');
+  for (const field of ['draft', 'private']) {
+    if (metadata[field] !== undefined && typeof metadata[field] !== 'boolean') {
+      fail(sourceName, `front matter field "${field}" must be a boolean`);
+    }
   }
 }
 
