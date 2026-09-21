@@ -23,6 +23,9 @@ For example, create `content/posts/notes/example/index.mdx`:
 ---
 title: An example article
 date: "2026-09-12"
+authors:
+  - Fanyi Pu
+  - A collaborator
 description: A short explanation of the problem this article solves.
 ---
 
@@ -57,12 +60,13 @@ empirical claims attributable to their original or official sources.
 | --- | --- | --- |
 | `title` | Yes | Article title; the page supplies the main heading |
 | `date` | Yes | Publication date as a quoted `YYYY-MM-DD` string |
+| `authors` | No | Ordered, non-empty list of unique byline names |
 | `description` | No | Metadata, search, feed, and Markdown description |
 | `updated` | No | Known substantive update date, on or after publication |
 | `coverImage` | No | Optional sharing/article image, such as `./images/cover.avif` |
 | `draft` | No | Boolean; `true` removes the article from generated article routes and indexes |
 
-Unknown fields and invalid dates fail generation. The archive excerpt comes from opening prose rather than `description`, so make the opening paragraph useful on its own. Do not insert another level-one heading into the body.
+Unknown fields, invalid dates, empty author lists, and duplicate author names fail generation. When `authors` is present, its order is used by the visible byline, BibTeX card, structured metadata, feeds, and Markdown export. When it is omitted, the article keeps the previous no-byline layout while machine-readable output and BibTeX fall back to the configured site author. The archive excerpt comes from opening prose rather than `description`, so make the opening paragraph useful on its own. Do not insert another level-one heading into the body.
 
 ## Preview and publish
 

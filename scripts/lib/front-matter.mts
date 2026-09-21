@@ -4,7 +4,7 @@ import type { PostSummary } from '../../src/app/models/post.model';
 export type PostMetadata = Omit<PostSummary, 'slug' | 'excerptHtml'> & { draft?: boolean };
 
 const REQUIRED_FIELDS = ['title', 'date'];
-const OPTIONAL_FIELDS = ['description', 'coverImage', 'draft', 'updated'];
+const OPTIONAL_FIELDS = ['authors', 'description', 'coverImage', 'draft', 'updated'];
 const ALLOWED_FIELDS = new Set([...REQUIRED_FIELDS, ...OPTIONAL_FIELDS]);
 const OPENING_DELIMITER = /^---[ \t]*(?:\r?\n|$)/;
 const CLOSING_DELIMITER = /^---[ \t]*(?:\r?\n|$)/gm;
@@ -60,6 +60,20 @@ function validateMetadata(
     const value = metadata[field];
     if (value !== undefined && (typeof value !== 'string' || !value.trim())) {
       fail(sourceName, `front matter field "${field}" must be a non-empty string`);
+    }
+  }
+
+  if (metadata['authors'] !== undefined) {
+    const authors = metadata['authors'];
+    if (
+      !Array.isArray(authors) ||
+      authors.length === 0 ||
+      authors.some((author) => typeof author !== 'string' || !author.trim())
+    ) {
+      fail(sourceName, 'front matter field "authors" must be a non-empty list of names');
+    }
+    if (new Set(authors).size !== authors.length) {
+      fail(sourceName, 'front matter field "authors" must not contain duplicate names');
     }
   }
 

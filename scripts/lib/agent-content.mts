@@ -63,9 +63,10 @@ export function renderProfileMarkdown(cv: CvData, site: SiteConfig): string {
 
 export function renderArticleMarkdown(post: AgentPost, site: SiteConfig): string {
   const canonical = `${site.url}/blog/${post.slug}`;
+  const authors = post.authors?.length ? post.authors : [site.author.name];
   const header = [
     `<h1>${escapeHtml(post.title)}</h1>`,
-    paragraph(`Author: ${site.author.name}`),
+    paragraph(`${authors.length === 1 ? 'Author' : 'Authors'}: ${authors.join(', ')}`),
     paragraph(`Published: ${post.date}`),
     ...(post.updated ? [paragraph(`Updated: ${post.updated}`)] : []),
     `<p>Canonical: ${link(canonical, canonical)}</p>`,

@@ -31,6 +31,33 @@ test('parsePostSource supports CRLF, a byte-order mark, and optional cover image
   assert.equal(result.body, 'Content');
 });
 
+test('parsePostSource accepts an ordered list of article authors', () => {
+  const result = parsePostSource(
+    '---\ntitle: Example\ndate: 2026-08-08\nauthors:\n  - Fanyi Pu\n  - GPT-6 Astra\n  - GPT‑5.6 Sol\n---\nBody',
+    'authors.mdx',
+  );
+
+  assert.deepEqual(result.metadata.authors, ['Fanyi Pu', 'GPT-6 Astra', 'GPT‑5.6 Sol']);
+  for (const authors of ['null', '[]', 'Fanyi Pu', '[Fanyi Pu, " "]']) {
+    assert.throws(
+      () =>
+        parsePostSource(
+          `---\ntitle: Example\ndate: 2026-08-08\nauthors: ${authors}\n---\nBody`,
+          'authors.mdx',
+        ),
+      /field "authors" must be a non-empty list of names/,
+    );
+  }
+  assert.throws(
+    () =>
+      parsePostSource(
+        '---\ntitle: Example\ndate: 2026-08-08\nauthors: [Fanyi Pu, Fanyi Pu]\n---\nBody',
+        'authors.mdx',
+      ),
+    /field "authors" must not contain duplicate names/,
+  );
+});
+
 test('parsePostSource requires a complete front matter block', () => {
   assert.throws(
     () => parsePostSource('# Missing metadata', 'missing.md'),

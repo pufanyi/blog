@@ -12,6 +12,7 @@ export interface PostSummary {
   title: string;
   date: string;
   updated?: string;
+  authors?: string[];
   description?: string;
   /** Generated from the opening paragraphs, never authored in front matter. */
   excerptHtml?: string;

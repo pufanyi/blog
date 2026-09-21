@@ -30,6 +30,14 @@
   color: var(--text-color);
 }
 
+.authors {
+  margin: 0 0 0.35rem;
+  color: var(--text-color);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
 .date {
   color: var(--text-secondary);
   font-family: var(--font-heading);

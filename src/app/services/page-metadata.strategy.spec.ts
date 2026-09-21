@@ -18,6 +18,7 @@ const first: Post = {
   description: 'Quotes "and" 中文 <examples> & equations',
   date: '2026-09-07',
   updated: '2026-09-08',
+  authors: ['Fanyi Pu', 'GPT-6 Astra', 'GPT‑5.6 Sol'],
   coverImage: '/posts/first/cover.avif',
   contentHtml: '<p>Example</p>',
   toc: [],
@@ -128,6 +129,8 @@ describe('article structured data', () => {
           name: SITE_CONFIG.author.name,
           url: `${SITE_CONFIG.url}/`,
         },
+        { name: 'GPT-6 Astra' },
+        { name: 'GPT‑5.6 Sol' },
       ],
       image: [`${SITE_CONFIG.url}${first.coverImage}`],
     });
@@ -135,6 +138,9 @@ describe('article structured data', () => {
     expect(reparsed.querySelectorAll('script')).toHaveLength(1);
     expect(reparsed.querySelector('#unexpected-script')).toBeNull();
     expect(JSON.parse(reparsed.querySelector('script')!.textContent!)).toEqual(data);
+    expect(document.querySelector('meta[name="author"]')?.getAttribute('content')).toBe(
+      'Fanyi Pu, GPT-6 Astra, GPT‑5.6 Sol',
+    );
   });
 
   it('reuses prerendered markup, updates it between posts and removes it on other routes', async () => {
@@ -174,6 +180,7 @@ describe('article structured data', () => {
 
     await harness.navigateByUrl('/blog');
     expect(document.head.querySelector('#article-structured-data')).toBeNull();
+    expect(document.head.querySelector('meta[name="author"]')).toBeNull();
     await harness.navigateByUrl('/blog/first');
     await harness.navigateByUrl('/blog/missing');
     expect(document.head.querySelector('#article-structured-data')).toBeNull();

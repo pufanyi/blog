@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { ImageLightboxComponent } from '../image-lightbox/image-lightbox';
 
 @Component({
@@ -13,5 +13,7 @@ export class PostHeaderComponent {
   title = input.required<string>();
   date = input.required<string>();
   updated = input<string>();
+  authors = input<readonly string[]>();
   coverImage = input<string>();
+  authorsText = computed(() => this.authors()?.join(' · ') ?? '');
 }

@@ -39,10 +39,12 @@ of references cited within the article.
   citation URLs, and comment theme stylesheet URLs.
 - `site.defaultImage` accepts a site-relative path such as `/me.avif` or an
   absolute HTTP(S) URL.
-- `site.author.name` is used in page titles and metadata. `citationName` uses
-  BibTeX name formatting, such as `Pu, Fanyi`; `citationKeyPrefix` sets the
-  citation key prefix, such as `pu`. Edit profile and CV prose in their
-  respective content files.
+- `site.author.name` is used in page titles and as the metadata/feed fallback
+  for articles without an `authors` list. `citationName` is the corresponding
+  BibTeX name format, such as `Pu, Fanyi`; it is used for both the fallback and
+  a matching name in an article author list. `citationKeyPrefix` sets the
+  citation key prefix, such as `pu`. Edit profile and CV prose in their respective
+  content files.
 - Set `comments.enabled` to `false` to disable comments and prevent Giscus from
   loading. Keep the other fields in the file.
 - In `redirects.yaml`, `from` is a site-relative route and `to` is an absolute

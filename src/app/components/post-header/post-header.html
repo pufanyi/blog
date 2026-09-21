@@ -4,6 +4,9 @@
     <h1 class="title">{{ title() }}</h1>
     <hr class="title-rule-bottom" />
   </div>
+  @if (authorsText()) {
+    <p class="authors" aria-label="Authors">{{ authorsText() }}</p>
+  }
   <div class="date">
     <time [attr.datetime]="date()">{{ date() }}</time>
     @if (updated()) {

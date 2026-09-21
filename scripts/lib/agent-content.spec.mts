@@ -164,6 +164,7 @@ test('agent files have canonical metadata, deterministic indexes, and prune unpu
   const post: AgentPost = {
     slug: 'example',
     title: 'Example',
+    authors: ['Fanyi Pu', 'GPT-6 Astra', 'GPT‑5.6 Sol'],
     description: 'An example.',
     date: '2026-01-01',
     markdownHtml: '<p>Full article</p>',
@@ -176,6 +177,7 @@ test('agent files have canonical metadata, deterministic indexes, and prune unpu
   assert.ok(files.get('llms.txt')?.includes(`${site.url}/profile.md`));
   assert.ok(files.get('llms.txt')?.includes(`${site.url}/blog/index.md`));
   assert.ok(files.get('blog/example.md')?.includes(`Canonical: <${site.url}/blog/example>`));
+  assert.match(files.get('blog/example.md')!, /Authors: Fanyi Pu, GPT-6 Astra, GPT‑5\.6 Sol/);
   assert.match(files.get('blog/example.md')!, /Published: 2026-01-01/);
   assert.doesNotMatch(files.get('blog/example.md')!, /Updated:/);
   assert.match(files.get('blog/older.md')!, /Updated: 2026-09-08/);
@@ -208,6 +210,7 @@ test('nested Markdown exports include directory indexes and remove obsolete subt
   assert.doesNotMatch(files.get('blog/index.md')!, /undefined/);
   assert.doesNotMatch(files.get('blog/oi/codeforces/example.md')!, /undefined/);
   assert.match(files.get('blog/oi/codeforces/example.md')!, /Article/);
+  assert.match(files.get('blog/oi/codeforces/example.md')!, /Author: Fanyi Pu/);
   assert.ok(
     files
       .get('blog/oi/codeforces/example.md')

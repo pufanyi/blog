@@ -16,6 +16,7 @@ export class PostCitationComponent {
   readonly title = input.required<string>();
   readonly date = input.required<string>();
   readonly slug = input.required<string>();
+  readonly authors = input<readonly string[]>();
   readonly copyState = signal<'idle' | 'copied' | 'failed'>('idle');
 
   readonly bibtex = computed(() => {
@@ -24,9 +25,19 @@ export class PostCitationComponent {
       this.slug()
         .replace(/[^a-zA-Z0-9]+/g, '')
         .toLowerCase() || 'post';
+    const authors = this.authors();
+    const bibtexAuthors = authors?.length
+      ? authors
+          .map((author) =>
+            author === SITE_CONFIG.author.name
+              ? escapeBibtex(SITE_CONFIG.author.citationName)
+              : `{${escapeBibtex(author)}}`,
+          )
+          .join(' and ')
+      : escapeBibtex(SITE_CONFIG.author.citationName);
 
     return `@misc{${SITE_CONFIG.author.citationKeyPrefix}${year}${keySlug},
-  author = {${escapeBibtex(SITE_CONFIG.author.citationName)}},
+  author = {${bibtexAuthors}},
   title  = {${escapeBibtex(this.title())}},
   year   = {${year}},
   month  = {${Number(month)}},

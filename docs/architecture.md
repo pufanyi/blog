@@ -137,7 +137,9 @@ version. Its worker compatibility adapter and removal criteria are documented in
   It also owns article `BlogPosting` JSON-LD: reuse authored dates and article
   covers, omit unknown modification dates and unrelated fallback images, and
   escape `<` when serializing JSON into HTML script elements.
-  Homepage/CV `ProfilePage` data and article authors share the `/#person` ID.
+  Homepage/CV `ProfilePage` data and matching article bylines share the
+  `/#person` ID. Additional front-matter authors remain named author nodes
+  without being misclassified as the profile owner.
   Build the compact generated person data from rendered CV content and its
   external profile links; avoid importing the full CV into the eager metadata
   service. Clear page-specific structured data when navigating away.
@@ -174,7 +176,9 @@ version. Its worker compatibility adapter and removal criteria are documented in
   `/blog/contents/<category>/index.md`.
   Export expanded MDX before syntax highlighting so code annotations remain
   intact; retain math, citation links, diagram descriptions, and direct PDF URLs.
-  Profile exports reuse rendered CV data. Never maintain a second copy of prose.
+  Profile exports reuse rendered CV data. Article exports carry the authored
+  byline, falling back to the site author when no byline was supplied. Never
+  maintain a second copy of prose.
   Angular copies these files at the site root; keep Markdown discovery links in
   `PageMetadataStrategy` and Markdown MIME types in hosting/preview configuration.
 
@@ -211,7 +215,8 @@ version. Its worker compatibility adapter and removal criteria are documented in
 
 - The generator writes summary feeds at `/feed.xml` (RSS) and `/atom.xml`
   alongside Markdown exports. Both use stable article URLs and sort by the
-  latest known authored date (`updated ?? date`), never the build clock. Feed
+  latest known authored date (`updated ?? date`), never the build clock. Entries
+  carry each article's authored byline or the site-author fallback. Feed
   discovery lives in page metadata, the footer, and `llms.txt`; keep MIME types
   correct in both Cloudflare `_headers` and the Node preview.
 

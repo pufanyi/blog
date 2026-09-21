@@ -15,6 +15,7 @@ test('RSS and Atom preserve dates, escape authored text and resurface updates wi
       description: 'A ]]> & B < C',
       date: '2020-01-01',
       updated: '2026-09-08',
+      authors: ['Fanyi Pu', 'GPT-6 <Astra>'],
     },
     { slug: 'recent', title: 'Recent', date: '2026-09-01' },
   ];
@@ -30,6 +31,18 @@ test('RSS and Atom preserve dates, escape authored text and resurface updates wi
   assert.equal(items.length, 2);
   assert.equal(items[0].querySelector('title')?.textContent, posts[0].title);
   assert.equal(items[0].querySelector('description')?.textContent, posts[0].description);
+  assert.deepEqual(
+    [...items[0].getElementsByTagNameNS('http://purl.org/dc/elements/1.1/', 'creator')].map(
+      (author) => author.textContent,
+    ),
+    posts[0].authors,
+  );
+  assert.deepEqual(
+    [...items[1].getElementsByTagNameNS('http://purl.org/dc/elements/1.1/', 'creator')].map(
+      (author) => author.textContent,
+    ),
+    [site.author.name],
+  );
   assert.equal(items[1].querySelector('description')?.textContent, '');
   assert.equal(items[0].querySelector('guid')?.textContent, `${site.url}/blog/old`);
   assert.equal(items[0].querySelector('pubDate')?.textContent, 'Wed, 01 Jan 2020 00:00:00 GMT');
@@ -44,6 +57,14 @@ test('RSS and Atom preserve dates, escape authored text and resurface updates wi
   assert.equal(entries[0].querySelector('updated')?.textContent, '2026-09-08T00:00:00Z');
   assert.equal(entries[1].querySelector('updated')?.textContent, '2026-09-01T00:00:00Z');
   assert.equal(entries[0].querySelector('summary')?.textContent, posts[0].description);
+  assert.deepEqual(
+    [...entries[0].querySelectorAll('author > name')].map((author) => author.textContent),
+    posts[0].authors,
+  );
+  assert.deepEqual(
+    [...entries[1].querySelectorAll('author > name')].map((author) => author.textContent),
+    [site.author.name],
+  );
   assert.equal(entries[1].querySelector('summary')?.textContent, '');
   assert.equal(
     entries[0].querySelector('link[type="text/markdown"]')?.getAttribute('href'),

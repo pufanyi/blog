@@ -7,6 +7,7 @@ export function buildSyndicationFeeds(
   site: SiteConfig,
 ): Map<string, string> {
   const activity = (post: PostSummary) => post.updated ?? post.date;
+  const authors = (post: PostSummary) => (post.authors?.length ? post.authors : [site.author.name]);
   const sorted = [...posts].sort(
     (a, b) => activity(b).localeCompare(activity(a)) || a.slug.localeCompare(b.slug),
   );
@@ -22,7 +23,7 @@ export function buildSyndicationFeeds(
   const declaration = '<?xml version="1.0" encoding="UTF-8"?>';
   const rss = [
     declaration,
-    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>',
+    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel>',
     `<title>${escapeXml(site.title)}</title>`,
     `<link>${escapeXml(blog)}</link>`,
     `<description>${escapeXml(site.description)}</description>`,
@@ -35,6 +36,7 @@ export function buildSyndicationFeeds(
         `<link>${escapeXml(canonical(post))}</link>`,
         `<guid isPermaLink="true">${escapeXml(canonical(post))}</guid>`,
         `<description>${escapeXml(post.description ?? '')}</description>`,
+        ...authors(post).map((author) => `<dc:creator>${escapeXml(author)}</dc:creator>`),
         `<pubDate>${rssDate(post.date)}</pubDate>`,
         `<atom:updated>${isoDate(activity(post))}</atom:updated>`,
         `<atom:link href="${escapeXml(`${canonical(post)}.md`)}" rel="alternate" type="text/markdown"/>`,
@@ -63,6 +65,7 @@ export function buildSyndicationFeeds(
         `<link href="${escapeXml(`${canonical(post)}.md`)}" rel="alternate" type="text/markdown"/>`,
         `<published>${isoDate(post.date)}</published>`,
         `<updated>${isoDate(activity(post))}</updated>`,
+        ...authors(post).map((author) => `<author><name>${escapeXml(author)}</name></author>`),
         `<summary>${escapeXml(post.description ?? '')}</summary>`,
         '</entry>',
       ].join('\n'),

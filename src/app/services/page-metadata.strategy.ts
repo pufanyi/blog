@@ -11,6 +11,10 @@ import { type BlogPage, blogPagePath } from '../utils/blog-pagination';
 
 const NOT_FOUND_TITLE = '404: Existence Left as an Exercise';
 
+function articleAuthorNames(post: Post): readonly string[] {
+  return post.authors?.length ? post.authors : [SITE_CONFIG.author.name];
+}
+
 @Injectable()
 export class PageMetadataStrategy extends TitleStrategy {
   private readonly title = inject(Title);
@@ -70,9 +74,16 @@ export class PageMetadataStrategy extends TitleStrategy {
     }))
       this.meta.updateTag({ name, content });
     if (post) {
+      const authors = articleAuthorNames(post);
+      this.meta.updateTag({ name: 'author', content: authors.join(', ') });
       this.meta.updateTag({ property: 'article:published_time', content: post.date });
-      this.meta.updateTag({ property: 'article:author', content: SITE_CONFIG.url });
+      if (authors.includes(SITE_CONFIG.author.name)) {
+        this.meta.updateTag({ property: 'article:author', content: SITE_CONFIG.url });
+      } else {
+        this.meta.removeTag('property="article:author"');
+      }
     } else {
+      this.meta.removeTag('name="author"');
       this.meta.removeTag('property="article:published_time"');
       this.meta.removeTag('property="article:author"');
     }
@@ -159,14 +170,16 @@ export class PageMetadataStrategy extends TitleStrategy {
       description: post.description,
       datePublished: post.date,
       ...(post.updated ? { dateModified: post.updated } : {}),
-      author: [
-        {
-          '@type': 'Person',
-          '@id': PERSON_DATA['@id'],
-          name: SITE_CONFIG.author.name,
-          url: new URL('/', SITE_CONFIG.url).href,
-        },
-      ],
+      author: articleAuthorNames(post).map((name) =>
+        name === SITE_CONFIG.author.name
+          ? {
+              '@type': 'Person',
+              '@id': PERSON_DATA['@id'],
+              name,
+              url: new URL('/', SITE_CONFIG.url).href,
+            }
+          : { name },
+      ),
       ...(post.coverImage ? { image: [new URL(post.coverImage, SITE_CONFIG.url).href] } : {}),
     };
     this.updateStructuredData('article-structured-data', data);

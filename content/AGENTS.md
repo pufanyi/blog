@@ -35,9 +35,13 @@ For Jekyll, Hexo, or Typst imports, also read
   for navigation and Markdown indexes. Directory segments use letters, digits,
   `_`, and `-`.
   `index.mdx` starts with YAML front matter delimited by `---`;
-  `title` and `date` (`YYYY-MM-DD`) are required; `description`, `coverImage`,
-  and `updated` are optional. The archive shows generated opening-paragraph
-  excerpts, controlled by `showExcerpts`, rather than authored descriptions.
+  `title` and `date` (`YYYY-MM-DD`) are required; `authors`, `description`,
+  `coverImage`, and `updated` are optional. `authors` is an ordered, non-empty
+  list of unique display names. It supplies the visible byline and article
+  citation/export metadata; an omitted list keeps the page without a byline and
+  falls back to the configured site author in machine-readable outputs. The
+  archive shows generated opening-paragraph excerpts, controlled by
+  `showExcerpts`, rather than authored descriptions.
   Build excerpts from rendered prose, omit non-prose blocks, and preserve whole
   inline formulas for MathJax. Keep excerpt HTML bounded in generated summaries;
   never load full articles or the search index for list previews. Category

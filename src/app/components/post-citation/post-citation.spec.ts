@@ -24,4 +24,16 @@ describe('PostCitationComponent', () => {
       `${SITE_CONFIG.url}/blog/topic/nested/hello-world`,
     );
   });
+
+  it('preserves article bylines as literal BibTeX author names', () => {
+    const fixture = TestBed.createComponent(PostCitationComponent);
+    fixture.componentRef.setInput('title', 'Video compression');
+    fixture.componentRef.setInput('date', '2026-09-21');
+    fixture.componentRef.setInput('slug', 'video-compression');
+    fixture.componentRef.setInput('authors', ['Fanyi Pu', 'GPT-6 Astra', 'GPT‑5.6 Sol']);
+
+    expect(fixture.componentInstance.bibtex()).toContain(
+      `author = {${SITE_CONFIG.author.citationName} and {GPT-6 Astra} and {GPT‑5.6 Sol}}`,
+    );
+  });
 });
