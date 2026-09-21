@@ -1,1 +1,14 @@
 <router-outlet />
+@if (loading()) {
+  <div class="navigation-progress" aria-hidden="true"></div>
+}
+<div class="navigation-feedback" role="status" aria-live="polite" aria-atomic="true">
+  @if (loading()) {
+    <span class="navigation-message">正在加载…</span>
+  } @else if (failedUrl(); as url) {
+    <span class="navigation-message">
+      页面加载失败。<a [href]="url">重新打开</a>
+      <button type="button" (click)="failedUrl.set(null)" aria-label="关闭加载提示">×</button>
+    </span>
+  }
+</div>

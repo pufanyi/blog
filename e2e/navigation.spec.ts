@@ -3,9 +3,38 @@ import { JSDOM } from 'jsdom';
 import { BLOG_CONFIG } from '../src/app/data/blog-config';
 import { POSTS } from '../src/app/data/posts';
 import { SITE_CONFIG } from '../src/app/data/site-config';
-import { test } from './fixtures';
+import { openSearch, test } from './fixtures';
 
 const archivePages = Math.max(1, Math.ceil(POSTS.length / BLOG_CONFIG.postsPerPage));
+
+test('slow article navigation gives feedback until its content arrives', async ({ page }) => {
+  await page.goto('/blog/contents/oi-icpc/codeforces');
+  // Wait for hydration before holding subsequent lazy route and body requests.
+  const { input } = await openSearch(page);
+  await input.press('Escape');
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/*.js', async (route) => {
+    await pending;
+    await route.continue();
+  });
+  try {
+    const link = page.locator('a.directory-entry[href="/blog/oi-icpc/codeforces/cf551c"]');
+    await link.focus();
+    await link.press('Enter');
+    await expect(page.getByRole('status')).toContainText('正在加载');
+    await expect(page.locator('.navigation-progress')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('codeforces');
+  } finally {
+    release();
+  }
+  await expect(page).toHaveURL('/blog/oi-icpc/codeforces/cf551c');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  await expect(page.getByRole('status')).toBeEmpty();
+  await expect(page.locator('.navigation-progress')).toHaveCount(0);
+});
 
 test('folder navigation opens nested articles and returns through their breadcrumbs', async ({
   page,
@@ -91,8 +120,15 @@ test('archive pagination supports keyboard navigation, reload, and history', asy
   const entry = page.locator('.post-entry').last();
   const articlePath = await entry.getAttribute('href');
   await entry.locator('.post-title').scrollIntoViewIfNeeded();
-  const position = await page.evaluate(() => scrollY);
+  // Playwright can scroll again while positioning the click below the toolbar.
+  const positionAtClick = page.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        document.addEventListener('click', () => resolve(scrollY), { once: true, capture: true });
+      }),
+  );
   await entry.locator('.post-title').click();
+  const position = await positionAtClick;
   await expect(page).toHaveURL(articlePath!);
   await expect(page.locator('#article-structured-data')).toHaveCount(1);
   expect(

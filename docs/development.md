@@ -75,6 +75,8 @@ copying a live worktree can capture another task's incomplete edits.
 
 - Before focusing an offscreen control in a browser test, scroll it into view.
   Otherwise global smooth scrolling can overlap the next navigation.
+  For history restoration assertions, capture the outgoing position at the click
+  event: Playwright may scroll again to place its click below a sticky toolbar.
 
 ## Browser coverage
 
