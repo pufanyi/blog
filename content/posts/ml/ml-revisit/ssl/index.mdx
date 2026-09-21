@@ -363,7 +363,7 @@ SwAV 用一组共享 prototypes 构造这样的目标，DINO 则用一个不断�
 
 ### SwAV：交换两个 view 的聚类分配
 
-同一只小狗，一份裁剪保留了更多面部和身体，另一份更突出耳朵与上半身。两份 view 的像素、位置和可见范围都不同，但我们希望模型仍能把它们联系起来。SwAV（Swapping Assignments between Views）[@caron2020swav] 把这个愿望写成一个任务：**从一份 view，预测另一份 view 在一组共享 prototypes 上的分配。**
+同一只鸟，一份裁剪保留了枝条和身体，另一份更突出头部。两份 view 的像素、位置和可见范围都不同，但我们希望模型仍能把它们联系起来。SwAV（Swapping Assignments between Views）[@caron2020swav] 把这个愿望写成一个任务：**从一份 view，预测另一份 view 在一组共享 prototypes 上的分配。**
 
 <SwAVViews />
 
@@ -374,7 +374,7 @@ s_k=c_k^\top z,\qquad
 p_k=\frac{\exp(s_k/\tau)}{\sum_{r=1}^K\exp(s_r/\tau)}.
 $$
 
-这里的 $p$ 是模型对这份 view 的**预测分布**。把 prototypes 按列排成矩阵 $C=[c_1,\ldots,c_K]$，所有 scores 就可以合写为 $s=C^\top z$。Prototype 没有预先指定的「狗」「猫」类别含义，$K$ 也不必等于语义类别数。它们与 encoder 一起学习，提供的是所有图像共用的比较坐标。两个 view 的向量不必逐坐标相同，但应当能预测对方对这些参照的判断。
+这里的 $p$ 是模型对这份 view 的**预测分布**。把 prototypes 按列排成矩阵 $C=[c_1,\ldots,c_K]$，所有 scores 就可以合写为 $s=C^\top z$。Prototype 没有预先指定的「鸟」「猫」类别含义，$K$ 也不必等于语义类别数。它们与 encoder 一起学习，提供的是所有图像共用的比较坐标。两个 view 的向量不必逐坐标相同，但应当能预测对方对这些参照的判断。
 
 训练还需要一个目标分布 $q$，也叫 assignment 或 code。它同样来自 prototype scores，不过要把 **batch 内许多图像的 scores 放在一起**，通过 Sinkhorn 求一个均衡的分配。先把这个步骤看作目标生成器，下一小节再展开它为什么必要。
 
@@ -450,11 +450,11 @@ $$
 
 ### Multi-crop：让局部观察预测更完整的观察
 
-现在把开头的两份 view 扩展为两份 global crops 加若干 local crops。小裁剪覆盖的区域更少，也缩放到更低的输入分辨率，所以能以较小的额外计算量增加训练视图。下面沿用同一幅小狗图像：局部可能只看到耳朵或面部的一块。
+现在把开头的两份 view 扩展为两份 global crops 加若干 local crops。小裁剪覆盖的区域更少，也缩放到更低的输入分辨率，所以能以较小的额外计算量增加训练视图。下面沿用同一幅鸟的示意图：局部可能只看到头部或身体的一块。
 
 <SwAVMultiCrop />
 
-**只有两份 global crops 产生 assignment，所有 crops 都做预测。** 每个 global target 监督其余 views，跳过产生它自身的那份 crop；local crops 因而要预测两个 global targets。图中只画两个 local crops，数量可以更多。这里预测的是同一张图在 prototypes 上的分配，不是从狗耳朵恢复整张图的像素。
+**只有两份 global crops 产生 assignment，所有 crops 都做预测。** 每个 global target 监督其余 views，跳过产生它自身的那份 crop；local crops 因而要预测两个 global targets。图中只画两个 local crops，数量可以更多。这里预测的是同一张图在 prototypes 上的分配，不是从鸟头恢复整张图的像素。
 
 这个任务鼓励模型把局部与更大范围的内容联系起来，同时依赖一个假设：裁剪之间还保留了可共享的信息。如果 local crop 只剩一片无关背景，这个监督就会变得含糊。Crop 尺度与增强强度因此是任务设计的一部分。下一节的 DINO 也使用 global/local crops，但把目标生成器换成了 EMA teacher。
 
