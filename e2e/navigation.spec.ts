@@ -24,15 +24,15 @@ test('slow article navigation gives feedback until its content arrives', async (
     const link = page.locator('a.directory-entry[href="/blog/oi-icpc/codeforces/cf551c"]');
     await link.focus();
     await link.press('Enter');
-    await expect(page.getByRole('status')).toContainText('正在加载');
     await expect(page.locator('.navigation-progress')).toBeVisible();
+    await expect(page.getByRole('status')).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('codeforces');
   } finally {
     release();
   }
   await expect(page).toHaveURL('/blog/oi-icpc/codeforces/cf551c');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
-  await expect(page.getByRole('status')).toBeEmpty();
+  await expect(page.getByRole('status')).toHaveCount(0);
   await expect(page.locator('.navigation-progress')).toHaveCount(0);
 });
 

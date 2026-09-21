@@ -41,13 +41,13 @@ describe('navigation feedback', () => {
     new NavigationSkipped(2, '/blog', 'Same URL'),
   ])('clears loading on $constructor.name', async (end) => {
     const { element, emit } = await setup();
-    expect(element.querySelector('[role="status"]')?.textContent?.trim()).toBe('');
+    expect(element.querySelector('[role="status"]')).toBeNull();
     await emit(new NavigationStart(2, '/blog'));
-    expect(element.textContent).toContain('正在加载');
     expect(element.querySelector('.navigation-progress')).not.toBeNull();
+    expect(element.querySelector('[role="status"]')).toBeNull();
     await emit(end);
     expect(element.querySelector('.navigation-progress')).toBeNull();
-    expect(element.querySelector('[role="status"]')?.textContent?.trim()).toBe('');
+    expect(element.querySelector('[role="status"]')).toBeNull();
   });
 
   it('keeps the newest navigation loading when an older request finishes', async () => {
@@ -55,7 +55,7 @@ describe('navigation feedback', () => {
     await emit(new NavigationStart(2, '/blog'));
     await emit(new NavigationStart(3, '/docs'));
     await emit(new NavigationCancel(2, '/blog', 'Superseded'));
-    expect(element.textContent).toContain('正在加载');
+    expect(element.querySelector('.navigation-progress')).not.toBeNull();
     await emit(new NavigationEnd(3, '/docs', '/docs'));
     expect(element.querySelector('.navigation-progress')).toBeNull();
   });
@@ -70,7 +70,7 @@ describe('navigation feedback', () => {
     expect(element.querySelector('.navigation-progress')).toBeNull();
     await emit(new NavigationStart(3, '/docs'));
     expect(element.querySelector('a')).toBeNull();
-    expect(element.textContent).toContain('正在加载');
+    expect(element.querySelector('.navigation-progress')).not.toBeNull();
   });
 
   it('lets readers dismiss failures', async () => {
@@ -79,6 +79,6 @@ describe('navigation feedback', () => {
     await emit(new NavigationError(2, '/blog', new Error('Network failure')));
     element.querySelector('button')?.click();
     await fixture.whenStable();
-    expect(element.querySelector('[role="status"]')?.textContent?.trim()).toBe('');
+    expect(element.querySelector('[role="status"]')).toBeNull();
   });
 });
