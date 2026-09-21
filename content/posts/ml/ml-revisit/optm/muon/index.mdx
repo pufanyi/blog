@@ -3,6 +3,9 @@ title: "Muon"
 date: "2026-09-11"
 updated: "2026-09-15"
 description: "从一个具体的矩阵更新出发理解 Muon，以及奇异值、Newton–Schulz 近似、学习率缩放和大规模训练中的取舍。"
+authors:
+  - "Fanyi Pu"
+  - "GPT-6 Astra"
 ---
 
 如果第一次听说 Muon，可以先把它理解成一种**专门处理神经网络二维权重矩阵的 optimizer** [@jordan2024muon]。它不改变模型结构、loss 或 backpropagation；forward 和 backward 仍然照常进行。改变的是 backward 之后的 optimizer step：算出的梯度最终怎样变成权重更新。
