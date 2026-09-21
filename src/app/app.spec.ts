@@ -65,7 +65,7 @@ describe('navigation feedback', () => {
     const url = '/blog/example?view=full#section';
     await emit(new NavigationStart(2, url));
     await emit(new NavigationError(2, url, new Error('Network failure')));
-    expect(element.textContent).toContain('页面加载失败');
+    expect(element.textContent).toContain('Page failed to load');
     expect(element.querySelector('a')?.getAttribute('href')).toBe(url);
     expect(element.querySelector('.navigation-progress')).toBeNull();
     await emit(new NavigationStart(3, '/docs'));

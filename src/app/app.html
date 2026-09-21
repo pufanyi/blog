@@ -5,8 +5,8 @@
 @if (failedUrl(); as url) {
   <div class="navigation-feedback" role="status" aria-live="polite" aria-atomic="true">
     <span class="navigation-message">
-      页面加载失败。<a [href]="url">重新打开</a>
-      <button type="button" (click)="failedUrl.set(null)" aria-label="关闭加载提示">×</button>
+      Page failed to load. <a [href]="url">Try again</a>
+      <button type="button" (click)="failedUrl.set(null)" aria-label="Dismiss loading error">×</button>
     </span>
   </div>
 }
