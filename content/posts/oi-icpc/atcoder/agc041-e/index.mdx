@@ -2,6 +2,8 @@
 title: "AGC041E Balancing Network"
 date: "2020-03-11"
 description: "AGC041E Balancing Network 题解。"
+authors:
+  - "Fanyi Pu"
 ---
 
 有 $n$ 条线 $m$ 个平衡器，从左往右第 $i$ 个平衡器连接了 $x_i,y_i$ 条电线（$1\le x_i<y_i\le n$），每个平衡器都有一个状态：向上或向下。考虑一个令牌，从最左边的某一条导线开始，如果在第 $i$ 个位置，如果他在 $x_i$ 导线上且平衡器状态向下，那么就到 $y_i$，同理如果在 $y_i$ 且状态向上，则到 $x_i$。记 $k_i$ 表示令牌从导线 $i$ 开始到无穷远处是他在哪条导线上。
