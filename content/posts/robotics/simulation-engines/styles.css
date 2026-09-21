@@ -90,7 +90,7 @@
   background: var(--paper-bg);
 }
 
-.sim-scroll svg {
+.sim-scroll > svg {
   display: block;
   width: 100%;
   min-width: 760px;
@@ -122,83 +122,59 @@
   margin: 0 !important;
 }
 
-.sim-overview-layer-title {
-  fill: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: 0.08em;
+.sim-scroll svg:has(> #sim-overview-title) {
+  width: 900px;
+  min-width: 900px;
+  max-width: none;
 }
 
-.sim-overview-scene {
-  fill: color-mix(in srgb, var(--accent-bg) 38%, var(--paper-bg));
-  stroke: var(--border-color);
-  stroke-width: 1.2;
+.sim-parameter-leader {
+  fill: none;
+  stroke: var(--accent-ochre);
+  stroke-width: 1.3;
+}
+
+.sim-overview-ghost {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.3;
+  stroke-dasharray: 4 3;
 }
 
 .sim-math-state {
-  justify-content: flex-start;
   color: var(--accent-blue);
-  font-size: 18px;
-  font-weight: 650;
-}
-
-.sim-overview-note,
-.sim-overview-detail,
-.sim-overview-input-label,
-.sim-overview-parameter-title,
-.sim-overview-parameter-key,
-.sim-camera-label {
-  fill: var(--text-secondary);
-}
-
-.sim-overview-note {
-  font-size: 11px;
+  font-size: 20px;
 }
 
 .sim-overview-detail {
-  font-size: 11px;
-}
-
-.sim-overview-ground,
-.sim-observation-ground {
-  fill: none;
-  stroke: var(--surface-strong);
-  stroke-linecap: round;
+  fill: var(--text-secondary);
+  font-size: 12px;
 }
 
 .sim-overview-ground {
+  fill: none;
+  stroke: var(--surface-strong);
   stroke-width: 2.5;
+  stroke-linecap: round;
 }
 
-.sim-overview-arm,
-.sim-observation-arm {
+.sim-overview-arm {
   fill: none;
   stroke: var(--accent-blue);
+  stroke-width: 7;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.sim-overview-arm {
-  stroke-width: 7;
-}
-
-.sim-overview-joint,
-.sim-observation-joint {
+.sim-overview-joint {
   fill: var(--paper-bg);
   stroke: var(--accent-blue);
-}
-
-.sim-overview-joint {
   stroke-width: 2;
 }
 
-.sim-overview-block,
-.sim-observation-block {
+.sim-overview-block {
   fill: color-mix(in srgb, var(--accent-clay) 24%, var(--paper-bg));
   stroke: var(--accent-clay);
-}
-
-.sim-overview-block {
   stroke-width: 1.7;
 }
 
@@ -210,91 +186,14 @@
   stroke-width: 1.4;
 }
 
-.sim-physics-operator,
-.sim-overview-input,
-.sim-physical-parameters,
-.sim-sensor-parameters,
-.sim-sensor-operator,
-.sim-observation-frame,
-.sim-training-band {
-  stroke-width: 1.2;
-}
-
-.sim-physics-operator {
-  fill: color-mix(in srgb, var(--accent-sage) 17%, var(--paper-bg));
-  stroke: var(--accent-sage);
-}
-
-.sim-math-operator {
-  font-size: 16px;
-  font-weight: 650;
-}
-
-.sim-overview-state-flow,
-.sim-overview-input-flow,
-.sim-parameter-flow,
-.sim-sensor-flow,
-.sim-observation-flow {
+.sim-overview-state-flow {
   fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.sim-overview-state-flow,
-.sim-observation-flow {
   stroke: var(--text-secondary);
   stroke-width: 1.7;
 }
 
-.sim-overview-input,
-.sim-physical-parameters {
-  fill: color-mix(in srgb, var(--accent-ochre) 12%, var(--paper-bg));
-  stroke: var(--accent-ochre);
-}
-
-.sim-overview-input-label {
-  font-size: 10px;
-}
-
-.sim-overview-parameter-title {
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.sim-math-input {
-  font-size: 15px;
-  font-weight: 650;
-}
-
-.sim-overview-input-flow,
-.sim-parameter-flow {
-  stroke: var(--accent-ochre);
-  stroke-dasharray: 4 3;
-  stroke-width: 1.4;
-}
-
-.sim-math-parameter {
-  justify-content: flex-start;
-  font-size: 14px;
-  font-weight: 650;
-}
-
-.sim-parameter-chips rect {
-  fill: color-mix(in srgb, var(--accent-ochre) 14%, var(--paper-bg));
-  stroke: var(--accent-ochre);
-  stroke-width: 1;
-}
-
-.sim-math-chip {
-  font-size: 13px;
-}
-
-.sim-overview-parameter-key {
-  font-size: 10px;
-}
-
 .sim-view-cone {
-  fill: color-mix(in srgb, var(--accent-teal) 9%, transparent);
+  fill: color-mix(in srgb, var(--accent-teal) 6%, transparent);
   stroke: var(--accent-teal);
   stroke-dasharray: 4 3;
   stroke-width: 1.1;
@@ -307,74 +206,19 @@
   stroke-width: 1.5;
 }
 
-.sim-camera-lens {
-  fill: var(--accent-teal);
-  stroke: var(--accent-teal);
-}
-
 .sim-camera-indicator {
-  fill: var(--accent-rose);
-}
-
-.sim-camera-label {
-  font-size: 9.5px;
-}
-
-.sim-sensor-parameters,
-.sim-sensor-operator {
-  fill: color-mix(in srgb, var(--accent-teal) 13%, var(--paper-bg));
-  stroke: var(--accent-teal);
-}
-
-.sim-sensor-flow {
-  stroke: var(--accent-teal);
-  stroke-dasharray: 4 3;
-  stroke-width: 1.4;
+  fill: var(--accent-teal);
 }
 
 .sim-observation-frame {
   fill: color-mix(in srgb, var(--accent-teal) 6%, var(--paper-bg));
   stroke: var(--accent-teal);
-}
-
-.sim-math-observation {
-  justify-content: flex-start;
-  color: var(--accent-teal);
-  font-size: 15px;
-  font-weight: 650;
-}
-
-.sim-observation-ground {
-  stroke-width: 1.4;
-}
-
-.sim-observation-arm {
-  stroke-width: 4;
-}
-
-.sim-observation-joint {
-  stroke-width: 1.3;
-}
-
-.sim-observation-block {
   stroke-width: 1.2;
 }
 
-.sim-training-band {
-  fill: color-mix(in srgb, var(--accent-mauve) 7%, var(--paper-bg));
-  stroke: var(--accent-mauve);
-  stroke-dasharray: 5 4;
-}
-
-.sim-training-label {
-  fill: var(--accent-mauve);
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.sim-training-item {
-  fill: var(--text-secondary);
-  font-size: 11px;
+.sim-math-observation {
+  color: var(--accent-teal);
+  font-size: 18px;
 }
 
 .sim-heading,

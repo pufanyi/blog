@@ -112,195 +112,81 @@ function OverviewScene({ x, advanced = false }: { x: number; advanced?: boolean 
   );
 }
 
-function Camera({ x, y }: { x: number; y: number }) {
-  return (
-    <g>
-      <path
-        d={`M${x - 6} ${y + 19}L${x - 72} ${y + 79}L${x - 4} ${y + 92}Z`}
-        className="sim-view-cone"
-      />
-      <rect x={x} y={y} width="43" height="28" rx="5" className="sim-camera-body" />
-      <path d={`M${x} ${y + 7}l-13 4v9l13 4Z`} className="sim-camera-lens" />
-      <path d={`M${x + 12} ${y}l5 -8h13l5 8`} className="sim-camera-body" />
-      <circle cx={x + 29} cy={y + 14} r="5" className="sim-camera-indicator" />
-    </g>
-  );
-}
-
 function StateObservationOverview() {
   return (
     <Figure
       id="sim-overview"
-      title="物理状态推进、相机观测与训练框架的职责边界"
-      description="左侧机械臂推方块的场景表示当前状态 s t。动作 u t、步长 h 和质量、摩擦、关节阻尼等物理参数 theta 输入物理映射 F h，产生右侧下一状态 s t 加一。右侧相机只拍摄这个新状态；相机参数、光照、噪声和采样设置 eta 输入观测映射 H，生成图像观测 o t 加一。底部独立条带表示训练框架管理 reward、reset、episode 和 policy update。"
-      caption="同一个仿真任务里有三条边界：物理引擎用动作、步长和 θ 推进完整状态；相机与传感器用 η 从新状态生成观测；训练框架再组织轨迹和学习。相机看到的是状态的投影，既不等于完整状态，也不负责决定物体怎样运动。"
-      height={510}
+      title="机械臂推进一步，再由相机生成观测"
+      description="左侧是状态 s t：质量 m 标在方块上，摩擦系数 mu 指向桌面接触处，阻尼 b 指向机械臂关节，这些量属于物理参数 theta。动作 u t 经过时间 h 推进到右侧状态 s t 加一，方块的虚线轮廓表示原位置。相机朝向右侧场景，按观测参数 eta 通过 H 生成右上角的画面 o t 加一。"
+      caption="机械臂在动作作用下推进一步，相机再拍摄新状态。图中仅示意位姿，完整状态还包含速度等量；物理参数 θ 影响运动，观测参数 η 影响画面。缩略图为观测示意。"
+      height={310}
     >
-      <text x="20" y="27" textAnchor="start" className="sim-overview-layer-title">
-        物理状态推进
-      </text>
-
-      <rect x="20" y="50" width="240" height="190" rx="12" className="sim-overview-scene" />
-      <MathLabel x={34} y={61} width={58} tex="s_t" className="sim-math-state" />
-      <text x="246" y="78" textAnchor="end" className="sim-overview-note">
-        当前完整状态
-      </text>
-      <OverviewScene x={20} />
-      <text x="140" y="230" className="sim-overview-detail">
-        位姿 · 速度 · 电机内部状态
-      </text>
-
-      <rect x="326" y="88" width="168" height="98" rx="12" className="sim-physics-operator" />
-      <MathLabel
-        x={337}
-        y={105}
-        width={146}
-        height={35}
-        tex={String.raw`F_h(s_t,u_t;\theta)`}
-        className="sim-math-operator"
-      />
-      <text x="410" y="161" className="sim-overview-detail">
-        physics engine
-      </text>
+      <MathLabel x={115} y={25} width={65} tex="s_t" className="sim-math-state" />
+      <MathLabel x={496} y={25} width={85} tex="s_{t+1}" className="sim-math-state" />
+      <OverviewScene x={35} />
       <path
-        d="M260 137H316"
-        className="sim-overview-state-flow"
-        markerEnd="url(#sim-overview-arrow)"
+        d="M104 89H126V108M252 140H270V195H239M268 244H238L224 213"
+        className="sim-parameter-leader"
       />
-      <path
-        d="M494 137H540"
-        className="sim-overview-state-flow"
-        markerEnd="url(#sim-overview-arrow)"
-      />
-
-      <rect x="321" y="31" width="74" height="40" rx="8" className="sim-overview-input" />
-      <MathLabel x={327} y={36} width={62} tex="u_t" className="sim-math-input" />
-      <text x="358" y="27" className="sim-overview-input-label">
-        动作
+      <text x="49" y="91" textAnchor="start" className="sim-overview-detail">
+        阻尼
       </text>
-      <path
-        d="M358 72V81"
-        className="sim-overview-input-flow"
-        markerEnd="url(#sim-overview-arrow)"
-      />
-
-      <rect x="426" y="31" width="55" height="40" rx="8" className="sim-overview-input" />
-      <MathLabel x={432} y={36} width={43} tex="h" className="sim-math-input" />
-      <text x="453" y="27" className="sim-overview-input-label">
-        步长
+      <MathLabel x={78} y={70} width={25} tex="b" />
+      <text x="233" y="132" className="sim-overview-detail">
+        质量
       </text>
-      <path
-        d="M453 72V81"
-        className="sim-overview-input-flow"
-        markerEnd="url(#sim-overview-arrow)"
-      />
-
-      <rect x="310" y="205" width="200" height="94" rx="10" className="sim-physical-parameters" />
-      <MathLabel
-        x={321}
-        y={211}
-        width={34}
-        tex={String.raw`\theta`}
-        className="sim-math-parameter"
-      />
-      <text x="359" y="232" textAnchor="start" className="sim-overview-parameter-title">
+      <MathLabel x={222} y={139} width={25} tex="m" />
+      <text x="279" y="250" textAnchor="start" className="sim-overview-detail">
+        摩擦
+      </text>
+      <MathLabel x={308} y={229} width={25} tex={'\\mu'} />
+      <text x="113" y="286" className="sim-overview-detail">
         物理参数
       </text>
-      <g className="sim-parameter-chips">
-        <rect x="321" y="247" width="50" height="25" rx="12" />
-        <rect x="377" y="247" width="57" height="25" rx="12" />
-        <rect x="440" y="247" width="59" height="25" rx="12" />
-      </g>
-      <MathLabel x={324} y={246} width={44} height={26} tex="m" className="sim-math-chip" />
-      <MathLabel
-        x={382}
-        y={246}
-        width={47}
-        height={26}
-        tex={String.raw`\mu`}
-        className="sim-math-chip"
-      />
-      <MathLabel x={445} y={246} width={49} height={26} tex="b" className="sim-math-chip" />
-      <text x="410" y="290" className="sim-overview-parameter-key">
-        质量 · 接触摩擦 · 关节阻尼
+      <MathLabel x={146} y={265} width={130} tex={'\\theta=(m,\\mu,b,\\ldots)'} />
+      <text x="332" y="125" className="sim-overview-detail">
+        动作
       </text>
-      <path d="M410 204V196" className="sim-parameter-flow" markerEnd="url(#sim-overview-arrow)" />
-
-      <rect x="550" y="50" width="330" height="190" rx="12" className="sim-overview-scene" />
-      <MathLabel x={564} y={61} width={80} tex="s_{t+1}" className="sim-math-state" />
-      <text x="864" y="78" textAnchor="end" className="sim-overview-note">
-        推进后的完整状态
-      </text>
-      <OverviewScene x={570} advanced />
-      <Camera x={816} y={96} />
-      <text x="838" y="140" className="sim-camera-label">
-        camera
-      </text>
-      <text x="710" y="230" className="sim-overview-detail">
-        物体已移动；相机读取此刻场景
-      </text>
-
-      <text x="20" y="341" textAnchor="start" className="sim-overview-layer-title">
-        传感器与观测
-      </text>
+      <MathLabel x={349} y={104} width={38} tex="u_t" />
       <path
-        d="M738 240V326H645V342"
-        className="sim-observation-flow"
+        d="M300 163H410"
+        className="sim-overview-state-flow"
         markerEnd="url(#sim-overview-arrow)"
       />
-
-      <rect x="306" y="344" width="204" height="79" rx="10" className="sim-sensor-parameters" />
-      <MathLabel x={317} y={350} width={34} tex={String.raw`\eta`} className="sim-math-parameter" />
-      <text x="355" y="371" textAnchor="start" className="sim-overview-parameter-title">
+      <MathLabel x={306} y={175} width={40} tex="F_h" />
+      <text x="362" y="196" className="sim-overview-detail">
+        经过
+      </text>
+      <MathLabel x={378} y={175} width={25} tex="h" />
+      <path d="M653 77L474 119L651 217Z" className="sim-view-cone" />
+      <rect x="596" y="177" width="36" height="36" rx="3" className="sim-overview-ghost" />
+      <OverviewScene x={430} advanced />
+      <text x="547" y="246" className="sim-overview-detail">
+        虚线：方块原位置
+      </text>
+      <g className="sim-camera-body">
+        <rect x="661" y="60" width="43" height="28" rx="5" />
+        <path d="M661 67l-13 4v9l13 4ZM673 60l5-8h13l5 8" />
+      </g>
+      <circle cx="691" cy="74" r="4" className="sim-camera-indicator" />
+      <text x="680" y="111" className="sim-overview-detail">
+        相机
+      </text>
+      <text x="671" y="138" className="sim-overview-detail">
         观测参数
       </text>
-      <text x="408" y="393" className="sim-overview-detail">
-        内外参 · 光照 · 噪声 · 采样
-      </text>
-      <path d="M510 383H555" className="sim-sensor-flow" markerEnd="url(#sim-overview-arrow)" />
-
-      <rect x="565" y="344" width="132" height="79" rx="10" className="sim-sensor-operator" />
-      <MathLabel
-        x={578}
-        y={354}
-        width={106}
-        height={35}
-        tex={String.raw`H(s_{t+1};\eta)`}
-        className="sim-math-operator"
-      />
-      <text x="631" y="409" className="sim-overview-detail">
-        render / sample
-      </text>
+      <MathLabel x={702} y={117} width={25} tex={'\\eta'} />
       <path
-        d="M697 383H727"
-        className="sim-observation-flow"
+        d="M708 74H751"
+        className="sim-overview-state-flow"
         markerEnd="url(#sim-overview-arrow)"
       />
-
-      <rect x="737" y="334" width="143" height="99" rx="9" className="sim-observation-frame" />
-      <MathLabel x={747} y={340} width={123} tex="o_{t+1}" className="sim-math-observation" />
-      <path d="M751 413H866" className="sim-observation-ground" />
-      <path d="M761 411v-17l21-25l23 14l12 17v11" className="sim-observation-arm" />
-      <circle cx="782" cy="369" r="3.5" className="sim-observation-joint" />
-      <circle cx="805" cy="383" r="3.5" className="sim-observation-joint" />
-      <rect x="826" y="386" width="25" height="27" rx="2" className="sim-observation-block" />
-
-      <rect x="20" y="459" width="860" height="38" rx="10" className="sim-training-band" />
-      <text x="37" y="483" textAnchor="start" className="sim-training-label">
-        训练框架（独立的一层）
-      </text>
-      <text x="292" y="483" className="sim-training-item">
-        reward
-      </text>
-      <text x="420" y="483" className="sim-training-item">
-        reset
-      </text>
-      <text x="548" y="483" className="sim-training-item">
-        episode
-      </text>
-      <text x="708" y="483" className="sim-training-item">
-        policy update
-      </text>
+      <MathLabel x={712} y={39} width={30} tex="H" />
+      <rect x="760" y="44" width="120" height="100" rx="5" className="sim-observation-frame" />
+      <svg x="765" y="51" width="110" height="85" viewBox="438 104 228 120" aria-hidden="true">
+        <OverviewScene x={430} advanced />
+      </svg>
+      <MathLabel x={782} y={150} width={80} tex="o_{t+1}" className="sim-math-observation" />
     </Figure>
   );
 }
