@@ -110,6 +110,10 @@ export async function activateStaticMath(
       new MouseEvent('contextmenu', {
         bubbles: true,
         cancelable: true,
+        // MathJax positions its absolute menu from pageX/pageY. Without a view,
+        // synthetic events report client coordinates as page coordinates and
+        // focusing the menu scrolls long articles back toward the top.
+        view: rendered.ownerDocument.defaultView,
         clientX: point?.x ?? rect.left,
         clientY: point?.y ?? rect.bottom,
       }),

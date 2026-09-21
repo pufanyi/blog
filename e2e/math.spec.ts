@@ -91,6 +91,25 @@ test('static formulas remain readable when browser MathJax is unavailable', asyn
   ).toBe(0);
 });
 
+test('opening a formula menu deep in an article preserves the reading position', async ({
+  page,
+}) => {
+  await page.goto('/blog/ml/ml-revisit/diffusion');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
+  const formulas = page.locator('.math-display mjx-container[data-static-math]');
+  const formula = formulas.nth(Math.floor((await formulas.count()) / 2));
+  await formula.scrollIntoViewIfNeeded();
+  const before = await page.evaluate(() => scrollY);
+  expect(before).toBeGreaterThan(5000);
+
+  await formula.click({ button: 'right' });
+  await expect(page.locator('[role="menu"]').first()).toBeVisible();
+  await expect
+    .poll(async () => Math.abs((await page.evaluate(() => scrollY)) - before))
+    .toBeLessThan(10);
+  await page.keyboard.press('Escape');
+});
+
 for (const slug of ['rl', 'ssl']) {
   test(`display math in ${slug} grows vertically and scrolls horizontally`, async ({ page }) => {
     await page.goto(`/blog/ml/ml-revisit/${slug}`);
