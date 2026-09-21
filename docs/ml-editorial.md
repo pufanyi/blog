@@ -34,6 +34,13 @@ their named articles.
   `src/app/utils/blog-redirects.ts`, shared by client routes and prerendering.
   Keep section anchors stable when reorganizing the article.
 
+- Image, audio, and video compression form one tutorial at
+  `ml/notes/media-compression/index.mdx`. Keep the old image- and
+  video-compression routes redirected to this article. Explain their shared
+  prediction–transform–quantization–entropy structure before modality-specific
+  perception, latency, and dependency constraints; distinguish multimedia
+  signal coding from semantic multimodal representation compression.
+
 - Muon diagrams distinguish the outer training step from the internal
   Newton–Schulz iterations. Keep the saved momentum upstream of the matrix
   transform and show decoupled weight decay bypassing it. The spectrum plots

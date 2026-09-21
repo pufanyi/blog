@@ -33,6 +33,8 @@ $$
 
 其中 $\eta$ 包含相机内外参、光照、噪声和采样设置。训练框架还要管理 reward、reset、episode 和 policy update。这三层可以组合，但不是同一件事。
 
+<StateObservationOverview />
+
 | 项目 | 主要定位 | 最值得先理解的设计 |
 | --- | --- | --- |
 | MuJoCo | 面向多关节系统与控制的物理引擎 | Joint-space dynamics、soft contact，以及 CPU / JAX / Warp 的不同实现 |

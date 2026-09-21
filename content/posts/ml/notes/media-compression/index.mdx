@@ -1,0 +1,302 @@
+---
+title: "多媒体压缩：用同一条主线理解图像、音频与视频"
+date: "2026-09-21"
+description: "从预测、变换、量化、感知模型与熵编码出发，统一理解 PNG、JPEG、FLAC、MP3、AAC、Opus、AV1、VVC 与学习式媒体编码。"
+authors:
+  - "Fanyi Pu"
+  - "GPT-6 Astra"
+  - "GPT‑5.6 Sol"
+---
+
+一张 $4000\times3000$、每通道 8 bit 的 RGB 照片若直接保存像素，需要 36 MB。一分钟 44.1 kHz、16-bit、双声道 PCM 音频约需 10.6 MB。一段 $1920\times1080$、30 fps、每像素 24 bit 的原始视频，码率更达到约 1.49 Gbit/s。三者看似是不同问题，其实都在问同一件事：**decoder 已经能从哪些结构猜到当前 sample，又该把有限的 bits 花在哪些猜不准且重要的误差上？**
+
+把图像、音频和视频放在一起讨论，传统信号处理里更常称为 **multimedia compression（多媒体压缩）**。近年的「multimodal compression（多模态压缩）」还常指联合压缩文字、视觉、语音等模型表示，目标可能是保留语义而不是还原媒体 sample。本文讨论前一种问题；最后再说明学习式 codec 怎样让两种含义开始相交。
+
+本文先从一条可逆的压缩链出发，再让失真有控制地进入。这样，PNG、JPEG、FLAC、MP3、AAC、Opus、H.264、AV1 和神经 codec 不再是一串格式名称，而是对同一组设计问题的不同回答。
+
+## 原始媒体已经是一组离散 samples
+
+相机、麦克风先把连续的光和声变成离散数值。图像 sample 沿空间排列，音频 sample 沿时间排列，视频则同时具有空间和时间轴：
+
+| 媒体 | sample 的坐标 | 最直接的重复 | 常见的额外约束 |
+| --- | --- | --- | --- |
+| 图像 | $(x,y,\text{channel})$ | 邻近像素与颜色通道相关 | 随机访问、透明度、颜色管理 |
+| 音频 | $(t,\text{channel})$ | 相邻时刻、周期与声道相关 | 延迟、瞬态、听觉 masking |
+| 视频 | $(t,x,y,\text{channel})$ | 帧内空间结构与帧间运动 | seek、参考依赖、播放时序 |
+
+这里有两个容易混淆的 quantization。采集时的 bit depth 已经把连续振幅量化成整数 sample；有损 codec 随后还会再次量化预测误差或变换系数。Lossless codec 保证恢复输入的离散 samples，不可能反推出采样前已经消失的连续信号。提高 sample rate 或 bit depth 也不会自动改善一个已经失真的来源。
+
+还要分清四个名字：
+
+- **Codec / 编码标准**定义合法 bitstream 和 decoder 怎样重建，例如 JPEG、AAC、AV1；
+- **Encoder 实现**在合法方案中搜索，例如 libjpeg-turbo、x264、SVT-AV1；
+- **Container**封装一条或多条媒体轨道、字幕、metadata 与时间戳，例如 MP4、WebM；
+- **传输方式**规定如何交付和切换这些文件或片段，例如 HLS、DASH。
+
+因此，`.mp4` 不是视频 codec，`.m4a` 也不是音频 codec。一个 MP4 可以把 H.264 视频与 AAC 音频分别编码，再用时间戳同步；普通视频压缩通常不会把画面和声音交给一个联合 codec。
+
+## 一条跨媒体的压缩主线
+
+典型 codec 可以拆成五项工作：
+
+1. 选择更合适的表示，例如把 RGB 分成亮度与色度，或把左右声道改写成和与差；
+2. 用邻居、历史、另一帧或模型产生 prediction，只编码 residual；
+3. 用 transform 把分散的相关性集中到更容易取舍的坐标；
+4. 量化 coefficients 或 parameters，在 rate 与 distortion 之间做决定；
+5. 用 entropy model 把常见符号写短、罕见符号写长。
+
+<MediaCodecPipeline />
+
+并非每个 codec 都严格按这个顺序，也并非每一步都存在。Lossless codec 不跨越有损量化边界；speech codec 可能直接编码声道模型的参数；学习式 codec 会把多个方框合成一个网络。但这条主线能帮助我们判断：某一步是在**改写信息**、**舍弃信息**，还是只在**更短地表示信息**。
+
+## 先做一个完全可逆的压缩器
+
+先看一行整数 samples：
+
+$$
+x=[52,53,54,55,55,56,57,57].
+$$
+
+约定第一个值原样保存，此后都用前一个已经重建的值预测：
+
+$$
+e_0=x_0,
+\qquad e_i=x_i-x_{i-1}.
+$$
+
+得到
+
+$$
+e=[52,1,1,1,0,1,1,0].
+$$
+
+Decoder 从 $\hat x_0=e_0$ 开始，重复 $\hat x_i=\hat x_{i-1}+e_i$，就能精确恢复原序列。Prediction 没有减少元素数量；若仍给每个 residual 固定 8 bit，文件也不会变小。它只把分散的 sample values 改写成集中在 0 和 1 附近的分布。
+
+<LosslessPrediction />
+
+Entropy coding 才把这种偏斜分布兑现为较少 bits。概率为 $p(s)$ 的符号，其理想码长接近
+
+$$
+\ell(s)=-\log_2 p(s),
+$$
+
+平均理论下界由 entropy 描述：
+
+$$
+H(X)=-\sum_s p(s)\log_2 p(s).
+$$
+
+这个例子同时适用于空间和时间。PNG 为每条 scanline 选择可逆 filter，把像素改写成相对左侧、上方或邻域预测的差，再用 DEFLATE 压缩字节流 [@w3c2025png]。FLAC 把 PCM 分块，可选择 fixed predictor 或 linear predictive coding（LPC），再用 Rice codes 编码通常靠近零的 residual；stereo 还可在左右声道与 mid/side 等可逆表示之间选择 [@flac2024rfc9639]。
+
+预测器本身也要有成本。若模型参数、模式编号或分块边界占掉的 bits 超过 residual 的节省，就不值得使用。压缩器真正比较的不是「哪个 prediction 最准」，而是
+
+$$
+\text{总码长}
+=\text{模型与 side information}
++\text{residual 的码长}.
+$$
+
+随机噪声难以压缩，原因也由此变得具体：没有一个足够便宜的模型能让它的 residual 明显更简单。
+
+## 有损压缩：先改变坐标，再分配误差
+
+仅靠无损建模通常不够。若允许重建值 $\hat x$ 与原值 $x$ 略有不同，encoder 还要决定哪些误差值得保留。一个典型 transform codec 先计算 coefficients $c_k$，再选择 quantization step $\Delta_k$：
+
+$$
+q_k=\operatorname{round}\!\left(\frac{c_k}{\Delta_k}\right),
+\qquad
+\hat c_k=q_k\Delta_k.
+$$
+
+较大的 $\Delta_k$ 让更多小 coefficients 变成零，也让留下来的值更粗糙。Decoder 只能得到 $\hat c_k$，不能找回 rounding 前的 $c_k$；这是典型有损 codec 的主要不可逆边界。
+
+Transform 的作用常被误说成「删除高频」。正交 transform 仍输出同样数量的 coefficients；若保留足够精度，它可以逆变换。它真正做的是换坐标，让相关结构集中到少数大系数，并让 encoder 能按位置、频率或尺度分别量化。
+
+对一个 $N\times N$、已减去中心值的图像 block $f(x,y)$，二维 DCT 可以写成
+
+$$
+C(u,v)=\alpha(u)\alpha(v)
+\sum_{x=0}^{N-1}\sum_{y=0}^{N-1}
+f(x,y)
+\cos\frac{(2x+1)u\pi}{2N}
+\cos\frac{(2y+1)v\pi}{2N}.
+$$
+
+$C(0,0)$ 描述整块平均；$u$ 或 $v$ 越大，basis 在空间中变化越快。下面使用同一份 $4\times4$ 数值实际计算 DCT、逐频率量化与 inverse DCT。变换前后始终是 16 个数，量化后才出现大量零和不可逆误差。
+
+<TransformQuantization />
+
+Encoder 通常在许多候选表示中最小化 rate–distortion cost：
+
+$$
+J(m)=D(x,\hat x_m)+\lambda R(m).
+$$
+
+$R$ 包含量化 coefficients、预测模式、模型参数等所有要发送的 bits；$D$ 衡量重建损失；$\lambda$ 表示愿意用多少失真换码率。不同媒体真正不同的地方，主要不是有没有 $R$，而是怎样定义 $D$。
+
+## 图像：在二维空间里分离结构与颜色
+
+RGB 便于显示，却不总适合按视觉重要性分配 bits。照片和视频 codec 常把颜色变换为亮度样分量 $Y$ 与两个色度分量 $C_b,C_r$。颜色变换本身不减少 sample 数；chroma subsampling 才会减少。
+
+对一个 $2\times2$ 区域，RGB 或 YCbCr 4:4:4 都有 12 个 samples。YCbCr 4:2:0 保留 4 个 $Y$，让四个位置共享 1 个 $C_b$ 与 1 个 $C_r$，一共 6 个 samples。
+
+<ChromaSampling />
+
+人类视觉通常对高频亮度变化比高频色度变化敏感，所以照片常能承受色度降采样；文字、UI、像素画、彩色细线和继续编辑的素材则可能出现明显 color bleeding。4:2:0 是有损操作；从 RGB 换到 YCbCr、却仍保留 4:4:4，不能单凭名称断言有损。
+
+Baseline JPEG 把图像分块，对每块做 DCT 和 quantization，再让 DC difference 与按 zigzag 排列的 AC coefficients 进入 run-length/Huffman coding [@jpeg1992jpeg1]。Block 边界两侧的量化误差不连续会产生 blocking；锐利边缘附近的高频损失会形成 ringing；低 bit depth 或过强的低频量化会产生 banding。所谓「压缩痕迹」不是一个现象，必须沿 decoder 反查是哪一步制造的。
+
+现代图像格式仍在回答同一组问题：
+
+| 格式 | 主要机制 | 有损能力 | 常见考虑场景 |
+| --- | --- | --- | --- |
+| PNG | scanline prediction + DEFLATE | 无 | UI、截图、线稿、需逐 sample 保留 |
+| JPEG | block DCT + quantization + entropy coding | 有，标准另有少用模式 | 兼容性优先的照片交付 |
+| WebP | VP8 intra transform；另有独立 lossless mode | 有 / 无 | Web 照片、透明图与动画 |
+| AVIF | HEIF 中的 AV1 image coding | 有 / 无 | 高效率照片、HDR/WCG、现代终端 |
+| JPEG XL | VarDCT 或 Modular | 有 / 无 | HDR、渐进解码、专业或受控生态 |
+
+WebP lossy 使用 VP8 的 intra prediction 与 transform coding，lossless mode 则采用另一套可逆变换和概率编码 [@googlewebp]。AVIF 可表达多种 bit depth、SDR/HDR、wide color gamut 与 image sequence [@aomediaavif]。JPEG XL 同时设计了 VarDCT 与 Modular 路径，并支持 progressive decoding、alpha 和 legacy JPEG 的 bit-exact reconstruction [@jpeg2023jxlwhitepaper]。
+
+## 音频：变换之外，还要与时间赛跑
+
+一段 PCM 音频是按固定 sample rate 取得的振幅序列。无损音频可以像前面的例子一样预测相邻 samples；有损音频还会把短时间 frame 变到频率附近的坐标，再依据听觉分配量化噪声。
+
+### 为什么音频不能直接对整段做一次频率变换
+
+整首歌做一次 Fourier transform，能很好地说明「有哪些频率」，却丢掉「它们何时出现」。按很短的 frame 分析则能定位鼓点，却难以精细区分接近的频率。音频 codec 因而在 time resolution 与 frequency resolution 之间选择 block size。
+
+把第 $m$ 个重叠 frame 抽象写成
+
+$$
+X_{m,k}=\sum_n x[n+mH]w[n]\phi_k[n],
+$$
+
+$w[n]$ 是平滑 window，$H$ 是相邻 frame 的步长，$\phi_k$ 是第 $k$ 个 frequency basis。Window 避免硬切边界制造大量虚假高频；相邻 frame overlap，再由 decoder 合成，使边界连续。MP3 使用 polyphase filter bank 与 MDCT 的 hybrid 结构 [@mpegmp3overview]；AAC 则以更高分辨率 transform coding 为核心 [@mpegaacoverview]。
+
+长 block 对稳定音调有较细的频率分辨率，却会把量化误差摊到突发声之前，形成 **pre-echo**。短 block 更能把误差限制在 transient 附近，但频率分辨率较粗、side information 也更频繁。Codec 检测到瞬态时切换 window 长度，并不是一个实现细节，而是在时间局部性与频率集中性之间重新分配预算。
+
+### Psychoacoustics 不是简单删除“听不见的频率”
+
+强音会提高邻近频率或邻近时刻中弱误差的可听阈值，这称为 masking。Perceptual encoder 估计各 time–frequency 区域允许的噪声，再分配 quantization steps，使误差尽量落在较不易察觉的位置。MIT 的 perceptual audio notes 正是沿数字音频、quantization、masking、sub-band coding 与 bit allocation 展开这条因果链 [@mit2005perceptualaudio]。
+
+这不等于给频谱画一条固定线并删除线下内容。Masking 随信号、时间、频率、声压、听者与播放环境改变；encoder 的 psychoacoustic model 也只是近似。低码率下常见的 watery/metallic texture、瞬态 smear、pre-echo 和 stereo image collapse，来自不同的近似，不能都归因于“高频被切掉”。
+
+Stereo 也提供相关性。Mid/side 变换
+
+$$
+M=\frac{L+R}{2},\qquad S=L-R
+$$
+
+在保留精度时可逆；左右相近时，$S$ 很便宜。Intensity stereo 等参数化工具则可能只发送某些频段的能量和方向线索，让 decoder 合成声场，属于有损建模。
+
+### Speech 与一般音频需要不同的先验
+
+人声的短时谱包络、音高周期和激励结构很强。低码率 speech codec 常用 LPC 描述 vocal tract filter，再编码 excitation，而一般音乐 codec 更依赖 transform 与 perceptual allocation。Opus 把面向 speech 的 SILK layer 与低延迟 transform 路线 CELT 统一在一个 codec 中，并可按带宽和内容切换或组合；它还把 frame duration、packet loss recovery 与低延迟通信纳入设计 [@rfc6716opus]。
+
+| Codec | 主要思路 | 更值得注意的约束 |
+| --- | --- | --- |
+| FLAC | LPC/fixed prediction + Rice-coded residual | 无损、解码简单、体积不会像 lossy 那样大降 |
+| MP3 | hybrid filter bank + perceptual quantization | 兼容性强，旧设计的时频与工具限制 |
+| AAC | MDCT 路线 + perceptual/stereo tools | 广泛用于媒体分发，profile 与 container 需一起核对 |
+| Opus | SILK + CELT，可适应 speech 与 music | 低延迟、实时通信、packet loss 与 Web 生态 |
+
+## 视频：在空间预测之外，再借用已重建的时间
+
+固定相机拍摄菜单时，墙和菜单几乎不动，只有价格牌从左边移到右边。把每一帧独立压成图片会重复描述背景；更好的方法是让当前帧引用其他已重建帧，只发送位移假设和无法预测的变化。
+
+对当前块 $x_t$ 和参考重建帧 $\hat x_r$，若 encoder 选择位移 $v=(v_x,v_y)$，prediction 可以写成
+
+$$
+p_t(i,j)=\hat x_r(i+v_y,j+v_x),
+\qquad e_t=x_t-p_t.
+$$
+
+Motion vector 不是物体真实运动，也不是 dense optical flow。它只是让当前块 residual 变便宜的一个位移假设。模式编号、reference index 与 vector 自己也占 bits，所以搜索仍要比较完整的 $D+\lambda R$。
+
+<PredictionResidual />
+
+### 为什么 encoder 必须在内部解码一遍
+
+若 encoder 从无损原始帧预测，而播放端只能从量化后的帧预测，两端的参考从第一步起就不同，误差会沿参考链累积成 drift。Encoder 因此包含一条本地 decoder：反量化、逆变换、加回 prediction、执行同样的 in-loop filters，再把**重建帧**放入 reference buffer。
+
+<HybridCodec />
+
+I-frame 只依赖同一帧，适合作为随机访问点；P-frame 可引用较早的参考；B-frame 可组合显示时间上之前和之后的参考。它们描述依赖结构，不是画质等级。更长的 Group of Pictures（GOP）能利用更多时间冗余，也增加 seek 距离、重排延迟与错误传播范围。
+
+<GopTimeline />
+
+H.264/AVC 奠定了现代 block-based hybrid codec 的经典轮廓，包括可变块运动补偿、多参考帧、整数变换、in-loop deblocking 与上下文熵编码 [@wiegand2003h264]。后续标准没有推翻这条链，而是扩大合法预测、分块、变换和滤波的候选空间：
+
+| Codec | 代表性扩展 | 现实选型首先检查 |
+| --- | --- | --- |
+| H.264/AVC | 经典 hybrid coding 工具 | 旧终端与硬件覆盖 |
+| HEVC/H.265 | CTU 树、更大块、SAO、tiles | 4K/HDR 管线、平台与授权 [@sullivan2012hevc] |
+| VP9 | superblock、递归分块、WebM 生态 | 既有 Web 管线与设备支持 [@mukherjee2013vp9] |
+| AV1 | 更丰富分块、compound/warped motion、CDEF、loop restoration | 解码覆盖与编码吞吐 [@han2021av1] |
+| VVC/H.266 | QT+MTT、affine/geometric prediction、ALF 等 | 芯片、软件和商业生态 [@bross2021vvc] |
+| AV2 | 下一代 AOM bitstream 与 decoder 规范 | 早期实现与互操作 [@aomedia2026av2] |
+
+AV2 1.0.0 规范于 2026 年 5 月发布；规范完成只说明 decoder 规则已经固定，不表示终端、编码器和内容生态已经成熟。任何「新 codec 固定节省 30%」的说法都应追问 encoder 版本、preset、内容、分辨率、bit depth、GOP、延迟与质量指标。
+
+## 同一个率失真公式，三种不同的“看起来一样”
+
+文件小不等于 codec 好：把信息全部丢掉会得到最小文件。公平比较要在多个 rate 点编码同一组有代表性的内容，画 rate–distortion curve，并固定 encoder、版本、preset、采样格式、metadata 与 decoder 对齐方式。
+
+图像常用 bits per pixel（bpp），音频和视频常用 bits per second；它们的分母不同，不能直接拿数值比较。MSE 与 PSNR 提供可重复的 sample-domain 基线：
+
+$$
+\operatorname{MSE}=\frac1n\sum_i(x_i-\hat x_i)^2,
+\qquad
+\operatorname{PSNR}=10\log_{10}\frac{L^2}{\operatorname{MSE}}.
+$$
+
+但相同 MSE 可以分布在完全不同的位置。图像还要检查文字、暗部、肤色、锐边和 banding；视频要加入 motion、flicker、scene cut 与时序稳定性，VMAF 等模型指标只能作为一种视角 [@netflixvmaf]；音频尤其不能只看 waveform MSE，因为很小的时间偏移就会造成巨大 sample error，却可能听起来一样，反过来也可能出现 MSE 不大但很刺耳的结构化噪声。
+
+高质量音频的小失真可按 ITU-R BS.1116 组织严格 listening test [@itu2015bs1116]；中等质量 codec 常用带隐藏参考和 anchor 的 MUSHRA 方法 [@itu2015bs1534]。这揭示了一个通用原则：**perceptual metric 不是 encoder 的装饰，它定义了“允许把误差搬到哪里”。** 若目标改成人脸识别、ASR 或机器视觉，合适的 distortion 还会再次改变。
+
+Rate control 则在更长时间尺度分配预算。图片通常面对单文件大小；音乐可用 VBR 让复杂片段多花 bits；实时语音还受 frame size、jitter buffer 与 packet loss 约束；视频点播可两遍分析并建立 adaptive bitrate ladder，直播则要服从 VBV、网络吞吐与端到端延迟。相同平均 bitrate 不代表相同峰值、延迟或体验。
+
+## 学习式 codec 学到的仍是同一份账本
+
+学习式图像压缩常写成
+
+$$
+y=g_a(x),\qquad
+\hat y=Q(y),\qquad
+\hat x=g_s(\hat y),
+$$
+
+并用 entropy model 估计
+
+$$
+R\approx-\sum_i\log_2 p(\hat y_i),
+\qquad
+\mathcal L=\mathbb E[R+\lambda D(x,\hat x)].
+$$
+
+早期 end-to-end 工作已把 nonlinear transform、quantization approximation 与 entropy model 放进同一个训练目标 [@balle2017endtoend]。Analysis transform、probability model 与 synthesis transform 由数据学习，但 quantized representation、side information 和 decoder consistency 仍然存在。Scale hyperprior 额外发送 latent statistics，只有当它让主 latent 省下更多 bits 时才合算 [@balle2018hyperprior]。JPEG AI 的 core coding system 已成为国际标准，目标同时包括人类观看与 compressed-domain machine tasks [@jpeg2025aistandard]。
+
+音频模型可把 waveform 编成低帧率 latent，再用多级 vector quantization 分配离散码本；SoundStream 还把 reconstruction 与 adversarial/perceptual objectives 放进端到端训练 [@zeghidour2021soundstream]。视频模型则让当前 latent 以已解码 temporal context 为条件；DCVC 把这种 context 放到 feature domain [@li2021dcvc]，后续的 DCVC-RT 又把实时吞吐作为明确目标 [@jia2025dcvcrt]。
+
+学习式方法带来一个经典 codec 不太容易越过的边界：decoder 可以生成**感知上合理**的纹理或声音，而不是逐 sample 忠实地保留来源。对娱乐内容，这可能在极低码率下更自然；对文字、医学影像、证据录音或机器测量，“听起来/看起来像”不能替代“事实相同”。所谓多模态语义压缩，必须先写清楚它承诺保留的是 waveform、像素、任务结果，还是人能辨认的语义。
+
+## 由统一视角得到的几个判断
+
+第一，压缩不是寻找一个神奇的缩小函数，而是设计 encoder 与 decoder 共享的语言。Prediction、transform 和 learned latent 都在让要发送的句子更短；bitstream 必须包含 decoder 无法自行推导的每一项选择。
+
+第二，side information 不是额外负担的反例，而是一笔投资。Motion vector、LPC coefficients、scale factor、window type 和 hyperprior 都在付少量 bits，换更便宜的 residual；是否值得只由总账决定。
+
+第三，图像、音频和视频的核心差别可以归结为三件事：可利用的坐标轴、容许误差的感知模型，以及 decoder 必须何时给出结果。音频和视频多出的时间轴不仅增加冗余，也带来 causality、latency、seek、packet loss 与状态同步。
+
+第四，transform 不是自动压缩，而是在选择误差的形状。二维 DCT 让图像误差按空间频率分配；音频 filter bank/MDCT 让噪声按时间与频率分配；motion compensation 先把视频的时间变化对齐，再变换剩余误差。
+
+最后，格式选择应从 decoder 端倒推：能否丢信息、内容是什么、谁来解码、允许多少延迟、是否需要随机访问、硬件是否支持、编码成本是否值得。格式名称和一个 `quality=80` 数字都无法替代这些约束。
+
+## 值得继续读的课程、笔记与技术文章
+
+Stanford EE398A《Image and Video Compression》的讲义从 entropy、statistical dependence、rate–distortion、quantization、prediction 与 transform coding，一路走到 JPEG 和 motion-compensated coding；它最适合补齐本文的数学骨架 [@girod2012ee398a]。MIT HST.723 的《Fundamentals of Perceptual Audio Coding》把 masking experiment 与 bit allocation 连起来，适合建立听觉直觉 [@mit2005perceptualaudio]。
+
+若要从原理走到可执行的 decoder，优先读 FLAC RFC、Opus RFC 与各图像/视频标准的 overview，而不是只看格式对比表。Xiph 开发者 Christopher Montgomery 的 demo pages 则用可听、可视例子解释数字媒体、Opus 与 AV1；它们是很好的工程 blog 补充，但具体 bitstream 规则仍以规范为准 [@xiphmontdemos]。
+
+这些资料共同提供了一种比「逐个背 codec」更稳定的学习顺序：先理解 entropy 与 rate–distortion，再理解 prediction、transform 和 quantization，随后分别加入视觉、听觉与时间依赖，最后才比较标准和实现。标准会更新，这套问题不会。

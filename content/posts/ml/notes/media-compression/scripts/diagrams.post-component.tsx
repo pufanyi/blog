@@ -457,14 +457,14 @@ function TransformQuantization() {
 }
 
 const encoderStages = [
-  { label: 'RGB samples', detail: '原始网格', kind: 'source' },
-  { label: '颜色 / 采样', detail: '可选 4:2:0', kind: 'color' },
-  { label: '预测 / DCT', detail: '集中分布', kind: 'transform' },
+  { label: 'Media samples', detail: '像素 / PCM / 帧', kind: 'source' },
+  { label: '表示 / 分块', detail: '颜色、声道、时间', kind: 'color' },
+  { label: '预测 / 变换', detail: '集中相关性', kind: 'transform' },
   { label: '量化', detail: '控制失真', kind: 'lossy' },
   { label: '熵编码', detail: '概率 → bits', kind: 'entropy' },
 ] as const;
 
-function ImageCodecPipeline() {
+function MediaCodecPipeline() {
   return (
     <figure className="ic-figure">
       <div className="ic-scroll">
@@ -473,9 +473,10 @@ function ImageCodecPipeline() {
           role="img"
           aria-labelledby="ic-pipeline-title ic-pipeline-description"
         >
-          <title id="ic-pipeline-title">图片编码与解码管线</title>
+          <title id="ic-pipeline-title">图像、音频与视频共享的编码和解码管线</title>
           <desc id="ic-pipeline-description">
-            编码器依次进行颜色处理、预测或变换、量化与熵编码。解码器反向熵解码、反量化、逆变换与颜色重建；量化和可选色度降采样是有损边界。
+            编码器依次选择媒体表示和分块，进行预测或变换、量化与熵编码。解码器反向熵解码、反量化、逆变换并重建媒体
+            samples；量化和某些降采样是有损边界。
           </desc>
           <text x="30" y="38" className="ic-heading">
             Encoder：让分布更集中，再决定舍弃多少
@@ -515,9 +516,9 @@ function ImageCodecPipeline() {
           </text>
 
           {[
-            ['重建 RGB', '显示 / 保存'],
-            ['颜色重建', '可选上采样'],
-            ['逆变换', '加回预测'],
+            ['重建 samples', '播放 / 显示'],
+            ['表示还原', '颜色 / 声道 / 分块'],
+            ['逆变换', '合成 / 加回预测'],
             ['反量化', 'q × Q'],
             ['熵解码', 'bits → symbols'],
           ].map(([label, detail], index) => {
@@ -552,7 +553,7 @@ function ImageCodecPipeline() {
           <g transform="translate(241 320)">
             <rect width="418" height="25" rx="12" className="ic-lossy-tag" />
             <text x="209" y="17" textAnchor="middle" className="ic-small">
-              常见有损边界：chroma subsampling 与 quantization；entropy coding 可逆
+              常见有损边界：subsampling 与 quantization；entropy coding 可逆
             </text>
           </g>
           <defs>
@@ -571,8 +572,8 @@ function ImageCodecPipeline() {
         </svg>
       </div>
       <figcaption>
-        一条典型 transform codec 的双向账本。Decoder 不会猜 encoder 的选择；bitstream
-        携带必要参数与量化后的符号。Lossless codec 也会预测和熵编码，只是不跨越图中的有损边界。
+        图像、音频和视频可以共享同一份双向账本。Decoder 不会猜 encoder 的选择；bitstream
+        携带必要参数与量化后的符号。具体 codec 可以省略、合并或重新排列部分阶段。
       </figcaption>
     </figure>
   );
@@ -582,5 +583,5 @@ export const POST_COMPONENTS = {
   LosslessPrediction,
   ChromaSampling,
   TransformQuantization,
-  ImageCodecPipeline,
+  MediaCodecPipeline,
 };
