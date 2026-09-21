@@ -143,6 +143,84 @@ test('right-clicking static math preserves its geometry and reading position', a
     .toBeLessThan(10);
 });
 
+test('static math matches browser typesetting across surrounding fonts and sizes', async ({
+  page,
+}) => {
+  await page.goto('/blog/ml/ml-revisit/rl');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
+  // Keep the same static nodes as their typography changes, including a font
+  // change after initial display. Only the reference column is re-typeset.
+  const fixtureHtml = await page.evaluate(() => {
+    const fixture = document.createElement('section');
+    fixture.id = 'font-matching-fixture';
+    const samples = [
+      document.querySelector('.math-inline mjx-container[data-static-math]')!,
+      document.querySelector('.math-display mjx-container[data-static-math]')!,
+    ];
+    for (const sample of samples) {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; gap:20px';
+      for (const name of ['static', 'reference']) {
+        const cell = document.createElement('div');
+        cell.className = name;
+        cell.style.width = '600px';
+        if (name === 'static') cell.append(sample.cloneNode(true));
+        row.append(cell);
+      }
+      fixture.append(row);
+    }
+    return document.querySelector('[data-post-math-style]')!.outerHTML + fixture.outerHTML;
+  });
+  // Use the production loader, including its WebKit worker compatibility fix.
+  await page.goto('/missing-formula-test');
+  await expect(page.locator('.math-symbol mjx-container').first()).toBeVisible();
+  await page.evaluate((html) => {
+    const host = document.createElement('div');
+    host.innerHTML = html;
+    document.body.append(host);
+  }, fixtureHtml);
+  for (const font of ['serif', 'sans-serif', 'monospace']) {
+    for (const size of [14, 24]) {
+      const measurements = await page.evaluate(
+        async ({ font, size }) => {
+          const api = window.MathJax!;
+          await api.startup!.promise;
+          const fixture = document.getElementById('font-matching-fixture')!;
+          fixture.style.fontFamily = font;
+          fixture.style.fontSize = `${size}px`;
+          for (const row of fixture.children) {
+            const formula = row.querySelector<HTMLElement>('[data-static-math]')!;
+            const reference = row.querySelector<HTMLElement>('.reference')!;
+            api.typesetClear?.([reference]);
+            reference.textContent = formula.hasAttribute('display')
+              ? `\\[${formula.dataset['tex']}\\]`
+              : `\\(${formula.dataset['tex']}\\)`;
+            await api.typesetPromise!([reference]);
+          }
+          await document.fonts.ready;
+          return Array.from(fixture.children, (row) => {
+            const measure = (name: string) => {
+              const container = row.querySelector<HTMLElement>(`.${name} mjx-container`)!;
+              const box = container.querySelector('mjx-math')!.getBoundingClientRect();
+              return { size: parseFloat(getComputedStyle(container).fontSize), width: box.width };
+            };
+            return { actual: measure('static'), expected: measure('reference') };
+          });
+        },
+        { font, size },
+      );
+      for (const { actual, expected } of measurements) {
+        expect(Math.abs(actual.size / expected.size - 1), `${font} ${size}px size`).toBeLessThan(
+          0.005,
+        );
+        expect(Math.abs(actual.width / expected.width - 1), `${font} ${size}px width`).toBeLessThan(
+          0.01,
+        );
+      }
+    }
+  }
+});
+
 test('runtime MathJax renders dynamic formulas without a custom context menu', async ({
   page,
   mathWorker,

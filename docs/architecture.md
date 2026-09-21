@@ -85,6 +85,11 @@ near-viewport boundary; navigation disposes pending observers and imports.
 
 - Article formulas are compiled by `scripts/lib/static-math.mts` using pinned
   MathJax CHTML, per-article adaptive CSS, assistive MathML and first-party fonts.
+  Static containers express MathJax's font-height matching in CSS `ex` units,
+  using the output font's x-height and minimum scale. This lets the browser use
+  the actual surrounding font, including after webfont loading, instead of
+  freezing Node's fallback metrics into a percentage. Keep runtime MathJax's
+  normal font-height matching; verify visual size across fonts and font sizes.
   Serialize rendering and create a fresh TeX input parser per article so macros
   and counters cannot leak between articles or incremental rebuilds. Search and
   Markdown use the pre-typeset source, not expanded formula markup.

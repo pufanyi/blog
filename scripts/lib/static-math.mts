@@ -5,7 +5,12 @@ interface MathDocument {
   document: unknown;
   math: Iterable<{ math: string; display: boolean; typesetRoot: unknown }>;
   render(): void;
-  outputJax: { clearCache(): void; styleSheet(document: MathDocument): unknown };
+  outputJax: {
+    clearCache(): void;
+    styleSheet(document: MathDocument): unknown;
+    font: { params: { x_height: number } };
+    options: { scale: number; minScale: number };
+  };
 }
 interface MathEngine {
   config: { options: Record<string, unknown> };
@@ -19,6 +24,7 @@ interface MathEngine {
       innerHTML(node: unknown): string;
       textContent(node: unknown): string;
       setAttribute(node: unknown, name: string, value: string): void;
+      setStyle(node: unknown, name: string, value: string): void;
     };
     document: MathDocument;
   };
@@ -68,7 +74,13 @@ export function renderStaticMath(html: string): Promise<string> {
     const document = math.startup.getDocument(html);
     await math._.mathjax.mathjax.handleRetriesFor(() => document.render());
     const adaptor = math.startup.adaptor;
+    const { font, options } = document.outputJax;
+    // Match MathJax's browser ex-height calculation without serializing Node's
+    // fallback font metrics. In font-size, ex refers to the parent font, so this
+    // also responds to webfont loading and different surrounding typography.
+    const fontSize = `max(${options.minScale * options.scale}em, ${options.scale / font.params.x_height}ex)`;
     for (const item of document.math) {
+      adaptor.setStyle(item.typesetRoot, 'fontSize', fontSize);
       adaptor.setAttribute(item.typesetRoot, 'data-static-math', '');
       adaptor.setAttribute(item.typesetRoot, 'data-tex', item.math);
     }
