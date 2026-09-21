@@ -1,7 +1,14 @@
-import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
-import { filter, map } from 'rxjs';
+import { filter } from 'rxjs';
 import { ThemeService } from '../../services/theme.service';
 import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
 import { SearchModalComponent } from '../search-modal/search-modal';
@@ -23,13 +30,19 @@ export class ToolbarComponent {
   toolbarExt = inject(ToolbarExtensionService);
   searchOpen = signal(false);
   private router = inject(Router);
-  showBlogLink = toSignal(
-    this.router.events.pipe(
-      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-      map((e) => !isBlogList(e.urlAfterRedirects)),
-    ),
-    { initialValue: !isBlogList(this.router.url) },
-  );
+  showBlogLink = signal(!isBlogList(this.router.url));
+
+  constructor() {
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe((event) => this.showBlogLink.set(!isBlogList(event.urlAfterRedirects)));
+    // A lazily created shell can miss the initial NavigationEnd, while
+    // Router.url may still be `/` during its constructor.
+    afterNextRender(() => this.showBlogLink.set(!isBlogList(this.router.url)));
+  }
 
   @HostListener('document:keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {

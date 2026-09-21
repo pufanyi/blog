@@ -7,6 +7,17 @@ import { openSearch, test } from './fixtures';
 
 const archivePages = Math.max(1, Math.ceil(POSTS.length / BLOG_CONFIG.postsPerPage));
 
+test('a directly opened article offers mobile navigation back to the blog', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'Mobile toolbar behavior');
+  await page.goto('/blog/oi-icpc/codeforces/cf551c');
+  await expect(page.locator('.toolbar-mobile').getByRole('link', { name: 'Blog' })).toBeVisible();
+  await expect(
+    page.locator('app-toolbar').getByRole('link', { name: 'Documentation' }),
+  ).toHaveCount(0);
+});
+
 test('slow article navigation gives feedback until its content arrives', async ({ page }) => {
   await page.goto('/blog/contents/oi-icpc/codeforces');
   // Wait for hydration before holding subsequent lazy route and body requests.

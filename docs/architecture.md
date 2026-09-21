@@ -120,6 +120,11 @@ version. Its worker compatibility adapter and removal criteria are documented in
 
 ## Routes, metadata, and reading interaction
 
+- The shared toolbar links to the homepage and, outside the archive pages, back
+  to `/blog` on both desktop and mobile. Resolve this visibility again after the
+  first browser render because the lazily created shell can miss the initial
+  router completion event.
+
 - The root application shows an indeterminate top bar while client router
   navigation waits for lazy routes or resolved content.
   Completion, cancellation, and skipped navigation clear the status; failures
