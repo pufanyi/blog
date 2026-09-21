@@ -1,6 +1,7 @@
 import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
 import { BLOG_CONFIG } from './data/blog-config';
 import { DOCS } from './data/docs';
+import { POST_ROUTES } from './data/post-routes';
 import { POSTS } from './data/posts';
 import { docPath } from './models/doc.model';
 import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directories';
@@ -53,7 +54,7 @@ export const serverRoutes: ServerRoute[] = [
   },
   ...[
     ...buildBlogDirectories(POSTS).map((directory) => blogDirectoryPath(directory.slug).slice(1)),
-    ...POSTS.map((post) => `blog/${post.slug}`),
+    ...POST_ROUTES.map((post) => `blog/${post.slug}`),
   ].map((path) => ({
     path,
     renderMode: RenderMode.Prerender as const,

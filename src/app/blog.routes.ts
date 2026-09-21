@@ -2,9 +2,11 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { inject, makeStateKey, PLATFORM_ID, TransferState } from '@angular/core';
 import { ResolveFn, Routes } from '@angular/router';
 import { BLOG_CONFIG } from './data/blog-config';
+import { POST_ROUTES, PRIVATE_POST_SLUGS } from './data/post-routes';
 import { POSTS } from './data/posts';
 import { SITE_CONFIG } from './data/site-config';
 import type { Post, PostTocItem } from './models/post.model';
+import { POST_CONTENT_LOADERS } from './models/post-loader.model';
 import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directories';
 import type { BlogPage } from './utils/blog-pagination';
 import { BLOG_REDIRECTS } from './utils/blog-redirects';
@@ -16,6 +18,7 @@ const resolveBlogPage: ResolveFn<BlogPage | null> = (route) =>
 const loadBlogComponent = () => import('./pages/home/home').then((m) => m.HomeComponent);
 const resolvePost: ResolveFn<Post | null> = (route) => {
   const slug = route.data['slug'] as string;
+  const loaders = inject(POST_CONTENT_LOADERS);
   const state = inject(TransferState);
   const key = makeStateKey<PostTocItem[]>(`post-toc:${slug}`);
   const browser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -23,13 +26,13 @@ const resolvePost: ResolveFn<Post | null> = (route) => {
   if (browser && state.hasKey(key)) {
     const toc = state.get(key, []);
     state.remove(key);
-    const summary = POSTS.find((post) => post.slug === slug);
+    const summary = POST_ROUTES.find((post) => post.slug === slug);
     if (summary && article?.dataset['postSlug'] === slug) {
       return { ...summary, contentHtml: '', toc, prerendered: true };
     }
   }
   return import('./services/post-repository').then(async (module) => {
-    const post = await module.loadPost(slug);
+    const post = await module.loadPost(slug, loaders);
     if (!browser && post) state.set(key, post.toc);
     return post;
   });
@@ -66,10 +69,10 @@ export const blogRoutes: Routes = [
     loadComponent: () =>
       import('./pages/blog-directory/blog-directory').then((m) => m.BlogDirectoryComponent),
   })),
-  ...POSTS.map((post) => ({
+  ...POST_ROUTES.map((post) => ({
     path: post.slug,
     pathMatch: 'full' as const,
-    data: { slug: post.slug },
+    data: { slug: post.slug, noindex: PRIVATE_POST_SLUGS.has(post.slug) },
     resolve: { post: resolvePost },
     loadComponent: () => import('./pages/post/post').then((m) => m.PostComponent),
   })),

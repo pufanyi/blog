@@ -55,12 +55,22 @@ function searchableText(html: string): string {
 async function buildPostModules(
   posts: Post[],
   searchTexts: Map<string, string>,
+  privateSlugs: ReadonlySet<string>,
 ): Promise<Map<string, string>> {
   const files = new Map<string, string>();
-  const summaries = posts.map(({ contentHtml: _html, toc: _toc, ...summary }) => summary);
+  const routeSummaries = posts.map(({ contentHtml: _html, toc: _toc, ...summary }) => {
+    if (!privateSlugs.has(summary.slug)) return summary;
+    const { excerptHtml: _excerpt, ...privateSummary } = summary;
+    return privateSummary;
+  });
+  const summaries = routeSummaries.filter(({ slug }) => !privateSlugs.has(slug));
   files.set(
     'posts.ts',
     `${GENERATED}import type { PostSummary } from '../models/post.model';\n\nexport const POSTS: PostSummary[] = ${JSON.stringify(summaries, null, 2)};\n`,
+  );
+  files.set(
+    'post-routes.ts',
+    `${GENERATED}import type { PostSummary } from '../models/post.model';\n\nexport const POST_ROUTES: PostSummary[] = ${JSON.stringify(routeSummaries, null, 2)};\n\nexport const PRIVATE_POST_SLUGS: ReadonlySet<string> = new Set(${JSON.stringify([...privateSlugs].sort(), null, 2)});\n`,
   );
   for (const { slug, contentHtml, toc } of posts) {
     const modelPath = `${'../'.repeat(slug.split('/').length + 1)}models/post.model`;
@@ -69,24 +79,34 @@ async function buildPostModules(
       `${GENERATED}import type { PostContent } from '${modelPath}';\n\nexport const POST_CONTENT: PostContent = ${JSON.stringify({ contentHtml, toc }, null, 2)};\n`,
     );
   }
+  const loaderEntry = ({ slug }: Post) =>
+    `  [${JSON.stringify(slug)}, () => import(${JSON.stringify(`./posts/${slug}`)}).then(m => m.POST_CONTENT)],`;
   const loaders = posts
-    .map(
-      ({ slug }) =>
-        `  [${JSON.stringify(slug)}, () => import(${JSON.stringify(`./posts/${slug}`)}).then(m => m.POST_CONTENT)],`,
-    )
+    .filter(({ slug }) => !privateSlugs.has(slug))
+    .map(loaderEntry)
+    .join('\n');
+  const privateLoaders = posts
+    .filter(({ slug }) => privateSlugs.has(slug))
+    .map(loaderEntry)
     .join('\n');
   files.set(
     'post-loaders.ts',
     `${GENERATED}import type { PostContent } from '../models/post.model';\n\nexport const POST_LOADERS = new Map<string, () => Promise<PostContent>>([\n${loaders}\n]);\n`,
   );
-  const documents: SearchDocument[] = posts.map((post, id) => ({
-    id,
-    slug: post.slug,
-    title: post.title,
-    date: post.date,
-    description: post.description ?? '',
-    content: searchTexts.get(post.slug)!,
-  }));
+  files.set(
+    'private-post-loaders.ts',
+    `${GENERATED}import type { PostContent } from '../models/post.model';\n\nexport const PRIVATE_POST_LOADERS = new Map<string, () => Promise<PostContent>>([\n${privateLoaders}\n]);\n`,
+  );
+  const documents: SearchDocument[] = posts
+    .filter(({ slug }) => !privateSlugs.has(slug))
+    .map((post, id) => ({
+      id,
+      slug: post.slug,
+      title: post.title,
+      date: post.date,
+      description: post.description ?? '',
+      content: searchTexts.get(post.slug)!,
+    }));
   const index = createSearchIndex();
   for (const document of documents) index.add(document);
   const serialized: SerializedSearchIndex = [];
@@ -159,6 +179,7 @@ export async function generateData(
       return { slug, sourcePath, meta: metadata, mdx: body };
     })
     .filter(({ meta }) => !meta.draft);
+  const privateSlugs = new Set(rawPosts.filter(({ meta }) => meta.private).map(({ slug }) => slug));
   const cacheFiles = new Map<string, string>();
   const cachedPosts = new Map<string, CachedPost>();
   const cacheKeys = new Map(
@@ -192,14 +213,14 @@ export async function generateData(
     posts = await Promise.all(
       rawPosts.map(async ({ slug, meta, mdx, sourcePath }) => {
         const remember = (value: CachedPost) => {
-          agentPosts.push(value.agent);
+          if (!privateSlugs.has(slug)) agentPosts.push(value.agent);
           searchTexts.set(slug, value.searchText);
           cacheFiles.set(`${slug}.json`, encodeCachedPost(cacheKeys.get(slug)!, value));
           return value.post;
         };
         const cached = cachedPosts.get(slug);
         if (cached) return remember(cached);
-        const { draft: _draft, ...summary } = meta;
+        const { draft: _draft, private: _private, ...summary } = meta;
         if (summary.coverImage)
           summary.coverImage = normalizePostImageHref(summary.coverImage, slug);
         const rendered = await renderMdx(mdx, slug, sourcePath, highlighter!);
@@ -222,7 +243,7 @@ export async function generateData(
     highlighter?.dispose();
   }
   posts.sort(comparePostsByPublication);
-  const dataFiles = await buildPostModules(posts, searchTexts);
+  const dataFiles = await buildPostModules(posts, searchTexts, privateSlugs);
   dataFiles.set('post-enhancements.ts', postEnhancementModule(root, rawPosts));
   for (const [filename, type, name, value] of [
     ['site-config', 'SiteConfig', 'SITE_CONFIG', configuration.site],

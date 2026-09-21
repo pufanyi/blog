@@ -4,6 +4,7 @@ import { routes } from './app.routes';
 import { serverRoutes } from './app.routes.server';
 import { blogRoutes } from './blog.routes';
 import { BLOG_CONFIG } from './data/blog-config';
+import { POST_ROUTES, PRIVATE_POST_SLUGS } from './data/post-routes';
 import { POSTS } from './data/posts';
 import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directories';
 import { blogPageCount } from './utils/blog-pagination';
@@ -11,7 +12,7 @@ import { blogPageCount } from './utils/blog-pagination';
 describe('application routes', () => {
   it('routes and prerenders every published article and ancestor directory at its full path', () => {
     const paths = [
-      ...POSTS.map((post) => `/blog/${post.slug}`),
+      ...POST_ROUTES.map((post) => `/blog/${post.slug}`),
       ...buildBlogDirectories(POSTS).map((directory) => blogDirectoryPath(directory.slug)),
     ];
     for (const path of paths) {
@@ -30,6 +31,11 @@ describe('application routes', () => {
       blogRoutes.find((route) => route.path === 'oi-icpc/codeforces/cf551c')?.data?.['slug'],
     ).toBe('oi-icpc/codeforces/cf551c');
     expect(blogRoutes.at(-1)?.path).toBe('**');
+    for (const slug of PRIVATE_POST_SLUGS) {
+      const route = blogRoutes.find((candidate) => candidate.path === slug);
+      expect(route?.data?.['noindex']).toBe(true);
+      expect(POSTS.some((post) => post.slug === slug)).toBe(false);
+    }
   });
   it('prerenders every archive page using the configured page size', async () => {
     const route = serverRoutes.find((route) => route.path === 'blog/page/:page');

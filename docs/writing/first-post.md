@@ -65,7 +65,7 @@ empirical claims attributable to their original or official sources.
 | `updated` | No | Known substantive update date, on or after publication |
 | `coverImage` | No | Optional sharing/article image, such as `./images/cover.avif` |
 | `draft` | No | Boolean; `true` removes the article from generated article routes and indexes |
-| `private` | No | Reserved boolean marker for planned access control; currently does not hide the article or restrict access |
+| `private` | No | Boolean; keeps the article out of public indexes while retaining its direct route for host-level access control |
 
 Unknown fields, invalid dates, empty author lists, and duplicate author names fail generation. When `authors` is present, its order is used by the visible byline, BibTeX card, structured metadata, feeds, and Markdown export. When it is omitted, the article keeps the previous no-byline layout while machine-readable output and BibTeX fall back to the configured site author. The archive excerpt comes from opening prose rather than `description`, so make the opening paragraph useful on its own. Do not insert another level-one heading into the body.
 
@@ -74,3 +74,5 @@ Unknown fields, invalid dates, empty author lists, and duplicate author names fa
 Open the article's URL directly, check its category and archive entry, and inspect the generated Markdown at `/blog/notes/example.md`. Check a narrow screen and both themes, especially after adding figures, tables, or formulas. Follow the full [publishing checklist](publishing.md) before committing.
 
 Drafts are omitted from article HTML, search, feeds, and Markdown exports. **Draft status is not an asset privacy boundary**: eligible files inside `content/posts` are still copied by the asset pipeline. Keep confidential drafts and private attachments outside published asset directories.
+
+Private posts keep a prerendered direct route so the production host can place it behind access control. They are omitted from archive and directory listings, search, feeds, sitemap discovery, and Markdown exports, and carry `noindex`. The marker is not encryption: post assets and source files require their own private storage or host protection, and a public source repository exposes authored content regardless of site access rules.

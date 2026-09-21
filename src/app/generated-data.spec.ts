@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CV_DATA } from './data/cv';
+import { POST_LOADERS } from './data/post-loaders';
+import { POST_ROUTES, PRIVATE_POST_SLUGS } from './data/post-routes';
 import { POSTS } from './data/posts';
 import { REDIRECTS } from './data/redirects';
 import type { PostTocItem } from './models/post.model';
@@ -16,8 +18,15 @@ describe('generated content data', () => {
     expect(CV_DATA).toBeTruthy();
   });
 
+  it('keeps private articles routable but out of public summaries', () => {
+    for (const slug of PRIVATE_POST_SLUGS) {
+      expect(POST_ROUTES.some((post) => post.slug === slug)).toBe(true);
+      expect(POSTS.some((post) => post.slug === slug)).toBe(false);
+    }
+  });
+
   it.each(POSTS)('keeps table-of-contents data aligned with headings: $slug', async (summary) => {
-    const post = await loadPost(summary.slug);
+    const post = await loadPost(summary.slug, POST_LOADERS);
     if (!post) throw new Error(`Missing post: ${summary.slug}`);
     const document = new DOMParser().parseFromString(post.contentHtml, 'text/html');
     const headingIds = Array.from(document.querySelectorAll('h2, h3')).map((heading) => heading.id);

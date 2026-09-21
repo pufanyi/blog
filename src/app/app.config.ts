@@ -6,6 +6,8 @@ import {
 } from '@angular/platform-browser';
 import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app.routes';
+import { POST_LOADERS } from './data/post-loaders';
+import { POST_CONTENT_LOADERS } from './models/post-loader.model';
 import { PageMetadataStrategy } from './services/page-metadata.strategy';
 
 export const appConfig: ApplicationConfig = {
@@ -18,6 +20,7 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling(),
     ),
     { provide: TitleStrategy, useClass: PageMetadataStrategy },
+    { provide: POST_CONTENT_LOADERS, useValue: POST_LOADERS },
     provideClientHydration(withNoIncrementalHydration(), withEventReplay()),
   ],
 };

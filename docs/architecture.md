@@ -149,6 +149,12 @@ version. Its worker compatibility adapter and removal criteria are documented in
   as the paginated archive and preserve the contents root even with no posts.
   Derive browser-test directory counts from generated post paths so adding a
   post does not require updating unrelated navigation assertions.
+  Posts marked `private: true` retain a direct prerendered route for host-level
+  access control, but are excluded from public archives, directories, search,
+  feeds, sitemaps, Markdown exports, and discovery metadata. This visibility
+  split also keeps their content loaders out of the browser build; the server
+  build loads them only while prerendering the protected HTML route. Protect or
+  isolate article assets and source repositories separately.
   Use full path strings for router navigation; encoding an entire slug or passing
   it as a single noninitial router command turns `/` into `%2F`.
 

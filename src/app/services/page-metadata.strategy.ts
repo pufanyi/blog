@@ -117,7 +117,7 @@ export class PageMetadataStrategy extends TitleStrategy {
       missing || route.data['noindex'] ? null : `${SITE_CONFIG.url}/llms.txt`,
       'text/plain',
     );
-    this.updateArticleStructuredData(missing ? null : post, canonical);
+    this.updateArticleStructuredData(missing || route.data['noindex'] ? null : post, canonical);
     const indexable = !missing && !route.data['noindex'];
     this.updateStructuredData(
       'profile-structured-data',
