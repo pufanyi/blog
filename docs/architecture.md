@@ -129,10 +129,14 @@ version. Its worker compatibility adapter and removal criteria are documented in
   navigation waits for lazy routes or resolved content.
   Completion, cancellation, and skipped navigation clear the status; failures
   offer a normal document link to reopen the destination, avoiding cached failed
-  module imports. New navigation clears previous failures. The failure notice
-  uses a live status region. Feedback does not
-  block reading or other navigation, respects reduced motion, and starts after
-  hydration so prerendered pages do not acquire an initial loading overlay.
+  module imports. A missing lazy chunk usually means an open tab crossed a
+  deployment, so that specific failure performs one full-document navigation to
+  the destination. Session storage suppresses another automatic attempt for the
+  same URL for 30 seconds; storage failures and repeated import failures retain
+  the manual link instead of entering a reload loop. New navigation clears
+  previous failures. The failure notice uses a live status region. Feedback does
+  not block reading or other navigation, respects reduced motion, and starts
+  after hydration so prerendered pages do not acquire an initial loading overlay.
 
 - Blog pagination uses `/blog` and `/blog/page/:page`. Keep the resolver,
   prerendered page count, metadata, and navigation on the same pagination helpers

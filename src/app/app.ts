@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -17,6 +18,7 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { PageScrollService } from './services/page-scroll.service';
+import { claimDynamicImportRecovery } from './utils/navigation-recovery';
 
 @Component({
   selector: 'app-root',
@@ -34,6 +36,7 @@ export class App {
     inject(PageScrollService);
     const router = inject(Router);
     const destroyRef = inject(DestroyRef);
+    const window = inject(DOCUMENT).defaultView;
     // Prerendered content stays visible during initial hydration.
     afterNextRender(() => {
       let pendingId: number | null = null;
@@ -51,7 +54,17 @@ export class App {
           if (event.id !== pendingId) return;
           pendingId = null;
           this.loading.set(false);
-          if (event instanceof NavigationError) this.failedUrl.set(event.url);
+          if (event instanceof NavigationError) {
+            if (
+              window &&
+              claimDynamicImportRecovery(() => window.sessionStorage, event.url, event.error)
+            ) {
+              this.loading.set(true);
+              window.location.assign(event.url);
+              return;
+            }
+            this.failedUrl.set(event.url);
+          }
         }
       });
     });

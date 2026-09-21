@@ -18,6 +18,49 @@ test('a directly opened article offers mobile navigation back to the blog', asyn
   ).toHaveCount(0);
 });
 
+test('a stale lazy chunk reloads the destination with current assets', async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'One browser covers shared recovery behavior');
+  await page.goto('/blog/contents/oi-icpc/codeforces');
+  const { input } = await openSearch(page);
+  await input.press('Escape');
+  const destination = '/blog/oi-icpc/codeforces/cf551c';
+  const contentChunk = await page.evaluate(async () => {
+    const source = document.querySelector<HTMLScriptElement>('script[src^="main-"]')?.src;
+    if (!source) throw new Error('Main application module was not found');
+    const main = await fetch(source).then((response) => response.text());
+    const marker = '`oi-icpc/codeforces/cf551c`,()=>import(`./';
+    const start = main.indexOf(marker);
+    const end = main.indexOf('`', start + marker.length);
+    if (start < 0 || end < 0) throw new Error('Article content chunk was not found');
+    return main.slice(start + marker.length, end);
+  });
+  let failedModule = false;
+  let destinationDocuments = 0;
+  page.on('request', (request) => {
+    if (request.isNavigationRequest() && new URL(request.url()).pathname === destination)
+      destinationDocuments += 1;
+  });
+  await page.route(
+    `**/${contentChunk}`,
+    async (route) => {
+      failedModule = true;
+      await route.fulfill({
+        status: 404,
+        contentType: 'text/javascript',
+        body: '/* removed by a newer deployment */',
+      });
+    },
+    { times: 1 },
+  );
+  await page.locator(`a.directory-entry[href="${destination}"]`).click();
+  await expect(page).toHaveURL(destination);
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  expect(failedModule).toBe(true);
+  expect(destinationDocuments).toBe(1);
+});
+
 test('slow article navigation gives feedback until its content arrives', async ({ page }) => {
   await page.goto('/blog/contents/oi-icpc/codeforces');
   // Wait for hydration before holding subsequent lazy route and body requests.

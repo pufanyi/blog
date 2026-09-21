@@ -24,6 +24,13 @@ pnpm preview:cloudflare
 
 This starts local Wrangler at `http://127.0.0.1:8787/`. Use the Cloudflare Playwright project to check route handling and HTTP behavior. Do not infer successful publication from a local preview: production changes become public only through the repository's configured deployment process.
 
+Hashed lazy chunks from an older deployment can disappear while a reader keeps
+that version of the application open. The client recognizes the browser's
+dynamic-import failure and performs one full navigation to the requested page so
+the new document loads the current asset graph. It rate-limits recovery per URL
+in session storage and retains the visible manual retry when reloading is unsafe
+or fails again.
+
 ## Build outputs and ownership
 
 | Output | Produced from |
