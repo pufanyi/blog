@@ -49,7 +49,7 @@ An article's `styles.css` is discovered automatically. Prefix selectors with a u
 
 Do not add article-specific styles to the shared post component. Small fragments inside SVG should use local fragment references. CSS and TSX asset URLs are not automatically rewritten when an article's slug changes.
 
-Use TeX delimiters inside a sized HTML `foreignObject` for mathematical SVG labels; the site's MathJax CHTML renderer does not typeset SVG `text`. In TSX, use `String.raw` or escaped backslashes. Give labels explicit bounds and check actual WebKit rendering at narrow widths. The [content working agreements](../../content/AGENTS.md#post-diagrams) contain detailed diagram conventions.
+Use TeX delimiters inside a sized HTML `foreignObject` for mathematical SVG labels; the site's MathJax CHTML renderer does not typeset SVG `text`. In TSX, use `String.raw` or escaped backslashes. Give labels explicit bounds, keep overflow diagrams at 1:1 SVG scale, and position labels outside translated ancestor groups. Inspect actual WebKit screenshots at narrow widths: DOM bounds alone can miss displaced formula painting. The [content working agreements](../../content/AGENTS.md#post-diagrams) contain detailed diagram conventions.
 
 ## Interactive examples
 

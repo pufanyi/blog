@@ -252,7 +252,9 @@ For Jekyll, Hexo, or Typst imports, also read
   each foreign object explicit bounds and remove default `mjx-container`
   margins. WebKit can misplace this HTML when a responsive SVG is scaled; for
   narrow overflow layouts, keep the rendered SVG dimensions at 1:1 with its
-  `viewBox` and verify on an actual WebKit device.
+  `viewBox` and position foreign objects in absolute SVG coordinates, outside
+  translated ancestor groups. Verify screenshots on actual WebKit: correct DOM
+  bounding boxes do not rule out displaced MathJax painting.
 - After changing a diagram, run `pnpm generate:data`, `pnpm check`, and
   `pnpm test`, then inspect the actual served page at desktop and narrow
   widths. Check label collisions, arrowheads, legends, theme contrast, and

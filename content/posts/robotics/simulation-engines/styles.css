@@ -3,6 +3,86 @@
   break-inside: avoid;
 }
 
+.sim-coord-figure .sim-scroll svg {
+  width: 760px;
+  min-width: 760px;
+  max-width: none;
+}
+
+.sim-coord-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-color);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.sim-coord-label mjx-container {
+  margin: 0 !important;
+}
+
+.sim-coord-heading {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.sim-coord-small {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
+
+.sim-coord-panel {
+  fill: var(--paper-bg);
+  stroke: var(--border-color);
+}
+
+.sim-coord-rod {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 13;
+  stroke-linecap: round;
+}
+
+.sim-coord-second {
+  stroke: var(--accent-sage);
+}
+
+.sim-coord-anchor-a,
+.sim-coord-joint {
+  fill: var(--paper-bg);
+  stroke: var(--accent-blue);
+  stroke-width: 2;
+}
+
+.sim-coord-anchor-b {
+  fill: var(--accent-sage);
+  stroke: var(--paper-bg);
+  stroke-width: 1.5;
+}
+
+.sim-coord-guide,
+.sim-coord-gap,
+.sim-coord-angle {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+}
+
+.sim-coord-gap {
+  stroke: var(--accent-rose);
+  stroke-dasharray: 3 2;
+}
+
+.sim-coord-dashed {
+  stroke-dasharray: 4 3;
+}
+
+.sim-coord-angle {
+  stroke: var(--accent-ochre);
+}
+
 .sim-scroll {
   overflow-x: auto;
   border: 1px solid var(--border-light);
