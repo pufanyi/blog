@@ -3,6 +3,7 @@
   "name": "blog",
   "main": "./dist/blog/worker.mjs",
   "compatibility_date": "2026-02-18",
+  "workers_dev": false,
   "assets": {
     "directory": "./dist/blog/browser",
     "binding": "ASSETS",
