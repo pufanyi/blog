@@ -1,0 +1,215 @@
+.ic-figure {
+  margin: 1.8rem 0;
+  break-inside: avoid;
+}
+
+.ic-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0.8rem;
+  background: var(--paper-bg);
+}
+
+.ic-scroll > svg {
+  display: block;
+  width: 100%;
+  min-width: 720px;
+  height: auto;
+}
+
+.ic-scroll text {
+  fill: var(--text-color);
+  font: 15px var(--font-body);
+}
+
+.ic-scroll .ic-small {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
+
+.ic-scroll .ic-heading,
+.ic-scroll .ic-label {
+  font-weight: 650;
+}
+
+.ic-scroll .ic-heading {
+  font-size: 16px;
+}
+
+.ic-scroll .ic-number,
+.ic-scroll .ic-matrix-number {
+  font-variant-numeric: tabular-nums;
+}
+
+.ic-scroll .ic-number {
+  font-size: 13px;
+}
+
+.ic-scroll .ic-matrix-number {
+  font-size: 11px;
+}
+
+.ic-cell,
+.ic-pixel,
+.ic-channel,
+.ic-matrix-cell,
+.ic-stage,
+.ic-summary {
+  stroke-width: 1.2;
+}
+
+.ic-cell,
+.ic-pixel,
+.ic-matrix-cell {
+  stroke: var(--border-color);
+}
+
+.ic-source,
+.ic-reconstructed,
+.ic-stage-source,
+.ic-decoder-stage {
+  fill: color-mix(in srgb, var(--accent-blue) 16%, var(--paper-bg));
+  stroke: var(--accent-blue);
+}
+
+.ic-residual,
+.ic-stage-transform {
+  fill: color-mix(in srgb, var(--accent-sage) 19%, var(--paper-bg));
+  stroke: var(--accent-sage);
+}
+
+.ic-side,
+.ic-stage-entropy {
+  fill: color-mix(in srgb, var(--accent-ochre) 18%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+}
+
+.ic-pixel {
+  fill: var(--accent-bg);
+}
+
+.ic-channel {
+  stroke: color-mix(in srgb, var(--text-secondary) 45%, transparent);
+}
+
+.ic-rgb-0,
+.ic-ycc-2 {
+  fill: color-mix(in srgb, var(--accent-rose) 72%, var(--paper-bg));
+}
+
+.ic-rgb-1,
+.ic-ycc-0 {
+  fill: color-mix(in srgb, var(--accent-sage) 72%, var(--paper-bg));
+}
+
+.ic-rgb-2,
+.ic-ycc-1 {
+  fill: color-mix(in srgb, var(--accent-blue) 70%, var(--paper-bg));
+}
+
+.ic-channel-label {
+  fill: var(--text-color);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ic-bar {
+  fill: color-mix(in srgb, var(--accent-sage) 45%, var(--paper-bg));
+  stroke: var(--accent-sage);
+}
+
+.ic-axis,
+.ic-arrow,
+.ic-reconstruction,
+.ic-share,
+.ic-bitstream {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ic-axis,
+.ic-reconstruction,
+.ic-share {
+  stroke: var(--text-secondary);
+  stroke-width: 1.25;
+}
+
+.ic-reconstruction {
+  stroke-dasharray: 5 4;
+}
+
+.ic-arrow,
+.ic-bitstream {
+  stroke: var(--accent-blue);
+  stroke-width: 1.6;
+}
+
+.ic-lossy-arrow {
+  stroke: var(--accent-rose);
+  stroke-dasharray: 5 3;
+}
+
+.ic-arrow-head {
+  fill: var(--accent-blue);
+}
+
+.ic-loss-label {
+  fill: var(--accent-rose);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ic-lossy-tag {
+  fill: color-mix(in srgb, var(--accent-rose) 13%, var(--paper-bg));
+  stroke: color-mix(in srgb, var(--accent-rose) 60%, var(--border-color));
+  stroke-width: 1;
+}
+
+.ic-coefficient {
+  fill: color-mix(in srgb, var(--accent-mauve) 16%, var(--paper-bg));
+}
+
+.ic-quantized {
+  fill: color-mix(in srgb, var(--accent-ochre) 22%, var(--paper-bg));
+}
+
+.ic-quantized.ic-zero {
+  fill: var(--paper-bg);
+}
+
+.ic-summary {
+  fill: var(--accent-bg);
+  stroke: var(--border-color);
+}
+
+.ic-stage-color {
+  fill: color-mix(in srgb, var(--accent-mauve) 17%, var(--paper-bg));
+  stroke: var(--accent-mauve);
+}
+
+.ic-stage-lossy {
+  fill: color-mix(in srgb, var(--accent-rose) 17%, var(--paper-bg));
+  stroke: var(--accent-rose);
+}
+
+.ic-stage-entropy {
+  stroke: var(--accent-ochre);
+}
+
+.ic-bitstream {
+  stroke-dasharray: 6 4;
+}
+
+.ic-figure figcaption {
+  margin-top: 0.65rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  .ic-scroll > svg {
+    min-width: 700px;
+  }
+}
