@@ -55,6 +55,12 @@ For Jekyll, Hexo, or Typst imports, also read
   copies publishable assets into `/posts`. MDX, BibTeX, TSX, article `styles.css`,
   and build/client TypeScript under `scripts/` are excluded from asset copying.
 
+- Use `/assets/examples/dog.avif` as the shared neutral source image for generic
+  vision examples such as patching, cropping, and masking when the subject is not
+  semantically important. Keep task-specific images post-local when their actual
+  content carries the explanation; do not force the shared sample into those
+  examples.
+
 - When renaming a post slug, update absolute `/posts/<slug>/...` references in
   post-local components and shared styles; unlike Markdown image paths, code
   and CSS URLs are not rewritten automatically.

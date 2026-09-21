@@ -1,5 +1,7 @@
 import { Arrow, Box, Figure, Label, MathLabel } from './elements';
 
+const DOG_IMAGE = '/assets/examples/dog.avif';
+
 // Every view and source outline uses these same scene coordinates.
 const crops = [
   { name: 'Global 1', x: 12, y: 16, size: 156, tone: 'blue' },
@@ -8,45 +10,15 @@ const crops = [
   { name: 'Local 2', x: 64, y: 64, size: 62, tone: 'clay' },
 ] as const;
 
-function BirdScene() {
+function DogScene() {
   return (
-    <g aria-hidden="true">
-      <rect width="240" height="180" className="ssl-swav-sky" />
-      <path
-        d="M 0 154 Q 35 96 74 145 T 158 131 T 240 119 V 180 H 0 Z"
-        className="ssl-swav-foliage"
-      />
-      <path
-        d="M -8 151 L 250 131 M 187 136 L 223 99 M 30 149 L 14 126"
-        className="ssl-swav-branch"
-      />
-      <path
-        d="M 209 114 Q 191 83 215 80 Q 232 94 209 114 M 222 105 Q 225 76 239 88 Q 246 101 222 105"
-        className="ssl-swav-leaf"
-      />
-      <path d="M 94 101 L 36 134 L 50 106 L 88 81 Z" className="ssl-swav-wing" />
-      <ellipse
-        cx="116"
-        cy="89"
-        rx="42"
-        ry="32"
-        transform="rotate(-23 116 89)"
-        className="ssl-swav-bird"
-      />
-      <circle cx="144" cy="49" r="25" className="ssl-swav-bird" />
-      <path
-        d="M 127 58 Q 153 58 155 82 Q 144 110 120 116 Q 146 86 127 58"
-        className="ssl-swav-breast"
-      />
-      <path d="M 91 78 Q 131 62 127 88 Q 116 108 84 105 Z" className="ssl-swav-wing" />
-      <path d="M 167 44 L 189 52 L 166 59 Z" className="ssl-swav-beak" />
-      <circle cx="153" cy="43" r="4" className="ssl-swav-eye" />
-      <circle cx="154" cy="42" r="1.1" className="ssl-swav-glint" />
-      <path
-        d="M 113 116 L 114 141 L 104 146 M 114 141 L 124 144 M 133 110 L 137 139 L 129 144 M 137 139 L 147 143"
-        className="ssl-swav-feet"
-      />
-    </g>
+    <image
+      href={DOG_IMAGE}
+      width="240"
+      height="180"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+    />
   );
 }
 
@@ -63,7 +35,7 @@ function Crop({ index, x, y, size }: { index: number; x: number; y: number; size
         overflow="hidden"
         aria-hidden="true"
       >
-        <BirdScene />
+        <DogScene />
       </svg>
       <rect
         x={x}
@@ -82,7 +54,7 @@ function SwAVViews() {
     <Figure
       id={id}
       title="同一场景，两种观察"
-      description="左侧是枝头小鸟的示意图，实线框与虚线框标出两个实际裁剪区域。右侧按相同坐标放大：view 1 保留更多身体、尾部与枝条，view 2 更突出头部、胸部和右侧背景。两份输入来自同一图像，没有提供鸟的类别标签。"
+      description="左侧是小狗图像，实线框与虚线框标出两个实际裁剪区域。右侧按相同坐标放大：view 1 保留更多面部和身体，view 2 更突出耳朵与上半身。两份输入来自同一图像，没有提供狗的类别标签。"
       caption="先看模型的输入：两个框从同一幅示意图裁出不同内容，再缩放到相同输入尺寸。这里只画裁剪；训练还会使用颜色变化等增强。框线样式与右侧 view 对应。"
       height={270}
     >
@@ -90,7 +62,7 @@ function SwAVViews() {
         原图：没有类别标签
       </Label>
       <svg x="16" y="48" width="240" height="180" viewBox="0 0 240 180" aria-hidden="true">
-        <BirdScene />
+        <DogScene />
         {crops.slice(0, 2).map((crop, i) => (
           <g key={crop.name} className={`ssl-${crop.tone}`}>
             <rect
@@ -344,12 +316,12 @@ function SwAVMultiCrop() {
     <Figure
       id="ssl-swav-multicrop"
       title="Multi-crop：哪些 view 产生目标，哪些 view 做预测？"
-      description="同一鸟图产生两个 global crops，以及聚焦头部和身体的两个 local crops。目标 q1 来自 global 1，监督 global 2、local 1、local 2；目标 q2 来自 global 2，监督 global 1、local 1、local 2。跳过自己预测自己的两格。Local crops 不生成 assignment。"
+      description="同一小狗图像产生两个 global crops，以及聚焦耳朵和面部的两个 local crops。目标 q1 来自 global 1，监督 global 2、local 1、local 2；目标 q2 来自 global 2，监督 global 1、local 1、local 2。跳过自己预测自己的两格。Local crops 不生成 assignment。"
       caption="上方框线标出两个 local crops 在原场景中的位置；下方矩阵逐格列出监督关系。每个有圆点的格子是一项 cross-entropy：该列的预测学习该行的 global target。"
       height={417}
     >
       <svg x="22" y="17" width="180" height="135" viewBox="0 0 240 180" aria-hidden="true">
-        <BirdScene />
+        <DogScene />
         {crops.slice(2).map((crop, i) => (
           <g key={crop.name} className="ssl-clay">
             <rect

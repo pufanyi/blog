@@ -38,25 +38,6 @@
   stroke-width: 1;
 }
 
-.vit-menu-paper {
-  fill: var(--paper-bg);
-}
-
-.vit-scroll .vit-menu-title {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.vit-scroll .vit-menu-label {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.vit-menu-rule {
-  stroke: var(--border-color);
-  stroke-width: 1;
-}
-
 .vit-inject {
   fill: none;
   stroke: var(--accent-mauve);
