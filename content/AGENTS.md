@@ -37,9 +37,13 @@ For Jekyll, Hexo, or Typst imports, also read
   `index.mdx` starts with YAML front matter delimited by `---`;
   `title` and `date` (`YYYY-MM-DD`) are required; `authors`, `description`,
   `coverImage`, and `updated` are optional. `authors` is an ordered, non-empty
-  list of unique display names. It supplies the visible byline and article
-  citation/export metadata; an omitted list keeps the page without a byline and
-  falls back to the configured site author in machine-readable outputs. The
+  list of unique display names. When an AI model edits a post at the user's
+  request, it may append its own model name as the final `authors` entry if that
+  exact name is not already present. Preserve every existing author;
+  model versions are distinct authors (for example, `GPT-6 Astra` and
+  `GPT‑5.6 Sol`). It supplies the visible byline and article citation/export
+  metadata; an omitted list keeps the page without a byline and falls back to
+  the configured site author in machine-readable outputs. The
   archive shows generated opening-paragraph excerpts, controlled by
   `showExcerpts`, rather than authored descriptions.
   Build excerpts from rendered prose, omit non-prose blocks, and preserve whole
