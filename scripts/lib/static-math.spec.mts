@@ -13,6 +13,8 @@ test('static math retains TeX, accessible MathML, disclosure content and SVG lab
     assert.equal(document.querySelectorAll('mjx-container[data-static-math]').length, 3);
     assert.equal(document.querySelectorAll('mjx-assistive-mml math').length, 3);
     assert.equal(document.querySelector('mjx-container')?.getAttribute('data-tex'), 'x^2');
+    assert.equal(document.querySelector('mjx-container')?.hasAttribute('tabindex'), false);
+    assert.equal(document.querySelector('mjx-container')?.hasAttribute('title'), false);
     assert.equal(document.querySelectorAll('details:not([open]) mjx-math').length, 1);
     assert.equal(document.querySelectorAll('svg foreignObject mjx-math').length, 1);
     assert.equal(document.querySelector('svg')?.getAttribute('viewBox'), '0 0 100 50');

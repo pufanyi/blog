@@ -1,33 +1,5 @@
-/** Static formulas retain native MathML; load the explorer only on explicit use. */
-export function enhanceStaticMath(container: HTMLElement): () => void {
-  const abort = new AbortController();
-  const pending = new WeakSet<HTMLElement>();
-  const activate = (event: Event) => {
-    if (
-      event instanceof KeyboardEvent &&
-      !['Enter', ' ', 'ContextMenu'].includes(event.key) &&
-      !(event.shiftKey && event.key === 'F10')
-    )
-      return;
-    const target = event.target;
-    const math =
-      target instanceof Element
-        ? target.closest<HTMLElement>('mjx-container[data-static-math]')
-        : null;
-    if (!math || !container.contains(math)) return;
-    event.preventDefault();
-    if (pending.has(math)) return;
-    pending.add(math);
-    const point = event instanceof MouseEvent ? { x: event.clientX, y: event.clientY } : null;
-    void import('./mathjax')
-      .then(async ({ activateStaticMath }) => {
-        await activateStaticMath(math, abort.signal, point);
-      })
-      .catch((error) => {
-        if (!abort.signal.aborted) console.error('Math options could not load', error);
-      })
-      .finally(() => pending.delete(math));
-  };
+/** Copy selections containing build-rendered formulas as their retained TeX source. */
+export function bindStaticMathCopy(container: HTMLElement): () => void {
   const copy = (event: ClipboardEvent) => {
     const selection = container.ownerDocument.getSelection();
     if (!event.clipboardData || !selection?.rangeCount || selection.isCollapsed) return;
@@ -54,13 +26,8 @@ export function enhanceStaticMath(container: HTMLElement): () => void {
     event.clipboardData.setData('text/plain', fragment.textContent ?? '');
     event.preventDefault();
   };
-  container.addEventListener('contextmenu', activate);
-  container.addEventListener('keydown', activate);
   container.addEventListener('copy', copy);
   return () => {
-    abort.abort();
-    container.removeEventListener('contextmenu', activate);
-    container.removeEventListener('keydown', activate);
     container.removeEventListener('copy', copy);
   };
 }

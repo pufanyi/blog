@@ -89,13 +89,14 @@ near-viewport boundary; navigation disposes pending observers and imports.
   and counters cannot leak between articles or incremental rebuilds. Search and
   Markdown use the pre-typeset source, not expanded formula markup.
   Formulas in closed disclosures are also static: opening them needs no engine.
-  Native copying uses retained TeX; printing opens disclosures temporarily and
-  restores their previous state afterward. Keep the complete article DOM.
-  Right-click or Enter on a formula loads the browser explorer and converts only
-  that formula from its resolved MathML. Failure leaves the static formula intact.
+  Copying a selection containing formulas uses retained TeX with inline or display
+  delimiters; right-click keeps the browser's native behavior and must not replace
+  or resize formula DOM. Printing opens disclosures temporarily and restores their
+  previous state afterward. Keep the complete article DOM.
 - MathJax loads on demand through `src/app/utils/mathjax.ts`, with automatic
   typesetting disabled. Angular-authored views outside generated post content
-  must call `typesetMath` after rendering when they contain TeX delimiters.
+  must call `typesetMath` after rendering when they contain TeX delimiters. The
+  runtime uses only the TeX input and disables MathJax's custom context menu.
   Use MathJax's `displayOverflow: 'scroll'` for wide equations. Display wrappers
   use `flow-root` to contain margins without another scroll container: outer
   `overflow-x: auto` also enables vertical scrolling for small glyph overhangs.

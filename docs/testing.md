@@ -50,10 +50,11 @@ Calling Playwright directly reuses existing production output, so build after ch
 
 Shared browser fixtures stub third-party analytics/comments and external webfonts.
 Generated formulas are already static; reading/scroll tests must not load a browser
-math engine. Separate real-engine tests verify static output and then explicitly
-open a formula menu using pinned MathJax, local fonts and the real speech worker.
+math engine. Real-rendering tests verify static output, retained-TeX copying, stable
+right-click geometry, and dynamic TeX views using pinned MathJax and local fonts.
+The dynamic renderer's custom context menu must remain disabled.
 Navigation tests wait for article/font readiness, not unrelated external images'
-`load` event. Do not use stubbed traffic as evidence that the explorer works.
+`load` event. Do not use stubbed traffic as rendering evidence.
 
 Wait for `.post-body[data-rendered="true"]` before testing attached article controls. This marker does not await lazy article-specific enhancements or MathJax; those have their own readiness conditions. Scroll offscreen controls into view before focusing them to avoid smooth-scroll races with the next navigation.
 

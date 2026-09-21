@@ -23,7 +23,7 @@ import {
   optimizeContentImages,
 } from '../utils/post-content-hooks';
 import { bindPostEnhancements } from '../utils/post-enhancements';
-import { enhanceStaticMath } from '../utils/static-math';
+import { bindStaticMathCopy } from '../utils/static-math';
 
 @Directive({
   selector: '[appPostContent]',
@@ -64,7 +64,7 @@ export class PostContentDirective implements OnChanges {
       optimizeContentImages(container);
       const cleanups = [
         prepareArticlePrint(container),
-        enhanceStaticMath(container),
+        bindStaticMathCopy(container),
         initCodeCopyButtons(container),
         hydrateContentImages(container, this.environmentInjector, this.appRef),
         initContentImageZoom(container),

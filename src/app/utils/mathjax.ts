@@ -3,6 +3,7 @@ import { createMathWorker } from './mathjax-worker';
 interface MathJaxApi {
   loader?: { load: string[] };
   chtml?: { fontURL: string };
+  options?: { enableMenu: boolean };
   output?: { displayOverflow: 'scroll' };
   tex?: { inlineMath: string[][]; displayMath: string[][] };
   startup?: {
@@ -13,7 +14,6 @@ interface MathJaxApi {
   };
   typesetPromise?: (elements: HTMLElement[]) => Promise<unknown>;
   typesetClear?: (elements: HTMLElement[]) => void;
-  whenReady?: (action: () => void) => Promise<void>;
 }
 
 declare global {
@@ -23,7 +23,7 @@ declare global {
 }
 
 let loading: Promise<MathJaxApi> | undefined;
-const SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js';
+const SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-chtml.js';
 
 function loadMathJax(): Promise<MathJaxApi> {
   if (window.MathJax?.typesetPromise) return Promise.resolve(window.MathJax);
@@ -32,8 +32,9 @@ function loadMathJax(): Promise<MathJaxApi> {
     window.MathJax = {
       chtml: { fontURL: '/assets/mathjax/woff2' },
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      options: { enableMenu: false },
       output: { displayOverflow: 'scroll' },
-      startup: { typeset: false, input: ['tex', 'mml'] },
+      startup: { typeset: false, input: ['tex'] },
     };
     const script = document.createElement('script');
     script.id = 'MathJax-script';
@@ -80,47 +81,4 @@ export async function typesetMath(container: HTMLElement, signal?: AbortSignal):
 
 export function clearMath(container: HTMLElement): void {
   if (typeof window !== 'undefined') window.MathJax?.typesetClear?.([container]);
-}
-
-/** Activate a single precompiled formula, preserving resolved macros/references via MathML. */
-export async function activateStaticMath(
-  formula: HTMLElement,
-  signal: AbortSignal,
-  point: { x: number; y: number } | null,
-): Promise<void> {
-  const mathml = formula.querySelector('mjx-assistive-mml > math')?.cloneNode(true);
-  if (!mathml || signal.aborted) return;
-  const api = await loadMathJax();
-  if (signal.aborted || !formula.isConnected) return;
-  const wrapper = document.createElement('span');
-  wrapper.append(mathml);
-  formula.replaceWith(wrapper);
-  try {
-    await api.typesetPromise?.([wrapper]);
-    if (signal.aborted || !wrapper.isConnected) {
-      api.typesetClear?.([wrapper]);
-      return;
-    }
-    const rendered = wrapper.querySelector<HTMLElement>('mjx-container');
-    if (!rendered) throw new Error('Math options did not initialize');
-    rendered.dataset['tex'] = formula.dataset['tex'] ?? '';
-    rendered.focus({ preventScroll: true });
-    const rect = rendered.getBoundingClientRect();
-    rendered.dispatchEvent(
-      new MouseEvent('contextmenu', {
-        bubbles: true,
-        cancelable: true,
-        // MathJax positions its absolute menu from pageX/pageY. Without a view,
-        // synthetic events report client coordinates as page coordinates and
-        // focusing the menu scrolls long articles back toward the top.
-        view: rendered.ownerDocument.defaultView,
-        clientX: point?.x ?? rect.left,
-        clientY: point?.y ?? rect.bottom,
-      }),
-    );
-  } catch (error) {
-    api.typesetClear?.([wrapper]);
-    if (wrapper.isConnected) wrapper.replaceWith(formula);
-    throw error;
-  }
 }

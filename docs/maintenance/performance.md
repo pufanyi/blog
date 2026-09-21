@@ -59,8 +59,9 @@ long-article runtime budgets. Record runtime measurements with their tested
 revision and conditions before using them to justify an optimization.
 
 Generated articles now ship complete CHTML formulas and local fonts. Reading,
-including opening disclosures, does not load the browser MathJax engine; explicit
-formula-menu interaction still exercises the real engine and speech worker.
+including opening disclosures, selecting, copying, or right-clicking formulas does
+not load the browser MathJax engine. Angular-authored views with raw TeX still use
+the on-demand runtime engine, with its custom context menu disabled.
 Initial navigation adopts prerendered HTML, whereas subsequent SPA navigation
 loads a single article module. Assess both paths: larger HTML is a deliberate
 tradeoff for removing client typesetting, not a claim that raw markup shrank.
@@ -71,4 +72,5 @@ CPU slowdown. Each test attaches startup/scroll long tasks and heading geometry
 reads, then repeats with a test-only doubled article DOM. The 90 frame-stepped
 scroll jumps are a stress diagnostic, not a real-user FPS benchmark. Timings
 are reported rather than gated; body duplication and unsolicited engine loads
-are gated. Use the real-menu rendering suite alongside this diagnostic.
+are gated. Use the static and dynamic formula rendering suites alongside this
+diagnostic.

@@ -18,15 +18,18 @@ It preserves the configured worker path, rules path, and message listener;
 global `Worker` and `URL` behavior is unchanged. Speech and Braille remain enabled.
 
 Article formulas now arrive as build-rendered CHTML and assistive MathML. The
-browser engine (`tex-mml-chtml.js`) is requested only for explicit formula-menu
-interaction, converting the selected formula from MathML; ordinary reading does
-not start the worker. Keep this regression on the interactive path, not just the
-static initial DOM. The combined TeX-and-MathML bundle registers both input jax.
+article copy handler uses retained TeX, and right-click keeps the native browser
+behavior; neither path loads the browser engine or starts the worker. The runtime
+`tex-chtml.js` engine remains on demand for Angular-authored views containing raw
+TeX, such as post summaries and the not-found page. Its custom context menu is
+disabled, while generated speech and Braille remain enabled. Keep the worker
+regression on one of these dynamic rendering paths, not the static article DOM.
 
 Unit tests verify URL lifetime and failure cleanup. Production browser tests
 wait for the existing [MathJax queue](https://docs.mathjax.org/en/latest/web/typeset.html),
-check formula errors/font loading, and verify SVG-label placement in light/dark
-themes at desktop/narrow widths. They use the real pinned engine/font bytes.
+check dynamic rendering and its disabled custom menu, and verify static formula
+errors, font loading, and SVG-label placement in light/dark themes at
+desktop/narrow widths. They use the real pinned engine/font bytes.
 A temporary HTTP server supplies the same worker/rules because WebKit worker
 requests do not consistently pass through Playwright routing. Only asset
 locations are configured by the test; rendering and accessibility are real.

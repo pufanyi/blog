@@ -71,12 +71,6 @@ export function renderStaticMath(html: string): Promise<string> {
     for (const item of document.math) {
       adaptor.setAttribute(item.typesetRoot, 'data-static-math', '');
       adaptor.setAttribute(item.typesetRoot, 'data-tex', item.math);
-      adaptor.setAttribute(item.typesetRoot, 'tabindex', '0');
-      adaptor.setAttribute(
-        item.typesetRoot,
-        'title',
-        'Right-click or press Enter for math options',
-      );
     }
     const body = adaptor.innerHTML(adaptor.body(document.document));
     const css = adaptor.textContent(document.outputJax.styleSheet(document));
