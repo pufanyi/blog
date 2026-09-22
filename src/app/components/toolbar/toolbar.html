@@ -3,7 +3,7 @@
     <nav class="toolbar-group toolbar-nav" aria-label="Main navigation">
       <a class="toolbar-button toolbar-brand" routerLink="/" routerLinkActive="is-current"
         [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page" aria-label="Home" title="Home">
-        <i class="ph ph-house" aria-hidden="true"></i>
+        <img class="toolbar-avatar" [ngSrc]="authorAvatar" alt="" width="32" height="32" priority>
         <span class="toolbar-label">{{ authorName }}</span>
       </a>
       <a class="toolbar-button" routerLink="/blog" routerLinkActive="is-current"

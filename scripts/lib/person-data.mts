@@ -29,7 +29,7 @@ export function buildPersonData(cv: CvData, site: SiteConfig): PersonStructuredD
     name: cv.header.name,
     ...(cv.header.name !== site.author.name ? { alternateName: site.author.name } : {}),
     url: homepage,
-    image: new URL(cv.header.photo, homepage).href,
+    image: new URL(site.author.avatar, homepage).href,
     description,
     sameAs: [...new Set(profiles.map((url) => url.href))],
   };

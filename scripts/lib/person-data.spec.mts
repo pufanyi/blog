@@ -6,7 +6,7 @@ import { renderCvMarkdown } from './cv-markdown.mts';
 import { buildPersonData } from './person-data.mts';
 import { loadSiteConfiguration } from './site-config.mts';
 
-test('person metadata reuses bilingual CV identity and visible biography without importing the full CV at runtime', () => {
+test('person metadata uses the site avatar while preserving the CV portrait and biography', () => {
   const site = loadSiteConfiguration(fileURLToPath(new URL('../../configs', import.meta.url))).site;
   const profile = 'https://scholar.google.com/citations?user=example';
   const cv: CvData = {
@@ -33,7 +33,8 @@ test('person metadata reuses bilingual CV identity and visible biography without
   assert.equal(person['@id'], `${site.url}/#person`);
   assert.equal(person.name, cv.header.name);
   assert.equal(person.alternateName, site.author.name);
-  assert.equal(person.image, `${site.url}/me.avif`);
+  assert.equal(person.image, new URL(site.author.avatar, site.url).href);
+  assert.notEqual(person.image, new URL(cv.header.photo, site.url).href);
   assert.equal(person.description, 'I study AI & models. Work at University.');
   assert.deepEqual(person.sameAs, [profile]);
   assert.deepEqual(cv, original);

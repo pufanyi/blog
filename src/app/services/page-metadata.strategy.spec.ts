@@ -205,6 +205,24 @@ describe('article structured data', () => {
     }
   });
 
+  it('uses the default sharing image except when an article has its own cover', async () => {
+    const harness = await RouterTestingHarness.create();
+    for (const [path, image] of [
+      ['/blog/first', first.coverImage!],
+      ['/blog/second', SITE_CONFIG.defaultImage],
+      ['/', SITE_CONFIG.defaultImage],
+      ['/cv', SITE_CONFIG.defaultImage],
+      ['/blog', SITE_CONFIG.defaultImage],
+    ]) {
+      await harness.navigateByUrl(path);
+      for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) {
+        expect(document.head.querySelector(selector)?.getAttribute('content')).toBe(
+          new URL(image, SITE_CONFIG.url).href,
+        );
+      }
+    }
+  });
+
   it('advertises Markdown equivalents and clears stale links on missing or noindex pages', async () => {
     const harness = await RouterTestingHarness.create();
     const alternate = () =>

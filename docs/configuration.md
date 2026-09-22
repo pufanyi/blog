@@ -6,7 +6,7 @@ lives in `content/cv.yaml`.
 | File | Settings |
 | --- | --- |
 | [blog.yaml](../configs/blog.yaml) | Posts per page, blog description, visibility of list excerpts/covers/dates, article BibTeX cards |
-| [site.yaml](../configs/site.yaml) | Site URL and title, default description and sharing image, metadata author, citation author and key prefix, footer |
+| [site.yaml](../configs/site.yaml) | Site URL and title, default description and sharing image, author avatar, metadata author, citation author and key prefix, footer |
 | [comments.yaml](../configs/comments.yaml) | Comments toggle, Giscus repository and category, language, reactions, input position |
 | [redirects.yaml](../configs/redirects.yaml) | Redirect destinations and titles for old paths (previously `content/redirects.yaml`) |
 
@@ -37,8 +37,13 @@ of references cited within the article.
 - `site.url` is the site origin, such as `https://pufanyi.com`, without a path,
   query, or fragment. It is used for canonical URLs, sharing links, article
   citation URLs, and comment theme stylesheet URLs.
-- `site.defaultImage` accepts a site-relative path such as `/me.avif` or an
-  absolute HTTP(S) URL.
+- `site.defaultImage` accepts a site-relative path such as `/avatar.png` or an
+  absolute HTTP(S) URL. It supplies the default Open Graph and Twitter image;
+  an article's own cover takes precedence.
+- `site.author.avatar` uses the same URL format for the toolbar's Home link
+  and the generated Person metadata. It is independent of `header.photo` in
+  `content/cv.yaml`, which remains the real portrait in the homepage and CV
+  introductions.
 - `site.author.name` is used in page titles and as the metadata/feed fallback
   for articles without an `authors` list. `citationName` is the corresponding
   BibTeX name format, such as `Pu, Fanyi`; it is used for both the fallback and
@@ -49,6 +54,14 @@ of references cited within the article.
   loading. Keep the other fields in the file.
 - In `redirects.yaml`, `from` is a site-relative route and `to` is an absolute
   HTTP(S) destination URL. Use `[]` when there are no redirects.
+
+The current avatar assets are resized from the supplied `dog_small.png`, without
+changing the illustration: `public/avatar.avif` is 192×192 for the 32px toolbar
+avatar, and `public/avatar.png` is 512×512 for sharing. Browser icons remain PNG
+for compatibility: `public/favicon-32x32.png` and `public/apple-touch-icon.png`
+are 32×32 and 180×180. When changing the avatar, update these derivatives together
+and the icon version query in `src/index.html` to refresh cached icons. Keep
+`public/me.avif` for the introductions.
 
 ## Apply changes
 

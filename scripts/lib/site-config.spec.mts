@@ -31,6 +31,34 @@ test('site configuration normalizes origins and preserves configurable metadata'
   );
 });
 
+test('the author avatar accepts local and HTTP(S) images independently of the sharing image', () => {
+  for (const avatar of ['/avatar.avif', 'https://example.org/avatar.avif']) {
+    const site = parseSiteConfig({
+      ...configuration.site,
+      defaultImage: '/sharing.png',
+      author: { ...configuration.site.author, avatar },
+    });
+    assert.equal(site.author.avatar, avatar);
+    assert.equal(site.defaultImage, '/sharing.png');
+  }
+  for (const avatar of [
+    undefined,
+    '',
+    'avatar.avif',
+    '//example.org/avatar.avif',
+    'javascript:alert(1)',
+  ]) {
+    assert.throws(
+      () =>
+        parseSiteConfig({
+          ...configuration.site,
+          author: { ...configuration.site.author, avatar },
+        }),
+      /site.yaml.author.avatar/,
+    );
+  }
+});
+
 test('page sizes must be positive integers and config errors identify the field', () => {
   for (const postsPerPage of [0, -1, 1.5, '10', Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(

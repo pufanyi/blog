@@ -52,8 +52,8 @@ at the right. Responsive 12–32px gutters respect device safe areas. The toolba
 does not inherit the paper's width limit, so controls stay in place when moving
 between articles and the wider documentation layout. Documentation sets
 `--paper-max-width` on the shell for its paper only. Desktop navigation combines
-icons and text; mobile keeps
-compact icons. The current location uses a subtle full-button tint with a small
+the author avatar / Blog icon and text; mobile keeps
+the avatar and compact icons. The current location uses a subtle full-button tint with a small
 corner radius, without a tab underline. It is 56px tall on desktop and 52px on
 mobile, plus the device safe area inside the header surface; reduced-motion settings
 must not change its dimensions. Theme tokens live in
@@ -115,9 +115,11 @@ near-viewport boundary; navigation disposes pending observers and imports.
   (such as embedded PDF readers) should wait for this attribute before querying
   or scrolling iframes to ensure hydration has settled.
 
-- All Angular-authored images should use `app-image-lightbox`, which wraps
-  `NgOptimizedImage` and `medium-zoom`. Do not add bare template `<img>` tags
-  unless there is a concrete framework limitation.
+- Angular-authored content images use `app-image-lightbox`, which wraps
+  `NgOptimizedImage` and `medium-zoom`. The toolbar avatar is a decorative
+  `NgOptimizedImage` inside the Home link, not zoomable content: keep its alt
+  text empty and let the link own its accessible name, focus and navigation.
+  Do not nest the lightbox's button semantics or extra tab stop inside that link.
 
 - Article formulas are compiled by `scripts/lib/static-math.mts` using pinned
   MathJax CHTML, per-article adaptive CSS, assistive MathML and first-party fonts.
@@ -206,7 +208,8 @@ version. Its worker compatibility adapter and removal criteria are documented in
   without being misclassified as the profile owner.
   Build the compact generated person data from rendered CV content and its
   external profile links; avoid importing the full CV into the eager metadata
-  service. Clear page-specific structured data when navigating away.
+  service. Use the configured author avatar for its image, independently of the
+  visible introduction portrait. Clear page-specific structured data when navigating away.
   `PageScrollService` consumes router scroll events and corrects saved positions
   or fragments after fonts/formulas settle, unless the reader has scrolled.
   It saves one viewport snapshot in tab-local session storage on `pagehide` and

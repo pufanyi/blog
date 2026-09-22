@@ -1,3 +1,4 @@
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { SITE_CONFIG } from '../../data/site-config';
@@ -8,7 +9,7 @@ import { SearchModalComponent } from '../search-modal/search-modal';
 @Component({
   selector: 'app-toolbar',
   standalone: true,
-  imports: [SearchModalComponent, RouterLink, RouterLinkActive],
+  imports: [NgOptimizedImage, SearchModalComponent, RouterLink, RouterLinkActive],
   templateUrl: './toolbar.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './toolbar.css',
@@ -18,6 +19,7 @@ export class ToolbarComponent {
   toolbarExt = inject(ToolbarExtensionService);
   searchOpen = signal(false);
   readonly authorName = SITE_CONFIG.author.name;
+  readonly authorAvatar = SITE_CONFIG.author.avatar;
 
   @HostListener('document:keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {

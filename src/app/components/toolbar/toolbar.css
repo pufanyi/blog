@@ -88,6 +88,15 @@
   margin-right: 0.5rem;
 }
 
+.toolbar-avatar {
+  display: block;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .toolbar-context {
   min-width: 0;
   overflow: hidden;

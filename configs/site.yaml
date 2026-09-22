@@ -2,9 +2,10 @@
 url: https://pufanyi.com
 title: Fanyi's Blog
 description: Research, notes, and writing by Fanyi Pu.
-defaultImage: /me.avif
+defaultImage: /avatar.png
 author:
   name: Fanyi Pu
+  avatar: /avatar.avif
   citationName: Pu, Fanyi
   citationKeyPrefix: pu
 footer:

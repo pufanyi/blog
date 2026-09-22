@@ -5,6 +5,7 @@ export interface SiteConfig {
   defaultImage: string;
   author: {
     name: string;
+    avatar: string;
     citationName: string;
     citationKeyPrefix: string;
   };

@@ -69,7 +69,7 @@ test('full-width toolbar stays flush with the top and clear of page content', as
       expect((await toolbar.locator('header').boundingBox())!.height).toBe(width <= 768 ? 52 : 56);
     }
     if (width > 768) {
-      await expect(toolbar.locator('.toolbar-nav .toolbar-brand i')).toBeVisible();
+      await expect(toolbar.locator('.toolbar-nav .toolbar-avatar')).toBeVisible();
       await expect(toolbar.locator('.toolbar-nav .toolbar-brand .toolbar-label')).toBeVisible();
       await expect(toolbar.getByRole('link', { name: 'Blog', exact: true })).toHaveCSS(
         'box-shadow',

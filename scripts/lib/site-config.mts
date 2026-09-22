@@ -42,6 +42,12 @@ function httpUrl(value: unknown, path: string): URL {
   return url;
 }
 
+function imageUrl(value: unknown, path: string): string {
+  const image = string(value, path);
+  if (!/^\/(?!\/)/.test(image)) httpUrl(image, path);
+  return image;
+}
+
 export function parseSiteConfig(value: unknown, path = 'configs/site.yaml'): SiteConfig {
   const data = record(
     value,
@@ -51,11 +57,10 @@ export function parseSiteConfig(value: unknown, path = 'configs/site.yaml'): Sit
   const url = httpUrl(data['url'], `${path}.url`);
   if (url.pathname !== '/' || url.search || url.hash)
     fail(`${path}.url`, 'use the site origin, without a path, query, or fragment');
-  const image = string(data['defaultImage'], `${path}.defaultImage`);
-  if (!/^\/(?!\/)/.test(image)) httpUrl(image, `${path}.defaultImage`);
+  const image = imageUrl(data['defaultImage'], `${path}.defaultImage`);
   const author = record(
     data['author'],
-    ['name', 'citationName', 'citationKeyPrefix'],
+    ['name', 'avatar', 'citationName', 'citationKeyPrefix'],
     `${path}.author`,
   );
   const prefix = string(author['citationKeyPrefix'], `${path}.author.citationKeyPrefix`);
@@ -69,6 +74,7 @@ export function parseSiteConfig(value: unknown, path = 'configs/site.yaml'): Sit
     defaultImage: image,
     author: {
       name: string(author['name'], `${path}.author.name`),
+      avatar: imageUrl(author['avatar'], `${path}.author.avatar`),
       citationName: string(author['citationName'], `${path}.author.citationName`),
       citationKeyPrefix: prefix,
     },
