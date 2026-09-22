@@ -268,8 +268,8 @@ function ChromaSampling() {
         </svg>
       </div>
       <figcaption>
-        同一个 $2\times2$ 区域：YCbCr 只是重排颜色信息；4:2:0 才把 12 个 samples 减到 6
-        个。图中共享关系是采样结构示意，不规定具体的 chroma siting 或上采样 filter。
+        同一个 {String.raw`\(2\times2\)`} 区域：YCbCr 只是重排颜色信息；4:2:0 才把 12 个 samples
+        减到 6 个。图中共享关系是采样结构示意，不规定具体的 chroma siting 或上采样 filter。
       </figcaption>
     </figure>
   );

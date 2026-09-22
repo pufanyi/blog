@@ -57,6 +57,12 @@ their named articles.
   lecturers teach it. Keep attribution beside the relevant idea and collect
   optional reading resources separately. Multiple perspectives should reveal
   connections within the subject, not become a comparison of teaching materials.
+- When a tutorial involves several tools or implementations, organize its main
+  path around learning the domain: the problem, representations, mechanisms,
+  numerical or engineering choices, and validation. Introduce implementations
+  where they make those choices concrete. A list of named tools in the original
+  request should not turn the tutorial into consecutive product profiles or a
+  selection guide; keep optional comparisons after the concepts they depend on.
 - Use plain language, concrete examples, and intuition to explain the problem
   and how the mechanism works. Connect the reasoning steps and explain what
   equations mean, so a first-time reader can follow the argument.
