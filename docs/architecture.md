@@ -45,8 +45,10 @@ The reading design retains the original warm paper, subtle shadow, centered
 ruled titles, compact lists and Morandi colors. The paper is capped at 900px
 (1150px for documentation). Body text uses the original 15px desktop / 14px
 mobile baseline, with Space Grotesk headings. The toolbar matches that typography
-and warm background, using a thin separator and underlined current navigation
-rather than filled pills. It is 56px tall on desktop and 52px on mobile, with its
+and warm background. Desktop navigation uses plain text links, with weight and
+text color identifying the current location; mobile keeps compact icons. There
+are no tab underlines or filled navigation pills. It is 56px tall on desktop and
+52px on mobile, with its
 contents aligned to the standard paper width. Theme tokens live in
 `src/styles/morandi.css`. Preserve visible keyboard focus and readable colors in
 both themes. The compact article outline retains nested links, current-heading

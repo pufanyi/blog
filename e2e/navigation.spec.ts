@@ -39,6 +39,14 @@ test('shared toolbar fits narrow and wide screens and stays clear of page conten
       };
     });
     expect(geometry).toEqual({ fits: true, clearsHeading: true });
+    if (width > 768) {
+      await expect(toolbar.locator('.toolbar-nav .toolbar-brand i')).not.toBeVisible();
+      await expect(toolbar.locator('.toolbar-nav .toolbar-brand .toolbar-label')).toBeVisible();
+      await expect(toolbar.getByRole('link', { name: 'Blog', exact: true })).toHaveCSS(
+        'box-shadow',
+        'none',
+      );
+    }
     if (width < 1480) {
       await expect(toolbar.getByRole('button', { name: 'Toggle table of contents' })).toBeVisible();
     } else {
