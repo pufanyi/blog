@@ -37,7 +37,7 @@
   height: 44px;
   padding-inline: 0.75rem;
   border: 0;
-  border-radius: 8px;
+  border-radius: 999px;
   background: transparent;
   color: var(--text-secondary);
   font: inherit;
@@ -68,8 +68,8 @@
 }
 
 .toolbar-button.is-current {
-  color: var(--link-color);
-  background: var(--accent-bg);
+  color: var(--on-primary-container);
+  background: var(--primary-container);
 }
 
 .toolbar-brand {
@@ -93,7 +93,7 @@
 }
 
 .toolbar-search {
-  background: color-mix(in srgb, var(--background) 65%, var(--paper-bg));
+  background: var(--surface-container);
   margin-right: 0.4rem;
 }
 

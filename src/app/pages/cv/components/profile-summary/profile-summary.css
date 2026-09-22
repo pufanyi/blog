@@ -1,5 +1,8 @@
 .profile-summary .title-block {
   margin-bottom: 2.5rem;
+  padding: 1.75rem 1rem;
+  border-radius: var(--shape-large);
+  background: var(--surface-container-low);
   text-align: center;
 }
 
@@ -198,6 +201,8 @@
 @media print {
   .profile-summary .title-block {
     margin-bottom: 1.5rem;
+    padding: 0;
+    background: transparent;
   }
 
   .profile-summary .title {

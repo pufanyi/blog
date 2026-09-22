@@ -77,15 +77,14 @@
 .docs-nav-group a {
   display: block;
   padding: 0.4rem 0.6rem;
-  border-left: 2px solid transparent;
+  border-radius: 999px;
   line-height: 1.45;
   color: var(--text-secondary);
 }
 
 .docs-nav-group a.is-current {
-  border-left-color: var(--link-color);
-  color: var(--link-color);
-  background: var(--accent-bg);
+  color: var(--on-primary-container);
+  background: var(--primary-container);
 }
 
 .docs-layout a:focus-visible,

@@ -3,7 +3,6 @@
   max-width: 795px;
   margin: 0 auto;
   padding: 1.5rem 0 2rem;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
   text-align: center;
   font-size: 0.8rem;
   line-height: 1.6;

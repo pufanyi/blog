@@ -46,6 +46,16 @@
     0 12px 30px var(--shadow-color);
   --code-header-bg: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
 
+  /* Material-inspired surfaces retain the site's Morandi palette in both themes. */
+  --surface-container-low: color-mix(in srgb, var(--paper-bg) 94%, var(--accent-blue));
+  --surface-container: color-mix(in srgb, var(--paper-bg) 88%, var(--accent-blue));
+  --primary-container: color-mix(in srgb, var(--paper-bg) 82%, var(--accent-blue));
+  --on-primary-container: var(--text-color);
+  --outline-variant: color-mix(in srgb, var(--border-color) 38%, transparent);
+  --shape-medium: 12px;
+  --shape-large: 20px;
+  --shape-extra-large: 28px;
+
   /* Shiki emits Catppuccin source colors which are remapped to these tokens. */
   --syntax-rose: var(--accent-rose);
   --syntax-blush: var(--accent-blush);

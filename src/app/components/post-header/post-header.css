@@ -1,7 +1,9 @@
 .title-block {
-  margin-bottom: 2.75rem;
-  padding-bottom: 1.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
+  margin-bottom: 2.5rem;
+  padding: 2rem 1.5rem;
+  border-radius: var(--shape-large);
+  background: var(--surface-container-low);
+  text-align: center;
 }
 
 .title-wrapper {
@@ -31,4 +33,19 @@
   font-family: var(--font-heading);
   font-size: 0.9rem;
   letter-spacing: 0.02em;
+}
+
+@media (max-width: 600px) {
+  .title-block {
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media print {
+  .title-block {
+    padding: 0 0 1rem;
+    background: transparent;
+    border-radius: 0;
+    border-bottom: 1px solid var(--border-color);
+  }
 }

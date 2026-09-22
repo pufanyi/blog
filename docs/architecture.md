@@ -41,15 +41,17 @@ anchor positions. Disclosure summaries use the same clearance when scrolled into
 view. Keep those consumers aligned when changing header dimensions.
 The toolbar is excluded from print output and embedded PDF readers.
 
-The shell extends the paper-colored surface across the viewport without a raised
-article card. The `.paper` container still caps the reading width at 900px
-(1150px for documentation), including its horizontal padding. Mobile pages use
-the full viewport with safe-area-aware text gutters. Page headers share title
-size/weight tokens defined on the shell; archive and article headers align with
-their content, while the personal profile stays centered. Separators and spacing
-provide structure; reserve shadows for overlays rather than the reading surface.
+The shell places a rounded paper container over the warm background, capped at
+900px (1150px for documentation), including horizontal padding. Mobile keeps a
+small outer gutter and safe-area-aware text padding. Archive, article and profile
+headers are centered on tonal surfaces; individual archive links have their own
+rounded containers. This adapts [Material 3's color, shape and elevation principles](https://developer.android.com/develop/ui/compose/designsystems/material3)
+to the site's Morandi palette rather than importing a component library.
+Surface, selection, outline and shape tokens live in `src/styles/morandi.css`;
+title size/weight tokens live on the shell. Keep filled surfaces subtle in both
+themes and preserve readable foreground colors and visible keyboard focus.
 The shell footer follows short pages to the viewport bottom. Print removes shell
-spacing and navigation while preserving the article and CV content.
+spacing, raised surfaces and navigation while preserving article and CV content.
 Keep the `app-post` host block-level: an inline host spanning block content can
 intercept disclosure clicks in mobile Chromium after scrolling within the flex
 shell. The code-disclosure browser regression covers that interaction.

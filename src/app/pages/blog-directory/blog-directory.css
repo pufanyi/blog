@@ -1,5 +1,8 @@
 .directory-header {
   margin-bottom: 2rem;
+  padding: 1.5rem;
+  border-radius: var(--shape-large);
+  background: var(--surface-container-low);
 }
 
 h1 {
@@ -55,7 +58,7 @@ h1 i {
   padding: 1rem 0.75rem;
   color: var(--text-color);
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: var(--shape-medium);
 }
 
 .directory-entry:hover {

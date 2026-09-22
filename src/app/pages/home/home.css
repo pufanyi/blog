@@ -1,5 +1,9 @@
 .title-block {
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.75rem;
+  padding: 2rem 1.25rem;
+  border-radius: var(--shape-large);
+  background: var(--primary-container);
+  text-align: center;
 }
 
 .title {
@@ -17,8 +21,9 @@
 }
 
 .post-list {
+  display: grid;
+  gap: 0.65rem;
   counter-reset: post;
-  border-block: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
 }
 
 .archive-summary {
@@ -62,7 +67,7 @@
 .pagination a {
   color: var(--text-secondary);
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 999px;
 }
 
 .pagination a:hover {
@@ -94,9 +99,8 @@
 }
 
 .pagination-number[aria-current="page"] {
-  color: var(--text-color);
-  background: var(--accent-bg);
-  border-color: var(--border-color);
+  color: var(--on-primary-container);
+  background: var(--primary-container);
   font-weight: 600;
 }
 
@@ -130,7 +134,10 @@
   display: block;
   text-decoration: none;
   color: inherit;
-  padding: 1.35rem 0.75rem 1.35rem 2.65rem;
+  padding: 1.1rem 1rem 1.1rem 2.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--shape-medium);
+  background: var(--surface-container-low);
   overflow: hidden;
   transition:
     background-color 0.2s ease,
@@ -140,8 +147,8 @@
 .post-entry::before {
   content: counter(post, decimal-leading-zero);
   position: absolute;
-  top: 1.48rem;
-  left: 0.35rem;
+  top: 1.25rem;
+  left: 0.8rem;
   color: color-mix(in srgb, var(--text-secondary) 65%, transparent);
   font-family: var(--font-mono);
   font-size: 0.72rem;
@@ -150,13 +157,15 @@
   transition: color 0.2s ease;
 }
 
-.post-entry + .post-entry {
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 13%, transparent);
+.post-entry:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: 2px;
 }
 
 .post-entry:hover {
   text-decoration: none;
-  background: var(--accent-bg);
+  background: var(--surface-container);
+  border-color: var(--outline-variant);
 }
 
 .post-entry:hover::before {
@@ -231,12 +240,12 @@
 
 @media (max-width: 600px) {
   .post-entry {
-    padding: 1.15rem 0 1.15rem 1.85rem;
+    padding: 1rem 0.8rem 1rem 2rem;
   }
 
   .post-entry::before {
-    top: 1.32rem;
-    left: 0.1rem;
+    top: 1.18rem;
+    left: 0.55rem;
     font-size: 0.68rem;
   }
 

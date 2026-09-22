@@ -11,8 +11,10 @@
 
 .page-header {
   margin-bottom: 2.5rem;
-  padding-bottom: 1.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
+  padding: 1.75rem 1rem;
+  border-radius: var(--shape-large);
+  background: var(--surface-container-low);
+  text-align: center;
 }
 
 .eyebrow {
@@ -164,6 +166,8 @@ h2 i {
 @media print {
   .page-header {
     margin-bottom: 1.5rem;
+    padding: 0;
+    background: transparent;
   }
 
   .introduction,

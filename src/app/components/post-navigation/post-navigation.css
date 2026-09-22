@@ -122,8 +122,9 @@
     max-height: calc(100dvh - var(--toolbar-clearance) - 1rem);
     overflow: hidden;
     padding: 0.82rem 0.72rem;
-    border-right: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
-    background: var(--paper-bg);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--shape-large);
+    background: var(--surface-container-low);
   }
 
   .post-toc-sidebar app-post-toc {
