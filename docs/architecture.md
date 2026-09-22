@@ -46,10 +46,13 @@ ruled titles, compact lists and Morandi colors. The paper is capped at 900px
 (1150px for documentation). Body text uses the original 15px desktop / 14px
 mobile baseline, with Space Grotesk headings. The toolbar matches that typography
 and paper surface. Its background spans the viewport and sits flush with the
-top edge, separated from the page by a subtle bottom rule and shadow. The inner
-controls remain centered at the reading container's width. Documentation sets
-the shared `--paper-max-width` on the shell so its wider paper and toolbar
-controls stay aligned. Desktop navigation combines icons and text; mobile keeps
+top edge, separated from the page by a subtle bottom rule and shadow. Navigation
+and article controls sit at the left edge; search, print, and theme controls sit
+at the right. Responsive 12–32px gutters respect device safe areas. The toolbar
+does not inherit the paper's width limit, so controls stay in place when moving
+between articles and the wider documentation layout. Documentation sets
+`--paper-max-width` on the shell for its paper only. Desktop navigation combines
+icons and text; mobile keeps
 compact icons. The current location uses a subtle full-button tint with a small
 corner radius, without a tab underline. It is 56px tall on desktop and 52px on
 mobile, plus the device safe area inside the header surface; reduced-motion settings

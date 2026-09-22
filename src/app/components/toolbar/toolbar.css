@@ -13,15 +13,15 @@
 }
 
 .toolbar-inner {
+  --toolbar-gutter: clamp(12px, 2vw, 32px);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   box-sizing: border-box;
-  width: 92%;
-  max-width: var(--paper-max-width, 900px);
+  width: 100%;
   height: 100%;
-  margin-inline: auto;
-  padding-inline: max(0.5rem, env(safe-area-inset-left)) max(0.5rem, env(safe-area-inset-right));
+  padding-inline: max(var(--toolbar-gutter), env(safe-area-inset-left))
+    max(var(--toolbar-gutter), env(safe-area-inset-right));
 }
 
 .toolbar-group {
@@ -150,12 +150,6 @@
   .toolbar-context {
     padding-inline: 0.4rem;
     font-size: 0.75rem;
-  }
-}
-
-@media (max-width: 600px) {
-  .toolbar-inner {
-    width: 96%;
   }
 }
 

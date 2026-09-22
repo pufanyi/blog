@@ -19,15 +19,25 @@ test('full-width toolbar stays flush with the top and clear of page content', as
     await expect(toolbar.getByRole('button', { name: 'Search', exact: true })).toBeVisible();
     const geometry = await toolbar.evaluate((element) => {
       const header = element.querySelector('header')!.getBoundingClientRect();
-      const inner = element.querySelector('.toolbar-inner')!.getBoundingClientRect();
+      const navigation = element.querySelector('.toolbar-nav')!.getBoundingClientRect();
+      const actions = element.querySelector('.toolbar-actions')!.getBoundingClientRect();
+      const leftGap = navigation.left;
+      const rightGap = document.documentElement.clientWidth - actions.right;
       const paper = document.querySelector('.paper')!.getBoundingClientRect();
       const controls = Array.from(element.querySelectorAll('a, button')).filter(
         (control) => control.getBoundingClientRect().width > 0,
       );
       return {
-        fullWidth: Math.abs(header.left) < 1 && Math.abs(header.right - innerWidth) < 1,
+        fullWidth:
+          Math.abs(header.left) < 1 &&
+          Math.abs(header.right - document.documentElement.clientWidth) < 1,
         flushTop: header.top === 0,
-        aligned: Math.abs(inner.left - paper.left) < 1 && Math.abs(inner.right - paper.right) < 1,
+        edgeGroups:
+          leftGap >= 12 &&
+          leftGap <= 32 &&
+          rightGap >= 12 &&
+          rightGap <= 32 &&
+          Math.abs(leftGap - rightGap) < 1,
         fits: controls.every((control) => {
           const box = control.getBoundingClientRect();
           return (
@@ -49,7 +59,7 @@ test('full-width toolbar stays flush with the top and clear of page content', as
     expect(geometry).toEqual({
       fullWidth: true,
       flushTop: true,
-      aligned: true,
+      edgeGroups: true,
       fits: true,
       clearsHeading: true,
       clearsPaper: true,
@@ -95,6 +105,25 @@ test('full-width toolbar stays flush with the top and clear of page content', as
   await page.screenshot({ path: testInfo.outputPath('toolbar-dark.png'), animations: 'disabled' });
   await page.emulateMedia({ media: 'print' });
   await expect(toolbar).not.toBeVisible();
+});
+
+test('toolbar controls stay at the same edges across article and documentation widths', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.goto('/blog/cs/notes/modern-communication-protocols');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  const toolbar = page.locator('.toolbar');
+  const home = toolbar.getByRole('link', { name: 'Home', exact: true });
+  const theme = toolbar.getByRole('button', { name: 'Toggle theme' });
+  const articleHome = (await home.boundingBox())!;
+  const articleTheme = (await theme.boundingBox())!;
+  const articlePaper = (await page.locator('.paper').boundingBox())!;
+  await page.goto('/docs');
+  await expect(page.locator('.docs-body')).toHaveAttribute('data-rendered', 'true');
+  expect((await page.locator('.paper').boundingBox())!.width).toBeGreaterThan(articlePaper.width);
+  expect((await home.boundingBox())!.x).toBe(articleHome.x);
+  expect((await theme.boundingBox())!.x).toBe(articleTheme.x);
 });
 
 test('toolbar covers the top safe area and keeps anchor targets below its controls', async ({
