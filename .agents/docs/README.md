@@ -10,6 +10,7 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Historical evidence
 
+- [Simulation tutorial learning path — 2026-09-22](audits/2026-09-22-simulation-domain-tutorial.md): domain-first restructuring, source checks, numerical examples, and validation evidence.
 - [Media compression course integration — 2026-09-22](audits/2026-09-22-media-compression.md): actual lecture reading, tutorial coverage, numerical examples, and validation evidence.
 - [Long article implementation — 2026-09-20](maintenance/2026-09-20-long-article-implementation.md): static formulas, initial DOM adoption, deferred enhancements, runtime tradeoffs and validation scope.
 - [Robotics simulation article — 2026-09-20](audits/2026-09-20-robotics-simulation.md): official-source research boundaries and isolated content, build, and browser validation.
