@@ -71,6 +71,11 @@
 
 .toolbar-button.is-current {
   color: var(--link-color);
+  background: var(--accent-bg);
+}
+
+.toolbar-nav .toolbar-button {
+  border-radius: 6px;
 }
 
 .toolbar-brand {
@@ -102,37 +107,6 @@
   margin-left: 1.25rem;
   color: var(--text-secondary);
   font: 0.65rem var(--font-mono);
-}
-
-@media (min-width: 769px) {
-  .toolbar-nav {
-    gap: 1.5rem;
-  }
-
-  .toolbar-nav .toolbar-button {
-    padding-inline: 0;
-    font-size: 0.9rem;
-  }
-
-  .toolbar-nav .toolbar-brand {
-    margin-right: 0;
-    font-size: 1rem;
-    letter-spacing: -0.02em;
-  }
-
-  .toolbar-nav .toolbar-button i {
-    display: none;
-  }
-
-  .toolbar-nav .toolbar-button.is-current {
-    color: var(--text-color);
-    font-weight: 600;
-  }
-
-  .toolbar-nav .toolbar-button:hover {
-    background: transparent;
-    color: var(--link-color);
-  }
 }
 
 @media (min-width: 1480px) {
