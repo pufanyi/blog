@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PostTocItem } from '../../models/post.model';
 import { PostTocComponent } from './post-toc';
 
@@ -48,5 +48,75 @@ describe('PostTocComponent', () => {
     expect(currentLinks).toHaveLength(1);
     expect(currentLinks[0]?.getAttribute('data-toc-id')).toBe('details');
     expect(progress?.getAttribute('aria-valuenow')).toBe('43');
+  });
+
+  it('opens the current chapter while preserving deliberate expansion and collapse', async () => {
+    const fixture = TestBed.createComponent(PostTocComponent);
+    fixture.componentRef.setInput('items', items);
+    fixture.componentRef.setInput('postPath', postPath);
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const button = element.querySelector<HTMLButtonElement>('.toc-expand')!;
+    const subtree = element.querySelector<HTMLOListElement>('.toc-sublist')!;
+    expect(subtree.hidden).toBe(true);
+    expect(button.getAttribute('aria-controls')).toBe(subtree.id);
+
+    button.focus();
+    await fixture.whenStable();
+    expect(subtree.hidden).toBe(true);
+    button.click();
+    await fixture.whenStable();
+    expect(subtree.hidden).toBe(false);
+    fixture.componentRef.setInput('activeHeadingId', 'details');
+    await fixture.whenStable();
+    button.click();
+    await fixture.whenStable();
+    expect(subtree.hidden).toBe(true);
+    expect(element.querySelector('[aria-current]')?.getAttribute('data-toc-id')).toBe('第一章');
+
+    fixture.componentRef.setInput('activeHeadingId', '');
+    fixture.componentRef.setInput('activeHeadingId', 'details');
+    await fixture.whenStable();
+    expect(subtree.hidden).toBe(true);
+
+    fixture.componentRef.setInput('postPath', '/blog/another-article');
+    await fixture.whenStable();
+    expect(subtree.hidden).toBe(false);
+    expect(element.querySelectorAll('[aria-current]')).toHaveLength(1);
+    expect(element.querySelector('[aria-current]')?.getAttribute('data-toc-id')).toBe('details');
+  });
+
+  it('keeps focused subsections open as the reading position changes', async () => {
+    const fixture = TestBed.createComponent(PostTocComponent);
+    fixture.componentRef.setInput('items', items);
+    fixture.componentRef.setInput('postPath', postPath);
+    fixture.componentRef.setInput('activeHeadingId', 'details');
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const link = element.querySelector<HTMLAnchorElement>('.toc-sublink')!;
+    link.focus();
+    fixture.componentRef.setInput('activeHeadingId', '');
+    await fixture.whenStable();
+    expect(element.querySelector<HTMLOListElement>('.toc-sublist')?.hidden).toBe(false);
+    link.blur();
+    await fixture.whenStable();
+    expect(element.querySelector<HTMLOListElement>('.toc-sublist')?.hidden).toBe(true);
+  });
+
+  it('keeps modifier-click and native fragment navigation intact', () => {
+    const fixture = TestBed.createComponent(PostTocComponent);
+    fixture.componentRef.setInput('items', items);
+    fixture.componentRef.setInput('postPath', postPath);
+    fixture.detectChanges();
+    const selected = vi.fn();
+    fixture.componentInstance.sectionSelected.subscribe(selected);
+    const click = new MouseEvent('click', { cancelable: true });
+    fixture.componentInstance.selectSection(click, 'details');
+    expect(selected).toHaveBeenCalledWith('details');
+    expect(click.defaultPrevented).toBe(false);
+    selected.mockClear();
+    fixture.componentInstance.selectSection(new MouseEvent('click', { ctrlKey: true }), 'details');
+    fixture.componentInstance.selectSection(new MouseEvent('click', { button: 1 }), 'details');
+    expect(selected).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,7 @@
 @if (items().length) {
   <aside class="post-toc-sidebar">
     <app-post-toc
+      idPrefix="sidebar-toc"
       [items]="items()"
       [postPath]="postPath()"
       [activeHeadingId]="activeHeadingId()"
@@ -32,6 +33,7 @@
       </button>
 
       <app-post-toc
+        idPrefix="dialog-toc"
         [items]="items()"
         [postPath]="postPath()"
         [activeHeadingId]="activeHeadingId()"

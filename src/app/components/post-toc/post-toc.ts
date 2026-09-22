@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -6,6 +7,7 @@ import {
   effect,
   input,
   output,
+  signal,
   viewChild,
 } from '@angular/core';
 import type { PostTocItem } from '../../models/post.model';
@@ -22,9 +24,13 @@ export class PostTocComponent {
   readonly postPath = input.required<string>();
   readonly activeHeadingId = input('');
   readonly progress = input(0);
+  readonly idPrefix = input('toc');
   readonly sectionSelected = output<string>();
+  readonly interactive = signal(false);
 
   private readonly scrollViewport = viewChild<ElementRef<HTMLElement>>('scrollViewport');
+  private readonly manualExpansion = signal<ReadonlyMap<string, boolean>>(new Map());
+  private readonly focusedChapterId = signal('');
 
   readonly progressPercent = computed(() =>
     Math.round(Math.min(1, Math.max(0, this.progress())) * 100),
@@ -32,6 +38,13 @@ export class PostTocComponent {
   readonly normalizedProgress = computed(() => Math.min(1, Math.max(0, this.progress())));
 
   constructor() {
+    // Prerendered/no-JavaScript readers retain every section link.
+    afterNextRender(() => this.interactive.set(true));
+    effect(() => {
+      this.postPath();
+      this.manualExpansion.set(new Map());
+      this.focusedChapterId.set('');
+    });
     effect((onCleanup) => {
       const activeId = this.activeHeadingId();
       const viewport = this.scrollViewport()?.nativeElement;
@@ -40,6 +53,7 @@ export class PostTocComponent {
       }
 
       const frameId = window.requestAnimationFrame(() => {
+        if (viewport.contains(document.activeElement) || viewport.matches(':hover')) return;
         const activeLink = Array.from(viewport.querySelectorAll<HTMLElement>('[data-toc-id]')).find(
           (link) => link.dataset['tocId'] === activeId,
         );
@@ -49,6 +63,7 @@ export class PostTocComponent {
 
         const viewportRect = viewport.getBoundingClientRect();
         const linkRect = activeLink.getBoundingClientRect();
+        if (!viewportRect.height || !linkRect.height) return;
         const inset = 12;
         let nextTop = viewport.scrollTop;
 
@@ -70,6 +85,39 @@ export class PostTocComponent {
 
   hrefFor(id: string): string {
     return `${this.postPath()}#${encodeURIComponent(id)}`;
+  }
+
+  chapterNumber(index: number): string {
+    return String(index + 1).padStart(2, '0');
+  }
+
+  isExpanded(item: PostTocItem): boolean {
+    if (!this.interactive()) return true;
+    return (
+      this.manualExpansion().get(item.id) ??
+      (this.containsActiveItem(item) || this.focusedChapterId() === item.id)
+    );
+  }
+
+  isCurrentChapter(item: PostTocItem): boolean {
+    return (
+      this.activeHeadingId() === item.id ||
+      (this.containsActiveItem(item) && !this.isExpanded(item))
+    );
+  }
+
+  toggleChapter(item: PostTocItem): void {
+    const expanded = !this.isExpanded(item);
+    this.manualExpansion.update((current) => new Map(current).set(item.id, expanded));
+  }
+
+  onFocusChange(event: FocusEvent): void {
+    const target = event.type === 'focusout' ? event.relatedTarget : event.target;
+    const item =
+      target instanceof Element && target.closest('.toc-sublist')
+        ? target.closest<HTMLElement>('[data-toc-chapter]')
+        : null;
+    this.focusedChapterId.set(item?.dataset['tocChapter'] ?? '');
   }
 
   containsActiveItem(item: PostTocItem): boolean {

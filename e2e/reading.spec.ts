@@ -115,6 +115,7 @@ test('new articles start at the top and history restores the previous reading po
 test('table of contents preserves focus and anchors after deferred formula layout', async ({
   page,
 }) => {
+  await page.setViewportSize({ width: Math.min(page.viewportSize()!.width, 1100), height: 900 });
   await page.goto(`/blog/${autoregressive.slug}#references`);
   const heading = page.locator('.post-body #references');
   await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
@@ -175,7 +176,7 @@ test('home and search do not download article bodies or MathJax; reading loads o
 for (const layout of ['sidebar', 'drawer'] as const) {
   test(`long table of contents scrolls to its final section in the ${layout}`, async ({ page }) => {
     await page.setViewportSize({
-      width: layout === 'sidebar' ? 1600 : page.viewportSize()!.width,
+      width: layout === 'sidebar' ? 1600 : Math.min(page.viewportSize()!.width, 1100),
       height: 560,
     });
     await page.emulateMedia({ reducedMotion: 'reduce' });

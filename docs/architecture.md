@@ -33,7 +33,7 @@ cache. Do not publish the cache or edit generated data directly.
 The shared shell uses one fixed, responsive toolbar for home/blog navigation,
 search, printing, and theme switching. Desktop controls include text; mobile
 controls keep 44px touch targets. Article directory controls join this toolbar
-below 1480px, while wider screens use the persistent article sidebar. Context
+below 1200px, while wider screens use the persistent article outline. Context
 labels and actions come from `ToolbarExtensionService` and reset on navigation.
 `--toolbar-safe-area-top`, `--toolbar-height` and `--toolbar-clearance` in `src/styles.css` reserve space for
 the header and device safe area in paper layout, sticky sidebars, and heading
@@ -43,24 +43,45 @@ The toolbar is excluded from print output and embedded PDF readers.
 
 The reading design retains the original warm paper, subtle shadow, centered
 ruled titles, compact lists and Morandi colors. The paper is capped at 900px
-(1150px for documentation). Body text uses the original 15px desktop / 14px
+(1150px for documentation). Articles with an outline use a 1140px shared paper
+from 1200px: a 200px outline, a 40px gutter and the original 795px text column
+inside the existing paper padding. Narrower available widths can shrink that
+text column slightly. The outline and article header start in the same grid row,
+below the breadcrumbs; do not position a second floating card against the viewport.
+Articles without an outline retain the ordinary 900px paper.
+Body text uses the original 15px desktop / 14px
 mobile baseline, with Space Grotesk headings. The toolbar matches that typography
 and paper surface. Its background spans the viewport and sits flush with the
 top edge, separated from the page by a subtle bottom rule and shadow. Navigation
 and article controls sit at the left edge; search, print, and theme controls sit
 at the right. Responsive 12–32px gutters respect device safe areas. The toolbar
 does not inherit the paper's width limit, so controls stay in place when moving
-between articles and the wider documentation layout. Documentation sets
-`--paper-max-width` on the shell for its paper only. Desktop navigation combines
+between different paper widths. Article/documentation styles set
+`--paper-max-width` on the shell only while their matching route is present. Desktop navigation combines
 the author avatar / Blog icon and text; mobile keeps
 the avatar and compact icons. The current location uses a subtle full-button tint with a small
 corner radius, without a tab underline. It is 56px tall on desktop and 52px on
 mobile, plus the device safe area inside the header surface; reduced-motion settings
 must not change its dimensions. Theme tokens live in
 `src/styles/morandi.css`. Preserve visible keyboard focus and readable colors in
-both themes. The compact article outline retains nested links, current-heading
-tracking and reading progress. Preserve native dialog focus restoration, Escape
-dismissal and independent outline scrolling. Print removes shell spacing,
+both themes. The borderless article outline shows numbered chapters with separate
+subsection disclosure buttons. The current chapter opens automatically unless the
+reader explicitly overrides it; preserve these choices and keyboard focus until
+the article changes. Sidebar and dialog disclosures must use distinct IDs. Render
+all section links in static HTML and enable folding only after hydration.
+The current section supplies the toolbar context; the outline footer describes
+position in the article rather than claiming reading completion. Never auto-scroll
+the outline while its links are hovered or keyboard-focused.
+On narrower screens, a contents entry below the title and the toolbar action open
+the same native bottom-sheet dialog. Preserve 44px touch targets, Escape dismissal,
+focus restoration, section-link focus and independent scrolling. Resizing into the
+wide layout closes the dialog without focusing its now-hidden trigger.
+Keep a small end inset in the scrollable list so fractional scroll offsets cannot
+clip its final link. Hide the navigation component's host for print, rather than
+letting encapsulated wide-screen selectors override a global sidebar rule.
+The outline's initial grid-row position bounds its scroll viewport, measured on
+layout/viewport changes rather than every scroll; dispose the resize observer and
+listener on navigation. Print removes shell spacing,
 shadows and navigation while preserving article and CV content.
 Keep the `app-post` host block-level: an inline host spanning block content can
 intercept disclosure clicks in mobile Chromium after scrolling within the flex

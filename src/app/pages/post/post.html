@@ -1,35 +1,47 @@
 @if (post(); as post) {
   <!-- Each article owns its DOM subtree, including MathJax and image lifetimes. -->
   @for (article of [post]; track article.slug) {
-    <app-blog-breadcrumbs [slug]="parentSlug()" [current]="false" />
-    <app-post-navigation
-      [items]="article.toc"
-      [postPath]="postPath()"
-      [activeHeadingId]="content()?.activeHeadingId() ?? ''"
-      [readingProgress]="content()?.readingProgress() ?? 0"
-      (sectionSelected)="content()?.activateHeading($event)"
-    />
-    <app-post-header
-      [title]="article.title"
-      [date]="article.date"
-      [updated]="article.updated"
-      [authors]="article.authors"
-      [coverImage]="article.coverImage"
-    />
-    <article class="post-body" [appPostContent]="article"></article>
-    @if (showCitation) {
-      <app-post-citation
-        [title]="article.title"
-        [date]="article.date"
-        [slug]="article.slug"
-        [authors]="article.authors"
+    <div class="post-reading-layout" [class.has-outline]="article.toc.length > 0">
+      <app-blog-breadcrumbs [slug]="parentSlug()" [current]="false" />
+      <app-post-navigation
+        #navigation
+        [items]="article.toc"
+        [postPath]="postPath()"
+        [activeHeadingId]="content()?.activeHeadingId() ?? ''"
+        [readingProgress]="content()?.readingProgress() ?? 0"
+        (sectionSelected)="content()?.activateHeading($event)"
       />
-    }
-    @if (commentsEnabled) {
-      <section class="giscus-wrapper">
-        <app-giscus-comments />
-      </section>
-    }
+      <div class="post-reading-content">
+        <app-post-header
+          [title]="article.title"
+          [date]="article.date"
+          [updated]="article.updated"
+          [authors]="article.authors"
+          [coverImage]="article.coverImage"
+        />
+        @if (article.toc.length) {
+          <button class="post-contents-entry" type="button" (click)="navigation.toggleToc()"
+            aria-controls="post-toc-dialog" [attr.aria-expanded]="navigation.tocOpen()">
+            <span><i class="ph ph-list" aria-hidden="true"></i> Contents</span>
+            <span>{{ article.toc.length }} chapters <i class="ph ph-arrow-up-right" aria-hidden="true"></i></span>
+          </button>
+        }
+        <article class="post-body" [appPostContent]="article"></article>
+        @if (showCitation) {
+          <app-post-citation
+            [title]="article.title"
+            [date]="article.date"
+            [slug]="article.slug"
+            [authors]="article.authors"
+          />
+        }
+        @if (commentsEnabled) {
+          <section class="giscus-wrapper">
+            <app-giscus-comments />
+          </section>
+        }
+      </div>
+    </div>
     <app-back-to-top />
   }
 } @else {

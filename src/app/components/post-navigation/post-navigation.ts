@@ -1,4 +1,5 @@
 import {
+  afterRenderEffect,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
@@ -15,7 +16,7 @@ import type { PostTocItem } from '../../models/post.model';
 import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
 import { PostTocComponent } from '../post-toc/post-toc';
 
-const WIDE_QUERY = '(min-width: 1480px)';
+const WIDE_QUERY = '(min-width: 1200px)';
 
 @Component({
   selector: 'app-post-navigation',
@@ -32,6 +33,7 @@ export class PostNavigationComponent implements OnDestroy {
   readonly sectionSelected = output<string>();
   readonly tocOpen = signal(false);
   private readonly toolbarExt = inject(ToolbarExtensionService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly tocDialog = viewChild<ElementRef<HTMLDialogElement>>('tocDialog');
   private viewportMediaQuery: MediaQueryList | null = null;
   private tocTrigger: HTMLElement | null = null;
@@ -40,6 +42,25 @@ export class PostNavigationComponent implements OnDestroy {
   constructor() {
     this.setupViewportObserver();
     this.setupToolbarExtension();
+    afterRenderEffect((onCleanup) => {
+      const host = this.host.nativeElement;
+      const layout = host.parentElement;
+      if (!layout) return;
+      // Read the grid row's document position, not the sticky child's position.
+      // Reserve that opening space throughout reading; no scroll-time DOM reads.
+      const update = () => {
+        const start = Math.max(0, host.getBoundingClientRect().top + window.scrollY);
+        host.style.setProperty('--post-outline-start', `${start}px`);
+      };
+      const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);
+      observer?.observe(layout);
+      window.addEventListener('resize', update, { passive: true });
+      update();
+      onCleanup(() => {
+        observer?.disconnect();
+        window.removeEventListener('resize', update);
+      });
+    });
     effect(() => {
       this.postPath();
       untracked(() => this.closeToc(false));
@@ -121,7 +142,10 @@ export class PostNavigationComponent implements OnDestroy {
 
   private setupToolbarExtension(): void {
     effect(() => {
-      this.toolbarExt.pageTitle.set('Reading');
+      const active = this.items()
+        .flatMap((item) => [item, ...item.children])
+        .find((item) => item.id === this.activeHeadingId());
+      this.toolbarExt.pageTitle.set(active?.text ?? 'Reading');
       this.toolbarExt.leadingButtons.set(
         this.items().length
           ? [

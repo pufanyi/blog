@@ -10,6 +10,9 @@ An isolated HTML interaction preview demonstrates the proposed layout, chapter n
 
 ## Reader journeys and current friction
 
+The following table records the original walkthrough, not the current interface.
+See the dated implementation update below for the shared reading-sheet trial.
+
 | Reader's task | Current behavior | Proposed outcome |
 | --- | --- | --- |
 | Decide where to start | RL opens with resource links and definitions; there is no in-body chapter overview | A brief orientation and discoverable outline let a newcomer begin sequentially and a returning reader choose a topic |
@@ -104,7 +107,8 @@ Do not choose these structures from an arbitrary source-character threshold. Sou
 
 ## Ordered task list
 
-R0 is complete. R1–R6 describe proposed production work in order; the preview does not mark those tasks complete.
+R0 is complete. R1 and R2 are partially implemented as described below; their
+remaining proposals and R3–R6 are not marked complete by either preview.
 
 - [x] R0 — Review the complete reader journey on RL and Diffusion, retain the runtime evidence, inspect real layouts, and produce an interactive interface proposal.
 - [ ] R1 — Fix navigation overlap and trial the shared reading layout, text size, line length, and alignment. Verify 1280px desktop and narrow layouts before changing defaults.
@@ -115,6 +119,44 @@ R0 is complete. R1–R6 describe proposed production work in order; the preview 
 - [ ] R6 — Validate the full sequence on Chromium and WebKit, both themes, narrow widths, browser zoom, keyboard navigation, and failed/deferred resources. Update owning developer/author guides and run the required check, unit, and relevant browser suites before shipping.
 
 After the initial interface trial, prefer a small number of consistent controls. Additional settings, reading modes, summaries, and overlays need a demonstrated benefit and their own maintenance cost assessment.
+
+### Shared reading-sheet trial — 2026-09-22
+
+The user reported that the outline started above the paper and asked for a new
+layout trial. At 1600px the previous outline began at y=71px, paper at 82.25px,
+and article title rule at 173.89px. The 11.25px edge mismatch was only one part
+of the visual separation: the floating, fully expanded directory also began
+well before the title and competed with the reading column.
+
+Two isolated prototypes explored a borderless margin index and a unified sheet.
+The user approved trying a new layout directly. The unified sheet places the
+outline and title in one grid row, preserves the original body typography and
+795px text width when space permits, and exposes the persistent outline from
+1200px instead of 1480px. Its 200px chapter column and 40px gutter enlarge the
+paper to 1140px without changing article prose or the shared full-width toolbar.
+
+This trial also introduces numbered chapters, independently expandable
+subsections, active-section toolbar context, and a labeled contents entry below
+the title on narrow screens. That entry and the toolbar share a native bottom
+sheet. Position feedback stays in the outline footer. Static HTML retains the
+complete outline; folding is a browser enhancement. Manual expansion/collapse,
+focused subsection links, modifier-clicks and existing fragment URLs are preserved.
+
+This is partial R1/R2 work, not adoption of the larger typography proposal,
+section filtering, saved continuation, a new navigation stack, or authored
+introductions. Those remain separate decisions. Runtime measurement remains
+supporting evidence for the reading design, not its replacement.
+
+The production reader was also exercised at 390px with Chromium's 4× CPU
+slowdown, separating startup from the existing 90-frame scrolling stress test
+and its doubled-DOM fixture. RL / Diffusion / SSL had longest startup tasks of
+835 / 1358 / 452ms; ordinary-DOM scrolling peaks were 138 / 88 / 0ms, and the
+doubled-DOM peaks were 200 / 204 / 0ms. Every scrolling phase made zero new
+heading-geometry reads. Reading loaded neither the browser MathJax engine nor
+a duplicate initial article body. These are host diagnostics, not a before/after
+speed claim or a smooth-scrolling guarantee; the rendering cost of very large
+articles remains a separate concern. Raw reports and the layout screenshots are
+retained under ignored `tmp/outline-review/`.
 
 ## Prototype and verification artifacts
 
