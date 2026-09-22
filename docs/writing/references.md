@@ -45,4 +45,6 @@ pnpm test --watch=false
 
 Use original papers for attribution of methods and results. When consulting a course, verify the latest available offering on the official course site and read the relevant lecture. Update the key, year, term, lecturer, and URL together if changing editions. Use an older offering when it contains required material absent from the newer one, and identify that edition accurately.
 
+Check the document's own date and version details, not only its course directory: newer offerings can reuse older slides. For protocol behavior, verify normative claims against the corresponding official specification; a recent course year does not establish that its wire-format or handshake examples describe the current standard.
+
 Check current papers and official implementations when describing a method's release history; a recent lecture alone does not establish the full history. The [technical tutorial editorial principles](../ml-editorial.md) provide the shared explanatory standard for every technical post.

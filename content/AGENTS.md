@@ -156,6 +156,9 @@ For Jekyll, Hexo, or Typst imports, also read
   Use an older offering when the relevant newer material is unavailable or
   omits needed content, and identify the edition accurately. Continue citing
   original papers for attribution of methods and results.
+  Check the document's own date and protocol/version details: a newer course
+  directory may reuse older slides. Verify normative protocol claims against
+  the corresponding official specification rather than the course year.
   When summarizing a method's evolution, also check the authors' current papers
   and official implementation for later versions; recent lecture notes alone
   do not establish a complete release history.

@@ -1,0 +1,184 @@
+.mcp-figure {
+  margin: 1.8rem 0;
+  break-inside: avoid;
+}
+
+.mcp-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0.8rem;
+  background: var(--paper-bg);
+}
+
+.mcp-scroll > svg {
+  display: block;
+  width: 100%;
+  min-width: 800px;
+  height: auto;
+}
+
+.mcp-scroll text {
+  fill: var(--text-color);
+  font: 15px var(--font-body);
+}
+
+.mcp-scroll .mcp-heading {
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.mcp-scroll .mcp-label,
+.mcp-scroll .mcp-stream-label {
+  font-weight: 600;
+}
+
+.mcp-scroll .mcp-small {
+  fill: var(--text-secondary);
+  font-size: 13px;
+}
+
+.mcp-scroll .mcp-chunk-label {
+  font: 15px var(--font-mono);
+  font-weight: 600;
+}
+
+.mcp-panel,
+.mcp-buffer,
+.mcp-node,
+.mcp-chunk,
+.mcp-transaction,
+.mcp-waiting {
+  stroke-width: 1.2;
+}
+
+.mcp-panel {
+  fill: var(--paper-bg);
+  stroke: var(--border-color);
+}
+
+.mcp-buffer {
+  fill: var(--accent-bg);
+  stroke: var(--border-color);
+}
+
+.mcp-node {
+  fill: color-mix(in srgb, var(--accent-blue) 10%, var(--paper-bg));
+  stroke: var(--accent-blue);
+}
+
+.mcp-signal-node {
+  fill: color-mix(in srgb, var(--accent-mauve) 10%, var(--paper-bg));
+  stroke: var(--accent-mauve);
+}
+
+.mcp-relay-node {
+  fill: color-mix(in srgb, var(--accent-ochre) 12%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+}
+
+.mcp-waiting {
+  fill: color-mix(in srgb, var(--accent-ochre) 12%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+}
+
+.mcp-missing {
+  fill: var(--paper-bg);
+  stroke: var(--accent-rose);
+  stroke-dasharray: 4 3;
+}
+
+.mcp-ready,
+.mcp-transaction {
+  fill: color-mix(in srgb, var(--accent-sage) 14%, var(--paper-bg));
+  stroke: var(--accent-sage);
+}
+
+.mcp-edge,
+.mcp-lifeline,
+.mcp-time-axis,
+.mcp-cross,
+.mcp-stop {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mcp-edge {
+  stroke: var(--accent-blue);
+  stroke-width: 1.8;
+}
+
+.mcp-direct-edge {
+  stroke-width: 2.6;
+}
+
+.mcp-signal-edge {
+  stroke: var(--accent-mauve);
+  stroke-dasharray: 6 5;
+}
+
+.mcp-relay-edge {
+  stroke: var(--accent-ochre);
+  stroke-dasharray: 9 4 2 4;
+}
+
+.mcp-lost-edge,
+.mcp-blocked-edge {
+  stroke: var(--accent-rose);
+  stroke-dasharray: 5 4;
+}
+
+.mcp-cross,
+.mcp-stop {
+  stroke: var(--accent-rose);
+  stroke-width: 2;
+}
+
+.mcp-ready-edge {
+  stroke: var(--accent-sage);
+}
+
+.mcp-arrow-head,
+.mcp-event {
+  fill: var(--accent-blue);
+}
+
+.mcp-ready-head {
+  fill: var(--accent-sage);
+}
+
+.mcp-signal-head {
+  fill: var(--accent-mauve);
+}
+
+.mcp-relay-head {
+  fill: var(--accent-ochre);
+}
+
+.mcp-lifeline {
+  stroke: var(--border-color);
+  stroke-width: 1.3;
+  stroke-dasharray: 4 5;
+}
+
+.mcp-time-axis {
+  stroke: var(--text-secondary);
+  stroke-width: 1.2;
+}
+
+.mcp-figure figcaption {
+  margin-top: 0.65rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+@media print {
+  .mcp-scroll {
+    overflow: visible;
+  }
+
+  .mcp-scroll > svg {
+    min-width: 0;
+  }
+}
