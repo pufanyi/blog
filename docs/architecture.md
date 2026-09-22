@@ -82,6 +82,10 @@ The current chapter opens automatically unless the
 reader explicitly overrides it; preserve these choices and keyboard focus until
 the article changes. Sidebar and dialog disclosures must use distinct IDs. Render
 all section links in static HTML and enable folding only after hydration.
+Chapter and whole-outline disclosures animate their grid rows, with closed
+content made inert and hidden from assistive technology immediately. Keep the
+bounded flex/grid chain intact so long lists still scroll independently. Selection
+uses a tinted row and inset marker without changing font weight or text geometry.
 The current section supplies the toolbar context; the outline footer describes
 position in the article rather than claiming reading completion. Never auto-scroll
 the outline while its links are hovered or keyboard-focused.
@@ -93,6 +97,13 @@ at the end of the document and below the back-to-top control. Remove that space
 for other routes and print. Preserve 44px touch targets, Escape dismissal,
 focus restoration, section-link focus and independent scrolling. Resizing into the
 wide layout closes the dialog without focusing its now-hidden trigger.
+Opening the sheet reveals the current section again, even when it changed while
+the dialog was closed. Its surface and backdrop enter/exit together; reduced
+motion disables those transitions and disclosure motion.
+Keep the native dialog open and modal through its explicit exit state; then close
+it before positioning/focusing a selected heading. This avoids depending on
+cross-browser discrete top-layer/display transitions. Cancel the exit listener
+and fallback timer on route cleanup or a resize into the wide layout.
 Keep a small end inset in the scrollable list so fractional scroll offsets cannot
 clip its final link. Hide the navigation component's host for print, rather than
 letting encapsulated wide-screen selectors override a global sidebar rule.
@@ -189,6 +200,24 @@ near-viewport boundary; navigation disposes pending observers and imports.
   Refresh after article/body resize, disclosure changes, media loads and font
   changes; never rescan every heading on every scroll frame. Disconnect all
   observers/listeners and ignore late async completion when leaving an article.
+
+- Enhanced TOC clicks commit their fragment through the router with manual scroll
+  ownership before moving. Keep ordinary anchor URLs, modifier-click behavior and
+  the no-JavaScript fallback. History/reload restoration and non-TOC links retain
+  their existing scroll behavior; a repeated target must still work without adding
+  a duplicate history entry. Nearby targets use a bounded eased scroll; jumps
+  beyond three viewport heights go directly to the destination instead of racing
+  through a long article. Each animation frame uses an explicit instant scroll so
+  global CSS smooth scrolling cannot start a second animation.
+  Hold the selected chapter during travel, then focus its heading without another
+  scroll and briefly tint that heading on arrival. The deliberate selection remains
+  until the reader moves or the layout changes, including targets too close to
+  the document end to align with the activation line. Wheel, touch, pointer, scrolling/focus keys, history,
+  resize, a newer jump and navigation cleanup cancel pending work without a late
+  focus transfer. Reduced-motion readers get direct positioning and no arrival
+  animation. Do not add scroll-frame heading measurement or a second history stack.
+  Reveal a target's enclosing disclosures before measuring its position, as native
+  fragment links do, including nested `<details>`.
 
 Keep the pinned real-rendering test packages synchronized with the MathJax CDN
 version. Its worker compatibility adapter and removal criteria are documented in

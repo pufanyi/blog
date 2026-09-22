@@ -11,6 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import type { PostTocItem } from '../../models/post.model';
+import type { HeadingSelection } from '../../utils/heading-navigation';
 
 @Component({
   selector: 'app-post-toc',
@@ -26,8 +27,9 @@ export class PostTocComponent {
   readonly progress = input(0);
   readonly idPrefix = input('toc');
   readonly collapsible = input(false);
+  readonly visible = input(true);
   readonly collapsed = signal(false);
-  readonly sectionSelected = output<string>();
+  readonly sectionSelected = output<HeadingSelection>();
   readonly interactive = signal(false);
 
   private readonly scrollViewport = viewChild<ElementRef<HTMLElement>>('scrollViewport');
@@ -57,39 +59,56 @@ export class PostTocComponent {
     effect((onCleanup) => {
       const activeId = this.activeHeadingId();
       const viewport = this.scrollViewport()?.nativeElement;
-      if (this.collapsed() || !activeId || !viewport || typeof window === 'undefined') {
+      if (
+        !this.visible() ||
+        this.collapsed() ||
+        !activeId ||
+        !viewport ||
+        typeof window === 'undefined'
+      ) {
         return;
       }
 
       const frameId = window.requestAnimationFrame(() => {
-        if (viewport.contains(document.activeElement) || viewport.matches(':hover')) return;
-        const activeLink = Array.from(viewport.querySelectorAll<HTMLElement>('[data-toc-id]')).find(
-          (link) => link.dataset['tocId'] === activeId,
-        );
-        if (!activeLink) {
-          return;
-        }
-
-        const viewportRect = viewport.getBoundingClientRect();
-        const linkRect = activeLink.getBoundingClientRect();
-        if (!viewportRect.height || !linkRect.height) return;
-        const inset = 12;
-        let nextTop = viewport.scrollTop;
-
-        if (linkRect.top < viewportRect.top + inset) {
-          nextTop += linkRect.top - viewportRect.top - inset;
-        } else if (linkRect.bottom > viewportRect.bottom - inset) {
-          nextTop += linkRect.bottom - viewportRect.bottom + inset;
-        } else {
-          return;
-        }
-
-        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-        viewport.scrollTo({ top: nextTop, behavior: reduceMotion ? 'auto' : 'smooth' });
+        this.revealActiveLink();
       });
 
       onCleanup(() => window.cancelAnimationFrame(frameId));
     });
+  }
+
+  onDisclosureTransitionEnd(event: TransitionEvent): void {
+    if (event.propertyName === 'grid-template-rows') this.revealActiveLink();
+  }
+
+  private revealActiveLink(): void {
+    const viewport = this.scrollViewport()?.nativeElement;
+    if (
+      !this.visible() ||
+      this.collapsed() ||
+      !viewport ||
+      viewport.contains(document.activeElement) ||
+      viewport.matches(':hover')
+    )
+      return;
+    const activeLink = Array.from(viewport.querySelectorAll<HTMLElement>('[data-toc-id]')).find(
+      (link) => link.dataset['tocId'] === this.activeHeadingId(),
+    );
+    if (!activeLink) return;
+    const viewportRect = viewport.getBoundingClientRect();
+    const linkRect = activeLink.getBoundingClientRect();
+    if (!viewportRect.height || !linkRect.height) return;
+    const inset = 12;
+    let nextTop = viewport.scrollTop;
+    if (linkRect.top < viewportRect.top + inset) {
+      nextTop += linkRect.top - viewportRect.top - inset;
+    } else if (linkRect.bottom > viewportRect.bottom - inset) {
+      nextTop += linkRect.bottom - viewportRect.bottom + inset;
+    } else {
+      return;
+    }
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    viewport.scrollTo({ top: nextTop, behavior: reduceMotion ? 'instant' : 'smooth' });
   }
 
   hrefFor(id: string): string {
@@ -146,6 +165,6 @@ export class PostTocComponent {
       return;
     }
 
-    this.sectionSelected.emit(id);
+    this.sectionSelected.emit({ id, event });
   }
 }

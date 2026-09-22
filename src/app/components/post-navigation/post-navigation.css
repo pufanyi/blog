@@ -35,6 +35,9 @@
   font: 0.82rem var(--font-heading);
   text-align: left;
   cursor: pointer;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease;
 }
 
 .contents-dock-label {
@@ -63,6 +66,10 @@
   color: var(--link-color);
 }
 
+.post-contents-dock:active {
+  background: var(--surface-soft);
+}
+
 .post-contents-dock:focus-visible {
   outline: 2px solid var(--link-color);
   outline-offset: -3px;
@@ -89,21 +96,42 @@
   background: var(--paper-bg);
   color: var(--text-color);
   opacity: 0;
-  transform: translateY(2rem);
+  transform: translateY(1.5rem);
   transition:
     opacity 180ms ease,
-    transform 180ms ease,
-    overlay 180ms allow-discrete,
-    display 180ms allow-discrete;
+    transform 180ms cubic-bezier(0.4, 0, 1, 1);
 }
 
 .post-toc-dialog[open] {
   opacity: 1;
   transform: translateY(0);
+  transition-duration: 240ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 }
 
 .post-toc-dialog::backdrop {
   background: var(--backdrop-bg);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.post-toc-dialog[open]::backdrop {
+  opacity: 1;
+}
+
+.post-toc-dialog.is-closing {
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.post-toc-dialog.is-closing::backdrop {
+  opacity: 0;
+}
+
+.post-toc-dialog.is-closing .toc-drawer {
+  pointer-events: none;
 }
 
 .toc-drawer {
@@ -139,6 +167,9 @@
   color: var(--text-secondary);
   font-size: 1.2rem;
   cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .toc-drawer-close:hover {
@@ -154,7 +185,11 @@
 @starting-style {
   .post-toc-dialog[open] {
     opacity: 0;
-    transform: translateY(2rem);
+    transform: translateY(1.5rem);
+  }
+
+  .post-toc-dialog[open]::backdrop {
+    opacity: 0;
   }
 }
 
@@ -189,7 +224,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .post-toc-dialog {
+  .post-toc-dialog,
+  .post-toc-dialog::backdrop,
+  .post-contents-dock,
+  .toc-drawer-close {
     transition: none;
   }
 }

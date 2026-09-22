@@ -98,6 +98,10 @@ races. `rendering.spec.ts` separately uses pinned real engine/font/worker bytes;
 keep both kinds of coverage. Resource budgets retain per-request JSON, and real
 rendering retains light/dark diagram captures even on success. Local runs retain
 failure traces/screenshots. Screenshots are review evidence, not pixel snapshots.
+`toc-motion.spec.ts` runs in Chromium and WebKit with motion enabled as well as
+reduced motion. It samples actual scrolling/disclosure frames and exercises
+interruption, repeated/rapid selection, history, mobile reopening and focus;
+keep this separate from layout checks that deliberately disable animation.
 See [performance budgets](maintenance/performance.md),
 [MathJax compatibility](maintenance/mathjax-webkit.md), and
 [local host troubleshooting](browser-troubleshooting.md).

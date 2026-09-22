@@ -89,6 +89,22 @@ describe('PageScrollService', () => {
     expect(scrollToPosition).toHaveBeenLastCalledWith([0, 0], { behavior: 'instant' });
   });
 
+  it('leaves an enhanced chapter jump in charge of scrolling, including late layout settlement', () => {
+    start();
+    events.next(new NavigationStart(2, '/blog/example#section'));
+    events.next(
+      new Scroll(
+        new NavigationEnd(2, '/blog/example#section', '/blog/example#section'),
+        null,
+        'section',
+        'manual',
+      ),
+    );
+    service.contentSettled(article);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(scrollToPosition).not.toHaveBeenCalled();
+  });
+
   it.each(['wheel', 'touchmove'])(
     'does not override a reader who used %s during loading',
     (type) => {

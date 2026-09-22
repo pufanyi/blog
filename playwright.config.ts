@@ -41,6 +41,7 @@ export default defineConfig({
         'webkit.spec.ts',
         'docs.spec.ts',
         'scroll-restoration.spec.ts',
+        'toc-motion.spec.ts',
       ],
       use: { browserName: 'webkit', viewport: { width: 390, height: 844 } },
     },

@@ -204,6 +204,31 @@ articles without an outline keep their existing single paper, and print must not
 inherit a second surface or desktop spacing. Screenshots and validation details
 for this follow-up live in ignored `tmp/independent-paper/`.
 
+### TOC interaction refinement — 2026-09-23
+
+The user confirmed that the requested click/jump polish concerns the article's
+sidebar and mobile sheet, not the blog category directory. Preserve the independent
+paper and persistent navigation from the previous follow-up.
+
+The refinement connects row-level pressed/selected feedback, a restrained inset
+marker, 200ms grid-row disclosure and rotating control icons. Closed branches and
+the collapsed outline become inert immediately, without removing static links.
+The mobile surface and backdrop transition together, and reopening reveals the
+current section. Font weight stays stable so selection cannot rewrap the list.
+
+Enhanced chapter jumps give scroll ownership explicitly to the article controller
+while the router retains fragment/history ownership. Nearby jumps use 260–440ms
+easing; jumps farther than three viewport heights position directly. The selected
+chapter stays fixed during travel, and arrival focuses and briefly tints its
+heading. Reader input, a newer selection, history or route cleanup cancels pending
+work. Reduced motion skips scrolling, disclosure and arrival animations. The
+heading spy still caches geometry; the change adds no per-frame heading scans.
+
+This is interaction polish within R1/R2, not a new visual layout, reading mode,
+content rewrite or saved-continuation feature. Validation artifacts live under
+ignored `tmp/toc-motion/`; motion-enabled browser regressions accompany the
+existing long-article, no-JavaScript, history and real-rendering coverage.
+
 ## Prototype and verification artifacts
 
 The local `tmp/reading-experience-2026-09-13/reader-preview.html` file is an interactive design preview. It labels its seeded continuation state as an example. Saved positions use a prototype-specific local-storage key. It includes existing rendered article content and demonstrates controls without modifying the application or authored posts.

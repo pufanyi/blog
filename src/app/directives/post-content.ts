@@ -9,12 +9,14 @@ import {
   type OnChanges,
   Renderer2,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { POST_ENHANCEMENTS } from '../data/post-enhancements';
 import type { Post } from '../models/post.model';
 import { CitationPreviewService } from '../services/citation-preview.service';
 import { PageScrollService } from '../services/page-scroll.service';
 import { prepareArticlePrint } from '../utils/article-print';
 import { hydrateContentImages } from '../utils/content-images';
+import { HeadingNavigation, type HeadingSelection } from '../utils/heading-navigation';
 import { HeadingScrollSpy } from '../utils/heading-scroll-spy';
 import { clearMath } from '../utils/mathjax';
 import {
@@ -36,7 +38,9 @@ export class PostContentDirective implements OnChanges {
   private readonly environmentInjector = inject(EnvironmentInjector);
   private readonly citations = inject(CitationPreviewService);
   private readonly scroll = inject(PageScrollService);
+  private readonly router = inject(Router);
   private readonly spy = new HeadingScrollSpy();
+  private headingNavigation: HeadingNavigation | null = null;
   private disposeCurrentRender: (() => void) | undefined;
   readonly activeHeadingId = this.spy.activeHeadingId;
   readonly readingProgress = this.spy.readingProgress;
@@ -72,6 +76,13 @@ export class PostContentDirective implements OnChanges {
         bindPostEnhancements(container, POST_ENHANCEMENTS.get(post.slug) ?? []),
       ];
       this.spy.observe(container, post.toc);
+      const navigation = new HeadingNavigation(container, this.spy, async (id) => {
+        const url = this.router.parseUrl(this.router.url);
+        url.fragment = id;
+        const navigated = await this.router.navigateByUrl(url, { scroll: 'manual' });
+        return navigated || this.router.url === this.router.serializeUrl(url);
+      });
+      this.headingNavigation = navigation;
       void Promise.resolve(container.ownerDocument.fonts?.ready).then(() => {
         if (abort.signal.aborted) return;
         // Let the browser finish its pending native fragment-scroll frame
@@ -88,6 +99,8 @@ export class PostContentDirective implements OnChanges {
         disposed = true;
         abort.abort();
         if (settleFrame !== undefined) cancelAnimationFrame(settleFrame);
+        navigation.cancel();
+        if (this.headingNavigation === navigation) this.headingNavigation = null;
         this.spy.disconnect();
         clearMath(container);
         delete container.dataset['rendered'];
@@ -100,13 +113,7 @@ export class PostContentDirective implements OnChanges {
     });
   }
 
-  activateHeading(id: string): void {
-    this.spy.activate(id);
-    requestAnimationFrame(() => {
-      const heading = Array.from(
-        this.host.nativeElement.querySelectorAll<HTMLElement>('h2[id], h3[id]'),
-      ).find((candidate) => candidate.id === id);
-      heading?.focus({ preventScroll: true });
-    });
+  activateHeading(selection: HeadingSelection): void {
+    this.headingNavigation?.select(selection);
   }
 }

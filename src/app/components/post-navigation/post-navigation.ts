@@ -15,6 +15,7 @@ import {
 } from '@angular/core';
 import type { PostTocItem } from '../../models/post.model';
 import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
+import type { HeadingSelection } from '../../utils/heading-navigation';
 import { PostTocComponent } from '../post-toc/post-toc';
 
 const WIDE_QUERY = '(min-width: 1024px)';
@@ -31,8 +32,9 @@ export class PostNavigationComponent implements OnDestroy {
   readonly postPath = input.required<string>();
   readonly activeHeadingId = input('');
   readonly readingProgress = input(0);
-  readonly sectionSelected = output<string>();
+  readonly sectionSelected = output<HeadingSelection>();
   readonly tocOpen = signal(false);
+  readonly tocClosing = signal(false);
   readonly outlinePinned = signal(false);
   readonly currentSection = computed(
     () =>
@@ -48,6 +50,8 @@ export class PostNavigationComponent implements OnDestroy {
   private viewportMediaQuery: MediaQueryList | null = null;
   private tocTrigger: HTMLElement | null = null;
   private restoreTocTrigger = true;
+  private finishClosing: (() => void) | null = null;
+  private closing: Promise<void> | null = null;
 
   constructor() {
     this.setupViewportObserver();
@@ -96,19 +100,19 @@ export class PostNavigationComponent implements OnDestroy {
     });
     effect(() => {
       this.postPath();
-      untracked(() => this.closeToc(false));
+      untracked(() => this.closeToc(false, false));
     });
   }
 
   ngOnDestroy(): void {
     this.teardownViewportObserver();
-    this.closeToc(false);
+    void this.closeToc(false, false);
     this.toolbarExt.reset();
   }
 
   toggleToc(): void {
     const dialog = this.tocDialog()?.nativeElement;
-    if (!dialog || this.viewportMediaQuery?.matches) {
+    if (!dialog || this.viewportMediaQuery?.matches || this.tocClosing()) {
       return;
     }
 
@@ -131,17 +135,50 @@ export class PostNavigationComponent implements OnDestroy {
     this.tocOpen.set(true);
   }
 
-  closeToc(restoreTrigger = true): void {
+  closeToc(restoreTrigger = true, animate = true): Promise<void> {
+    if (this.finishClosing) {
+      this.restoreTocTrigger &&= restoreTrigger;
+      const closing = this.closing!;
+      if (!animate) this.finishClosing();
+      return closing;
+    }
     this.restoreTocTrigger = restoreTrigger;
     const dialog = this.tocDialog()?.nativeElement;
     if (dialog?.open) {
-      if (typeof dialog.close === 'function') {
-        dialog.close();
-      } else {
-        dialog.removeAttribute('open');
-        this.onTocDialogClose();
+      const close = () => {
+        if (typeof dialog.close === 'function') {
+          dialog.close();
+        } else {
+          dialog.removeAttribute('open');
+          this.onTocDialogClose();
+        }
+      };
+      if (!animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        close();
+        return Promise.resolve();
       }
-      return;
+      // Keep the native modal/inert state until the exit finishes. WebKit does
+      // not reliably retain dialog display/top-layer state for a CSS-only exit.
+      this.tocClosing.set(true);
+      this.closing = new Promise<void>((resolve) => {
+        const finish = () => {
+          window.clearTimeout(timer);
+          dialog.removeEventListener('transitionend', onEnd);
+          this.finishClosing = null;
+          this.closing = null;
+          this.tocClosing.set(false);
+          close();
+          resolve();
+        };
+        const onEnd = (event: TransitionEvent) => {
+          if (event.target === dialog && event.propertyName === 'transform') finish();
+        };
+        // Also settle if styles are overridden or the tab stops painting.
+        const timer = window.setTimeout(finish, 240);
+        this.finishClosing = finish;
+        dialog.addEventListener('transitionend', onEnd);
+      });
+      return this.closing;
     }
 
     this.tocOpen.set(false);
@@ -149,11 +186,17 @@ export class PostNavigationComponent implements OnDestroy {
       this.tocTrigger = null;
       this.restoreTocTrigger = true;
     }
+    return Promise.resolve();
   }
 
-  onTocNavigate(id: string): void {
-    this.closeToc(false);
-    this.sectionSelected.emit(id);
+  onTocNavigate(selection: HeadingSelection): void {
+    const ready = this.closeToc(false);
+    this.sectionSelected.emit({ ...selection, ready });
+  }
+
+  onTocDialogCancel(event: Event): void {
+    event.preventDefault();
+    void this.closeToc();
   }
 
   onTocDialogClose(): void {
@@ -228,7 +271,7 @@ export class PostNavigationComponent implements OnDestroy {
 
   private readonly handleViewportChange = (event: MediaQueryListEvent): void => {
     if (event.matches) {
-      this.closeToc(false);
+      void this.closeToc(false, false);
     }
   };
 }

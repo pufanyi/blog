@@ -7,6 +7,7 @@ const DEFAULT_DURATION_MS = 420;
 export function smoothScrollTo(
   targetY: number,
   durationMs = DEFAULT_DURATION_MS,
+  onComplete?: () => void,
 ): SmoothScrollHandle {
   if (typeof window === 'undefined') {
     return { cancel: () => undefined };
@@ -17,7 +18,8 @@ export function smoothScrollTo(
   const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   if (Math.abs(deltaY) < 1 || reduceMotion || durationMs <= 0) {
-    window.scrollTo(0, targetY);
+    window.scrollTo({ top: targetY, behavior: 'instant' });
+    onComplete?.();
     return { cancel: () => undefined };
   }
 
@@ -30,12 +32,15 @@ export function smoothScrollTo(
   const tick = (now: number): void => {
     const progress = Math.min((now - startTime) / durationMs, 1);
     const eased = easeInOutCubic(progress);
-    window.scrollTo(0, startY + deltaY * eased);
+    // The document has smooth scrolling enabled for native links. Each frame
+    // here must be immediate, not start another browser-owned animation.
+    window.scrollTo({ top: startY + deltaY * eased, behavior: 'instant' });
 
     if (progress < 1) {
       frameId = window.requestAnimationFrame(tick);
     } else {
       frameId = null;
+      onComplete?.();
     }
   };
 

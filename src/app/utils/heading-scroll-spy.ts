@@ -58,6 +58,8 @@ export class HeadingScrollSpy {
   private articleHeight = 0;
   private documentHeight = 0;
   private activationLine = 0;
+  private heldHeadingId = '';
+  private settledScrollY: number | null = null;
 
   observe(article: HTMLElement, tocItems: readonly PostTocItem[]): void {
     this.disconnect();
@@ -112,6 +114,24 @@ export class HeadingScrollSpy {
     }
   }
 
+  hold(id: string): void {
+    this.heldHeadingId = id;
+    this.settledScrollY = null;
+    this.activate(id);
+  }
+
+  settle(): void {
+    // A target near the document end cannot always reach the activation line.
+    // Keep the deliberate selection until the reader actually moves again.
+    this.settledScrollY = window.scrollY;
+  }
+
+  release(): void {
+    this.heldHeadingId = '';
+    this.settledScrollY = null;
+    this.scheduleSync();
+  }
+
   refresh(): void {
     this.dirty = true;
     this.scheduleSync();
@@ -140,13 +160,24 @@ export class HeadingScrollSpy {
     this.article = null;
     this.headings = [];
     this.positions = [];
+    this.heldHeadingId = '';
+    this.settledScrollY = null;
     this.dirty = true;
   }
 
-  private readonly handleViewportChange = (): void => this.scheduleSync();
-  private readonly handleGeometryChange = (): void => this.refresh();
+  private readonly handleViewportChange = (): void => {
+    if (this.settledScrollY !== null && Math.abs(window.scrollY - this.settledScrollY) > 1) {
+      this.release();
+    }
+    this.scheduleSync();
+  };
+  private readonly handleGeometryChange = (): void => {
+    if (this.settledScrollY !== null) this.release();
+    this.refresh();
+  };
 
   private readonly handleLocationChange = (): void => {
+    this.release();
     const hashId = this.readHashId();
     if (hashId) {
       this.activate(hashId);
@@ -192,7 +223,9 @@ export class HeadingScrollSpy {
     }
     const scrollY = window.scrollY;
     const atPageEnd = Math.ceil(scrollY + window.innerHeight) >= this.documentHeight - 2;
-    const activeId = resolveActiveHeading(this.positions, scrollY + this.activationLine, atPageEnd);
+    const activeId =
+      this.heldHeadingId ||
+      resolveActiveHeading(this.positions, scrollY + this.activationLine, atPageEnd);
     const progress = calculateReadingProgress(
       this.articleTop - scrollY,
       this.articleHeight,

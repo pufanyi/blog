@@ -57,31 +57,31 @@ describe('PostTocComponent', () => {
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
     const button = element.querySelector<HTMLButtonElement>('.toc-expand')!;
-    const subtree = element.querySelector<HTMLOListElement>('.toc-sublist')!;
-    expect(subtree.hidden).toBe(true);
+    const subtree = element.querySelector<HTMLElement>('.toc-subtree')!;
+    expect(subtree.hasAttribute('inert')).toBe(true);
     expect(button.getAttribute('aria-controls')).toBe(subtree.id);
 
     button.focus();
     await fixture.whenStable();
-    expect(subtree.hidden).toBe(true);
+    expect(subtree.hasAttribute('inert')).toBe(true);
     button.click();
     await fixture.whenStable();
-    expect(subtree.hidden).toBe(false);
+    expect(subtree.hasAttribute('inert')).toBe(false);
     fixture.componentRef.setInput('activeHeadingId', 'details');
     await fixture.whenStable();
     button.click();
     await fixture.whenStable();
-    expect(subtree.hidden).toBe(true);
+    expect(subtree.hasAttribute('inert')).toBe(true);
     expect(element.querySelector('[aria-current]')?.getAttribute('data-toc-id')).toBe('第一章');
 
     fixture.componentRef.setInput('activeHeadingId', '');
     fixture.componentRef.setInput('activeHeadingId', 'details');
     await fixture.whenStable();
-    expect(subtree.hidden).toBe(true);
+    expect(subtree.hasAttribute('inert')).toBe(true);
 
     fixture.componentRef.setInput('postPath', '/blog/another-article');
     await fixture.whenStable();
-    expect(subtree.hidden).toBe(false);
+    expect(subtree.hasAttribute('inert')).toBe(false);
     expect(element.querySelectorAll('[aria-current]')).toHaveLength(1);
     expect(element.querySelector('[aria-current]')?.getAttribute('data-toc-id')).toBe('details');
   });
@@ -97,13 +97,13 @@ describe('PostTocComponent', () => {
     link.focus();
     fixture.componentRef.setInput('activeHeadingId', '');
     await fixture.whenStable();
-    expect(element.querySelector<HTMLOListElement>('.toc-sublist')?.hidden).toBe(false);
+    expect(element.querySelector('.toc-subtree')?.hasAttribute('inert')).toBe(false);
     link.blur();
     await fixture.whenStable();
-    expect(element.querySelector<HTMLOListElement>('.toc-sublist')?.hidden).toBe(true);
+    expect(element.querySelector('.toc-subtree')?.hasAttribute('inert')).toBe(true);
   });
 
-  it('keeps modifier-click and native fragment navigation intact', () => {
+  it('offers ordinary clicks for enhancement while retaining native and modifier-click fallback', () => {
     const fixture = TestBed.createComponent(PostTocComponent);
     fixture.componentRef.setInput('items', items);
     fixture.componentRef.setInput('postPath', postPath);
@@ -112,7 +112,7 @@ describe('PostTocComponent', () => {
     fixture.componentInstance.sectionSelected.subscribe(selected);
     const click = new MouseEvent('click', { cancelable: true });
     fixture.componentInstance.selectSection(click, 'details');
-    expect(selected).toHaveBeenCalledWith('details');
+    expect(selected).toHaveBeenCalledWith({ id: 'details', event: click });
     expect(click.defaultPrevented).toBe(false);
     selected.mockClear();
     fixture.componentInstance.selectSection(new MouseEvent('click', { ctrlKey: true }), 'details');
@@ -130,27 +130,27 @@ describe('PostTocComponent', () => {
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
     const button = element.querySelector<HTMLButtonElement>('.toc-heading-toggle')!;
-    const links = element.querySelector<HTMLElement>('.toc-scroll')!;
+    const links = element.querySelector<HTMLElement>('.toc-body')!;
     expect(button.getAttribute('aria-controls')).toBe(links.id);
     expect(button.getAttribute('aria-expanded')).toBe('true');
     button.focus();
     button.click();
     await fixture.whenStable();
-    expect(links.hidden).toBe(true);
+    expect(links.hasAttribute('inert')).toBe(true);
     expect(button.getAttribute('aria-expanded')).toBe('false');
     expect(element.querySelector('.toc-collapsed-context')?.textContent).toContain('Details');
     expect(document.activeElement).toBe(button);
 
     fixture.componentRef.setInput('activeHeadingId', '第一章');
     await fixture.whenStable();
-    expect(links.hidden).toBe(true);
+    expect(links.hasAttribute('inert')).toBe(true);
     expect(element.querySelector('.toc-collapsed-context')?.textContent).toContain('First chapter');
     button.click();
     await fixture.whenStable();
-    expect(links.hidden).toBe(false);
+    expect(links.hasAttribute('inert')).toBe(false);
     button.click();
     fixture.componentRef.setInput('postPath', '/blog/next-article');
     await fixture.whenStable();
-    expect(links.hidden).toBe(false);
+    expect(links.hasAttribute('inert')).toBe(false);
   });
 });

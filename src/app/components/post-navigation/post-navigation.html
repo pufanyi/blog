@@ -23,12 +23,14 @@
   <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -- native dialog keyboard interaction is handled by the browser -->
   <dialog
     class="post-toc-dialog"
+    [class.is-closing]="tocClosing()"
     id="post-toc-dialog"
     #tocDialog
     tabindex="-1"
     aria-label="Table of contents"
     (click)="onTocDialogClick($event)"
     (close)="onTocDialogClose()"
+    (cancel)="onTocDialogCancel($event)"
   >
     <div class="toc-drawer">
       <button
@@ -44,6 +46,7 @@
 
       <app-post-toc
         idPrefix="dialog-toc"
+        [visible]="tocOpen()"
         [items]="items()"
         [postPath]="postPath()"
         [activeHeadingId]="activeHeadingId()"
