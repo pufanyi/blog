@@ -1,4 +1,4 @@
-.paper:has(app-docs) {
+app-blog-shell:has(app-docs) {
   --paper-max-width: 1150px;
 }
 

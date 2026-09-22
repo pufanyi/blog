@@ -13,20 +13,22 @@
 
 html {
   --toolbar-height: 56px;
-  --toolbar-clearance: calc(var(--toolbar-height) + env(safe-area-inset-top) + 1rem);
+  --toolbar-top: calc(env(safe-area-inset-top) + 0.75rem);
+  --toolbar-clearance: calc(var(--toolbar-top) + var(--toolbar-height) + 1rem);
   font-size: 15px;
   scroll-behavior: smooth;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
-    --toolbar-height: 52px;
     scroll-behavior: auto;
   }
 }
 
 @media (max-width: 768px) {
   html {
+    --toolbar-height: 52px;
+    --toolbar-top: calc(env(safe-area-inset-top) + 0.5rem);
     font-size: 14px;
   }
 }

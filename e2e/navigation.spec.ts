@@ -13,16 +13,19 @@ test('shared toolbar fits narrow and wide screens and stays clear of page conten
   await page.goto('/blog/ml/ml-revisit/rl');
   const toolbar = page.locator('app-toolbar');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
-  const widths = testInfo.project.name === 'mobile' ? [320, 390, 768] : [769, 1280, 1600];
+  const widths = testInfo.project.name === 'mobile' ? [320, 390, 600, 601, 768] : [769, 1280, 1600];
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
     await expect(toolbar.getByRole('button', { name: 'Search', exact: true })).toBeVisible();
     const geometry = await toolbar.evaluate((element) => {
       const header = element.querySelector('header')!.getBoundingClientRect();
+      const paper = document.querySelector('.paper')!.getBoundingClientRect();
       const controls = Array.from(element.querySelectorAll('a, button')).filter(
         (control) => control.getBoundingClientRect().width > 0,
       );
       return {
+        aligned: Math.abs(header.left - paper.left) < 1 && Math.abs(header.right - paper.right) < 1,
+        floating: header.top > 0,
         fits: controls.every((control) => {
           const box = control.getBoundingClientRect();
           return (
@@ -38,7 +41,11 @@ test('shared toolbar fits narrow and wide screens and stays clear of page conten
         clearsHeading: document.querySelector('h1')!.getBoundingClientRect().top > header.bottom,
       };
     });
-    expect(geometry).toEqual({ fits: true, clearsHeading: true });
+    expect(geometry).toEqual({ aligned: true, floating: true, fits: true, clearsHeading: true });
+    for (const reducedMotion of ['reduce', 'no-preference'] as const) {
+      await page.emulateMedia({ reducedMotion });
+      expect((await toolbar.locator('header').boundingBox())!.height).toBe(width <= 768 ? 52 : 56);
+    }
     if (width > 768) {
       await expect(toolbar.locator('.toolbar-nav .toolbar-brand i')).toBeVisible();
       await expect(toolbar.locator('.toolbar-nav .toolbar-brand .toolbar-label')).toBeVisible();
