@@ -169,6 +169,13 @@
     --surface: #c5c6c2;
     --surface-soft: #e5e5e2;
     --paper-bg: #fff;
+    --primary-container: #fff;
+    --on-primary-container: var(--text-color);
+    --secondary-container: #fff;
+    --on-secondary-container: var(--text-color);
+    --surface-container-low: #fff;
+    --surface-container: #fff;
+    --surface-container-high: #fff;
     --background: #fff;
     --background-deep: #fff;
     --link-color: var(--accent-blue);

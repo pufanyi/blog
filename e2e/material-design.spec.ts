@@ -41,6 +41,7 @@ test('Material outline keeps large destinations, independent scrolling and modal
         await page.screenshot({
           path: testInfo.outputPath(`outline-${width}-${theme}.png`),
           animations: 'disabled',
+          scale: 'css',
         });
       }
     }
@@ -77,6 +78,7 @@ test('Material directory rows remain readable in narrow screens and both themes'
             `directory-${path.endsWith('contents') ? 'folders' : 'posts'}-${width}-${theme}.png`,
           ),
           animations: 'disabled',
+          scale: 'css',
         });
       }
     }
