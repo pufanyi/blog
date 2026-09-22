@@ -5,16 +5,30 @@
 }
 
 .post-body h2 {
-  font: var(--type-headline);
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 600;
   letter-spacing: 0;
-  margin: 3rem 0 1rem;
+  margin: 2.5rem 0 1rem;
   padding-bottom: 0.5rem;
   text-align: left;
   position: relative;
 }
 
+.post-body h2::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: color-mix(in srgb, var(--border-color) 40%, transparent);
+}
+
 .post-body h3 {
-  font: var(--type-title);
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
   letter-spacing: 0;
   margin: 1.75rem 0 0.75rem;
   text-align: left;
@@ -44,13 +58,13 @@
 }
 
 .post-body blockquote {
-  border-left: 3px solid var(--primary);
+  border-left: 2.5px solid color-mix(in srgb, var(--border-color) 40%, transparent);
   margin: 1.5rem 0;
   padding: 0.75rem 1.25rem;
   color: var(--text-secondary);
   font-style: italic;
-  background: var(--surface-container-low);
-  border-radius: 0 var(--shape-medium) var(--shape-medium) 0;
+  background: var(--accent-bg);
+  border-radius: 0 4px 4px 0;
 }
 
 .post-body blockquote p:last-child {
@@ -144,8 +158,8 @@
 .post-body details {
   margin: 1.5rem 0;
   border: 1px solid color-mix(in srgb, var(--border-color) 30%, transparent);
-  border-radius: var(--shape-large);
-  background: var(--surface-container-low);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--border-color) 8%, var(--paper-bg));
   overflow: hidden;
 }
 
@@ -154,9 +168,7 @@
   font-family: var(--font-heading);
   font-weight: 500;
   font-size: 0.95rem;
-  min-height: 48px;
-  box-sizing: border-box;
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 1rem;
   cursor: pointer;
   list-style: none;
   display: flex;

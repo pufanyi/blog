@@ -32,7 +32,7 @@ cache. Do not publish the cache or edit generated data directly.
 
 The shared shell uses one fixed, responsive toolbar for home/blog navigation,
 search, printing, and theme switching. Desktop controls include text; mobile
-controls keep 48px touch targets. Article directory controls join this toolbar
+controls keep 44px touch targets. Article directory controls join this toolbar
 below 1480px, while wider screens use the persistent article sidebar. Context
 labels and actions come from `ToolbarExtensionService` and reset on navigation.
 `--toolbar-height` and `--toolbar-clearance` in `src/styles.css` reserve space for
@@ -41,26 +41,18 @@ anchor positions. Disclosure summaries use the same clearance when scrolled into
 view. Keep those consumers aligned when changing header dimensions.
 The toolbar is excluded from print output and embedded PDF readers.
 
-The shell places a rounded paper container over the warm background, capped at
-900px (1150px for documentation), including horizontal padding. Mobile keeps a
-small outer gutter and safe-area-aware text padding. Archive, article and profile
-headers are centered on tonal surfaces; individual archive links have their own
-rounded containers. The interface follows [Material 3's color, typography and shape system](https://developer.android.com/develop/ui/compose/designsystems/material3)
-with a custom Morandi theme rather than importing a component library. Both screen
-sizes use a 16px body baseline and a 64px app bar. Surface, primary/secondary
-container, interaction state, type and shape tokens live in `src/styles/morandi.css`;
-page-title size/weight tokens live on the shell. Keep filled surfaces subtle in both
-themes and preserve readable foreground colors and visible keyboard focus.
-The article outline uses numbered 56px chapter destinations, indented 48px
-subsection links, a secondary-container active indicator, and reading progress.
-It is a persistent rounded navigation surface at 1480px and above, and a modal
-drawer below that breakpoint. All sections remain available without expanding
-groups. Preserve native dialog focus restoration, Escape dismissal, independent
-outline scrolling and active-heading tracking. Category directories use tonal
-lists with leading folder/document icons; documentation navigation and search
-share the same rounded surfaces and selection roles.
-The shell footer follows short pages to the viewport bottom. Print removes shell
-spacing, raised surfaces and navigation while preserving article and CV content.
+The reading design retains the original warm paper, subtle shadow, centered
+ruled titles, compact lists and Morandi colors. The paper is capped at 900px
+(1150px for documentation). Body text uses the original 15px desktop / 14px
+mobile baseline, with Space Grotesk headings. The toolbar matches that typography
+and warm background, using a thin separator and underlined current navigation
+rather than filled pills. It is 56px tall on desktop and 52px on mobile, with its
+contents aligned to the standard paper width. Theme tokens live in
+`src/styles/morandi.css`. Preserve visible keyboard focus and readable colors in
+both themes. The compact article outline retains nested links, current-heading
+tracking and reading progress. Preserve native dialog focus restoration, Escape
+dismissal and independent outline scrolling. Print removes shell spacing,
+shadows and navigation while preserving article and CV content.
 Keep the `app-post` host block-level: an inline host spanning block content can
 intercept disclosure clicks in mobile Chromium after scrolling within the flex
 shell. The code-disclosure browser regression covers that interaction.

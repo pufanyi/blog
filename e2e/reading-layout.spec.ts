@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { test } from './fixtures';
 
-test('Material outline keeps large destinations, independent scrolling and modal focus', async ({
+test('compact outline keeps independent scrolling and modal focus without overlapping paper', async ({
   page,
 }, testInfo) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -20,13 +20,14 @@ test('Material outline keeps large destinations, independent scrolling and modal
       const scroll = element.querySelector('.toc-scroll')!;
       return {
         fits: bounds.left >= 0 && bounds.right <= innerWidth && bounds.bottom <= innerHeight,
-        targets: [...element.querySelectorAll('.toc-link')].every(
-          (link) => link.getBoundingClientRect().height >= 48,
-        ),
+        linksFit: [...element.querySelectorAll('.toc-link')].every((link) => {
+          const rect = link.getBoundingClientRect();
+          return rect.width > 0 && rect.left >= bounds.left && rect.right <= bounds.right;
+        }),
         scrolls: scroll.scrollHeight > scroll.clientHeight,
       };
     });
-    expect(geometry).toEqual({ fits: true, targets: true, scrolls: true });
+    expect(geometry).toEqual({ fits: true, linksFit: true, scrolls: true });
     if (!drawer) {
       const sidebar = await container.boundingBox();
       const paper = await page.locator('.paper').boundingBox();
@@ -56,7 +57,7 @@ test('Material outline keeps large destinations, independent scrolling and modal
   }
 });
 
-test('Material directory rows remain readable in narrow screens and both themes', async ({
+test('directory rows remain readable in narrow screens and both themes', async ({
   page,
 }, testInfo) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });

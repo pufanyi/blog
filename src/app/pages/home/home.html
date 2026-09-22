@@ -1,7 +1,11 @@
 @if (page(); as page) {
-  <header class="title-block">
-    <h1 #heading class="title" tabindex="-1">{{ title }}</h1>
-  </header>
+  <div class="title-block">
+    <div class="title-wrapper">
+      <hr class="title-rule-top" />
+      <h1 #heading class="title" tabindex="-1">{{ title }}</h1>
+      <hr class="title-rule-bottom" />
+    </div>
+  </div>
 
   <div class="archive-summary" aria-live="polite" aria-atomic="true">
     <span>{{ page.totalPosts }} posts</span>

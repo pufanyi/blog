@@ -15,9 +15,7 @@
   max-height: calc(100dvh - var(--toolbar-clearance) - 1rem);
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 1rem 0.75rem;
-  border-radius: var(--shape-extra-large);
-  background: var(--surface-container-low);
+  padding-right: 1rem;
   font-size: 0.9rem;
 }
 
@@ -52,12 +50,11 @@
   width: 100%;
   min-width: 0;
   margin-top: 0.4rem;
-  min-height: 48px;
-  padding: 0.75rem;
-  border: 1px solid var(--outline-variant);
-  border-radius: var(--shape-full);
+  padding: 0.6rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
   color: var(--text-color);
-  background: var(--surface-container-high);
+  background: var(--paper-bg);
   font: inherit;
 }
 
@@ -79,23 +76,16 @@
 
 .docs-nav-group a {
   display: block;
-  box-sizing: border-box;
-  min-height: 48px;
-  padding: 0.75rem;
-  border-radius: 999px;
+  padding: 0.4rem 0.6rem;
+  border-left: 2px solid transparent;
   line-height: 1.45;
   color: var(--text-secondary);
 }
 
 .docs-nav-group a.is-current {
-  color: var(--on-secondary-container);
-  background: var(--secondary-container);
-  font-weight: 500;
-}
-
-.docs-nav-group a:hover {
-  background: var(--state-hover);
-  text-decoration: none;
+  border-left-color: var(--link-color);
+  color: var(--link-color);
+  background: var(--accent-bg);
 }
 
 .docs-layout a:focus-visible,
@@ -121,10 +111,9 @@
 
 .docs-header h1 {
   font-family: var(--font-heading);
-  font-size: var(--page-title-size);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
   line-height: 1.25;
-  font-weight: var(--page-title-weight);
-  letter-spacing: -0.025em;
+  font-weight: 500;
   margin: 1rem 0;
 }
 
@@ -136,10 +125,8 @@
 
 .docs-page-toc,
 .docs-mobile-menu {
-  border: 1px solid var(--outline-variant);
-  border-radius: var(--shape-large);
-  background: var(--surface-container-low);
-  padding: 1rem;
+  border-block: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
+  padding: 0.85rem 0;
   margin-bottom: 1.75rem;
   font-size: 0.9rem;
 }
@@ -159,17 +146,6 @@
 
 .docs-page-toc li {
   margin: 0.35rem 0;
-}
-
-.docs-page-toc a {
-  display: block;
-  padding: 0.625rem 0.75rem;
-  border-radius: var(--shape-extra-large);
-}
-
-.docs-page-toc a:hover {
-  background: var(--state-hover);
-  text-decoration: none;
 }
 
 .post-body.docs-body {

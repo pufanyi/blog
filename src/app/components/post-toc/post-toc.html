@@ -7,8 +7,6 @@
     <span class="toc-percentage" aria-hidden="true">{{ progressPercent() }}%</span>
   </header>
 
-  <p class="toc-caption">{{ items().length }} sections · Reading progress</p>
-
   <div
     class="toc-progress"
     role="progressbar"
@@ -25,7 +23,7 @@
 
   <div class="toc-scroll" #scrollViewport>
     <ol class="toc-list">
-      @for (item of items(); track item.id; let index = $index) {
+      @for (item of items(); track item.id) {
         <li class="toc-item" [class.contains-active]="containsActiveItem(item)">
           <a
             class="toc-link"
@@ -35,8 +33,7 @@
             [href]="hrefFor(item.id)"
             (click)="selectSection($event, item.id)"
           >
-            <span class="toc-number" aria-hidden="true">{{ index + 1 }}</span>
-            <span>{{ item.text }}</span>
+            {{ item.text }}
           </a>
 
           @if (item.children.length) {

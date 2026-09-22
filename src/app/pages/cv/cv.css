@@ -17,12 +17,16 @@
   margin-bottom: 1rem;
   padding-bottom: 0.3rem;
   border-bottom: 1px solid var(--border-color);
-  font: var(--type-headline);
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: bold;
 }
 
 .cv-page .subsection-heading {
   margin: 1.25rem 0 0.75rem;
-  font: var(--type-title);
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: bold;
 }
 
 /* ========== Entry (Education, Experience, etc.) ========== */

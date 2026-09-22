@@ -1,8 +1,5 @@
 .profile-summary .title-block {
   margin-bottom: 2.5rem;
-  padding: 1.75rem 1rem;
-  border-radius: var(--shape-extra-large);
-  background: var(--surface-container);
   text-align: center;
 }
 
@@ -10,19 +7,30 @@
   margin-bottom: 1rem;
 }
 
+.profile-summary .title-rule-top {
+  height: 3px;
+  margin-bottom: 0.75rem;
+  border: none;
+  background: var(--border-color);
+}
+
+.profile-summary .title-rule-bottom {
+  height: 1px;
+  margin-top: 0.75rem;
+  border: none;
+  background: var(--border-color);
+}
+
 .profile-summary .title {
   font-family: var(--font-heading);
-  font-size: var(--page-title-size);
-  font-weight: var(--page-title-weight);
-  letter-spacing: -0.035em;
-  line-height: 1.2;
+  font-size: 2rem;
+  font-weight: bold;
 }
 
 .profile-summary .author-photo {
   width: 100px;
   height: auto;
   margin: 0.75rem 0;
-  border-radius: var(--shape-extra-large);
 }
 
 .profile-summary .affiliation {
@@ -32,7 +40,6 @@
 
 .profile-summary .contact-info {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
   justify-content: center;
@@ -43,7 +50,6 @@
 
 .profile-summary .links {
   display: flex;
-  flex-wrap: wrap;
   gap: 1rem;
   align-items: center;
   justify-content: center;
@@ -54,11 +60,6 @@
 .profile-summary .icon-link {
   position: relative;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 48px;
-  min-height: 48px;
-  border-radius: var(--shape-full);
   color: var(--text-color);
   font-size: 24px;
   transition:
@@ -128,13 +129,12 @@
 }
 
 .profile-summary .icon-link:focus-visible {
-  border-radius: var(--shape-full);
+  border-radius: 3px;
   outline: 2px solid var(--link-color);
   outline-offset: 4px;
 }
 
 .profile-summary .icon-link:hover {
-  background: var(--state-hover);
   color: var(--link-color);
   text-decoration: none;
   transform: scale(1.1);
@@ -151,14 +151,14 @@
 .profile-summary .abstract-heading {
   margin-bottom: 1rem;
   font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 400;
+  font-size: 1.3rem;
+  font-weight: bold;
   text-align: center;
 }
 
 .profile-summary .abstract-content {
   line-height: 1.7;
-  text-align: left;
+  text-align: justify;
 }
 
 .profile-summary .abstract-content p {
@@ -180,6 +180,10 @@
 }
 
 @media (max-width: 600px) {
+  .profile-summary .title {
+    font-size: 1.6rem;
+  }
+
   .profile-summary .abstract-content {
     text-align: left;
   }
@@ -207,8 +211,6 @@
 @media print {
   .profile-summary .title-block {
     margin-bottom: 1.5rem;
-    padding: 0;
-    background: transparent;
   }
 
   .profile-summary .title {

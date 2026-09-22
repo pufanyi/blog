@@ -9,19 +9,19 @@
       }
     </div>
   </header>
+  <div class="directory-columns" aria-hidden="true"><span>Name</span><span>Date</span></div>
   <ul class="directory-list" aria-label="Directory contents">
     @for (entry of directory.entries; track entry.slug) {
       <li>
         <a class="directory-entry" [attr.data-kind]="entry.kind" [routerLink]="entry.kind === 'directory' ? directoryPath(entry.slug) : '/blog/' + entry.slug">
           <i [class]="entry.kind === 'directory' ? 'ph ph-folder' : 'ph ph-file-text'" aria-hidden="true"></i>
           <div class="entry-copy">
-            <span class="entry-title">{{ entry.title }}</span>
+            <span class="entry-title">{{ entry.title }}@if (entry.kind === 'directory') {<span class="folder-slash">/</span>}</span>
             @if (entry.kind === 'directory') {
               <span class="entry-count">{{ entry.postCount }} posts</span>
             }
           </div>
           <time [attr.datetime]="entry.date">{{ entry.date }}</time>
-          <i class="ph ph-caret-right entry-arrow" aria-hidden="true"></i>
         </a>
       </li>
     }

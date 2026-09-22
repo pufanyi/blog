@@ -30,9 +30,9 @@
   max-height: min(76vh, 680px);
   display: flex;
   flex-direction: column;
-  background: var(--surface-container-high);
-  border: 0;
-  border-radius: var(--shape-extra-large);
+  background: var(--paper-bg);
+  border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+  border-radius: 14px;
   box-shadow: 0 16px 48px var(--shadow-color-strong);
   overflow: hidden;
   animation: dialog-in 0.2s ease;
@@ -44,7 +44,7 @@
   gap: 0.6rem;
   padding: 0.8rem 1rem;
   border-bottom: 1px solid color-mix(in srgb, var(--border-color) 15%, transparent);
-  background: var(--surface-container-high);
+  background: color-mix(in srgb, var(--paper-bg) 94%, var(--background));
 }
 
 .search-input-wrap:focus-within {
@@ -87,9 +87,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 2rem;
+  height: 2rem;
   border: none;
   border-radius: 999px;
   background: transparent;
@@ -105,11 +104,7 @@
 .search-close-btn:focus-visible {
   color: var(--text-color);
   background: color-mix(in srgb, var(--text-color) 8%, transparent);
-}
-
-.search-close-btn:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
+  outline: none;
 }
 
 .search-results {
@@ -131,8 +126,7 @@
 
 .search-reload {
   border: 1px solid var(--border-color);
-  min-height: 48px;
-  border-radius: var(--shape-full);
+  border-radius: 6px;
   padding: 0.4rem 0.8rem;
   color: var(--link-color);
   background: var(--paper-bg);
@@ -151,7 +145,7 @@
   text-align: left;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: var(--shape-large);
+  border-radius: 10px;
   padding: 0.72rem 0.8rem;
   min-height: 56px;
   cursor: pointer;
@@ -167,8 +161,8 @@
 .search-result-item:hover,
 .search-result-item.active,
 .search-result-item:focus-visible {
-  background: var(--secondary-container);
-  border-color: var(--primary);
+  background: color-mix(in srgb, var(--link-color) 8%, transparent);
+  border-color: color-mix(in srgb, var(--link-color) 22%, transparent);
   outline: none;
 }
 
@@ -256,7 +250,7 @@
     width: 100%;
     height: min(85dvh, 100%);
     max-height: calc(100dvh - 0.35rem);
-    border-radius: var(--shape-extra-large) var(--shape-extra-large) 0 0;
+    border-radius: 18px 18px 0 0;
     border-bottom: none;
     animation: sheet-in 0.22s ease;
   }
@@ -272,6 +266,11 @@
 
   .search-input-wrap kbd {
     display: none;
+  }
+
+  .search-close-btn {
+    width: 2.25rem;
+    height: 2.25rem;
   }
 
   .search-results {

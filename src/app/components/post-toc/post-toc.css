@@ -17,45 +17,38 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.5rem 0.5rem 0;
+  gap: 0.75rem;
+  padding: 0.15rem 0.2rem 0.65rem;
 }
 
 .toc-title {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   color: var(--text-color);
-  font: var(--type-label);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .toc-title i {
-  color: var(--primary);
-  font-size: 1.25rem;
+  color: var(--accent-blue);
+  font-size: 1rem;
 }
 
 .toc-percentage {
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--shape-small);
-  background: var(--secondary-container);
-  color: var(--on-secondary-container);
-  font-size: 0.75rem;
-  font-weight: 500;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
   font-variant-numeric: tabular-nums;
 }
 
-.toc-caption {
-  margin: 0.5rem 0.5rem 1rem;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-}
-
 .toc-progress {
-  flex: 0 0 4px;
-  margin: 0 0.5rem 1rem;
+  flex: 0 0 2px;
+  margin: 0 0.2rem 0.75rem;
   overflow: hidden;
-  border-radius: var(--shape-full);
-  background: var(--surface-container-high);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-strong) 48%, transparent);
 }
 
 .toc-progress-value {
@@ -63,7 +56,7 @@
   width: 100%;
   height: 100%;
   border-radius: inherit;
-  background: var(--primary);
+  background: var(--accent-blue);
   transform-origin: left;
   transition: transform 120ms linear;
 }
@@ -73,7 +66,7 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: var(--outline-variant) transparent;
+  scrollbar-color: color-mix(in srgb, var(--overlay-color) 55%, transparent) transparent;
   scrollbar-width: thin;
 }
 
@@ -85,79 +78,98 @@
 }
 
 .toc-list {
-  padding: 0.25rem;
+  position: relative;
+  padding: 0.08rem 0.1rem 0.2rem 0.72rem;
+}
+
+.toc-list::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.3rem;
+  inset-inline-start: 0.16rem;
+  width: 1px;
+  background: color-mix(in srgb, var(--surface-strong) 62%, transparent);
+}
+
+.toc-item,
+.toc-subitem {
+  position: relative;
 }
 
 .toc-item + .toc-item {
-  margin-top: 0.5rem;
+  margin-top: 0.18rem;
 }
 
 .toc-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-sizing: border-box;
-  min-height: 56px;
-  padding: 0.75rem;
-  border-radius: var(--shape-extra-large);
+  position: relative;
+  display: block;
+  border-radius: 7px;
+  padding: 0.43rem 0.52rem;
   color: var(--text-secondary);
-  font: var(--type-label);
-  overflow-wrap: anywhere;
+  font-size: 0.83rem;
+  font-weight: 520;
+  line-height: 1.35;
   text-decoration: none;
   transition:
     color 160ms ease,
     background-color 160ms ease;
 }
 
-.toc-number {
-  flex: 0 0 1.25rem;
-  color: var(--primary);
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-  text-align: center;
+.toc-link::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -0.64rem;
+  width: 3px;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: transparent;
+  transform: translateY(-50%);
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .toc-link:hover {
   color: var(--text-color);
-  background: var(--state-hover);
+  background: color-mix(in srgb, var(--accent-blue) 11%, transparent);
   text-decoration: none;
 }
 
-.toc-link:active {
-  background: var(--state-pressed);
-}
-
 .toc-link:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid color-mix(in srgb, var(--accent-blue) 58%, transparent);
   outline-offset: 1px;
 }
 
 .toc-link.is-active {
-  color: var(--on-secondary-container);
-  background: var(--secondary-container);
-  font-weight: 700;
+  color: var(--accent-blue);
+  background: color-mix(in srgb, var(--accent-blue) 13%, transparent);
+}
+
+.toc-link.is-active::before {
+  background: var(--accent-blue);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-blue) 42%, transparent);
 }
 
 .toc-item.contains-active > .toc-link:not(.is-active) {
-  color: var(--primary);
-  background: var(--surface-container);
+  color: var(--text-color);
 }
 
 .toc-sublist {
-  margin: 0.25rem 0 0.25rem 1.375rem;
-  padding-left: 0.5rem;
-  border-left: 1px solid var(--outline-variant);
+  margin: 0.04rem 0 0.16rem 0.68rem;
 }
 
 .toc-sublink {
-  min-height: 48px;
-  padding: 0.625rem 0.75rem;
-  font-weight: 400;
+  padding-block: 0.34rem;
+  color: color-mix(in srgb, var(--text-secondary) 88%, var(--overlay-color));
+  font-size: 0.78rem;
+  font-weight: 450;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .toc-progress-value,
-  .toc-link {
+  .toc-link,
+  .toc-link::before {
     transition: none;
   }
 }
