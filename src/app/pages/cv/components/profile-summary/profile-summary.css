@@ -7,30 +7,19 @@
   margin-bottom: 1rem;
 }
 
-.profile-summary .title-rule-top {
-  height: 3px;
-  margin-bottom: 0.75rem;
-  border: none;
-  background: var(--border-color);
-}
-
-.profile-summary .title-rule-bottom {
-  height: 1px;
-  margin-top: 0.75rem;
-  border: none;
-  background: var(--border-color);
-}
-
 .profile-summary .title {
   font-family: var(--font-heading);
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  letter-spacing: -0.035em;
+  line-height: 1.2;
 }
 
 .profile-summary .author-photo {
   width: 100px;
   height: auto;
   margin: 0.75rem 0;
+  border-radius: 12px;
 }
 
 .profile-summary .affiliation {
@@ -40,6 +29,7 @@
 
 .profile-summary .contact-info {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
   justify-content: center;
@@ -50,6 +40,7 @@
 
 .profile-summary .links {
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   align-items: center;
   justify-content: center;
@@ -158,7 +149,7 @@
 
 .profile-summary .abstract-content {
   line-height: 1.7;
-  text-align: justify;
+  text-align: left;
 }
 
 .profile-summary .abstract-content p {
@@ -180,10 +171,6 @@
 }
 
 @media (max-width: 600px) {
-  .profile-summary .title {
-    font-size: 1.6rem;
-  }
-
   .profile-summary .abstract-content {
     text-align: left;
   }

@@ -1,32 +1,13 @@
 .title-block {
-  text-align: center;
-  margin-bottom: 2.25rem;
-}
-
-.title-rule-top {
-  border: none;
-  height: 3px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in srgb, var(--accent-blue) 52%, var(--border-color)),
-    transparent
-  );
-  margin-bottom: 0.75rem;
-}
-
-.title-rule-bottom {
-  border: none;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border-color), transparent);
-  margin-top: 0.75rem;
+  margin-bottom: 2.5rem;
 }
 
 .title {
   font-family: var(--font-heading);
-  font-size: 2rem;
-  font-weight: bold;
-  letter-spacing: 0;
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  letter-spacing: -0.035em;
+  line-height: 1.2;
   color: var(--text-color);
 }
 
@@ -81,7 +62,7 @@
 .pagination a {
   color: var(--text-secondary);
   text-decoration: none;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .pagination a:hover {
@@ -149,7 +130,7 @@
   display: block;
   text-decoration: none;
   color: inherit;
-  padding: 0.9rem 0.4rem 0.92rem 2.65rem;
+  padding: 1.35rem 0.75rem 1.35rem 2.65rem;
   overflow: hidden;
   transition:
     background-color 0.2s ease,
@@ -159,7 +140,7 @@
 .post-entry::before {
   content: counter(post, decimal-leading-zero);
   position: absolute;
-  top: 1.02rem;
+  top: 1.48rem;
   left: 0.35rem;
   color: color-mix(in srgb, var(--text-secondary) 65%, transparent);
   font-family: var(--font-mono);
@@ -175,12 +156,7 @@
 
 .post-entry:hover {
   text-decoration: none;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--post-accent) 9%, transparent),
-    color-mix(in srgb, var(--post-accent) 2%, transparent) 72%,
-    transparent
-  );
+  background: var(--accent-bg);
 }
 
 .post-entry:hover::before {
@@ -207,11 +183,11 @@
   align-items: baseline;
   gap: 0.48rem;
   min-width: 0;
-  font-weight: bold;
+  font-weight: 600;
   font-family: var(--font-heading);
   font-size: 1.1rem;
   letter-spacing: 0;
-  line-height: 1.35;
+  line-height: 1.5;
   transition: color 0.2s ease;
 }
 
@@ -254,16 +230,12 @@
 }
 
 @media (max-width: 600px) {
-  .title {
-    font-size: 1.6rem;
-  }
-
   .post-entry {
-    padding: 0.82rem 0.15rem 0.85rem 2.15rem;
+    padding: 1.15rem 0 1.15rem 1.85rem;
   }
 
   .post-entry::before {
-    top: 0.92rem;
+    top: 1.32rem;
     left: 0.1rem;
     font-size: 0.68rem;
   }

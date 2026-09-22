@@ -111,9 +111,10 @@
 
 .docs-header h1 {
   font-family: var(--font-heading);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-size: var(--page-title-size);
   line-height: 1.25;
-  font-weight: 500;
+  font-weight: var(--page-title-weight);
+  letter-spacing: -0.025em;
   margin: 1rem 0;
 }
 

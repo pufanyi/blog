@@ -164,6 +164,7 @@
 }
 
 .post-body details > summary {
+  scroll-margin-top: var(--toolbar-clearance);
   font-family: var(--font-heading);
   font-weight: 500;
   font-size: 0.95rem;

@@ -37,8 +37,22 @@ below 1480px, while wider screens use the persistent article sidebar. Context
 labels and actions come from `ToolbarExtensionService` and reset on navigation.
 `--toolbar-height` and `--toolbar-clearance` in `src/styles.css` reserve space for
 the header and device safe area in paper layout, sticky sidebars, and heading
-anchor positions. Keep those consumers aligned when changing header dimensions.
+anchor positions. Disclosure summaries use the same clearance when scrolled into
+view. Keep those consumers aligned when changing header dimensions.
 The toolbar is excluded from print output and embedded PDF readers.
+
+The shell extends the paper-colored surface across the viewport without a raised
+article card. The `.paper` container still caps the reading width at 900px
+(1150px for documentation), including its horizontal padding. Mobile pages use
+the full viewport with safe-area-aware text gutters. Page headers share title
+size/weight tokens defined on the shell; archive and article headers align with
+their content, while the personal profile stays centered. Separators and spacing
+provide structure; reserve shadows for overlays rather than the reading surface.
+The shell footer follows short pages to the viewport bottom. Print removes shell
+spacing and navigation while preserving the article and CV content.
+Keep the `app-post` host block-level: an inline host spanning block content can
+intercept disclosure clicks in mobile Chromium after scrolling within the flex
+shell. The code-disclosure browser regression covers that interaction.
 
 Article `styles.css` is embedded in that article's rendered HTML under
 `style[data-post-style]`. Prefix selectors, preserve semantic theme variables,
@@ -130,10 +144,9 @@ version. Its worker compatibility adapter and removal criteria are documented in
 
 ## Routes, metadata, and reading interaction
 
-- The shared toolbar links to the homepage and, outside the archive pages, back
-  to `/blog` on both desktop and mobile. Resolve this visibility again after the
-  first browser render because the lazily created shell can miss the initial
-  router completion event.
+- The shared toolbar always links to the homepage and `/blog` on desktop and
+  mobile. Router link state highlights the active destination, including blog
+  articles and directory pages.
 
 - The root application shows an indeterminate top bar while client router
   navigation waits for lazy routes or resolved content.

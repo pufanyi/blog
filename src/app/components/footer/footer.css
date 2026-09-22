@@ -1,12 +1,19 @@
 .footer {
   font-family: var(--font-heading);
-  margin-top: 1.5rem;
-  padding-bottom: 1.5rem;
+  max-width: 795px;
+  margin: 0 auto;
+  padding: 1.5rem 0 2rem;
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
   text-align: center;
   font-size: 0.8rem;
   line-height: 1.6;
   letter-spacing: 0.01em;
   color: var(--text-secondary);
+}
+
+:host {
+  display: block;
+  padding-inline: 1.5rem;
 }
 
 .footer-line {

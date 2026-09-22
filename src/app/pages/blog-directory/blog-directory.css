@@ -9,7 +9,10 @@ h1 {
   margin: 0 0 0.85rem;
   color: var(--text-color);
   font-family: var(--font-heading);
-  font-size: clamp(1.6rem, 5vw, 2.1rem);
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  line-height: 1.25;
+  letter-spacing: -0.025em;
   overflow-wrap: anywhere;
 }
 
@@ -52,7 +55,7 @@ h1 i {
   padding: 1rem 0.75rem;
   color: var(--text-color);
   text-decoration: none;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .directory-entry:hover {
