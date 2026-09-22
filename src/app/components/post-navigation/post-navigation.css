@@ -5,7 +5,7 @@
 .post-toc-dialog {
   position: fixed;
   inset: 0 auto 0 0;
-  width: min(22rem, calc(100vw - 2rem));
+  width: min(360px, calc(100vw - 1.5rem));
   max-width: none;
   height: 100dvh;
   max-height: none;
@@ -55,8 +55,8 @@
   padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
     max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
   padding-top: max(3.8rem, calc(env(safe-area-inset-top) + 3rem));
-  border-right: 1px solid color-mix(in srgb, var(--border-color) 28%, transparent);
-  background: color-mix(in srgb, var(--paper-bg) 96%, var(--background));
+  border-radius: 0 var(--shape-extra-large) var(--shape-extra-large) 0;
+  background: var(--surface-container-low);
   box-shadow: 5px 0 28px var(--shadow-color-strong);
 }
 
@@ -72,14 +72,14 @@
   top: max(1rem, env(safe-area-inset-top));
   right: max(1rem, env(safe-area-inset-right));
   display: inline-flex;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 48px;
+  height: 48px;
   align-items: center;
   justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--border-color) 28%, transparent);
+  border: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--paper-bg) 88%, var(--background));
-  color: var(--text-secondary);
+  background: var(--surface-container-high);
+  color: var(--text-color);
   cursor: pointer;
   transition:
     color 160ms ease,
@@ -122,8 +122,8 @@
     max-height: calc(100dvh - var(--toolbar-clearance) - 1rem);
     overflow: hidden;
     padding: 0.82rem 0.72rem;
-    border: 1px solid var(--outline-variant);
-    border-radius: var(--shape-large);
+    border: 0;
+    border-radius: var(--shape-extra-large);
     background: var(--surface-container-low);
   }
 

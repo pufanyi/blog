@@ -1,8 +1,8 @@
 .profile-summary .title-block {
   margin-bottom: 2.5rem;
   padding: 1.75rem 1rem;
-  border-radius: var(--shape-large);
-  background: var(--surface-container-low);
+  border-radius: var(--shape-extra-large);
+  background: var(--surface-container);
   text-align: center;
 }
 
@@ -22,7 +22,7 @@
   width: 100px;
   height: auto;
   margin: 0.75rem 0;
-  border-radius: 12px;
+  border-radius: var(--shape-extra-large);
 }
 
 .profile-summary .affiliation {
@@ -54,6 +54,11 @@
 .profile-summary .icon-link {
   position: relative;
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: var(--shape-full);
   color: var(--text-color);
   font-size: 24px;
   transition:
@@ -123,12 +128,13 @@
 }
 
 .profile-summary .icon-link:focus-visible {
-  border-radius: 3px;
+  border-radius: var(--shape-full);
   outline: 2px solid var(--link-color);
   outline-offset: 4px;
 }
 
 .profile-summary .icon-link:hover {
+  background: var(--state-hover);
   color: var(--link-color);
   text-decoration: none;
   transform: scale(1.1);
@@ -145,8 +151,8 @@
 .profile-summary .abstract-heading {
   margin-bottom: 1rem;
   font-family: var(--font-heading);
-  font-size: 1.3rem;
-  font-weight: bold;
+  font-size: 1.75rem;
+  font-weight: 400;
   text-align: center;
 }
 

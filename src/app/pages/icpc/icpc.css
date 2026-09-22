@@ -12,8 +12,8 @@
 .page-header {
   margin-bottom: 2.5rem;
   padding: 1.75rem 1rem;
-  border-radius: var(--shape-large);
-  background: var(--surface-container-low);
+  border-radius: var(--shape-extra-large);
+  background: var(--surface-container);
   text-align: center;
 }
 
@@ -77,7 +77,8 @@ h2 {
   border-bottom: 1px solid var(--border-color);
   color: var(--text-color);
   font-family: var(--font-heading);
-  font-size: 1.28rem;
+  font-size: 1.75rem;
+  font-weight: 400;
   letter-spacing: -0.015em;
 }
 
@@ -143,7 +144,7 @@ h2 i {
   margin-top: 2.4rem;
   padding: 1rem 1.1rem;
   border: 1px solid color-mix(in srgb, var(--icpc-accent) 20%, transparent);
-  border-radius: 8px;
+  border-radius: var(--shape-large);
   background: color-mix(in srgb, var(--icpc-accent) 5%, var(--paper-bg));
 }
 

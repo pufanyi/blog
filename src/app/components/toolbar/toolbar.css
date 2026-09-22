@@ -3,8 +3,8 @@
   inset: 0 0 auto;
   z-index: 1000;
   padding-top: env(safe-area-inset-top);
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
-  background: var(--paper-bg);
+  border-bottom: 1px solid var(--outline-variant);
+  background: var(--surface-container-low);
   font-family: var(--font-heading);
 }
 
@@ -33,15 +33,16 @@
   justify-content: center;
   gap: 0.55rem;
   box-sizing: border-box;
-  min-width: 44px;
-  height: 44px;
+  min-width: 48px;
+  height: 48px;
   padding-inline: 0.75rem;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--text-secondary);
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
   text-decoration: none;
@@ -57,7 +58,7 @@
 
 .toolbar-button:hover,
 .toolbar-button[aria-expanded="true"] {
-  background: var(--accent-bg);
+  background: var(--state-hover);
   color: var(--link-color);
   text-decoration: none;
 }
@@ -68,8 +69,8 @@
 }
 
 .toolbar-button.is-current {
-  color: var(--on-primary-container);
-  background: var(--primary-container);
+  color: var(--on-secondary-container);
+  background: var(--secondary-container);
 }
 
 .toolbar-brand {
@@ -120,7 +121,7 @@
   }
 
   .toolbar-button {
-    width: 44px;
+    width: 48px;
     padding: 0;
   }
 

@@ -1,8 +1,9 @@
 .title-block {
   margin-bottom: 2.5rem;
-  padding: 2rem 1.5rem;
-  border-radius: var(--shape-large);
-  background: var(--surface-container-low);
+  padding: 2.5rem 1.5rem;
+  border-radius: var(--shape-extra-large);
+  background: var(--primary-container);
+  color: var(--on-primary-container);
   text-align: center;
 }
 
@@ -16,20 +17,20 @@
   font-weight: var(--page-title-weight);
   letter-spacing: -0.02em;
   line-height: 1.3;
-  color: var(--text-color);
+  color: inherit;
   overflow-wrap: anywhere;
 }
 
 .authors {
   margin: 0 0 0.35rem;
-  color: var(--text-color);
+  color: inherit;
   font-family: var(--font-heading);
   font-size: 1rem;
   line-height: 1.5;
 }
 
 .date {
-  color: var(--text-secondary);
+  color: inherit;
   font-family: var(--font-heading);
   font-size: 0.9rem;
   letter-spacing: 0.02em;
@@ -45,6 +46,7 @@
   .title-block {
     padding: 0 0 1rem;
     background: transparent;
+    color: var(--text-color);
     border-radius: 0;
     border-bottom: 1px solid var(--border-color);
   }

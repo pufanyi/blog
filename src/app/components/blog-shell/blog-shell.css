@@ -1,6 +1,6 @@
 :host {
-  --page-title-size: clamp(1.8rem, 3vw, 2.25rem);
-  --page-title-weight: 600;
+  --page-title-size: clamp(1.75rem, 3vw, 2.25rem);
+  --page-title-weight: 400;
 
   display: flex;
   flex-direction: column;
@@ -16,9 +16,9 @@
   margin: calc(var(--toolbar-clearance) + 0.75rem) auto 2rem;
   padding: 3rem 3.5rem 3.5rem;
   background: var(--paper-bg);
-  border: 1px solid var(--outline-variant);
+  border: 0;
   border-radius: var(--shape-extra-large);
-  box-shadow: 0 2px 8px var(--shadow-color);
+  box-shadow: none;
   overflow: visible;
 }
 
@@ -30,8 +30,8 @@ app-footer {
   .paper {
     width: calc(100% - 1rem);
     margin-top: var(--toolbar-clearance);
-    padding: 1.5rem max(1.5rem, env(safe-area-inset-right)) 2.5rem
-      max(1.5rem, env(safe-area-inset-left));
+    padding: 1.25rem max(1rem, env(safe-area-inset-right)) 2.5rem
+      max(1rem, env(safe-area-inset-left));
     border-radius: var(--shape-large);
   }
 }
