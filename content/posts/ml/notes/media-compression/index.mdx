@@ -1,7 +1,8 @@
 ---
 title: "多媒体压缩：用同一条主线理解图像、音频与视频"
 date: "2026-09-21"
-description: "从预测、变换、量化、感知模型与熵编码出发，统一理解 PNG、JPEG、FLAC、MP3、AAC、Opus、AV1、VVC 与学习式媒体编码。"
+updated: "2026-09-22"
+description: "从条件熵、算术编码、率失真与量化出发，通过 JPEG、小波、听觉 masking 和运动补偿的推导与算例，统一理解图像、音频、视频和学习式编码。"
 authors:
   - "Fanyi Pu"
   - "GPT-6 Astra"
@@ -14,6 +15,8 @@ authors:
 
 本文先从一条可逆的压缩链出发，再让失真有控制地进入。这样，PNG、JPEG、FLAC、MP3、AAC、Opus、H.264、AV1 和神经 codec 不再是一串格式名称，而是对同一组设计问题的不同回答。
 
+阅读时可以抓住三个问题：**为什么还有冗余，怎样让误差可控，以及 decoder 需要知道什么？** 前半部分建立 entropy coding、prediction、transform 和 rate–distortion 的共同基础；后半部分再分别讨论图像的空间尺度、音频的听觉与时频结构、视频的运动和参考依赖。推导中的概率表示对一类信号的统计模型，不是说某个固定文件天然带着一个可直接读取的“熵值”。
+
 ## 原始媒体已经是一组离散 samples
 
 相机、麦克风先把连续的光和声变成离散数值。图像 sample 沿空间排列，音频 sample 沿时间排列，视频则同时具有空间和时间轴：
@@ -25,6 +28,15 @@ authors:
 | 视频 | $(t,x,y,\text{channel})$ | 帧内空间结构与帧间运动 | seek、参考依赖、播放时序 |
 
 这里有两个容易混淆的 quantization。采集时的 bit depth 已经把连续振幅量化成整数 sample；有损 codec 随后还会再次量化预测误差或变换系数。Lossless codec 保证恢复输入的离散 samples，不可能反推出采样前已经消失的连续信号。提高 sample rate 或 bit depth 也不会自动改善一个已经失真的来源。
+
+<details>
+<summary>采样率、bit depth 和 dither 分别改变什么？</summary>
+
+若连续信号严格带限于 $B$ Hz，并以 $f_s>2B$ 理想采样，未量化的样本足以确定原信号。DAC 要重建的是这个带限波形；把相邻 samples 画成阶梯，只是一种显示方式。提高采样率主要扩展可表示带宽；提高 bit depth 则减小振幅量化间隔。两者回答不同的问题 [@montgomery2013digital]。
+
+均匀四舍五入也不总产生白噪声。例如量化 step 为 $\Delta$ 时，振幅小于 $\Delta/2$ 的正弦波会全部舍入到零；误差完整保留了输入的周期结构。先加入适当分布、适当幅度的 **dither** 再量化，可以打散这种结构，使量化后的误差统计更稳定，代价通常是增加总噪声功率。它并不是把音频压缩得更小，而是在固定精度下，用较少的相关失真换取更可控的噪声；这也提醒我们，不能只用一个 MSE 数字描述声音质量 [@montgomery2013digital]。
+
+</details>
 
 还要分清四个名字：
 
@@ -80,11 +92,67 @@ $$
 \ell(s)=-\log_2 p(s),
 $$
 
-平均理论下界由 entropy 描述：
+对独立同分布的离散符号，平均码长的理论下界由 entropy 描述；足够长的联合编码可以逼近它：
 
 $$
 H(X)=-\sum_s p(s)\log_2 p(s).
 $$
+
+### 从概率到真正可解码的 bits
+
+短码不能随意分配。如果把三个符号写成 `0`、`1`、`01`，收到 `01` 时就无法判断它是一个符号还是两个。Prefix code 要求一个完整码字不能是另一个码字的开头，因此 decoder 沿二叉树读到叶子就知道当前符号结束。Huffman coding 从概率最小的两个符号开始合并，逐步建出平均码长最短的二元 prefix tree [@girod2012entropy]。
+
+例如，假设 residual 的符号概率如下；这里单独构造一个分布来算码长，不把前面八个 samples 当作准确的总体统计：
+
+| 符号 | 概率 | 一组 Huffman code | 对平均码长的贡献 |
+| --- | --- | --- | --- |
+| $0$ | $1/2$ | `0` | $1/2$ bit |
+| $1$ | $1/4$ | `10` | $1/2$ bit |
+| $-1$ | $1/8$ | `110` | $3/8$ bit |
+| $2$ | $1/8$ | `111` | $3/8$ bit |
+
+固定长度需要 2 bit/symbol，这组码的平均长度是 1.75 bit/symbol，恰好等于 entropy。它仍然不能保证每个短文件都变小：还要保存长度、码表或其编号，罕见符号本身甚至比固定长度更长。
+
+若一个二元符号出现概率为 0.99，单符号 Huffman 仍要给两种结果各 1 bit，无法使用接近 0 bit 的理想码长。**Arithmetic coding 把整串符号共同表示为一个区间**，从而摊薄这种整数码长限制 [@girod2012arithmetic]。设 $p(A)=3/4,p(B)=1/4$，每次把当前区间的前 $3/4$ 分给 $A$，后 $1/4$ 分给 $B$：
+
+| 已编码前缀 | 留下的区间 | 区间宽度 |
+| --- | --- | --- |
+| 空 | $[0,1)$ | $1$ |
+| $A$ | $[0,3/4)$ | $3/4$ |
+| $AA$ | $[0,9/16)$ | $9/16$ |
+| $AAB$ | $[27/64,36/64)$ | $9/64$ |
+
+假设两端已知消息长度为 3，就可以用最终区间内的二进制数让 decoder 逐次判断它落在哪个子区间。例如前缀 `1000` 表示的二进制小数区间 $[1/2,9/16)$ 完全落在最终区间内。这里 4 bit 还包含短消息的取整与二进制区间对齐成本；长串的区间宽度是各条件概率的乘积，因此所需精度约为 $-\log_2 p(\text{整串})$。实际 range/arithmetic coder 用有限精度整数和 renormalization，及时输出已经确定的高位，不会真的存一个无限精度小数。消息长度或结束符也必须有约定。
+
+### 预测降低的是哪一种不确定性
+
+一幅黑白条纹图可能一半是 0、一半是 1，单看直方图与随机黑白噪声一样。但条纹的邻居很有用：若前一个像素为白，下一个多半仍为白。Decoder 已经读过的内容应成为当前概率模型的条件 [@girod2012dependence]。
+
+构造一个对称的二状态模型：首个 bit 等概率取 0 或 1，以后每步有 95% 概率保持原值，5% 概率翻转。每个位置单独看都有 $H(X_i)=1$ bit；已知前一个 bit 后，只需说明“保持还是翻转”，平均不确定性变成
+
+$$
+H(X_i\mid X_{i-1})
+=-0.95\log_2 0.95-0.05\log_2 0.05
+\approx0.286\text{ bit}.
+$$
+
+对长度为 $n$ 的序列，联合 entropy 是 $1+(n-1)\times0.286$，不是 $n$。一般地，先描述第一个符号，再逐个描述在历史已知时的新增信息，就得到 chain rule：
+
+$$
+H(X_1,\ldots,X_n)
+=\sum_{i=1}^{n}H(X_i\mid X_1,\ldots,X_{i-1}).
+$$
+
+可逆 prediction 没有降低整串的联合 entropy，而是把这类依赖转成一个简单 entropy coder 也能利用的 residual 分布。另一种做法是直接给原符号建立 conditional probability model；两者都在避免重复描述 decoder 已经知道的事情。
+
+如果实际分布是 $p$，coder 却按 $q$ 分配理想码长，那么平均代价为
+
+$$
+\mathbb E_p[-\log_2 q(X)]
+=H(p)+D_{\mathrm{KL}}(p\Vert q).
+$$
+
+右边第二项就是模型失配的额外成本。两端可以从相同的已解码历史更新模型，省去逐次发送概率的费用；但初始状态、更新规则和整数舍入必须一致。把“预测越准越好”改成“对真实符号给出的概率越合适，总码长越短”，才能同时理解传统 context model 和后面的 learned entropy model。
 
 这个例子同时适用于空间和时间。PNG 为每条 scanline 选择可逆 filter，把像素改写成相对左侧、上方或邻域预测的差，再用 DEFLATE 压缩字节流 [@w3c2025png]。FLAC 把 PCM 分块，可选择 fixed predictor 或 linear predictive coding（LPC），再用 Rice codes 编码通常靠近零的 residual；stereo 还可在左右声道与 mid/side 等可逆表示之间选择 [@flac2024rfc9639]。
 
@@ -98,9 +166,88 @@ $$
 
 随机噪声难以压缩，原因也由此变得具体：没有一个足够便宜的模型能让它的 residual 明显更简单。
 
+<details>
+<summary>怎样从邻居设计一个线性预测器？</summary>
+
+只用前一个 sample 相当于预先指定预测系数为 1。若邻居间的关系没那么强，可以让系数由数据决定。把可用的邻居组成向量 $\mathbf z$，先减去各自均值，用 $\mathbf a^\top\mathbf z$ 预测当前值 $x$。
+
+我们希望 residual $e=x-\mathbf a^\top\mathbf z$ 的平方尽可能小。如果 residual 还与某个邻居相关，就说明沿那个邻居的方向调整预测还有改善空间。对各个系数求导，把这一条件写出来，得到
+
+$$
+\mathbb E[\mathbf z(x-\mathbf a^\top\mathbf z)]=0,
+\qquad
+\mathbb E[\mathbf z\mathbf z^\top]\mathbf a
+=\mathbb E[\mathbf z x].
+$$
+
+这就是线性 least-squares prediction 的 normal equations；covariance 矩阵可逆时可直接求解 [@girod2012prediction]。例如当前值与前一值同方差 $\sigma^2$、相关系数为 $\rho$，只用前一值时最优系数是 $a=\rho$，residual 方差变成 $\sigma^2(1-\rho^2)$。取 $\rho=0.9$，只剩原方差的 19%。
+
+小方差只是“更容易编码”的一种代理，最终仍需比较真实码长与参数开销。无损实现还要约定确定的整数预测和 rounding，再精确发送差值；有损实现则必须使用 decoder 可重建的历史，后面的音频与视频闭环会继续解释这一点。
+
+</details>
+
+<details>
+<summary>从连续的零到 Rice code：怎样把 residual 写成简单整数码</summary>
+
+若 residual 经常为零，可以先保存非零值前有多少个零，这就是 run-length coding。黑白文档也可用交替的白色、黑色 run lengths 表示；相邻 scanline 的边界往往相近，还能预测下一行的边界位置。这是把一维重复进一步变成二维依赖，而不是让 entropy coder 猜出整张图。
+
+对靠近零的有符号整数，先用 $0,-1,1,-2,2,\ldots\mapsto0,1,2,3,4,\ldots$ 折叠成非负数 $u$，再选择参数 $k$，分解为
+
+$$
+u=2^k a+b,\qquad 0\le b<2^k.
+$$
+
+用 $a$ 个 `0` 后接一个 `1` 表示商，再用 $k$ bit 表示余数，就是一种 Rice code 的写法。比如 $e=-2$ 对应 $u=3$；取 $k=1$，商为 1、余数为 1，输出 `01` 加 `1`，共 3 bit。$k$ 太小会使大 residual 的 unary 部分很长，太大又浪费小 residual 的余数位，因此 FLAC 可以按 partition 选择参数，并发送选择结果 [@flac2024rfc9639]。
+
+</details>
+
 ## 有损压缩：先改变坐标，再分配误差
 
-仅靠无损建模通常不够。若允许重建值 $\hat x$ 与原值 $x$ 略有不同，encoder 还要决定哪些误差值得保留。一个典型 transform codec 先计算 coefficients $c_k$，再选择 quantization step $\Delta_k$：
+仅靠无损建模通常不够。若允许重建值 $\hat x$ 与原值 $x$ 略有不同，encoder 还要决定哪些误差值得保留。问题不只是“少留几位小数”：直接对每个 sample 一视同仁，未必能把误差放在合适的地方。
+
+### 为什么先换坐标
+
+考虑两个很接近的像素 $[100,102]$。分别描述它们会重复表示共同的亮度；更有用的两个量是“共同部分”和“差异”：
+
+$$
+c_0=\frac{x_0+x_1}{\sqrt2},\qquad
+c_1=\frac{x_0-x_1}{\sqrt2}.
+$$
+
+现在 $c_0=101\sqrt2$，$c_1=-\sqrt2$。两个数仍完整保留输入，但若预算紧张，把很小的差异量化成零，就会重建为 $[101,101]$：共同亮度保住了，只损失局部变化。将归一化后的和与差作为坐标，正是最简单的正交变换。
+
+一般写成 $\mathbf c=A\mathbf x$，其中 $A^\top A=I$，逆变换为 $\hat{\mathbf x}=A^\top\hat{\mathbf c}$。于是
+
+$$
+\|\mathbf x-\hat{\mathbf x}\|_2^2
+=\|\mathbf c-\hat{\mathbf c}\|_2^2.
+$$
+
+这说明正交变换不凭空缩小平方误差，而是给出一套可以分别控制的误差方向。对经常一起升降的 samples，换到这些方向后，系数的方差会变得很不均匀；此时才有理由不再平均分配 bits [@girod2012transform]。
+
+<details>
+<summary>KLT 为什么选择 covariance 的特征向量，DCT 又解决了什么工程问题</summary>
+
+假设向量已减去均值，covariance 为 $\Sigma_x$。变换后的 covariance 是 $A\Sigma_x A^\top$。我们希望不同坐标不再有线性相关性，使逐个量化、逐个建模少遗漏一些结构；因此希望这个矩阵变成对角矩阵。对称矩阵可分解为 $\Sigma_x=U\Lambda U^\top$，选择 $A=U^\top$ 就实现了这一点。这就是 Karhunen–Loève transform（KLT），与 PCA 使用相同的主轴。
+
+例如
+
+$$
+\Sigma_x=\sigma^2
+\begin{bmatrix}1&\rho\\\rho&1\end{bmatrix}
+$$
+
+的主轴就是上面的和与差，两个系数方差分别是 $\sigma^2(1+\rho)$ 和 $\sigma^2(1-\rho)$。取 $\rho=0.9$，得到 $1.9\sigma^2$ 与 $0.1\sigma^2$：差异坐标便宜的原因来自相邻 samples 的统计相关性。
+
+KLT 的去相关不一般等于独立；对联合 Gaussian 向量，去相关还保证独立。其最优 coding gain 结论也依赖平方误差、高码率量化与合适 bit allocation 等模型，不能解释成它对任何实际 codec 都最优。更直接的工程障碍是 basis 随数据统计变化，可能需要传矩阵，而且一般没有简单的快速实现。
+
+DCT 固定一组 cosine basis，能用快速、可分离的运算实现；对常见的平滑相关信号，它又能取得不错的能量集中效果。与把 block 两端直接接起来的周期 DFT 相比，DCT 对应的偶对称延拓也减少了端点跳变。这些性质让它成为成本与压缩效果之间的实用选择。
+
+</details>
+
+### 量化把哪些值视为“同一个”
+
+一个标量 quantizer 把一段系数值映射到同一个整数 index，decoder 再把 index 还原为一个代表值。最简单的等间距设计先选 quantization step $\Delta_k$：
 
 $$
 q_k=\operatorname{round}\!\left(\frac{c_k}{\Delta_k}\right),
@@ -110,9 +257,40 @@ $$
 
 较大的 $\Delta_k$ 让更多小 coefficients 变成零，也让留下来的值更粗糙。Decoder 只能得到 $\hat c_k$，不能找回 rounding 前的 $c_k$；这是典型有损 codec 的主要不可逆边界。
 
-Transform 的作用常被误说成「删除高频」。正交 transform 仍输出同样数量的 coefficients；若保留足够精度，它可以逆变换。它真正做的是换坐标，让相关结构集中到少数大系数，并让 encoder 能按位置、频率或尺度分别量化。
+例如 $c=7.3$ 时，$\Delta=3$ 重建为 6，$\Delta=4$ 却重建为更接近原值的 8。单个值的误差不一定随步长单调变化，但对平滑分布和足够细的量化区间，误差可近似看成在 $[-\Delta/2,\Delta/2]$ 均匀分布。于是
 
-对一个 $N\times N$、已减去中心值的图像 block $f(x,y)$，二维 DCT 可以写成
+$$
+\mathbb E[e_q^2]\approx
+\frac1\Delta\int_{-\Delta/2}^{\Delta/2}e^2\,\mathrm de
+=\frac{\Delta^2}{12}.
+$$
+
+在固定范围内多给 1 bit，可把步长减半，噪声功率约降为四分之一，即约 6 dB。这里需要高分辨率、无 clipping 等条件；低幅纯音、很粗的量化或强烈非均匀分布不一定满足这个噪声近似 [@girod2012quantization]。
+
+<details>
+<summary>非均匀量化、Lloyd–Max 与 vector quantization</summary>
+
+等间距未必适合固定数量的代表值。若大多数输入挤在零附近，就可以把更多代表值放在那里。怎样寻找位置？先固定代表值 $a_j$，每个输入应分给平方误差最小的代表值，所以相邻区间边界在两代表值的中点；再固定区间 $B_j$，最小化区间内平均平方误差，代表值就应是条件均值：
+
+$$
+a_j=\mathbb E[X\mid X\in B_j].
+$$
+
+交替更新边界和均值得到 Lloyd–Max iteration，通常收敛到局部最优。比如训练 samples 是 $[0,1,2,9,10]$，只允许两个代表值，分成前 3 个和后 2 个后，代表值为 1 与 9.5，边界为 5.25；各点仍属于原分组，这已经是一个稳定解。
+
+如果 index 还要经过 entropy coding，“最近”就不一定是“最划算”。固定当前码长估计 $\ell_j$ 后，应比较
+
+$$
+j^*(x)=\arg\min_j\bigl[(x-a_j)^2+\lambda\ell_j\bigr].
+$$
+
+这会给短码代表值更大的吸引范围。常见的 dead-zone quantizer 把零附近的区间做宽，正是在用更多零换较低的码率；它与普通 round quantizer 中宽度为 $\Delta$ 的零区间有所区别。
+
+把标量 $x,a_j$ 换成向量，就得到 vector quantization（VQ）：整个小向量选一个 codeword，发送其 index。它可以利用标量量化遗漏的联合结构，但码本大小、搜索成本、训练数据和 decoder 共享码本都要算进代价。后面的神经音频 codebook 使用的也是这类操作。
+
+</details>
+
+把变换和量化接起来，就可以从两个 samples 扩展到一个图像块。对一个 $N\times N$、已减去中心值的图像 block $f(x,y)$，二维 DCT 可以写成
 
 $$
 C(u,v)=\alpha(u)\alpha(v)
@@ -122,17 +300,54 @@ f(x,y)
 \cos\frac{(2y+1)v\pi}{2N}.
 $$
 
-$C(0,0)$ 描述整块平均；$u$ 或 $v$ 越大，basis 在空间中变化越快。下面使用同一份 $4\times4$ 数值实际计算 DCT、逐频率量化与 inverse DCT。变换前后始终是 16 个数，量化后才出现大量零和不可逆误差。
+这里 $\alpha(0)=1/\sqrt N$，$\alpha(k)=\sqrt{2/N}$（$k>0$）。因此 $C(0,0)$ 是 block 平均值的 $N$ 倍；$u$ 或 $v$ 越大，basis 在空间中变化越快。二维 DCT 可以先对各行做一维 DCT，再对各列做一次。下面使用同一份 $4\times4$ 数值实际计算 DCT、逐频率量化与 inverse DCT。变换前后始终是 16 个数，量化后才出现大量零和不可逆误差。
 
 <TransformQuantization />
 
-Encoder 通常在许多候选表示中最小化 rate–distortion cost：
+### 有限的 bits 应该先给谁
+
+假设一块数据有两种编码：方案 A 用 20 bit，平方误差为 12；方案 B 用 28 bit，误差为 8。升级多花 8 bit，只降低 4 单位误差。如果另一块的同样 8 bit 能降低 10 单位误差，预算有限时应优先升级后一块。也就是说，要比较的是**每增加一个 bit 能减少多少失真**。
+
+把总码率约束 $R\le R_0$ 写成 Lagrangian，就得到 encoder 常用的 rate–distortion cost：
 
 $$
 J(m)=D(x,\hat x_m)+\lambda R(m).
 $$
 
-$R$ 包含量化 coefficients、预测模式、模型参数等所有要发送的 bits；$D$ 衡量重建损失；$\lambda$ 表示愿意用多少失真换码率。不同媒体真正不同的地方，主要不是有没有 $R$，而是怎样定义 $D$。
+$R$ 包含量化 coefficients、预测模式、模型参数等所有要发送的 bits；$D$ 衡量重建损失；$\lambda$ 是每个额外 bit 的失真代价。上述升级只有在 $4>8\lambda$ 时才值得。增大 $\lambda$ 会更偏向省 bits；它对应光滑率失真曲线上 $-\mathrm dD/\mathrm dR$ 的大小。实际候选是离散的，而且参考依赖会耦合多个 block，因而局部搜索不保证全局最优。
+
+若暂时把各 transform coefficient 视为独立 Gaussian，方差为 $\sigma_k^2$，要求平方误差 $0<d_k\le\sigma_k^2$，理论上达到该误差的最小码率是 $r_k=\tfrac12\log_2(\sigma_k^2/d_k)$。对所有仍分到 bits 的系数，若某个系数多用一点码率能比另一个更有效地降误差，就应把预算移过去；平衡时，各系数的边际收益相同。这个 Gaussian 模型下，它意味着把误差均衡到某个水平 $\theta$：
+
+$$
+d_k=\min(\sigma_k^2,\theta),\qquad
+r_k=\max\!\left(0,\frac12\log_2\frac{\sigma_k^2}{\theta}\right).
+$$
+
+若某个零均值系数本来的方差已低于 $\theta$，直接重建为零就够了，无须给它“负数 bits”。这就是 reverse water-filling 的含义 [@girod2012ratedistortion]。例如方差为 $[16,4,1]$，取 $\theta=1$，最优理论分配是 $[2,1,0]$ bit/coefficient，误差为 $[1,1,1]$。这些是对长序列的平均码率，不是在要求一个单独系数拥有分数长度的固定码字。
+
+这也解释了为什么“所有频率保留相同精度”不一定有效。真实媒体不严格是 Gaussian，人的感知也不等于 MSE；把误差改成带权重的 $\sum_k w_k d_k$，就应平衡**加权**的边际收益。后面色度降采样与音频 masking，都会改变哪些误差更值得避免。
+
+<details>
+<summary>理论的 R(D) 与实际 encoder 的 D + λR 有什么区别</summary>
+
+前者问所有可能的编码方法能达到什么极限，后者是在一组可实现方案中做选择。对 memoryless source 和逐 sample 累加的 distortion，允许平均误差不超过 $D_0$ 时，理论极限可写成
+
+$$
+R(D_0)=\min_{p(\hat x\mid x):\,\mathbb E[d(X,\hat X)]\le D_0}
+I(X;\hat X).
+$$
+
+Mutual information $I(X;\hat X)$ 衡量重建中仍保留了多少关于原信号的信息；离散情形可写成 $H(X)-H(X\mid\hat X)$。允许更大误差，就能让更多不同输入共享同一类重建，所需信息减少。这个渐近极限容许很长的 block，不替实际系统解决有限延迟、搜索或码表开销。
+
+对方差为 $\sigma^2$ 的 memoryless Gaussian source 和 MSE，若 $0<D_0<\sigma^2$，有
+
+$$
+R(D_0)=\frac12\log_2\frac{\sigma^2}{D_0}.
+$$
+
+可以从“原信号减去尚未确定的误差”理解这个式子：Gaussian 的 differential entropy 为 $\tfrac12\log_2(2\pi e\sigma^2)$，方差不超过 $D_0$ 的误差最多有 $\tfrac12\log_2(2\pi eD_0)$ 的 entropy，相减给出下界；选择与重建独立的 Gaussian 误差可以达到它。若 $D_0\ge\sigma^2$，恒定输出均值就够了，码率为零。它给出每增加 1 bit、误差降为四分之一的理想规律，并不保证现实图片增加 1 bpp 就一定提升 6 dB。
+
+</details>
 
 ## 图像：在二维空间里分离结构与颜色
 
@@ -142,9 +357,93 @@ RGB 便于显示，却不总适合按视觉重要性分配 bits。照片和视�
 
 <ChromaSampling />
 
-人类视觉通常对高频亮度变化比高频色度变化敏感，所以照片常能承受色度降采样；文字、UI、像素画、彩色细线和继续编辑的素材则可能出现明显 color bleeding。4:2:0 是有损操作；从 RGB 换到 YCbCr、却仍保留 4:4:4，不能单凭名称断言有损。
+人类视觉通常对高频亮度变化比高频色度变化敏感，所以照片常能承受色度降采样；文字、UI、像素画、彩色细线和继续编辑的素材则可能出现明显 color bleeding。实际降采样前需要 low-pass filtering，避免细密的颜色变化折叠成错误的低频图案；随后丢掉的色度细节无法从少量 samples 唯一恢复。4:2:0 是有损操作；从 RGB 换到 YCbCr、却仍保留 4:4:4，不能单凭名称断言有损。
 
-Baseline JPEG 把图像分块，对每块做 DCT 和 quantization，再让 DC difference 与按 zigzag 排列的 AC coefficients 进入 run-length/Huffman coding [@jpeg1992jpeg1]。Block 边界两侧的量化误差不连续会产生 blocking；锐利边缘附近的高频损失会形成 ringing；低 bit depth 或过强的低频量化会产生 banding。所谓「压缩痕迹」不是一个现象，必须沿 decoder 反查是哪一步制造的。
+### JPEG 怎样把一块系数真正写成 bits
+
+前面的 DCT 例子已经把平滑结构集中到少数系数。Baseline JPEG 把这条思路落实到每个 $8\times8$ block：对 8-bit samples 先减去 128，再做 DCT，最后用 quantization table 为不同频率选择步长 [@jpeg1992jpeg1]。低频通常量化得细一些，高频通常粗一些；这不是一条“超过某频率就删除”的硬边界，而是对不同 basis 所产生误差的不同定价。
+
+量化之后仍有 64 个整数，文件怎样变小？先看 DC。邻近 block 的平均亮度往往相近，因此 JPEG 对同一 component 的量化 DC 做差分，只发送它相对前一个 DC 的变化。其余 63 个 AC 则沿 zigzag 顺序展开，使通常更稀疏的高频部分排在后面，便于描述连续的零。Zigzag 本身是可逆排列；它只有和后面的 run-length coding 配合才节省 bits。
+
+假设前一块的量化 DC 是 10，当前块按 zigzag 排列为
+
+$$
+[\underbrace{12}_{\mathrm{DC}},\;-3,0,0,2,-1,0,\ldots,0].
+$$
+
+DC 只需编码差值 $12-10=2$。AC 不逐个发送零，而是先发送“下一个非零数前有几个零”，再说明这个非零数的大小。JPEG 用 **SIZE category** 表示附加值需要多少 bits：对非零整数 $v$，$s=\lfloor\log_2|v|\rfloor+1$。例如 category 2 覆盖 $-3,-2,2,3$，还需 2 bits 才能区分具体值。于是本例变成：
+
+| 要表示的内容 | 送入 Huffman coder 的符号 | 随后附加的值 bits |
+| --- | --- | --- |
+| DC difference 为 $2$ | DC category $2$ | `10` |
+| 第一个 AC 为 $-3$ | $(\mathrm{RUN},\mathrm{SIZE})=(0,2)$ | `00` |
+| 两个零之后出现 $2$ | $(2,2)$ | `10` |
+| 紧接着出现 $-1$ | $(0,1)$ | `0` |
+| 剩余 AC 全是零 | EOB，即 $(0,0)$ | 无 |
+
+表中的 `(RUN, SIZE)` 是一个联合符号，Huffman table 决定它的码字；附加 bits 再确定符号与精确幅值，并不是直接把这两个十进制数字原样存入文件。这里 category 2 的 `00,01,10,11` 分别表示 $-3,-2,2,3$，负数也不是二进制补码。若非零值前超过 15 个零，可用特殊 ZRL 符号反复表示每组 16 个零。Decoder 读完这些符号，就能恢复 64 个**量化整数**，随后反量化和 inverse DCT；熵编码并没有再增加损失 [@girod2012jpeg]。
+
+这条链也解释了常见伪影。相邻 block 各自量化，边界两侧误差不连续会产生 blocking；锐利边缘所需的一组高频系数被粗化，会出现 ringing；缓慢变化的区域若只有少数可用重建值，则会出现 banding。所谓“压缩痕迹”不是一个现象，必须沿 decoder 反查是哪一步制造的。
+
+### 从独立小块到跨尺度的 wavelet
+
+Block DCT 把每个小块分别处理，误差容易暴露人为边界。一个自然的问题是：能否让 basis 跨越邻域，同时仍只保留与原图一样多的 coefficients？Subband coding 用一组 analysis filters 分离不同频带，再对每个分支降采样；配对的 synthesis filters 把它们合回去。只要满足 **perfect reconstruction** 条件，未量化时所有分支合起来就能恢复输入 [@girod2012subband]。
+
+先用最小的 Haar 例子理解“分离后还能合回去”。相邻两个数 $u,v$ 通常相近，我们可以分别记录它们的平均和偏离平均的量：
+
+$$
+a=\frac{u+v}{2},\qquad d=\frac{u-v}{2}.
+$$
+
+Decoder 用 $u=a+d,\ v=a-d$ 精确恢复。$a$ 是低频分支，$d$ 是细节分支；两个输入变成一个平均、一个差值，数量并没有减少。这里为方便手算采用未归一化形式；正交归一化的 Haar 则把两个分母都改成 $\sqrt2$，并相应调整逆变换。
+
+对一行 $[10,12,14,16]$，第一层得到平均 $[11,15]$ 和细节 $[-1,-1]$。平均本身还相关，可以再拆一次，得到整体平均 $13$ 与较粗尺度细节 $-2$。最终保存的是
+
+$$
+[\underbrace{13}_{\text{最粗平均}},\;
+\underbrace{-2}_{\text{较粗细节}},\;
+\underbrace{-1,-1}_{\text{较细细节}}].
+$$
+
+仍然是 4 个数。若保留全部，逐层逆变换恢复原序列；若只把较细的两个 $-1$ 量化为零，重建变成 $[11,11,15,15]$；若连 $-2$ 也丢掉，才变成 $[13,13,13,13]$。**降采样不必然有损：两条互补分支一起保留时，可以只是可逆换坐标；只保留低频分支，才失去细节。** 这也说明它和前面的 chroma subsampling 不同，后者没有另外发送被去掉的高频色度。
+
+二维图像先沿行、再沿列做同样的分离，得到 $LL,LH,HL,HH$ 四个子带。这里第一个字母表示水平方向滤波，第二个表示垂直方向：$LL$ 是缩小的平滑结构，$HL$ 保留沿水平方向变化的细节，$LH$ 保留沿垂直方向变化的细节，$HH$ 保留两个方向都快速变化的细节。继续分解 $LL$，就得到从大轮廓到细纹理的多尺度表示。
+
+Haar 的短滤波器适合手算；更长的 wavelet filters 可以跨越更多像素，减少独立小块的边界感。每个降采样分支单独看可能带有 aliasing，分析与合成滤波器必须成对设计，让这些项在重建时抵消；不能任意选两个 low/high-pass filters 就假定它们可逆。代价是滤波支撑、边界处理和实现复杂度，粗量化也仍可能产生模糊与 ringing。
+
+<details>
+<summary>为什么整数 wavelet 里的 rounding 仍然可以可逆？</summary>
+
+只把平均值四舍五入会丢信息，但 **lifting** 可以让每一步 rounding 都有可重算的输入。先用偶数位置预测奇数位置，保存预测误差，再利用误差更新偶数位置；decoder 按相反顺序撤销更新和预测。
+
+以最简单的一对整数为例，令
+
+$$
+d=v-u,\qquad a=u+\left\lfloor\frac d2\right\rfloor.
+$$
+
+给定 $(a,d)$，decoder 先算 $u=a-\lfloor d/2\rfloor$，再算 $v=u+d$。例如 $(u,v)=(3,6)$ 变成 $(a,d)=(4,3)$，逆向仍得到 $(3,6)$。Rounding 的结果可以从已知 $d$ 重新算出，所以没有把两个不同输入合并成同一表示。JPEG 2000 的 reversible 5/3 transform 使用类似的整数 lifting 结构，只是预测与更新会结合邻居；若颜色变换也可逆、不做有损量化并发送全部必要 bitplanes，就能无损重建。它的另一条常用路径是 irreversible 9/7 transform [@girod2012jpeg2000]。
+
+</details>
+
+### JPEG 2000：先收到的 bits 应该先改善画面
+
+有了多尺度系数，下一个问题是怎样组织文件，才能让接收端逐步获得更清楚的图像。把每个系数都完整发完再发下一个，可能只让一个角落很精确，而其余位置仍然未知。**Bitplane coding** 改成先处理所有系数的高位，再逐层补低位。
+
+例如量化系数的绝对值 $13=(1101)_2$。扫描 $2^3$ 对应的 bitplane 时，它首次显著：decoder 知道幅值至少为 8，同时收到正负号；下一层得知幅值至少为 12；再下一层把范围缩小到 $[12,14)$，最后一层确定为 13。此前一直不显著的系数，只需继续说明它是否越过当前阈值。邻近系数是否已经显著能预测当前 bit 的概率，因此这些二进制决定再交给 context-adaptive arithmetic coding，而不是不加区分地逐 bit 原样存储 [@girod2012jpeg2000]。
+
+JPEG 2000 把各 subband 再划分为可以独立熵编码的 **code-blocks**。这些 code-blocks 是 wavelet 变换后的编码单元，不等同于 JPEG 在像素上分别做 DCT 的小块。每个 code-block 产生可逐步细化的码流；encoder 比较多发一段带来的失真下降 $-\Delta D$ 和额外码长 $\Delta R$，优先保留 $-\Delta D/\Delta R$ 较大的合法增量，选择各块的截断点。这就是 EBCOT 的核心思路 [@taubman2000ebcot]：先生成带有多个截断点的块码流，再按总预算分配它们的长度。
+
+一个 bitplane 还可以分成三次扫描：先处理靠近已显著系数、较可能刚变显著的位置，再细化此前已经显著的系数，最后清理剩余位置。这样的 significance propagation、magnitude refinement 和 cleanup passes 使概率模型更有针对性，也提供比“整层保留或整层舍弃”更细的截断选择。
+
+这里仍是前面的 $D+\lambda R$：如果追加一段使 $\Delta D+\lambda\Delta R<0$，这段信息就值得发送。实际必须尊重每块码流的先后依赖，不能从中间任意挑 bits。不同块的增量再组织成 quality layers；resolution progression 则优先传输较粗尺度所需的信息。这使“先有粗略全图，再逐渐补质量或分辨率”成为 bitstream 本身的性质。低码率下可以提前停止；满足可逆条件并保留全部信息时，则能一路细化到无损。换来的成本是更复杂的编码、上下文建模和码流组织，并不意味着对任何图像和运行环境都必然更合适。
+
+<details>
+<summary>Wavelet coefficients 之间的关系还能怎样节省 bits？</summary>
+
+同一位置、同一方向的粗尺度细节，与更细尺度的对应系数存在关联。EZW 用一棵跨尺度的树组织它们：在当前阈值下，如果一个系数和全部后代都不显著，就用一个 zerotree 符号描述整棵树；若某个后代显著，则继续展开。阈值不断减半，已显著系数补精度，新的显著系数逐步出现 [@shapiro1993ezw]。它利用的是“许多小系数在空间和尺度上聚集”的结构，不能仅凭父系数小就擅自省略后代。JPEG 2000 的 EBCOT 采用独立 code-block 内的上下文编码，并不直接使用这套跨子带的 zerotree 语法。
+
+</details>
 
 现代图像格式仍在回答同一组问题：
 
@@ -152,6 +451,7 @@ Baseline JPEG 把图像分块，对每块做 DCT 和 quantization，再让 DC di
 | --- | --- | --- | --- |
 | PNG | scanline prediction + DEFLATE | 无 | UI、截图、线稿、需逐 sample 保留 |
 | JPEG | block DCT + quantization + entropy coding | 有，标准另有少用模式 | 兼容性优先的照片交付 |
+| JPEG 2000 | wavelet + embedded bitplane coding | 有 / 无 | 多分辨率、大图与渐进传输 |
 | WebP | VP8 intra transform；另有独立 lossless mode | 有 / 无 | Web 照片、透明图与动画 |
 | AVIF | HEIF 中的 AV1 image coding | 有 / 无 | 高效率照片、HDR/WCG、现代终端 |
 | JPEG XL | VarDCT 或 Modular | 有 / 无 | HDR、渐进解码、专业或受控生态 |
@@ -160,50 +460,136 @@ WebP lossy 使用 VP8 的 intra prediction 与 transform coding，lossless mode 
 
 ## 音频：变换之外，还要与时间赛跑
 
-一段 PCM 音频是按固定 sample rate 取得的振幅序列。无损音频可以像前面的例子一样预测相邻 samples；有损音频还会把短时间 frame 变到频率附近的坐标，再依据听觉分配量化噪声。
+一段 PCM 音频是按固定 sample rate 取得的振幅序列。无损音频可以预测相邻 samples，再精确编码残差；有损音频还要决定：**哪些误差可以共存于同一时刻，哪些误差必须避开安静的频段和瞬间？** 这个问题同时约束了变换、量化和播放延迟。
 
 ### 为什么音频不能直接对整段做一次频率变换
 
-整首歌做一次 Fourier transform，能很好地说明「有哪些频率」，却丢掉「它们何时出现」。按很短的 frame 分析则能定位鼓点，却难以精细区分接近的频率。音频 codec 因而在 time resolution 与 frequency resolution 之间选择 block size。
+整首歌的完整 Fourier transform 保留幅度与相位，因此可以逆变换，时间信息并没有消失。问题是每个 basis 横跨整首歌：修改一个系数，影响可能遍及整段；实时通话也不能等说完一句话才输出第一个 sample。我们需要让系数对应有限的时间区域，才能随声音的变化调整误差。
 
-把第 $m$ 个重叠 frame 抽象写成
+把第 $m$ 个重叠 frame 写成
 
 $$
 X_{m,k}=\sum_n x[n+mH]w[n]\phi_k[n],
 $$
 
-$w[n]$ 是平滑 window，$H$ 是相邻 frame 的步长，$\phi_k$ 是第 $k$ 个 frequency basis。Window 避免硬切边界制造大量虚假高频；相邻 frame overlap，再由 decoder 合成，使边界连续。MP3 使用 polyphase filter bank 与 MDCT 的 hybrid 结构 [@mpegmp3overview]；AAC 则以更高分辨率 transform coding 为核心 [@mpegaacoverview]。
+其中 $w[n]$ 是 window，$H$ 是 frame 步长，$\phi_k[n]$ 是第 $k$ 个 frequency basis。只观察长度为 $T$ 的信号，典型的频率区分尺度约为 $1/T$：在 48 kHz 下，960 个 samples 是 20 ms，对应约 50 Hz；240 个 samples 是 5 ms，对应约 200 Hz。两个频率相差 50 Hz 的音调，在 20 ms 内积累一个周期的相对相位变化，在 5 ms 内只积累四分之一个周期，因此短窗口更难分开它们。具体可分辨程度还取决于 window、幅度和噪声，并不等于仅看 DFT 的 bin 间距。
 
-长 block 对稳定音调有较细的频率分辨率，却会把量化误差摊到突发声之前，形成 **pre-echo**。短 block 更能把误差限制在 transient 附近，但频率分辨率较粗、side information 也更频繁。Codec 检测到瞬态时切换 window 长度，并不是一个实现细节，而是在时间局部性与频率集中性之间重新分配预算。
+硬切 frame 会让截断边缘参与频谱分析；平滑 window 可以减轻 spectral leakage。可是把每一帧两端都压低又会丢失边界附近的信号，于是相邻帧 overlap，由相邻窗口共同覆盖这些位置。**MDCT** 进一步解决了“重叠部分是否需要编码两次”的问题：长度 $2N$ 的窗口每次前进 $N$ 个 samples，只输出 $N$ 个系数；单帧逆变换会包含 time-domain aliasing，但相邻帧以匹配的窗口 overlap-add 后，这些项相互抵消。未量化、边界处理正确时，整体可以完美重建 [@aaltomdct]。
+
+<details>
+<summary>为什么分析和合成窗口的平方和等于 1？</summary>
+
+先只看同一个 sample 在两帧中的直接贡献。若分析、合成都乘同一个窗口，第一帧给它权重 $w[n]^2$，第二帧给它权重 $w[n+N]^2$。想让原有振幅不变，就需要
+
+$$
+w[n]^2+w[n+N]^2=1,\qquad 0\le n<N.
+$$
+
+这称为 Princen–Bradley condition。一个满足它的选择是长度 $2N$ 的对称 sine window：
+
+$$
+w[n]=\sin\left(\frac{\pi(n+1/2)}{2N}\right),\qquad 0\le n<2N.
+$$
+
+两项的角度相差 $\pi/2$，平方相加就是 $\sin^2\theta+\cos^2\theta=1$。它解释了重叠相加为什么不会平白放大或缩小信号；完整 MDCT 的重建还依赖 basis 的对称结构来抵消 aliasing，不能只给任意变换配上这个窗口就宣称可逆 [@aaltowindow]。
+
+</details>
+
+长窗口还有另一笔代价。设前 15 ms 很安静，第 16 ms 出现鼓点；若整个窗口共享较粗的频域量化，逆变换后的误差会覆盖窗口内的其他时刻，于是鼓点之前也可能出现沙沙声，这就是 **pre-echo**。鼓点后的误差和鼓点前的误差，并不具有相同的可听性。遇到这种 transient，切换为短窗口可以缩短误差扩散的时间范围；代价是频率分辨率降低、参数更频繁。CELT 的短块机制正是为限制这类失真服务 [@montgomery2010celt]。
 
 ### Psychoacoustics 不是简单删除“听不见的频率”
 
-强音会提高邻近频率或邻近时刻中弱误差的可听阈值，这称为 masking。Perceptual encoder 估计各 time–frequency 区域允许的噪声，再分配 quantization steps，使误差尽量落在较不易察觉的位置。MIT 的 perceptual audio notes 正是沿数字音频、quantization、masking、sub-band coding 与 bit allocation 展开这条因果链 [@mit2005perceptualaudio]。
+先考虑一个实验：播放固定频率的弱 tone，逐渐增加它周围的带通噪声宽度，同时保持噪声的单位带宽功率不变。起初噪声越宽，tone 越难听见；继续加宽后，阈值增长趋缓。这提示我们，检测这个 tone 时，听觉并没有把所有频率的噪声等权相加，而主要整合某个邻近频带内的干扰。**Critical band** 描述的就是这种频率选择性；它不是把频谱机械切成等宽方格，其绝对带宽通常随中心频率增大 [@oxenham2005masking]。
 
-这不等于给频谱画一条固定线并删除线下内容。Masking 随信号、时间、频率、声压、听者与播放环境改变；encoder 的 psychoacoustic model 也只是近似。低码率下常见的 watery/metallic texture、瞬态 smear、pre-echo 和 stereo image collapse，来自不同的近似，不能都归因于“高频被切掉”。
+因此，一个误差能否被察觉，不只取决于它自身有多大，还取决于附近有什么声音。已有声音使目标的检测阈值升高，称为 **masking**。同样能量的窄带 tone 和 noise 也不一定产生相同的 masking：频谱是否集中、时间包络是否起伏，都可能改变可听性。Perceptual encoder 据此估计各频带允许的噪声，再决定量化精度；MPEG 的典型模型会区分 tonal 与 noise-like maskers，形成总 masking threshold，最后映射到编码频带的预算 [@mit2005perceptualaudio]。
 
-Stereo 也提供相关性。Mid/side 变换
+把这个过程变成可计算的账本。对某一帧的频带 $b$，记原信号能量为 $S_b$，模型允许的量化噪声能量为 $M_b$，实际量化噪声能量为 $N_b$。它们必须在一致的频带、时间范围和归一化方式下比较。目标 $N_b\le M_b$ 可以改写成两个更直观的比值：
+
+$$
+\operatorname{SMR}_b=10\log_{10}\frac{S_b}{M_b},\qquad
+\operatorname{SNR}_b=10\log_{10}\frac{S_b}{N_b}.
+$$
+
+SMR 是 signal-to-mask ratio，表示需要把误差压到信号下方多少 dB；SNR 表示量化器实际做到了多少。两者相减，信号项消去：
+
+$$
+\operatorname{NMR}_b
+=10\log_{10}\frac{N_b}{M_b}
+=\operatorname{SMR}_b-\operatorname{SNR}_b.
+$$
+
+因此 NMR 不大于 0 dB，才表示误差位于**该模型预测的**阈值之下。一个频带即使声音很响，只要 masking 也很强，就未必最需要 bits；相反，一个不那么响、却很少受到 masking 的 tone 可能需要更精确的编码。
+
+下面构造一个只用于说明分配逻辑的例子。三个频带系数数量相同，signal level 与 masking level 采用同一能量参考。简化量化器在每系数使用 $q$ bits 时达到 $\operatorname{SNR}\approx6q$ dB，忽略真实量化器的常数项、entropy coding 和参数开销。
+
+| 频带 | Signal level | Masking level | 所需 SMR | 初始 $q$ | 初始 NMR |
+| --- | --- | --- | --- | --- | --- |
+| A | 60 dB | 42 dB | 18 dB | 4 | $-6$ dB |
+| B | 45 dB | 15 dB | 30 dB | 4 | $+6$ dB |
+| C | 30 dB | 18 dB | 12 dB | 2 | $0$ dB |
+
+总预算对应 $q_A+q_B+q_C=10$。初始分配 $(4,4,2)$ 让 A 比需要的精度多出 6 dB，B 却超阈值 6 dB；把 A 的每系数 1 bit 移给 B，得到 $(3,5,2)$，三带都恰好达到 0 dB NMR，总 bits 没有增加。这是一个非常小的例子，却已经说明了为什么“按振幅分 bits”和“按可听误差分 bits”不等价。
+
+前面推导的每 bit 约 6 dB 这里只用于简化估算；真实 encoder 必须用实际的量化结果和码长重新检查。频带宽度不同意味着多给“每系数 1 bit”的成本也不同。若预算不足以让所有 NMR 都低于零，就要比较每多花一 bit 能减少多少可听失真，回到前面的 rate–distortion 取舍。
+
+Masking threshold 也不是永远有效的硬边界：它随时间、声压、听者和播放环境改变。只看频谱能量的模型还会遗漏包络、fine structure 和听觉非线性，因此阈值内的误差不能自动等同于每个人都听不见 [@oxenham2005masking]。Watery/metallic texture、瞬态 smear、pre-echo 和 stereo image collapse 对应不同失真，不能都归因于高频被删掉。
+
+### 保住每个频带的能量，再描述它的形状
+
+若码率很低，逐个系数量化可能把一个本来密集的频带变成少数几个非零尖峰。即使整体误差能量尚可，声音也可能从连续的噪声质感变成不自然的 tone。CELT 把频带的整体能量与带内形状分开编码，先保护较粗的 spectral envelope，再用剩余 bits 描述细节 [@montgomery2010celt]。
+
+要做到这一点，只需先问一个几何问题：怎样改变向量方向，却不连带改变长度？对非零频带向量 $\mathbf{X}_b$，先计算
+
+$$
+E_b=\|\mathbf{X}_b\|_2^2,\qquad
+\mathbf{u}_b=\frac{\mathbf{X}_b}{\sqrt{E_b}},\qquad
+\|\mathbf{u}_b\|_2=1.
+$$
+
+分别编码 $E_b$ 和单位向量 $\mathbf{u}_b$，decoder 再做 $\hat{\mathbf{X}}_b=\sqrt{\hat E_b}\hat{\mathbf{u}}_b$。只要 shape 的码字也归一化到单位长度，改变 shape 就不会进一步改变已经重建的带能量。
+
+例如 $\mathbf{X}=(3,4)$ 的能量为 25。假设粗量化后只能选择方向 $(1,1)$，先归一化再乘回 5，得到 $\hat{\mathbf{X}}=(5/\sqrt2,5/\sqrt2)$，能量仍为 25；直接逐项量化成 $(4,4)$ 则变成 32。两者都改变了频谱，但前一种表示把“多少能量”和“能量怎样分布”变成两项可分别控制的误差。
+
+Opus 的 CELT shape coding 使用 **pyramid vector quantization（PVQ）**：用满足 $\sum_i|v_i|=K$ 的整数向量描述方向，再归一化；$K$ 越大，可选择的方向越密，所需 bits 通常越多。能量本身仍然经过量化，所以保持的是**解码出的能量**，不是原信号能量的无误差副本 [@rfc6716opus]。
+
+Stereo 则利用声道之间的相关性。Mid/side 变换
 
 $$
 M=\frac{L+R}{2},\qquad S=L-R
 $$
 
-在保留精度时可逆；左右相近时，$S$ 很便宜。Intensity stereo 等参数化工具则可能只发送某些频段的能量和方向线索，让 decoder 合成声场，属于有损建模。
+在保留精度时可逆；因为 $L=M+S/2$、$R=M-S/2$，当左右相近时，编码较小的 $S$ 往往比重复编码两份相似信号划算。若进一步只发送某些频段的能量和方向线索，让 decoder 合成左右声道，就进入 intensity stereo 等有损建模：声场细节也成为码率分配的一部分。
 
 ### Speech 与一般音频需要不同的先验
 
-人声的短时谱包络、音高周期和激励结构很强。低码率 speech codec 常用 LPC 描述 vocal tract filter，再编码 excitation，而一般音乐 codec 更依赖 transform 与 perceptual allocation。Opus 把面向 speech 的 SILK layer 与低延迟 transform 路线 CELT 统一在一个 codec 中，并可按带宽和内容切换或组合；它还把 frame duration、packet loss recovery 与低延迟通信纳入设计 [@rfc6716opus]。
+元音中既有相邻 samples 的相关性，也有跨一个 pitch 周期的重复；嘴形和声道共振又决定了缓慢变化的谱包络。于是可以先用短时预测解释包络，再用长时预测解释残差的周期性，把还解释不了的部分交给 excitation 编码。这就是 source–filter 思路如何与前面的预测压缩连接起来 [@valin2007celp]。
+
+先让过去的 $p$ 个 samples 预测当前值，保留下来的差额为
+
+$$
+e[n]=x[n]-\sum_{i=1}^{p}a_i x[n-i].
+$$
+
+若这组 $a_i$ 在一小段内相对稳定，就只需每段发送参数，decoder 逐 sample 做 $\hat x[n]=\sum_i\hat a_i\hat x[n-i]+\hat e[n]$。前一个式子描述理想的 source–filter 分解；实际有损编码必须用量化后的参数和重建历史评估 excitation，才能与 decoder 的状态一致。对于有明显周期的 excitation，还可以预测 $\hat e[n-T]$，编码 $\hat e[n]=\beta\hat e[n-T]+c[n]$；$T$ 表示 pitch period，$c[n]$ 是新的 innovation。以 16 kHz、200 Hz 的理想周期信号为例，$T=16000/200=80$ samples：短时预测利用紧邻的样本，pitch prediction 则借用 80 个 samples 以前的激励。
+
+**CELP** 把可用的 innovation 序列组织成 codebook，让 encoder 尝试候选、通过本地 decoder 合成声音，再比较 perceptually weighted error；最后发送索引与参数。需要比较的是合成后的误差，因为同样大小的 excitation 误差通过不同共振滤波器后，可能被放大得很不一样。这种 analysis-by-synthesis 把 encoder 的搜索成本换成了 decoder 的紧凑表示 [@valin2007celp]。音乐里的多声部、打击乐和噪声往往不满足单一 voice 模型，因此一般音频仍需要更灵活的 transform 路线。
+
+Opus 把这两类结构放在同一个格式内：SILK 面向预测编码，CELT 面向低延迟变换编码；hybrid mode 由 SILK 处理低频、CELT 处理高频。CELT-only 支持 2.5–20 ms 的 frame，并有 2.5 ms 的变换 look-ahead；它们只是 codec delay 的组成部分，网络传输、jitter buffer 和设备缓冲还要另外计入 [@rfc6716opus]。
+
+缩短 frame 也会抬高每秒的固定开销。假设每包只有一帧，包头固定 40 bytes：20 ms 一包时每秒 50 包，包头占 $40\times8\times50=16$ kbit/s；5 ms 一包则每秒 200 包，达到 64 kbit/s。这是只考虑固定包头的示意算例，实际协议封装不同，但关系始终成立：降低等待时间，往往需要支付更多传输开销，并牺牲一部分跨时间分析和预测的机会。
 
 | Codec | 主要思路 | 更值得注意的约束 |
 | --- | --- | --- |
-| FLAC | LPC/fixed prediction + Rice-coded residual | 无损、解码简单、体积不会像 lossy 那样大降 |
-| MP3 | hybrid filter bank + perceptual quantization | 兼容性强，旧设计的时频与工具限制 |
-| AAC | MDCT 路线 + perceptual/stereo tools | 广泛用于媒体分发，profile 与 container 需一起核对 |
-| Opus | SILK + CELT，可适应 speech 与 music | 低延迟、实时通信、packet loss 与 Web 生态 |
+| FLAC | LPC/fixed prediction + Rice-coded residual | 无损、解码简单、残差必须精确恢复 |
+| MP3 | hybrid filter bank + perceptual quantization | 时频分辨率、masking 模型与旧工具设计 |
+| AAC | MDCT 路线 + perceptual/stereo tools | 瞬态、频带预算、profile 与 container |
+| Opus | SILK + CELT，可适应 speech 与 music | 低延迟、包开销、packet loss 与预测状态 |
+
+MP3 的 polyphase filter bank 与 MDCT hybrid 结构见 MPEG 概述 [@mpegmp3overview]；AAC 的 transform 与 perceptual tools 见其技术说明 [@mpegaacoverview]。这些名称代表不同的设计取舍，比较时仍应回到具体码率、输入内容和延迟约束。
 
 ## 视频：在空间预测之外，再借用已重建的时间
 
-固定相机拍摄菜单时，墙和菜单几乎不动，只有价格牌从左边移到右边。把每一帧独立压成图片会重复描述背景；更好的方法是让当前帧引用其他已重建帧，只发送位移假设和无法预测的变化。
+固定相机拍摄菜单时，墙和菜单几乎不动，只有价格牌从左边移到右边。把每一帧独立压成图片会重复描述背景。最简单的改进，是没变化的区域沿用上一帧，只更新变化的区域；但只要价格牌移动，旧位置和新位置都会产生差值。进一步利用「它只是搬了家」，才能把这两大片差值变成一个位移和少量 residual。这也解释了为什么视频从 interframe prediction 走向 motion compensation [@girod2012interframe]。
 
 对当前块 $x_t$ 和参考重建帧 $\hat x_r$，若 encoder 选择位移 $v=(v_x,v_y)$，prediction 可以写成
 
@@ -212,21 +598,103 @@ p_t(i,j)=\hat x_r(i+v_y,j+v_x),
 \qquad e_t=x_t-p_t.
 $$
 
-Motion vector 不是物体真实运动，也不是 dense optical flow。它只是让当前块 residual 变便宜的一个位移假设。模式编号、reference index 与 vector 自己也占 bits，所以搜索仍要比较完整的 $D+\lambda R$。
+这里 $v$ 指向参考帧中拿来预测的位置，方向不一定与物体移动方向相同。Motion vector 也不是物体真实运动或 dense optical flow；它只是使编码更便宜的一个位移假设。被价格牌挡住的背景、新出现的文字、光照变化都无法仅靠平移恢复，仍要交给 residual 或 intra prediction。
 
 <PredictionResidual />
 
+### 怎样找到值得发送的 motion vector
+
+先固定一个块，枚举参考帧中允许的位置。可以把每个候选的 sample 差取绝对值后求和，得到 SAD，也可以用平方和 SSD。对一个 $16\times16$ 块，若横纵各搜索 $-16$ 到 $16$，穷举要比较 $33^2=1089$ 个位置，约计算 $27.9$ 万次 sample 差；整帧、多参考帧和多种块大小会继续放大工作量。
+
+因此 encoder 会先试邻块预测出的 vector，或在低分辨率图上粗搜，再到原分辨率细化。还有一种不损失当前搜索目标最优解的加速：累加 SAD 时，一旦部分和已经超过现有最佳候选，就停止计算，因为余下的绝对差不可能把它减小。限定搜索位置、提前接受「足够好」的候选则可能漏掉更好结果；这些取舍解释了同一 codec 的快慢 preset 为什么可以产生不同体积 [@wiegand2012motion]。
+
+仅使 SAD 最小仍然不够：相邻块都向右移动时，发送「与邻块相同」通常比发送一个独立 vector 便宜。实用搜索常先比较 prediction error 与 vector bits 的近似成本，再对入围候选执行变换、量化和重建，用完整的 $D+\lambda R$ 决定结果。这里前一阶段的 prediction error 与最后重建后的 distortion 是两种不同的量。
+
+一个大块若同时盖住静止墙面和移动价格牌，一条 vector 无法同时对齐两者。分成小块可以降低 residual，却要发送更多分块、模式和 motion 信息。下面是假设某一区域完成实际编码后得到的**示意账本**；$D$ 是该区域重建的平方误差总和，$R$ 包含全部语法和 residual bits，并非真实 codec 的测量结果。
+
+| 候选 | $D$ | $R$ | $D+2R$ |
+| --- | ---: | ---: | ---: |
+| 一个大块共用一条 vector | 240 | 24 | 288 |
+| 分为四块，分别选择 vector | 100 | 60 | 220 |
+| 继续细分，拟合每处变化 | 70 | 100 | 270 |
+
+在 $\lambda=2$ 时，中间方案胜出；如果 bits 更贵，改用 $\lambda=5$，三个成本分别成为 $360,400,570$，大块反而更合适。分块不是越细越好，预测器也不是越复杂越好；它们都要用 residual 的节省偿还描述自身的成本。
+
+物体也不会只移动整数个像素。若边缘实际移动了半个 sample，只查整数位置会留下正负相邻的边缘残差。Fractional-pel prediction 先按规定的 interpolation filter 计算参考网格之间的值，再搜索 half-pel、quarter-pel 等位置；decoder 用相同滤波规则重建预测，无须收到一张真的高分辨率参考图。
+
+<details>
+<summary>为什么细小的位移误差也会留下明显 residual？</summary>
+
+设一维参考信号与当前信号本可通过平移对齐，但位移估计还差 $\delta$。忽略遮挡，未对齐部分为 $s(u)-s(u-\delta)$；把局部信号近似成直线，有
+
+$$
+s(u)-s(u-\delta)\approx\delta s'(u).
+$$
+
+因此同样的半像素误差，在平坦墙面几乎没有影响，在文字边缘却很明显。若再把参考噪声或不能由运动解释的变化记为 $n(u)$，则 residual 近似为 $\delta s'(u)+n(u)$。提高运动精度只能减少前一项；噪声与遮挡开始占主导后，继续细化 vector 的收益会变小。这是 motion-compensated coding 的误差分析所揭示的限制 [@girod2012motioncompensated]。
+
+多个参考也可提供互补证据：把两份已对齐预测做加权组合，可能抵消部分噪声或补足单帧看不清的结构，但共同存在的错误不会凭空消失，reference index、额外 vector，以及需要发送的权重也要计入成本。
+
+</details>
+
 ### 为什么 encoder 必须在内部解码一遍
 
-若 encoder 从无损原始帧预测，而播放端只能从量化后的帧预测，两端的参考从第一步起就不同，误差会沿参考链累积成 drift。Encoder 因此包含一条本地 decoder：反量化、逆变换、加回 prediction、执行同样的 in-loop filters，再把**重建帧**放入 reference buffer。
+假设某个 sample 这一帧与上一帧都是 $100$，但上一帧在 decoder 中已重建为 $98$。若 encoder 对原始值作差，会发送 $100-100=0$，decoder 加回后仍是 $98$；若 encoder 也从 $98$ 预测，就知道当前 residual 应为 $2$。**两端要从同一个已知状态出发**，否则 residual 修正的根本不是同一个 prediction。
+
+把 residual 重建误差记为 $q_t$，即 $\hat e_t=e_t+q_t$。在加回 prediction、尚未执行后续滤波或 clipping 的简单模型里，只要两端采用同一个 $p_t$，就有
+
+$$
+\hat x_t=p_t+\hat e_t
+=p_t+(x_t-p_t)+q_t
+=x_t+q_t.
+$$
+
+过去的重建误差已经进入当前 residual，因而不会再额外叠加一份未知的 predictor mismatch。这正是闭环 DPCM 的作用 [@girod2012prediction]。它不表示参考质量不重要：差的参考会使 residual 更难压缩；若发生丢包，两端参考不同，上面的抵消也不成立。
+
+Encoder 因此包含一条本地 decoder：反量化、逆变换、加回 prediction、执行同样的 in-loop filters，再把**重建帧**放入 reference buffer。
 
 <HybridCodec />
 
-I-frame 只依赖同一帧，适合作为随机访问点；P-frame 可引用较早的参考；B-frame 可组合显示时间上之前和之后的参考。它们描述依赖结构，不是画质等级。更长的 Group of Pictures（GOP）能利用更多时间冗余，也增加 seek 距离、重排延迟与错误传播范围。
+### Reference 依赖怎样影响播放与随机访问
+
+用一段简化的 $I_0,B_1,B_2,P_3$ 来看依赖。$I_0$ 使用帧内信息，$P_3$ 可从 $I_0$ 预测；若两个 B picture 同时借用 $I_0$ 和 $P_3$，则必须先解码 $I_0,P_3$，再解码 $B_1,B_2$，最后按时间顺序显示。所谓「未来参考」是显示时间上的未来，在使用它时已经完成解码。
 
 <GopTimeline />
 
-H.264/AVC 奠定了现代 block-based hybrid codec 的经典轮廓，包括可变块运动补偿、多参考帧、整数变换、in-loop deblocking 与上下文熵编码 [@wiegand2003h264]。后续标准没有推翻这条链，而是扩大合法预测、分块、变换和滤波的候选空间：
+双参考有机会改善预测，却也需要等待、重排和 buffer。实时通话常选择只依赖已到达画面的结构；离线分发更容易承受 lookahead。I、P、B 描述的是预测方式，不是画质等级，而且现代标准的参考列表比上述例子更灵活：B picture 不一定同时引用时间上的前后两帧，也可以成为后续 picture 的参考。
+
+围绕 intra picture 组织的一组画面通常称为 Group of Pictures（GOP）；具体参考关系可以封闭在组内，也可以跨组。随机访问还需要切断旧依赖。单张 intra picture 能独立重建，并不自动保证它之后的图片不再引用更早内容；H.264 的 IDR 则提供明确的解码刷新边界 [@wiegand2003h264]。把独立访问点隔得更远通常能少付几次完整画面的成本，也会拉长 seek 时需要补解码的距离，并扩大参考损坏可能影响的范围。
+
+### 预测与滤波还可以利用哪些结构
+
+运动只能消除一部分冗余。同一帧里，文字边缘常同时出现在 luma 与 chroma 中，即使转换到 $Y'C_bC_r$ 后，这种局部关系也不一定消失。AV1 的 **Chroma from Luma（CfL）** 先取得已重建、且与 chroma 网格对齐的 luma $L$，减掉块均值 $\bar L$，保留明暗变化；再给这份变化乘上颜色通道自己的比例，最后加上由邻块得到的平均颜色预测：
+
+$$
+p_C(i,j)=C_{\mathrm{DC}}+\alpha_C\bigl(L(i,j)-\bar L\bigr).
+$$
+
+$C$ 分别取 $C_b$、$C_r$。这样既复用了边缘，又把颜色的平均值和变化幅度分开控制。Encoder 发送所选 $\alpha_C$ 和剩余 residual；decoder 不必猜颜色，也不必重新拟合参数。是否采用 CfL，仍由包含参数 bits 的率失真成本决定 [@trudeau2018cfl]。Xiph 的局部颜色演示说明了为什么这种简单模型在小块上比在整张图上更合理 [@montgomery2018cfl]。
+
+量化后，块边界可能不连续，锐边附近还可能出现 ringing。直接对所有方向模糊会连真实边缘一起抹掉。AV1 的 **CDEF** 先从重建块估计主方向，再沿该方向及较弱的辅助方向滤波；相邻 sample 与中心差得过大时，constraint 会压低甚至排除其贡献，减少跨越真实边缘的混合 [@midtskogen2017cdef]。
+
+这类 in-loop filter 同时影响当前画面和后续参考；放到播放器末尾的独立美化滤镜则只影响显示。两者位置不同，不能互相替换。Xiph 的 CDEF 演示也把 deblocking、CDEF、loop restoration 放回了这条重建路径中 [@montgomery2018cdef]。
+
+<details>
+<summary>从相邻帧到相邻视点：立体视频为什么还需要 depth？</summary>
+
+左右相机看到的是同一场景的不同投影。可以先编码一个视点，再用它预测另一个视点；这次补偿的是 disparity，参考关系从时间方向扩展到了视点方向。对已经校正、光轴平行的双相机，设焦距为 $f$、相机间距为 $b$，某点相对左相机的横向位置为 $X$、深度为 $Z$。两幅图中该点的投影横坐标分别是 $fX/Z$ 与 $f(X-b)/Z$，相减得到
+
+$$
+d=\frac{fb}{Z}.
+$$
+
+这里若 $f$ 用像素为单位，$d$ 也用像素为单位。近处点移动得更多，因此全图用一个平移量无法同时对齐前景和背景。有了 texture 与 depth，就能把像素投影到中间视点，用较少真实视点合成更多观看位置；但遮挡后新露出的区域仍需要其他视点或额外信息。
+
+Depth 的失真也应按它的用途计算：深度边缘偏移会把前景颜色投到背景中，即使 depth MSE 不大，合成画面仍可能明显破损。因此 multiview-plus-depth coding 会利用深度图的平滑区域与清晰边界，并在模式选择时考察**合成视点的失真**，不只考察深度数值本身 [@wiegand2012video3d]。这又回到了同一个问题：被压缩的数据服务于什么重建目标，$D$ 就应该衡量什么。
+
+</details>
+
+H.264/AVC 奠定了现代 block-based hybrid codec 的经典轮廓，包括可变块运动补偿、多参考帧、整数变换、in-loop deblocking 与上下文熵编码 [@wiegand2003h264]。后续标准继续扩大合法预测、分块、变换和滤波的候选空间：
 
 | Codec | 代表性扩展 | 现实选型首先检查 |
 | --- | --- | --- |
@@ -251,6 +719,8 @@ $$
 \operatorname{PSNR}=10\log_{10}\frac{L^2}{\operatorname{MSE}}.
 $$
 
+这里 $n$ 是参与比较的 sample 数，$L$ 是该表示的峰值，例如 8-bit unsigned 图像取 255、归一化到 $[0,1]$ 时取 1；两端必须使用相同的数值范围。
+
 但相同 MSE 可以分布在完全不同的位置。图像还要检查文字、暗部、肤色、锐边和 banding；视频要加入 motion、flicker、scene cut 与时序稳定性，VMAF 等模型指标只能作为一种视角 [@netflixvmaf]；音频尤其不能只看 waveform MSE，因为很小的时间偏移就会造成巨大 sample error，却可能听起来一样，反过来也可能出现 MSE 不大但很刺耳的结构化噪声。
 
 高质量音频的小失真可按 ITU-R BS.1116 组织严格 listening test [@itu2015bs1116]；中等质量 codec 常用带隐藏参考和 anchor 的 MUSHRA 方法 [@itu2015bs1534]。这揭示了一个通用原则：**perceptual metric 不是 encoder 的装饰，它定义了“允许把误差搬到哪里”。** 若目标改成人脸识别、ASR 或机器视觉，合适的 distortion 还会再次改变。
@@ -270,16 +740,24 @@ $$
 并用 entropy model 估计
 
 $$
-R\approx-\sum_i\log_2 p(\hat y_i),
+R\approx-\sum_i\log_2 p(\hat y_i\mid\text{已解码 context}),
 \qquad
-\mathcal L=\mathbb E[R+\lambda D(x,\hat x)].
+\mathcal L=\mathbb E[D(x,\hat x)+\lambda R].
 $$
 
-早期 end-to-end 工作已把 nonlinear transform、quantization approximation 与 entropy model 放进同一个训练目标 [@balle2017endtoend]。Analysis transform、probability model 与 synthesis transform 由数据学习，但 quantized representation、side information 和 decoder consistency 仍然存在。Scale hyperprior 额外发送 latent statistics，只有当它让主 latent 省下更多 bits 时才合算 [@balle2018hyperprior]。JPEG AI 的 core coding system 已成为国际标准，目标同时包括人类观看与 compressed-domain machine tasks [@jpeg2025aistandard]。
+这里沿用前文 $D+\lambda R$ 的约定；论文也常写成 $R+\beta D$，相应权重互为倒数，不能只看参数的数值大小。早期 end-to-end 工作已把 nonlinear transform、quantization approximation 与 entropy model 放进同一个训练目标 [@balle2017endtoend]。Analysis transform、probability model 与 synthesis transform 由数据学习，但 quantized representation、side information 和 decoder consistency 仍然存在。
+
+从前面的推导看，网络各部分的分工很明确：analysis transform 学习比固定 DCT 更合适的坐标；量化限制 decoder 真正能收到的取值；entropy model 减少用错误分布编码时的 cross-entropy 成本。Scale hyperprior 再发送一组辅助 latent $\hat z$，先解码它来估计主 latent 的分布 [@balle2018hyperprior]。账本因此是
+
+$$
+R\approx-\log_2 p(\hat z)-\log_2 p(\hat y\mid\hat z),
+$$
+
+而不是只算第二项。若辅助信息花 100 bit，却只让主 latent 省 60 bit，就没有码率收益；若省 300 bit，净省才是 200 bit。这个判断与发送一个 motion vector 或一组 LPC coefficients 完全一致。JPEG AI 的 core coding system 已成为国际标准，目标同时包括人类观看与 compressed-domain machine tasks [@jpeg2025aistandard]。
 
 音频模型可把 waveform 编成低帧率 latent，再用多级 vector quantization 分配离散码本；SoundStream 还把 reconstruction 与 adversarial/perceptual objectives 放进端到端训练 [@zeghidour2021soundstream]。视频模型则让当前 latent 以已解码 temporal context 为条件；DCVC 把这种 context 放到 feature domain [@li2021dcvc]，后续的 DCVC-RT 又把实时吞吐作为明确目标 [@jia2025dcvcrt]。
 
-学习式方法带来一个经典 codec 不太容易越过的边界：decoder 可以生成**感知上合理**的纹理或声音，而不是逐 sample 忠实地保留来源。对娱乐内容，这可能在极低码率下更自然；对文字、医学影像、证据录音或机器测量，“听起来/看起来像”不能替代“事实相同”。所谓多模态语义压缩，必须先写清楚它承诺保留的是 waveform、像素、任务结果，还是人能辨认的语义。
+有些以感知质量为目标的学习式 codec，会更主动地让 decoder 补出未逐 sample 编码的纹理或声音。前面的 CELP 和 intensity stereo 也会合成信号；这里改变的是生成模型的能力与训练目标，**感知上合理**和忠实保留来源之间的取舍仍然存在。对娱乐内容，这可能在极低码率下更自然；对文字、医学影像、证据录音或机器测量，“听起来/看起来像”不能替代“事实相同”。所谓多模态语义压缩，必须先写清楚它承诺保留的是 waveform、像素、任务结果，还是人能辨认的语义。
 
 ## 由统一视角得到的几个判断
 
@@ -295,8 +773,12 @@ $$
 
 ## 值得继续读的课程、笔记与技术文章
 
-Stanford EE398A《Image and Video Compression》的讲义从 entropy、statistical dependence、rate–distortion、quantization、prediction 与 transform coding，一路走到 JPEG 和 motion-compensated coding；它最适合补齐本文的数学骨架 [@girod2012ee398a]。MIT HST.723 的《Fundamentals of Perceptual Audio Coding》把 masking experiment 与 bit allocation 连起来，适合建立听觉直觉 [@mit2005perceptualaudio]。
+正文把课程中与媒体压缩直接相关的内容串成了同一条设计路线。进一步阅读时，可以按下面的对应关系查找原讲义中的完整证明、图示和实验：
 
-若要从原理走到可执行的 decoder，优先读 FLAC RFC、Opus RFC 与各图像/视频标准的 overview，而不是只看格式对比表。Xiph 开发者 Christopher Montgomery 的 demo pages 则用可听、可视例子解释数字媒体、Opus 与 AV1；它们是很好的工程 blog 补充，但具体 bitstream 规则仍以规范为准 [@xiphmontdemos]。
+| 资料与版本 | 本文已经展开的内容 | 继续阅读的方向 |
+| --- | --- | --- |
+| Stanford EE398A，Winter 2011–2012 [@girod2012ee398a] | Prefix/Huffman/Rice 与 arithmetic coding、条件熵、量化与 VQ、KLT/DCT、rate–distortion、subband/wavelet、JPEG/JPEG 2000、帧间与多视图预测 | 编码定理的完整证明、快速搜索与变换实现、课程习题 |
+| MIT HST.723，Spring 2005 的 perceptual audio 实验讲义 [@mit2005perceptualaudio] | 听觉频带与 masking、量化噪声、频带 bit allocation 和可听性判断 | 实際聆听 masking patterns，并测量不同频率、声级下的阈值 |
+| Xiph 工程演示 [@xiphmontdemos] | 采样与 dither、低延迟音频建模、跨颜色预测与方向性滤波 | 对照可听、可视样例观察失真；具体解码过程再查 FLAC/Opus RFC 和视频规范 |
 
-这些资料共同提供了一种比「逐个背 codec」更稳定的学习顺序：先理解 entropy 与 rate–distortion，再理解 prediction、transform 和 quantization，随后分别加入视觉、听觉与时间依赖，最后才比较标准和实现。标准会更新，这套问题不会。
+EE398A 的官网公开讲义对应上述 2012 年课程；MIT 此处引用的是 2005 年的专门音频编码实验材料。它们用于解释基础机制，现代 codec 的工具和 bitstream 规则则使用正文相应的标准与原始论文。课程目录中的具体文件也已在相关概念旁单独引用，便于直接跳到所需章节。

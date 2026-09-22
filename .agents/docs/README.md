@@ -10,6 +10,7 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Historical evidence
 
+- [Media compression course integration — 2026-09-22](audits/2026-09-22-media-compression.md): actual lecture reading, tutorial coverage, numerical examples, and validation evidence.
 - [Long article implementation — 2026-09-20](maintenance/2026-09-20-long-article-implementation.md): static formulas, initial DOM adoption, deferred enhancements, runtime tradeoffs and validation scope.
 - [Robotics simulation article — 2026-09-20](audits/2026-09-20-robotics-simulation.md): official-source research boundaries and isolated content, build, and browser validation.
 - [Maintainability audit — 2026-09-12](audits/2026-09-12-maintainability.md): the original baseline before maintenance fixes.
