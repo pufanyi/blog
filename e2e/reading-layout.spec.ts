@@ -1,13 +1,15 @@
 import { expect } from '@playwright/test';
 import { test } from './fixtures';
 
-test('shared reading sheet aligns its outline with the title and preserves modal focus', async ({
+test('independent article paper keeps the outline outside and aligned with its title', async ({
   page,
 }, testInfo) => {
+  const widths = testInfo.project.name === 'mobile' ? [320, 390] : [1023, 1024, 1100, 1280, 1600];
+  // Each viewport reflows the full long article and exercises both themes.
+  testInfo.setTimeout(15_000 * widths.length);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/blog/ml/ml-revisit/rl');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
-  const widths = testInfo.project.name === 'mobile' ? [320, 390] : [1023, 1024, 1100, 1280, 1600];
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
     const drawer = width < 1024;
@@ -32,11 +34,19 @@ test('shared reading sheet aligns its outline with the title and preserves modal
     expect(geometry).toEqual({ fits: true, linksFit: true, independentScroll: true });
     if (!drawer) {
       const sidebar = await container.boundingBox();
-      const paper = await page.locator('.paper').boundingBox();
+      const paper = await page.locator('.post-reading-paper').boundingBox();
       const heading = await page.locator('app-post-header .title-rule-top').boundingBox();
-      expect(sidebar!.x).toBeGreaterThan(paper!.x);
-      expect(sidebar!.x + sidebar!.width).toBeLessThan(heading!.x);
+      expect(paper!.x - sidebar!.x - sidebar!.width).toBeCloseTo(40, 0);
+      expect(paper!.width).toBeLessThanOrEqual(900);
+      expect(heading!.x).toBeGreaterThan(paper!.x);
+      if (width === 1600) {
+        expect(paper!.width).toBe(900);
+        expect(paper!.x + paper!.width / 2).toBe(width / 2);
+      }
       expect(Math.abs(sidebar!.y - heading!.y)).toBeLessThan(1);
+      await expect(page.locator('.paper')).toHaveCSS('box-shadow', 'none');
+      await expect(page.locator('.paper')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      await expect(page.locator('.post-reading-paper')).not.toHaveCSS('box-shadow', 'none');
       await expect(container).toHaveCSS('box-shadow', 'none');
       await expect(page.locator('.post-contents-dock')).not.toBeVisible();
     }
@@ -61,6 +71,21 @@ test('shared reading sheet aligns its outline with the title and preserves modal
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
+  }
+});
+
+test('articles without an outline retain one centered paper on every screen', async ({ page }) => {
+  await page.goto('/blog/oi-icpc/other-problems/integer-break');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  await expect(page.locator('.post-reading-layout')).not.toHaveClass(/has-outline/);
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(page.locator('.paper')).not.toHaveCSS('box-shadow', 'none');
+    await expect(page.locator('.post-reading-paper')).toHaveCSS('box-shadow', 'none');
+    await expect(page.locator('.post-reading-paper')).toHaveCSS('padding', '0px');
+    await expect(page.locator('.post-contents-dock')).toHaveCount(0);
+    const paper = (await page.locator('.paper').boundingBox())!;
+    expect(Math.abs(paper.x + paper.width / 2 - width / 2)).toBeLessThan(1);
   }
 });
 
@@ -167,6 +192,7 @@ test('the wide outline remains reachable at the page end and can collapse withou
     expect(Math.abs(bounds.width - host.width)).toBeLessThan(1);
   }
   const textBefore = (await page.locator('.post-body').boundingBox())!;
+  const paperBefore = (await page.locator('.post-reading-paper').boundingBox())!;
   const scrollBefore = await page.evaluate(() => scrollY);
   const toggle = sidebar.locator('.toc-heading-toggle');
   await toggle.click();
@@ -176,6 +202,7 @@ test('the wide outline remains reachable at the page end and can collapse withou
   await expect(toggle).toBeFocused();
   expect(await page.evaluate(() => scrollY)).toBe(scrollBefore);
   expect(await page.locator('.post-body').boundingBox()).toEqual(textBefore);
+  expect(await page.locator('.post-reading-paper').boundingBox()).toEqual(paperBefore);
   await toggle.press('Enter');
   await expect(sidebar.locator('.toc-scroll')).toBeVisible();
   const firstLink = sidebar.locator('.toc-link').first();
@@ -272,6 +299,8 @@ test('without JavaScript the wide outline retains every chapter and subsection l
     await page.emulateMedia({ media: 'print' });
     await expect(page.locator('.post-toc-sidebar')).not.toBeVisible();
     await expect(page.locator('.post-reading-layout')).toHaveCSS('display', 'block');
+    await expect(page.locator('.post-reading-paper')).toHaveCSS('display', 'block');
+    await expect(page.locator('.post-reading-paper')).toHaveCSS('box-shadow', 'none');
   } finally {
     await context.close();
   }

@@ -43,12 +43,18 @@ The toolbar is excluded from print output and embedded PDF readers.
 
 The reading design retains the original warm paper, subtle shadow, centered
 ruled titles, compact lists and Morandi colors. The paper is capped at 900px
-(1150px for documentation). Articles with an outline use a 1140px shared paper
-from 1024px: a 200px outline, a 40px gutter and the original 795px text column
-inside the existing paper padding. Narrower available widths can shrink that
-text column slightly. The outline and article header start in the same grid row,
-below the breadcrumbs; do not position a second floating card against the viewport.
-Articles without an outline retain the ordinary 900px paper. Once the title row
+(1150px for documentation). From 1024px, articles with an outline use a transparent
+1140px layout containing a 200px external outline, a 40px gutter, and a separate
+900px article paper. The article paper owns the warm surface, shadow, breadcrumbs,
+title and body; the outline remains on the surrounding page background. Its
+original padding preserves the 795px text column when space permits. Center the
+article itself on wide screens, smoothly yielding to a 4% left gutter when both
+columns need the space. Narrower laptop widths can shrink the article paper.
+Use a row subgrid to align the external outline with the title below the
+breadcrumbs, including wrapped breadcrumbs; do not hard-code that vertical offset.
+The ordinary shell paper remains the only surface below 1024px and on articles
+without an outline. Screen-only surface rules leave print with one continuous,
+unframed article. Once the title row
 passes the toolbar, pin the outline to the viewport rather than the grid's bottom
 boundary, keeping its header reachable at the page end. An intersection observer
 tracks a one-pixel row marker; no scroll handler or scroll-time geometry reads are

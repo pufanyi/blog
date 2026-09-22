@@ -187,6 +187,23 @@ sidebar layouts, whole-outline collapse without text/scroll movement, mobile doc
 visibility and footer clearance, and reset after leaving an article. Other live
 article edits are excluded from the isolated validation snapshot for this change.
 
+### Independent article paper follow-up — 2026-09-22
+
+The user preferred the article to have its own page after trying the shared
+sheet. This supersedes the shared surface, not the always-available navigation.
+At desktop widths the 200px outline now sits on the page background, with a 40px
+gap before the article's separate 900px warm paper. The original body width and
+padding are retained. The article itself is centered when the viewport has enough
+space; smaller laptop widths keep both columns within a 4% outer gutter.
+
+A row subgrid keeps the outline's initial rule aligned with the article title
+while the breadcrumbs remain inside the paper. The existing pinned/collapsible
+outline, independent scrolling, mobile dock and native dialog are unchanged.
+Collapsing the outline must not move the article paper. Narrow screens and
+articles without an outline keep their existing single paper, and print must not
+inherit a second surface or desktop spacing. Screenshots and validation details
+for this follow-up live in ignored `tmp/independent-paper/`.
+
 ## Prototype and verification artifacts
 
 The local `tmp/reading-experience-2026-09-13/reader-preview.html` file is an interactive design preview. It labels its seeded continuation state as an example. Saved positions use a prototype-specific local-storage key. It includes existing rendered article content and demonstrates controls without modifying the application or authored posts.
