@@ -69,7 +69,7 @@ export class DocsComponent {
 
   constructor() {
     const toolbar = inject(ToolbarExtensionService);
-    toolbar.mobileTitle.set('Docs');
+    toolbar.pageTitle.set('Docs');
     inject(DestroyRef).onDestroy(() => toolbar.reset());
     afterRenderEffect((onCleanup) => {
       this.doc();

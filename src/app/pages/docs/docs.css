@@ -10,9 +10,9 @@
 
 .docs-sidebar {
   position: sticky;
-  top: 2rem;
+  top: var(--toolbar-clearance);
   align-self: start;
-  max-height: calc(100dvh - 4rem);
+  max-height: calc(100dvh - var(--toolbar-clearance) - 1rem);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: 1rem;

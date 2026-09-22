@@ -13,11 +13,11 @@ export interface ToolbarExtraButton {
 
 @Injectable({ providedIn: 'root' })
 export class ToolbarExtensionService {
-  readonly mobileTitle = signal('Home');
+  readonly pageTitle = signal('');
   readonly leadingButtons = signal<ToolbarExtraButton[]>([]);
 
   reset(): void {
-    this.mobileTitle.set('Home');
+    this.pageTitle.set('');
     this.leadingButtons.set([]);
   }
 }

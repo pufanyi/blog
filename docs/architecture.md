@@ -30,6 +30,16 @@ cache. Do not publish the cache or edit generated data directly.
 
 ## Article payload and lifecycle
 
+The shared shell uses one fixed, responsive toolbar for home/blog navigation,
+search, printing, and theme switching. Desktop controls include text; mobile
+controls keep 44px touch targets. Article directory controls join this toolbar
+below 1480px, while wider screens use the persistent article sidebar. Context
+labels and actions come from `ToolbarExtensionService` and reset on navigation.
+`--toolbar-height` and `--toolbar-clearance` in `src/styles.css` reserve space for
+the header and device safe area in paper layout, sticky sidebars, and heading
+anchor positions. Keep those consumers aligned when changing header dimensions.
+The toolbar is excluded from print output and embedded PDF readers.
+
 Article `styles.css` is embedded in that article's rendered HTML under
 `style[data-post-style]`. Prefix selectors, preserve semantic theme variables,
 and keep same-document SVG fragment URLs intact. Styles exist before JavaScript

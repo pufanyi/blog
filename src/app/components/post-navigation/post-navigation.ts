@@ -121,7 +121,7 @@ export class PostNavigationComponent implements OnDestroy {
 
   private setupToolbarExtension(): void {
     effect(() => {
-      this.toolbarExt.mobileTitle.set('Reading');
+      this.toolbarExt.pageTitle.set('Reading');
       this.toolbarExt.leadingButtons.set(
         this.items().length
           ? [

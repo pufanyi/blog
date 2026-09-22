@@ -6,8 +6,7 @@
 
 @media print {
   .post-toc-sidebar,
-  .post-toc-dialog,
-  .toc-toggle {
+  .post-toc-dialog {
     display: none;
   }
 

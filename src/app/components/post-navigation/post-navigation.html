@@ -9,22 +9,6 @@
     />
   </aside>
 
-  <button
-    class="toc-toggle"
-    type="button"
-    (click)="toggleToc()"
-    [attr.aria-expanded]="tocOpen()"
-    aria-controls="post-toc-dialog"
-    aria-label="Toggle table of contents"
-    title="Table of Contents"
-  >
-    @if (tocOpen()) {
-      <i class="ph ph-x" aria-hidden="true" style="font-size: 20px"></i>
-    } @else {
-      <i class="ph ph-list" aria-hidden="true" style="font-size: 20px"></i>
-    }
-  </button>
-
   <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -- native dialog keyboard interaction is handled by the browser -->
   <dialog
     class="post-toc-dialog"
@@ -57,4 +41,3 @@
     </div>
   </dialog>
 }
-

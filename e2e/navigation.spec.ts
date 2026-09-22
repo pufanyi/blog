@@ -7,12 +7,68 @@ import { openSearch, test } from './fixtures';
 
 const archivePages = Math.max(1, Math.ceil(POSTS.length / BLOG_CONFIG.postsPerPage));
 
-test('a directly opened article offers mobile navigation back to the blog', async ({
+test('shared toolbar fits narrow and wide screens and stays clear of page content', async ({
   page,
 }, testInfo) => {
-  test.skip(testInfo.project.name !== 'mobile', 'Mobile toolbar behavior');
+  await page.goto('/blog/ml/ml-revisit/rl');
+  const toolbar = page.locator('app-toolbar');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  const widths = testInfo.project.name === 'mobile' ? [320, 390, 768] : [769, 1280, 1600];
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(toolbar.getByRole('button', { name: 'Search', exact: true })).toBeVisible();
+    const geometry = await toolbar.evaluate((element) => {
+      const header = element.querySelector('header')!.getBoundingClientRect();
+      const controls = Array.from(element.querySelectorAll('a, button')).filter(
+        (control) => control.getBoundingClientRect().width > 0,
+      );
+      return {
+        fits: controls.every((control) => {
+          const box = control.getBoundingClientRect();
+          return (
+            box.width >= 44 &&
+            box.height >= 44 &&
+            box.left >= 0 &&
+            box.right <= innerWidth &&
+            control.contains(
+              document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2),
+            )
+          );
+        }),
+        clearsHeading: document.querySelector('h1')!.getBoundingClientRect().top > header.bottom,
+      };
+    });
+    expect(geometry).toEqual({ fits: true, clearsHeading: true });
+    if (width < 1480) {
+      await expect(toolbar.getByRole('button', { name: 'Toggle table of contents' })).toBeVisible();
+    } else {
+      const sidebar = await page.locator('.post-toc-sidebar').boundingBox();
+      const header = await toolbar.locator('header').boundingBox();
+      expect(sidebar!.y).toBeGreaterThan(header!.y + header!.height);
+    }
+  }
+  await toolbar.getByRole('link', { name: 'Blog', exact: true }).click();
+  await expect(page).toHaveURL('/blog');
+  await expect(toolbar.getByRole('link', { name: 'Blog', exact: true })).toHaveAttribute(
+    'aria-current',
+    'location',
+  );
+  await expect(toolbar.getByRole('button', { name: 'Toggle table of contents' })).toHaveCount(0);
+  await page.setViewportSize({
+    width: testInfo.project.name === 'mobile' ? 390 : 1280,
+    height: 900,
+  });
+  await page.screenshot({ path: testInfo.outputPath('toolbar-light.png'), animations: 'disabled' });
+  await toolbar.getByRole('button', { name: 'Toggle theme' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.screenshot({ path: testInfo.outputPath('toolbar-dark.png'), animations: 'disabled' });
+  await page.emulateMedia({ media: 'print' });
+  await expect(toolbar).not.toBeVisible();
+});
+
+test('a directly opened article offers navigation back to the blog', async ({ page }) => {
   await page.goto('/blog/oi-icpc/codeforces/cf551c');
-  await expect(page.locator('.toolbar-mobile').getByRole('link', { name: 'Blog' })).toBeVisible();
+  await expect(page.locator('app-toolbar').getByRole('link', { name: 'Blog' })).toBeVisible();
   await expect(
     page.locator('app-toolbar').getByRole('link', { name: 'Documentation' }),
   ).toHaveCount(0);

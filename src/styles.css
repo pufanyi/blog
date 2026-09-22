@@ -12,6 +12,8 @@
 }
 
 html {
+  --toolbar-height: 64px;
+  --toolbar-clearance: calc(var(--toolbar-height) + env(safe-area-inset-top) + 1rem);
   font-size: 15px;
   scroll-behavior: smooth;
 }
@@ -24,6 +26,7 @@ html {
 
 @media (max-width: 768px) {
   html {
+    --toolbar-height: 56px;
     font-size: 14px;
   }
 }

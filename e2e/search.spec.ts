@@ -180,7 +180,7 @@ test('Chinese search finds words inside prose and keyboard selection navigates',
   await input.press('Enter');
   await expect(page).toHaveURL(`/blog/${diffusion.slug}`);
   await expect(page).toHaveTitle(`${diffusion.title} — ${SITE_CONFIG.author.name}`);
-  await expect(page.locator('.toolbar-mobile-title')).toHaveText('Reading');
+  await expect(page.locator('.toolbar-context')).toHaveText('Reading');
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     'content',
     diffusion.description ?? SITE_CONFIG.description,

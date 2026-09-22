@@ -1,154 +1,170 @@
-/* ========== Desktop nav (left side) ========== */
-.toolbar-nav {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 1000;
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* ========== Desktop actions (right side) ========== */
 .toolbar {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
+  inset: 0 0 auto;
   z-index: 1000;
-}
-
-.toolbar-desktop {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.toolbar-desktop button,
-.toolbar-desktop-btn {
+  padding-top: env(safe-area-inset-top);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
   background: var(--paper-bg);
-  border: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
+  font-family: var(--font-heading);
+}
+
+.toolbar-inner {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  max-width: 1440px;
+  height: var(--toolbar-height);
+  margin-inline: auto;
+  padding-inline: max(1.5rem, env(safe-area-inset-left)) max(1.5rem, env(safe-area-inset-right));
+}
+
+.toolbar-group {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.toolbar-button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
   justify-content: center;
+  gap: 0.55rem;
+  box-sizing: border-box;
+  min-width: 44px;
+  height: 44px;
+  padding-inline: 0.75rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
   color: var(--text-secondary);
-  box-shadow: 0 1px 3px var(--shadow-color);
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
   transition:
-    color 0.2s,
-    background 0.3s ease,
-    box-shadow 0.2s,
-    border-color 0.2s;
-  font-family: var(--font-heading);
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.toolbar-button i {
+  font-size: 20px;
+}
+
+.toolbar-button:hover,
+.toolbar-button[aria-expanded="true"] {
+  background: var(--accent-bg);
+  color: var(--link-color);
   text-decoration: none;
 }
 
-.toolbar-desktop button:hover,
-.toolbar-desktop-btn:hover {
+.toolbar-button:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: 2px;
+}
+
+.toolbar-button.is-current {
+  color: var(--link-color);
+  background: var(--accent-bg);
+}
+
+.toolbar-brand {
+  font-weight: 600;
   color: var(--text-color);
-  box-shadow: 0 2px 6px var(--shadow-color);
-  border-color: color-mix(in srgb, var(--border-color) 40%, transparent);
-  text-decoration: none;
+  margin-right: 0.5rem;
 }
 
-.toolbar-mobile {
-  display: none;
+.toolbar-context {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  padding-left: 0.5rem;
+}
+
+.toolbar-actions {
+  margin-left: auto;
+}
+
+.toolbar-search {
+  background: color-mix(in srgb, var(--background) 65%, var(--paper-bg));
+  margin-right: 0.4rem;
+}
+
+.toolbar-search kbd {
+  margin-left: 1.25rem;
+  color: var(--text-secondary);
+  font: 0.65rem var(--font-mono);
+}
+
+@media (min-width: 1480px) {
+  .toolbar-context-action {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {
-  .toolbar-nav {
-    display: none;
+  .toolbar-inner {
+    gap: 0;
+    padding-inline: max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-right));
   }
 
-  .toolbar {
-    position: fixed;
-    top: 0.68rem;
-    left: 0.68rem;
-    right: 0.68rem;
-    z-index: 1000;
+  .toolbar-group {
+    gap: 0;
   }
 
-  .toolbar-desktop {
-    display: none;
+  .toolbar-button {
+    width: 44px;
+    padding: 0;
   }
 
-  .toolbar-mobile {
-    z-index: 1002;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.3rem 0.4rem;
-    border: 1px solid color-mix(in srgb, var(--border-color) 14%, transparent);
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--paper-bg) 82%, var(--background));
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    box-shadow:
-      0 2px 12px var(--shadow-color),
-      0 0 0 0.5px color-mix(in srgb, var(--border-color) 18%, transparent);
+  .toolbar-brand,
+  .toolbar-search {
+    margin-right: 0;
   }
 
-  .toolbar-mobile-group {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: 0.1rem;
-  }
-
-  .toolbar-mobile-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    font-size: 0.95rem;
-    line-height: 1;
-    border: none;
-    border-radius: 8px;
-    color: var(--text-secondary);
-    text-decoration: none;
+  .toolbar-search {
     background: transparent;
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      background-color 0.2s ease;
   }
 
-  .toolbar-mobile-btn:hover,
-  .toolbar-mobile-btn:active {
-    color: var(--text-color);
-    background: color-mix(in srgb, var(--text-color) 7%, transparent);
-    text-decoration: none;
+  .toolbar-label,
+  .toolbar-search kbd {
+    display: none;
   }
 
-  .toolbar-mobile-title {
-    position: absolute;
-    left: 0;
-    right: 0;
-    text-align: center;
-    pointer-events: none;
-    color: var(--text-secondary);
-    font-family: var(--font-heading);
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    opacity: 0.5;
-    user-select: none;
+  .toolbar-context {
+    padding-inline: 0.4rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 359px) {
+  .toolbar-context {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toolbar-button {
+    transition: none;
   }
 }
 
 @media print {
-  .toolbar-nav {
-    display: none !important;
+  :host {
+    display: none;
   }
 }
 
 .search-loading {
   position: fixed;
-  top: 4.5rem;
+  top: var(--toolbar-clearance);
   right: 1rem;
   z-index: 1001;
   padding: 0.65rem 1rem;
