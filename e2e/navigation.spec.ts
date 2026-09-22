@@ -7,7 +7,7 @@ import { openSearch, test } from './fixtures';
 
 const archivePages = Math.max(1, Math.ceil(POSTS.length / BLOG_CONFIG.postsPerPage));
 
-test('shared toolbar fits narrow and wide screens and stays clear of page content', async ({
+test('full-width toolbar stays flush with the top and clear of page content', async ({
   page,
 }, testInfo) => {
   await page.goto('/blog/ml/ml-revisit/rl');
@@ -19,13 +19,15 @@ test('shared toolbar fits narrow and wide screens and stays clear of page conten
     await expect(toolbar.getByRole('button', { name: 'Search', exact: true })).toBeVisible();
     const geometry = await toolbar.evaluate((element) => {
       const header = element.querySelector('header')!.getBoundingClientRect();
+      const inner = element.querySelector('.toolbar-inner')!.getBoundingClientRect();
       const paper = document.querySelector('.paper')!.getBoundingClientRect();
       const controls = Array.from(element.querySelectorAll('a, button')).filter(
         (control) => control.getBoundingClientRect().width > 0,
       );
       return {
-        aligned: Math.abs(header.left - paper.left) < 1 && Math.abs(header.right - paper.right) < 1,
-        floating: header.top > 0,
+        fullWidth: Math.abs(header.left) < 1 && Math.abs(header.right - innerWidth) < 1,
+        flushTop: header.top === 0,
+        aligned: Math.abs(inner.left - paper.left) < 1 && Math.abs(inner.right - paper.right) < 1,
         fits: controls.every((control) => {
           const box = control.getBoundingClientRect();
           return (
@@ -33,15 +35,25 @@ test('shared toolbar fits narrow and wide screens and stays clear of page conten
             box.height >= 44 &&
             box.left >= 0 &&
             box.right <= innerWidth &&
+            box.top >= header.top &&
+            box.bottom <= header.bottom &&
             control.contains(
               document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2),
             )
           );
         }),
         clearsHeading: document.querySelector('h1')!.getBoundingClientRect().top > header.bottom,
+        clearsPaper: paper.top > header.bottom,
       };
     });
-    expect(geometry).toEqual({ aligned: true, floating: true, fits: true, clearsHeading: true });
+    expect(geometry).toEqual({
+      fullWidth: true,
+      flushTop: true,
+      aligned: true,
+      fits: true,
+      clearsHeading: true,
+      clearsPaper: true,
+    });
     for (const reducedMotion of ['reduce', 'no-preference'] as const) {
       await page.emulateMedia({ reducedMotion });
       expect((await toolbar.locator('header').boundingBox())!.height).toBe(width <= 768 ? 52 : 56);
@@ -83,6 +95,40 @@ test('shared toolbar fits narrow and wide screens and stays clear of page conten
   await page.screenshot({ path: testInfo.outputPath('toolbar-dark.png'), animations: 'disabled' });
   await page.emulateMedia({ media: 'print' });
   await expect(toolbar).not.toBeVisible();
+});
+
+test('toolbar covers the top safe area and keeps anchor targets below its controls', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/blog/ml/ml-revisit/rl');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  await page.addStyleTag({ content: 'html { --toolbar-safe-area-top: 24px; }' });
+  const header = page.locator('.toolbar');
+  const bounds = (await header.boundingBox())!;
+  expect(bounds.y).toBe(0);
+  expect(bounds.height).toBe((page.viewportSize()!.width <= 768 ? 52 : 56) + 24);
+  const controls = await header.locator('a, button').evaluateAll((elements) =>
+    elements
+      .filter((element) => element.getBoundingClientRect().width > 0)
+      .map((element) => {
+        const box = element.getBoundingClientRect();
+        return { top: box.top, bottom: box.bottom };
+      }),
+  );
+  for (const control of controls) {
+    expect(control.top).toBeGreaterThanOrEqual(24);
+    expect(control.bottom).toBeLessThanOrEqual(bounds.height);
+  }
+  expect((await page.locator('.paper').boundingBox())!.y).toBeGreaterThan(bounds.height);
+  await page.evaluate(() => {
+    const heading = document.querySelector<HTMLElement>('.post-body #references')!;
+    heading.scrollIntoView({ block: 'start', behavior: 'instant' });
+  });
+  await expect
+    .poll(async () => (await page.locator('.post-body #references').boundingBox())!.y)
+    .toBeGreaterThan(bounds.height);
+  expect((await header.boundingBox())!.y).toBe(0);
 });
 
 test('a directly opened article offers navigation back to the blog', async ({ page }) => {

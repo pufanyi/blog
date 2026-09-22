@@ -13,8 +13,8 @@
 
 html {
   --toolbar-height: 56px;
-  --toolbar-top: calc(env(safe-area-inset-top) + 0.75rem);
-  --toolbar-clearance: calc(var(--toolbar-top) + var(--toolbar-height) + 1rem);
+  --toolbar-safe-area-top: env(safe-area-inset-top, 0px);
+  --toolbar-clearance: calc(var(--toolbar-safe-area-top) + var(--toolbar-height) + 1rem);
   font-size: 15px;
   scroll-behavior: smooth;
 }
@@ -28,7 +28,6 @@ html {
 @media (max-width: 768px) {
   html {
     --toolbar-height: 52px;
-    --toolbar-top: calc(env(safe-area-inset-top) + 0.5rem);
     font-size: 14px;
   }
 }

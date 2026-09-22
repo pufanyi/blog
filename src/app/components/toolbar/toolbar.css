@@ -1,18 +1,14 @@
 .toolbar {
   position: fixed;
-  inset: var(--toolbar-top) 0 auto;
+  inset: 0 0 auto;
   z-index: 1000;
   box-sizing: border-box;
-  width: 92%;
-  max-width: var(--paper-max-width, 900px);
-  height: var(--toolbar-height);
-  margin-inline: auto;
-  border: 1px solid color-mix(in srgb, var(--border-color) 24%, transparent);
-  border-radius: 3px;
+  width: 100%;
+  height: calc(var(--toolbar-safe-area-top) + var(--toolbar-height));
+  padding-top: var(--toolbar-safe-area-top);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 40%, transparent);
   background: var(--paper-bg);
-  box-shadow:
-    0 1px 3px var(--shadow-color),
-    0 6px 18px var(--shadow-color);
+  box-shadow: 0 1px 3px var(--shadow-color);
   font-family: var(--font-heading);
 }
 
@@ -21,8 +17,10 @@
   align-items: center;
   gap: 0.5rem;
   box-sizing: border-box;
-  width: 100%;
+  width: 92%;
+  max-width: var(--paper-max-width, 900px);
   height: 100%;
+  margin-inline: auto;
   padding-inline: max(0.5rem, env(safe-area-inset-left)) max(0.5rem, env(safe-area-inset-right));
 }
 
@@ -156,7 +154,7 @@
 }
 
 @media (max-width: 600px) {
-  .toolbar {
+  .toolbar-inner {
     width: 96%;
   }
 }

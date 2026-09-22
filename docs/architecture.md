@@ -35,7 +35,7 @@ search, printing, and theme switching. Desktop controls include text; mobile
 controls keep 44px touch targets. Article directory controls join this toolbar
 below 1480px, while wider screens use the persistent article sidebar. Context
 labels and actions come from `ToolbarExtensionService` and reset on navigation.
-`--toolbar-top`, `--toolbar-height` and `--toolbar-clearance` in `src/styles.css` reserve space for
+`--toolbar-safe-area-top`, `--toolbar-height` and `--toolbar-clearance` in `src/styles.css` reserve space for
 the header and device safe area in paper layout, sticky sidebars, and heading
 anchor positions. Disclosure summaries use the same clearance when scrolled into
 view. Keep those consumers aligned when changing header dimensions.
@@ -45,13 +45,14 @@ The reading design retains the original warm paper, subtle shadow, centered
 ruled titles, compact lists and Morandi colors. The paper is capped at 900px
 (1150px for documentation). Body text uses the original 15px desktop / 14px
 mobile baseline, with Space Grotesk headings. The toolbar matches that typography
-and paper surface. The toolbar is a floating strip with the same width, small
-corner radius and warm shadow as the reading container, not a full-width app
-bar. Documentation sets the shared `--paper-max-width` on the shell so its wider
-paper and toolbar stay aligned. Desktop navigation combines icons and text; mobile keeps
+and paper surface. Its background spans the viewport and sits flush with the
+top edge, separated from the page by a subtle bottom rule and shadow. The inner
+controls remain centered at the reading container's width. Documentation sets
+the shared `--paper-max-width` on the shell so its wider paper and toolbar
+controls stay aligned. Desktop navigation combines icons and text; mobile keeps
 compact icons. The current location uses a subtle full-button tint with a small
 corner radius, without a tab underline. It is 56px tall on desktop and 52px on
-mobile. Its top gutter includes the device safe area; reduced-motion settings
+mobile, plus the device safe area inside the header surface; reduced-motion settings
 must not change its dimensions. Theme tokens live in
 `src/styles/morandi.css`. Preserve visible keyboard focus and readable colors in
 both themes. The compact article outline retains nested links, current-heading
