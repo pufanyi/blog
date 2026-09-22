@@ -2,6 +2,7 @@ import {
   afterRenderEffect,
   ChangeDetectionStrategy,
   Component,
+  computed,
   ElementRef,
   effect,
   inject,
@@ -16,7 +17,7 @@ import type { PostTocItem } from '../../models/post.model';
 import { ToolbarExtensionService } from '../../services/toolbar-extension.service';
 import { PostTocComponent } from '../post-toc/post-toc';
 
-const WIDE_QUERY = '(min-width: 1200px)';
+const WIDE_QUERY = '(min-width: 1024px)';
 
 @Component({
   selector: 'app-post-navigation',
@@ -32,9 +33,18 @@ export class PostNavigationComponent implements OnDestroy {
   readonly readingProgress = input(0);
   readonly sectionSelected = output<string>();
   readonly tocOpen = signal(false);
+  readonly outlinePinned = signal(false);
+  readonly currentSection = computed(
+    () =>
+      this.items()
+        .flatMap((item) => [item, ...item.children])
+        .find((item) => item.id === this.activeHeadingId())?.text ?? '',
+  );
   private readonly toolbarExt = inject(ToolbarExtensionService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly tocDialog = viewChild<ElementRef<HTMLDialogElement>>('tocDialog');
+  private readonly outlineAnchor = viewChild<ElementRef<HTMLElement>>('outlineAnchor');
+  private readonly sidebar = viewChild<ElementRef<HTMLElement>>('sidebar');
   private viewportMediaQuery: MediaQueryList | null = null;
   private tocTrigger: HTMLElement | null = null;
   private restoreTocTrigger = true;
@@ -45,12 +55,34 @@ export class PostNavigationComponent implements OnDestroy {
     afterRenderEffect((onCleanup) => {
       const host = this.host.nativeElement;
       const layout = host.parentElement;
-      if (!layout) return;
+      const anchor = this.outlineAnchor()?.nativeElement;
+      const sidebar = this.sidebar()?.nativeElement;
+      if (!layout || !anchor || !sidebar) return;
+      let pinObserver: IntersectionObserver | null = null;
       // Read the grid row's document position, not the sticky child's position.
       // Reserve that opening space throughout reading; no scroll-time DOM reads.
       const update = () => {
         const start = Math.max(0, host.getBoundingClientRect().top + window.scrollY);
         host.style.setProperty('--post-outline-start', `${start}px`);
+        pinObserver?.disconnect();
+        if (!this.viewportMediaQuery?.matches || typeof IntersectionObserver === 'undefined') {
+          this.outlinePinned.set(false);
+          return;
+        }
+        // Once the title row passes the toolbar, detach from the grid's bottom
+        // boundary so the outline remains reachable even at the article footer.
+        const clearance = parseFloat(getComputedStyle(sidebar).top);
+        pinObserver = new IntersectionObserver(
+          ([entry]) => {
+            if (entry) {
+              this.outlinePinned.set(
+                !entry.isIntersecting && entry.boundingClientRect.top < clearance,
+              );
+            }
+          },
+          { rootMargin: `-${clearance}px 0px 0px 0px` },
+        );
+        pinObserver.observe(anchor);
       };
       const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);
       observer?.observe(layout);
@@ -58,6 +90,7 @@ export class PostNavigationComponent implements OnDestroy {
       update();
       onCleanup(() => {
         observer?.disconnect();
+        pinObserver?.disconnect();
         window.removeEventListener('resize', update);
       });
     });
@@ -142,10 +175,7 @@ export class PostNavigationComponent implements OnDestroy {
 
   private setupToolbarExtension(): void {
     effect(() => {
-      const active = this.items()
-        .flatMap((item) => [item, ...item.children])
-        .find((item) => item.id === this.activeHeadingId());
-      this.toolbarExt.pageTitle.set(active?.text ?? 'Reading');
+      this.toolbarExt.pageTitle.set(this.currentSection() || 'Reading');
       this.toolbarExt.leadingButtons.set(
         this.items().length
           ? [

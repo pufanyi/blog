@@ -10,6 +10,7 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Historical evidence
 
+- [RL score-centering chapter — 2026-09-22](audits/2026-09-22-rl-score-centering.md): source verification, baseline/IS/BPO distinctions, numerical examples, and isolated article validation.
 - [ViT model explanations — 2026-09-22](audits/2026-09-22-vit-model-explanations.md): independent model chapters, original-source verification, compression diagrams, and validation evidence.
 - [Modern communication protocols tutorial — 2026-09-22](audits/2026-09-22-modern-communication-protocols.md): course/specification source boundaries, worked examples, and article validation.
 - [Simulation tutorial learning path — 2026-09-22](audits/2026-09-22-simulation-domain-tutorial.md): domain-first restructuring, source checks, numerical examples, and validation evidence.

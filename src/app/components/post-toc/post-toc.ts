@@ -25,6 +25,8 @@ export class PostTocComponent {
   readonly activeHeadingId = input('');
   readonly progress = input(0);
   readonly idPrefix = input('toc');
+  readonly collapsible = input(false);
+  readonly collapsed = signal(false);
   readonly sectionSelected = output<string>();
   readonly interactive = signal(false);
 
@@ -36,6 +38,12 @@ export class PostTocComponent {
     Math.round(Math.min(1, Math.max(0, this.progress())) * 100),
   );
   readonly normalizedProgress = computed(() => Math.min(1, Math.max(0, this.progress())));
+  readonly currentSection = computed(
+    () =>
+      this.items()
+        .flatMap((item) => [item, ...item.children])
+        .find((item) => item.id === this.activeHeadingId())?.text ?? 'Choose a chapter',
+  );
 
   constructor() {
     // Prerendered/no-JavaScript readers retain every section link.
@@ -44,11 +52,12 @@ export class PostTocComponent {
       this.postPath();
       this.manualExpansion.set(new Map());
       this.focusedChapterId.set('');
+      this.collapsed.set(false);
     });
     effect((onCleanup) => {
       const activeId = this.activeHeadingId();
       const viewport = this.scrollViewport()?.nativeElement;
-      if (!activeId || !viewport || typeof window === 'undefined') {
+      if (this.collapsed() || !activeId || !viewport || typeof window === 'undefined') {
         return;
       }
 

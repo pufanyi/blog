@@ -33,7 +33,7 @@ cache. Do not publish the cache or edit generated data directly.
 The shared shell uses one fixed, responsive toolbar for home/blog navigation,
 search, printing, and theme switching. Desktop controls include text; mobile
 controls keep 44px touch targets. Article directory controls join this toolbar
-below 1200px, while wider screens use the persistent article outline. Context
+below 1024px, while wider screens use the persistent article outline. Context
 labels and actions come from `ToolbarExtensionService` and reset on navigation.
 `--toolbar-safe-area-top`, `--toolbar-height` and `--toolbar-clearance` in `src/styles.css` reserve space for
 the header and device safe area in paper layout, sticky sidebars, and heading
@@ -44,11 +44,15 @@ The toolbar is excluded from print output and embedded PDF readers.
 The reading design retains the original warm paper, subtle shadow, centered
 ruled titles, compact lists and Morandi colors. The paper is capped at 900px
 (1150px for documentation). Articles with an outline use a 1140px shared paper
-from 1200px: a 200px outline, a 40px gutter and the original 795px text column
+from 1024px: a 200px outline, a 40px gutter and the original 795px text column
 inside the existing paper padding. Narrower available widths can shrink that
 text column slightly. The outline and article header start in the same grid row,
 below the breadcrumbs; do not position a second floating card against the viewport.
-Articles without an outline retain the ordinary 900px paper.
+Articles without an outline retain the ordinary 900px paper. Once the title row
+passes the toolbar, pin the outline to the viewport rather than the grid's bottom
+boundary, keeping its header reachable at the page end. An intersection observer
+tracks a one-pixel row marker; no scroll handler or scroll-time geometry reads are
+needed. Reset and dispose the observers on viewport/layout changes and navigation.
 Body text uses the original 15px desktop / 14px
 mobile baseline, with Space Grotesk headings. The toolbar matches that typography
 and paper surface. Its background spans the viewport and sits flush with the
@@ -65,15 +69,22 @@ mobile, plus the device safe area inside the header surface; reduced-motion sett
 must not change its dimensions. Theme tokens live in
 `src/styles/morandi.css`. Preserve visible keyboard focus and readable colors in
 both themes. The borderless article outline shows numbered chapters with separate
-subsection disclosure buttons. The current chapter opens automatically unless the
+subsection disclosure buttons. Its labeled header can collapse the whole outline
+while retaining the current section and reopen control. Keep the text column and
+scroll position unchanged when doing so; new articles start expanded.
+The current chapter opens automatically unless the
 reader explicitly overrides it; preserve these choices and keyboard focus until
 the article changes. Sidebar and dialog disclosures must use distinct IDs. Render
 all section links in static HTML and enable folding only after hydration.
 The current section supplies the toolbar context; the outline footer describes
 position in the article rather than claiming reading completion. Never auto-scroll
 the outline while its links are hovered or keyboard-focused.
-On narrower screens, a contents entry below the title and the toolbar action open
-the same native bottom-sheet dialog. Preserve 44px touch targets, Escape dismissal,
+On narrower screens, a fixed bottom contents dock always shows its label and the
+current section (or chapter count before reading). It replaces the former inline
+entry that scrolled away. The dock and toolbar action open the same native
+bottom-sheet dialog. Reserve its height, including the device bottom safe area,
+at the end of the document and below the back-to-top control. Remove that space
+for other routes and print. Preserve 44px touch targets, Escape dismissal,
 focus restoration, section-link focus and independent scrolling. Resizing into the
 wide layout closes the dialog without focusing its now-hidden trigger.
 Keep a small end inset in the scrollable list so fractional scroll offsets cannot

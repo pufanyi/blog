@@ -158,6 +158,35 @@ speed claim or a smooth-scrolling guarantee; the rendering cost of very large
 articles remains a separate concern. Raw reports and the layout screenshots are
 retained under ignored `tmp/outline-review/`.
 
+### Always-available contents follow-up — 2026-09-22
+
+The user prioritized keeping the outline visible throughout reading, with optional
+collapse. The first trial's wide sidebar was sticky in the middle of an article,
+but at the document end its grid boundary pushed its header behind the toolbar.
+On RL at 1600×900, its top moved from 71px mid-article to 11.59px at the page end.
+Below 1200px the labeled inline entry also scrolled away, leaving only the toolbar
+icon. These are separate reachability and discoverability problems.
+
+The follow-up keeps the shared paper and introduces the sidebar from 1024px.
+After the opening title row passes the toolbar, an intersection observer pins the
+outline independently of the article's bottom boundary. The header stays available
+to collapse/reopen the entire outline without reflowing the reading column. Chapter
+disclosure controls remain independent and static HTML retains all section links.
+
+On narrow screens a persistent bottom dock replaces the inline entry and shows
+`Contents` plus the current section. The existing native sheet, focus restoration,
+Escape handling and native anchors are retained. Document-end spacing and the
+back-to-top offset reserve room for the dock and device safe area. This is a
+deliberate revision of the earlier compact-navigation proposal: persistent,
+explicitly labeled navigation takes precedence over keeping every reading control
+within the top toolbar. It is not a claim that the full outline can fit beside
+prose on a phone.
+
+Regression coverage now includes middle/end-of-page reachability, 1024/1100px
+sidebar layouts, whole-outline collapse without text/scroll movement, mobile dock
+visibility and footer clearance, and reset after leaving an article. Other live
+article edits are excluded from the isolated validation snapshot for this change.
+
 ## Prototype and verification artifacts
 
 The local `tmp/reading-experience-2026-09-13/reader-preview.html` file is an interactive design preview. It labels its seeded continuation state as an example. Saved positions use a prototype-specific local-storage key. It includes existing rendered article content and demonstrates controls without modifying the application or authored posts.

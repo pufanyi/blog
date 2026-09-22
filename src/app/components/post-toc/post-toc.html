@@ -1,12 +1,23 @@
 <nav class="toc" aria-label="On this page">
-  <header class="toc-header">
-    <span class="toc-title">
-      On this page
-    </span>
-    <span class="toc-count">{{ items().length }} chapters</span>
+  <header class="toc-header" [class.is-collapsible]="collapsible() && interactive()">
+    @if (collapsible() && interactive()) {
+      <button class="toc-heading-toggle" type="button" (click)="collapsed.set(!collapsed())"
+        [attr.aria-label]="collapsed() ? 'Expand table of contents' : 'Collapse table of contents'"
+        [attr.aria-expanded]="!collapsed()" [attr.aria-controls]="idPrefix() + '-links'">
+        <span class="toc-title">Contents</span>
+        <span class="toc-count">{{ items().length }} chapters</span>
+        <i [class]="'ph ' + (collapsed() ? 'ph-caret-down' : 'ph-caret-up')" aria-hidden="true"></i>
+      </button>
+    } @else {
+      <span class="toc-title">On this page</span>
+      <span class="toc-count">{{ items().length }} chapters</span>
+    }
   </header>
 
-  <div class="toc-scroll" #scrollViewport
+  @if (collapsed()) {
+    <p class="toc-collapsed-context">{{ currentSection() }}</p>
+  }
+  <div class="toc-scroll" #scrollViewport [id]="idPrefix() + '-links'" [hidden]="collapsed()"
     (focusin)="onFocusChange($event)" (focusout)="onFocusChange($event)">
     <ol class="toc-list">
       @for (item of items(); track item.id; let i = $index) {
@@ -56,7 +67,7 @@
       }
     </ol>
   </div>
-  <footer class="toc-position">
+  <footer class="toc-position" [hidden]="collapsed()">
     <div class="toc-position-label">
       <span>Position in article</span>
       <span class="toc-percentage" aria-hidden="true">{{ progressPercent() }}%</span>

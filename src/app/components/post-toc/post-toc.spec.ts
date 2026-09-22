@@ -119,4 +119,38 @@ describe('PostTocComponent', () => {
     fixture.componentInstance.selectSection(new MouseEvent('click', { button: 1 }), 'details');
     expect(selected).not.toHaveBeenCalled();
   });
+
+  it('keeps a labeled toggle and current section when the whole outline is collapsed', async () => {
+    const fixture = TestBed.createComponent(PostTocComponent);
+    fixture.componentRef.setInput('items', items);
+    fixture.componentRef.setInput('postPath', postPath);
+    fixture.componentRef.setInput('collapsible', true);
+    fixture.componentRef.setInput('idPrefix', 'sidebar-toc');
+    fixture.componentRef.setInput('activeHeadingId', 'details');
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const button = element.querySelector<HTMLButtonElement>('.toc-heading-toggle')!;
+    const links = element.querySelector<HTMLElement>('.toc-scroll')!;
+    expect(button.getAttribute('aria-controls')).toBe(links.id);
+    expect(button.getAttribute('aria-expanded')).toBe('true');
+    button.focus();
+    button.click();
+    await fixture.whenStable();
+    expect(links.hidden).toBe(true);
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(element.querySelector('.toc-collapsed-context')?.textContent).toContain('Details');
+    expect(document.activeElement).toBe(button);
+
+    fixture.componentRef.setInput('activeHeadingId', '第一章');
+    await fixture.whenStable();
+    expect(links.hidden).toBe(true);
+    expect(element.querySelector('.toc-collapsed-context')?.textContent).toContain('First chapter');
+    button.click();
+    await fixture.whenStable();
+    expect(links.hidden).toBe(false);
+    button.click();
+    fixture.componentRef.setInput('postPath', '/blog/next-article');
+    await fixture.whenStable();
+    expect(links.hidden).toBe(false);
+  });
 });

@@ -56,3 +56,86 @@
 .rl-gae-math mjx-container {
   margin: 0 !important;
 }
+
+.rl-sc-figure {
+  margin: 1.5rem 0;
+}
+
+.rl-sc-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--paper-bg);
+}
+
+.rl-sc-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 3px;
+}
+
+.rl-sc-diagram {
+  display: block;
+  width: 688px;
+  min-width: 688px;
+  max-width: none;
+  height: 326px;
+  margin-inline: auto;
+  font-family: var(--font-body);
+}
+
+.rl-sc-label,
+.rl-sc-tick {
+  fill: var(--text-color);
+  font-size: 14px;
+}
+
+.rl-sc-tick {
+  fill: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rl-sc-axis,
+.rl-sc-zero,
+.rl-sc-grid {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 1;
+}
+
+.rl-sc-grid {
+  stroke-dasharray: 2 5;
+}
+
+.rl-sc-zero {
+  stroke: var(--text-secondary);
+}
+
+.rl-sc-target,
+.rl-sc-centered,
+.rl-sc-naive {
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.rl-sc-target {
+  stroke: var(--accent-blue);
+}
+
+.rl-sc-centered {
+  stroke: var(--accent-sage);
+  stroke-dasharray: 9 5;
+}
+
+.rl-sc-naive {
+  stroke: var(--accent-clay);
+  stroke-dasharray: 3 3;
+}
+
+.rl-sc-point {
+  fill: var(--paper-bg);
+  stroke-dasharray: none;
+}
+
+.rl-sc-comparison table {
+  min-width: 780px;
+}

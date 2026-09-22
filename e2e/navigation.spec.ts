@@ -80,7 +80,7 @@ test('full-width toolbar stays flush with the top and clear of page content', as
       'background-color',
       'rgba(0, 0, 0, 0)',
     );
-    if (width < 1200) {
+    if (width < 1024) {
       await expect(toolbar.getByRole('button', { name: 'Toggle table of contents' })).toBeVisible();
     } else {
       const sidebar = await page.locator('.post-toc-sidebar').boundingBox();

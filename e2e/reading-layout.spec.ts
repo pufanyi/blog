@@ -7,10 +7,10 @@ test('shared reading sheet aligns its outline with the title and preserves modal
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/blog/ml/ml-revisit/rl');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
-  const widths = testInfo.project.name === 'mobile' ? [320, 390] : [1199, 1200, 1280, 1600];
+  const widths = testInfo.project.name === 'mobile' ? [320, 390] : [1023, 1024, 1100, 1280, 1600];
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
-    const drawer = width < 1200;
+    const drawer = width < 1024;
     const trigger = page.getByRole('button', { name: 'Toggle table of contents' });
     if (drawer) await trigger.click();
     const container = page.locator(drawer ? '.post-toc-dialog' : '.post-toc-sidebar');
@@ -38,7 +38,7 @@ test('shared reading sheet aligns its outline with the title and preserves modal
       expect(sidebar!.x + sidebar!.width).toBeLessThan(heading!.x);
       expect(Math.abs(sidebar!.y - heading!.y)).toBeLessThan(1);
       await expect(container).toHaveCSS('box-shadow', 'none');
-      await expect(page.locator('.post-contents-entry')).not.toBeVisible();
+      await expect(page.locator('.post-contents-dock')).not.toBeVisible();
     }
     for (const theme of ['light', 'dark']) {
       await page.evaluate(
@@ -104,13 +104,13 @@ test('chapters expand independently and subsection navigation retains context an
   await expect(page.locator('.toolbar-context')).toHaveText(text);
 });
 
-test('inline contents opens the mobile sheet and restores its trigger after Escape or resize', async ({
+test('persistent contents opens the mobile sheet and restores its trigger after Escape or resize', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/blog/ml/ml-revisit/rl');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
-  const entry = page.locator('.post-contents-entry');
+  const entry = page.locator('.post-contents-dock');
   const dialog = page.getByRole('dialog', { name: 'Table of contents', exact: true });
   await entry.click();
   await expect(dialog).toBeVisible();
@@ -138,6 +138,116 @@ test('inline contents opens the mobile sheet and restores its trigger after Esca
   await entry.click();
   await expect(dialog).toBeVisible();
   await page.keyboard.press('Escape');
+});
+
+test('the wide outline remains reachable at the page end and can collapse without moving the text', async ({
+  page,
+}, info) => {
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/blog/ml/ml-revisit/rl');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  const sidebar = page.locator('.post-toc-sidebar');
+  const headerBottom = (await page.locator('.toolbar').boundingBox())!.height;
+  for (const fraction of [0.5, 1]) {
+    await page.evaluate(
+      (value) =>
+        scrollTo({
+          top: (document.documentElement.scrollHeight - innerHeight) * value,
+          behavior: 'instant',
+        }),
+      fraction,
+    );
+    await expect(sidebar).toHaveClass(/is-pinned/);
+    await expect.poll(async () => (await sidebar.boundingBox())!.y).toBeGreaterThan(headerBottom);
+    const bounds = (await sidebar.boundingBox())!;
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(900);
+    const host = (await page.locator('app-post-navigation').boundingBox())!;
+    expect(Math.abs(bounds.x - host.x)).toBeLessThan(1);
+    expect(Math.abs(bounds.width - host.width)).toBeLessThan(1);
+  }
+  const textBefore = (await page.locator('.post-body').boundingBox())!;
+  const scrollBefore = await page.evaluate(() => scrollY);
+  const toggle = sidebar.locator('.toc-heading-toggle');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(sidebar.locator('.toc-scroll')).not.toBeVisible();
+  await expect(sidebar.locator('.toc-collapsed-context')).toBeVisible();
+  await expect(toggle).toBeFocused();
+  expect(await page.evaluate(() => scrollY)).toBe(scrollBefore);
+  expect(await page.locator('.post-body').boundingBox()).toEqual(textBefore);
+  await toggle.press('Enter');
+  await expect(sidebar.locator('.toc-scroll')).toBeVisible();
+  const firstLink = sidebar.locator('.toc-link').first();
+  const firstId = await firstLink.getAttribute('data-toc-id');
+  await firstLink.click();
+  await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe(firstId);
+  await page.evaluate(() => {
+    const anchor = document.querySelector('.post-outline-anchor')!;
+    const panel = document.querySelector('.post-toc-sidebar')!;
+    const start = anchor.getBoundingClientRect().top + scrollY;
+    const clearance = parseFloat(getComputedStyle(panel).top);
+    scrollTo({ top: Math.ceil(start - clearance), behavior: 'instant' });
+  });
+  await expect(sidebar).not.toHaveClass(/is-pinned/);
+  await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+  await expect(sidebar).not.toHaveClass(/is-pinned/);
+  const heading = (await page.locator('app-post-header .title-rule-top').boundingBox())!;
+  expect(Math.abs((await sidebar.boundingBox())!.y - heading.y)).toBeLessThan(1);
+  await page.evaluate(() =>
+    scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }),
+  );
+  await expect(sidebar).toHaveClass(/is-pinned/);
+  await page.screenshot({ path: info.outputPath('outline-page-end.png'), animations: 'disabled' });
+});
+
+test('the mobile contents dock stays visible through reading and never covers the last content', async ({
+  page,
+}, info) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/blog/ml/ml-revisit/rl');
+  await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+  const dock = page.locator('.post-contents-dock');
+  for (const fraction of [0, 0.5, 1]) {
+    await page.evaluate(
+      (value) =>
+        scrollTo({
+          top: (document.documentElement.scrollHeight - innerHeight) * value,
+          behavior: 'instant',
+        }),
+      fraction,
+    );
+    await expect(dock).toBeInViewport({ ratio: 1 });
+    const bounds = (await dock.boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+    expect(bounds.y + bounds.height).toBe(844);
+  }
+  const dockTop = (await dock.boundingBox())!.y;
+  const footer = (await page.locator('.footer').boundingBox())!;
+  expect(footer.y + footer.height).toBeLessThanOrEqual(dockTop);
+  const backToTop = (await page.locator('.back-to-top').boundingBox())!;
+  expect(backToTop.y + backToTop.height).toBeLessThan(dockTop);
+  await dock.click();
+  const dialog = page.getByRole('dialog', { name: 'Table of contents', exact: true });
+  const firstLink = dialog.locator('.toc-link').first();
+  const firstId = await firstLink.getAttribute('data-toc-id');
+  const firstTitle = (await firstLink.locator('span').last().textContent())!.trim();
+  await firstLink.click();
+  await expect(dialog).not.toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe(firstId);
+  await expect(dock.locator('.contents-dock-context')).toHaveText(firstTitle);
+  await expect(dock).toBeInViewport({ ratio: 1 });
+  await page.screenshot({
+    path: info.outputPath('contents-dock-reading.png'),
+    animations: 'disabled',
+  });
+  await page.emulateMedia({ media: 'print' });
+  await expect(dock).not.toBeVisible();
+  await page.emulateMedia({ media: 'screen' });
+  await page.locator('app-toolbar').getByRole('link', { name: 'Blog', exact: true }).click();
+  await expect(dock).toHaveCount(0);
+  await expect(page.locator('body')).toHaveCSS('padding-bottom', '0px');
 });
 
 test('without JavaScript the wide outline retains every chapter and subsection link', async ({

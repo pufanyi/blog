@@ -6,60 +6,22 @@ app-post {
   min-width: 0;
 }
 
-.post-contents-entry {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  width: 100%;
-  min-height: 48px;
-  margin: -0.5rem 0 2rem;
-  padding: 0.75rem 0;
-  border: 0;
-  border-block: 1px solid var(--surface-soft);
-  background: transparent;
-  color: var(--text-secondary);
-  font: 0.82rem var(--font-heading);
-  text-align: left;
-  cursor: pointer;
+@media screen and (max-width: 1023px) {
+  body:has(.post-reading-layout.has-outline) {
+    --post-navigation-bottom-space: calc(52px + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--post-navigation-bottom-space) + 0.75rem);
+  }
 }
 
-.post-contents-entry span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.post-contents-entry span:first-child {
-  color: var(--text-color);
-  font-weight: 600;
-}
-
-.post-contents-entry span:last-child {
-  font-size: 0.75rem;
-}
-
-.post-contents-entry i {
-  font-size: 1.1rem;
-}
-
-.post-contents-entry:hover {
-  color: var(--link-color);
-}
-
-.post-contents-entry:focus-visible {
-  outline: 2px solid var(--link-color);
-  outline-offset: 3px;
-}
-
-@media (min-width: 1200px) {
+@media (min-width: 1024px) {
   app-blog-shell:has(.post-reading-layout.has-outline) {
     --paper-max-width: 1140px;
   }
 
   .post-reading-layout.has-outline {
+    --post-outline-width: 200px;
     display: grid;
-    grid-template-columns: 200px minmax(0, 1fr);
+    grid-template-columns: var(--post-outline-width) minmax(0, 1fr);
     column-gap: 40px;
   }
 
@@ -77,10 +39,6 @@ app-post {
     grid-column: 2;
     grid-row: 2;
   }
-
-  .post-contents-entry {
-    display: none;
-  }
 }
 
 .giscus-wrapper {
@@ -91,8 +49,7 @@ app-post {
 
 @media print {
   .post-toc-sidebar,
-  .post-toc-dialog,
-  .post-contents-entry {
+  .post-toc-dialog {
     display: none;
   }
 

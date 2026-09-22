@@ -1,7 +1,9 @@
 @if (items().length) {
-  <aside class="post-toc-sidebar">
+  <span class="post-outline-anchor" #outlineAnchor aria-hidden="true"></span>
+  <aside class="post-toc-sidebar" #sidebar [class.is-pinned]="outlinePinned()">
     <app-post-toc
       idPrefix="sidebar-toc"
+      [collapsible]="true"
       [items]="items()"
       [postPath]="postPath()"
       [activeHeadingId]="activeHeadingId()"
@@ -9,6 +11,14 @@
       (sectionSelected)="onTocNavigate($event)"
     />
   </aside>
+
+  <button class="post-contents-dock" type="button" (click)="toggleToc()"
+    aria-label="Open table of contents" aria-controls="post-toc-dialog"
+    [attr.aria-expanded]="tocOpen()">
+    <span class="contents-dock-label"><i class="ph ph-list" aria-hidden="true"></i> Contents</span>
+    <span class="contents-dock-context">{{ currentSection() || items().length + ' chapters' }}</span>
+    <i class="ph ph-caret-up" aria-hidden="true"></i>
+  </button>
 
   <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -- native dialog keyboard interaction is handled by the browser -->
   <dialog
