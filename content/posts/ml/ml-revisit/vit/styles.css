@@ -21,6 +21,10 @@
   font: 15px var(--font-body);
 }
 
+.vit-compression > svg {
+  min-width: 800px;
+}
+
 .vit-scroll .vit-small {
   font-size: 12px;
 }
