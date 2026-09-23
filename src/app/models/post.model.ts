@@ -3,6 +3,8 @@ export type PostTocLevel = 2 | 3;
 export interface PostTocItem {
   id: string;
   text: string;
+  /** Build-rendered heading label when it contains inline math. */
+  labelHtml?: string;
   level: PostTocLevel;
   children: PostTocItem[];
 }

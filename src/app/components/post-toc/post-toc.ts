@@ -5,11 +5,13 @@ import {
   computed,
   ElementRef,
   effect,
+  inject,
   input,
   output,
   signal,
   viewChild,
 } from '@angular/core';
+import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import type { PostTocItem } from '../../models/post.model';
 import type { HeadingSelection } from '../../utils/heading-navigation';
 
@@ -31,6 +33,8 @@ export class PostTocComponent {
   readonly collapsed = signal(false);
   readonly sectionSelected = output<HeadingSelection>();
   readonly interactive = signal(false);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly trustedLabels = new Map<string, SafeHtml>();
 
   private readonly scrollViewport = viewChild<ElementRef<HTMLElement>>('scrollViewport');
   private readonly manualExpansion = signal<ReadonlyMap<string, boolean>>(new Map());
@@ -40,12 +44,22 @@ export class PostTocComponent {
     Math.round(Math.min(1, Math.max(0, this.progress())) * 100),
   );
   readonly normalizedProgress = computed(() => Math.min(1, Math.max(0, this.progress())));
-  readonly currentSection = computed(
-    () =>
-      this.items()
-        .flatMap((item) => [item, ...item.children])
-        .find((item) => item.id === this.activeHeadingId())?.text ?? 'Choose a chapter',
+  readonly currentSection = computed(() =>
+    this.items()
+      .flatMap((item) => [item, ...item.children])
+      .find((item) => item.id === this.activeHeadingId()),
   );
+
+  renderedLabel(item: PostTocItem): SafeHtml | null {
+    if (!item.labelHtml) return null;
+    let trusted = this.trustedLabels.get(item.labelHtml);
+    if (!trusted) {
+      // The generator copies only text and build-rendered MathJax from the heading.
+      trusted = this.sanitizer.bypassSecurityTrustHtml(item.labelHtml);
+      this.trustedLabels.set(item.labelHtml, trusted);
+    }
+    return trusted;
+  }
 
   constructor() {
     // Prerendered/no-JavaScript readers retain every section link.

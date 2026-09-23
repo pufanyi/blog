@@ -33,6 +33,38 @@ describe('PostTocComponent', () => {
     );
   });
 
+  it('shows pre-rendered formula labels in chapters, subsections and collapsed context', () => {
+    const formula = '<mjx-container data-static-math=""><mjx-math>O(nm)</mjx-math></mjx-container>';
+    const fixture = TestBed.createComponent(PostTocComponent);
+    fixture.componentRef.setInput('items', [
+      {
+        id: 'formula',
+        text: String.raw`Runtime \(\mathcal{O}(nm)\)`,
+        labelHtml: `Runtime ${formula}`,
+        level: 2,
+        children: [
+          {
+            id: 'subformula',
+            text: String.raw`Size \(x_i\)`,
+            labelHtml: `Size ${formula}`,
+            level: 3,
+            children: [],
+          },
+        ],
+      },
+    ] satisfies PostTocItem[]);
+    fixture.componentRef.setInput('postPath', postPath);
+    fixture.componentRef.setInput('activeHeadingId', 'formula');
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelectorAll('.toc-list mjx-container')).toHaveLength(2);
+    expect(element.querySelector('.toc-link')?.textContent).toContain('Runtime O(nm)');
+    fixture.componentInstance.collapsed.set(true);
+    fixture.detectChanges();
+    expect(element.querySelector('.toc-collapsed-context mjx-container')).not.toBeNull();
+  });
+
   it('marks only the active location and exposes reading progress', () => {
     const fixture = TestBed.createComponent(PostTocComponent);
     fixture.componentRef.setInput('items', items);

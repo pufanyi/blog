@@ -15,7 +15,17 @@
   </header>
 
   @if (collapsed()) {
-    <p class="toc-collapsed-context">{{ currentSection() }}</p>
+    <p class="toc-collapsed-context">
+      @if (currentSection(); as section) {
+        @if (renderedLabel(section); as label) {
+          <span [innerHTML]="label"></span>
+        } @else {
+          {{ section.text }}
+        }
+      } @else {
+        Choose a chapter
+      }
+    </p>
   }
   <div class="toc-body" [class.is-collapsed]="collapsed()" [id]="idPrefix() + '-links'"
     [attr.inert]="collapsed() ? '' : null" [attr.aria-hidden]="collapsed() ? 'true' : null"
@@ -37,7 +47,13 @@
                   (click)="selectSection($event, item.id)"
                 >
                   <span class="toc-number" aria-hidden="true">{{ chapterNumber(i) }}</span>
-                  <span>{{ item.text }}</span>
+                  <span class="toc-label">
+                    @if (renderedLabel(item); as label) {
+                      <span [innerHTML]="label"></span>
+                    } @else {
+                      {{ item.text }}
+                    }
+                  </span>
                 </a>
                 @if (item.children.length) {
                   <button class="toc-expand" type="button" (click)="toggleChapter(item)" [hidden]="!interactive()"
@@ -65,7 +81,11 @@
                             [href]="hrefFor(child.id)"
                             (click)="selectSection($event, child.id)"
                           >
-                            {{ child.text }}
+                            @if (renderedLabel(child); as label) {
+                              <span [innerHTML]="label"></span>
+                            } @else {
+                              {{ child.text }}
+                            }
                           </a>
                         </li>
                       }
