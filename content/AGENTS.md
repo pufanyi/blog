@@ -37,9 +37,11 @@ For Jekyll, Hexo, or Typst imports, also read
   `index.mdx` starts with YAML front matter delimited by `---`;
   `title` and `date` (`YYYY-MM-DD`) are required; `authors`, `description`,
   `coverImage`, and `updated` are optional. `authors` is an ordered, non-empty
-  list of unique display names. When an AI model edits a post at the user's
-  request, it may append its own model name as the final `authors` entry if that
-  exact name is not already present. Preserve every existing author;
+  list of unique display names. When an AI model drafts a new post at the user's
+  request, it may include its exact model name in `authors`; do not add another
+  author without attribution from the user. When editing an existing post at
+  the user's request, it may append its own model name as the final entry if
+  that exact name is not already present. Preserve every existing author;
   model versions are distinct authors (for example, `GPT-6 Astra` and
   `GPT‑5.6 Sol`). It supplies the visible byline and article citation/export
   metadata; an omitted list keeps the page without a byline and falls back to
