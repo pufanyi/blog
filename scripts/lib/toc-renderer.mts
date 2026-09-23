@@ -131,7 +131,28 @@ export function renderTableOfContents(html: string, postPath: string) {
   return { html: document.body.innerHTML, toc };
 }
 
-/** Reuse the article's static MathJax output in TOC labels without copying heading links. */
+function renderTocLabel(heading: Element): string {
+  const label = heading.ownerDocument.createElement('span');
+  const copy = (source: Node): void => {
+    for (const child of source.childNodes) {
+      if (child.nodeType === 3) {
+        label.append(child.textContent ?? '');
+      } else if (child.nodeType === 1) {
+        const element = child as Element;
+        if (element.matches(TOC_TEXT_EXCLUSIONS)) continue;
+        if (element.matches('mjx-container[data-static-math]')) {
+          label.append(element.cloneNode(true));
+        } else {
+          copy(element);
+        }
+      }
+    }
+  };
+  copy(heading);
+  return label.innerHTML;
+}
+
+/** Reuse the article's static MathJax output while retaining plain-text TOC metadata. */
 export function addRenderedTocLabels(html: string, toc: PostTocItem[]): PostTocItem[] {
   if (!toc.some((item) => [item, ...item.children].some(({ text }) => text.includes('\\(')))) {
     return toc;
@@ -140,32 +161,14 @@ export function addRenderedTocLabels(html: string, toc: PostTocItem[]): PostTocI
   const dom = new JSDOM(`<body>${html}</body>`);
   try {
     const { document } = dom.window;
-    const labelFor = (item: PostTocItem): PostTocItem => {
+    const withLabel = (item: PostTocItem): PostTocItem => {
       const heading = document.getElementById(item.id);
-      if (!heading?.querySelector('mjx-container[data-static-math]')) {
-        return { ...item, children: item.children.map(labelFor) };
-      }
-
-      const label = document.createElement('span');
-      const copy = (source: Node): void => {
-        for (const child of source.childNodes) {
-          if (child.nodeType === 3) {
-            label.append(child.textContent ?? '');
-          } else if (child.nodeType === 1) {
-            const element = child as Element;
-            if (element.matches('.heading-permalink, [data-toc-ignore]')) continue;
-            if (element.matches('mjx-container[data-static-math]')) {
-              label.append(element.cloneNode(true));
-            } else {
-              copy(element);
-            }
-          }
-        }
-      };
-      copy(heading);
-      return { ...item, labelHtml: label.innerHTML, children: item.children.map(labelFor) };
+      const children = item.children.map(withLabel);
+      return heading?.querySelector('mjx-container[data-static-math]')
+        ? { ...item, children, labelHtml: renderTocLabel(heading) }
+        : { ...item, children };
     };
-    return toc.map(labelFor);
+    return toc.map(withLabel);
   } finally {
     dom.window.close();
   }

@@ -5,19 +5,19 @@ import {
   computed,
   ElementRef,
   effect,
-  inject,
   input,
   output,
   signal,
   viewChild,
 } from '@angular/core';
-import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import type { PostTocItem } from '../../models/post.model';
 import type { HeadingSelection } from '../../utils/heading-navigation';
+import { PostTocLabelDirective } from './post-toc-label';
 
 @Component({
   selector: 'app-post-toc',
   standalone: true,
+  imports: [PostTocLabelDirective],
   templateUrl: './post-toc.html',
   styleUrl: './post-toc.css',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -33,8 +33,6 @@ export class PostTocComponent {
   readonly collapsed = signal(false);
   readonly sectionSelected = output<HeadingSelection>();
   readonly interactive = signal(false);
-  private readonly sanitizer = inject(DomSanitizer);
-  private readonly trustedLabels = new Map<string, SafeHtml>();
 
   private readonly scrollViewport = viewChild<ElementRef<HTMLElement>>('scrollViewport');
   private readonly manualExpansion = signal<ReadonlyMap<string, boolean>>(new Map());
@@ -49,17 +47,6 @@ export class PostTocComponent {
       .flatMap((item) => [item, ...item.children])
       .find((item) => item.id === this.activeHeadingId()),
   );
-
-  renderedLabel(item: PostTocItem): SafeHtml | null {
-    if (!item.labelHtml) return null;
-    let trusted = this.trustedLabels.get(item.labelHtml);
-    if (!trusted) {
-      // The generator copies only text and build-rendered MathJax from the heading.
-      trusted = this.sanitizer.bypassSecurityTrustHtml(item.labelHtml);
-      this.trustedLabels.set(item.labelHtml, trusted);
-    }
-    return trusted;
-  }
 
   constructor() {
     // Prerendered/no-JavaScript readers retain every section link.

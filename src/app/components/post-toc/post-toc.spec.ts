@@ -63,6 +63,11 @@ describe('PostTocComponent', () => {
     fixture.componentInstance.collapsed.set(true);
     fixture.detectChanges();
     expect(element.querySelector('.toc-collapsed-context mjx-container')).not.toBeNull();
+
+    fixture.componentRef.setInput('items', items);
+    fixture.detectChanges();
+    expect(element.querySelector('mjx-container')).toBeNull();
+    expect(element.querySelector('.toc-link')?.textContent).toContain('First chapter');
   });
 
   it('marks only the active location and exposes reading progress', () => {
