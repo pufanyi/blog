@@ -29,6 +29,7 @@ function Figure({
   title,
   description,
   caption,
+  width = diagramWidth,
   height,
   children,
 }: {
@@ -36,6 +37,7 @@ function Figure({
   title: string;
   description: string;
   caption: string;
+  width?: number;
   height: number;
   children: ReactNode;
 }) {
@@ -43,8 +45,8 @@ function Figure({
     <figure className="sim-figure">
       <div className="sim-scroll">
         <svg
-          viewBox={`0 0 ${diagramWidth} ${height}`}
-          width={diagramWidth}
+          viewBox={`0 0 ${width} ${height}`}
+          width={width}
           height={height}
           role="img"
           aria-labelledby={`${id}-title ${id}-desc`}
@@ -119,10 +121,11 @@ function StateObservationOverview() {
       title="机械臂推进一步，再由相机生成观测"
       description="左侧是状态 s t：质量 m 标在方块上，摩擦系数 mu 指向桌面接触处，阻尼 b 指向机械臂关节，这些量属于物理参数 theta。动作 u t 经过时间 h 推进到右侧状态 s t 加一，方块的虚线轮廓表示原位置。相机朝向右侧场景，按观测参数 eta 通过 H 生成右上角的画面 o t 加一。"
       caption="机械臂在动作作用下推进一步，相机再拍摄新状态。图中仅示意位姿，完整状态还包含速度等量；物理参数 θ 影响运动，观测参数 η 影响画面。缩略图为观测示意。"
+      width={780}
       height={310}
     >
       <MathLabel x={115} y={25} width={65} tex="s_t" className="sim-math-state" />
-      <MathLabel x={496} y={25} width={85} tex="s_{t+1}" className="sim-math-state" />
+      <MathLabel x={451} y={25} width={85} tex="s_{t+1}" className="sim-math-state" />
       <OverviewScene x={35} />
       <path
         d="M104 89H126V108M252 140H270V195H239M268 244H238L224 213"
@@ -144,49 +147,49 @@ function StateObservationOverview() {
         物理参数
       </text>
       <MathLabel x={146} y={265} width={130} tex={'\\theta=(m,\\mu,b,\\ldots)'} />
-      <text x="332" y="125" className="sim-overview-detail">
+      <text x="320" y="125" className="sim-overview-detail">
         动作
       </text>
-      <MathLabel x={349} y={104} width={38} tex="u_t" />
+      <MathLabel x={329} y={104} width={38} tex="u_t" />
       <path
-        d="M300 163H410"
+        d="M280 163H370"
         className="sim-overview-state-flow"
         markerEnd="url(#sim-overview-arrow)"
       />
-      <MathLabel x={306} y={175} width={40} tex="F_h" />
-      <text x="362" y="196" className="sim-overview-detail">
+      <MathLabel x={286} y={175} width={40} tex="F_h" />
+      <text x="338" y="196" className="sim-overview-detail">
         经过
       </text>
-      <MathLabel x={378} y={175} width={25} tex="h" />
-      <path d="M653 77L474 119L651 217Z" className="sim-view-cone" />
-      <rect x="596" y="177" width="36" height="36" rx="3" className="sim-overview-ghost" />
-      <OverviewScene x={430} advanced />
-      <text x="547" y="246" className="sim-overview-detail">
+      <MathLabel x={350} y={175} width={25} tex="h" />
+      <path d="M591 77L429 119L591 217Z" className="sim-view-cone" />
+      <rect x="551" y="177" width="36" height="36" rx="3" className="sim-overview-ghost" />
+      <OverviewScene x={385} advanced />
+      <text x="502" y="246" className="sim-overview-detail">
         虚线：方块原位置
       </text>
       <g className="sim-camera-body">
-        <rect x="661" y="60" width="43" height="28" rx="5" />
-        <path d="M661 67l-13 4v9l13 4ZM673 60l5-8h13l5 8" />
+        <rect x="604" y="60" width="43" height="28" rx="5" />
+        <path d="M604 67l-13 4v9l13 4ZM616 60l5-8h13l5 8" />
       </g>
-      <circle cx="691" cy="74" r="4" className="sim-camera-indicator" />
-      <text x="680" y="111" className="sim-overview-detail">
+      <circle cx="634" cy="74" r="4" className="sim-camera-indicator" />
+      <text x="625" y="111" className="sim-overview-detail">
         相机
       </text>
-      <text x="671" y="138" className="sim-overview-detail">
+      <text x="613" y="138" className="sim-overview-detail">
         观测参数
       </text>
-      <MathLabel x={702} y={117} width={25} tex={'\\eta'} />
+      <MathLabel x={640} y={117} width={25} tex={'\\eta'} />
       <path
-        d="M708 74H751"
+        d="M650 74H664"
         className="sim-overview-state-flow"
         markerEnd="url(#sim-overview-arrow)"
       />
-      <MathLabel x={712} y={39} width={30} tex="H" />
-      <rect x="760" y="44" width="120" height="100" rx="5" className="sim-observation-frame" />
-      <svg x="765" y="51" width="110" height="85" viewBox="438 104 228 120" aria-hidden="true">
-        <OverviewScene x={430} advanced />
+      <MathLabel x={641} y={39} width={30} tex="H" />
+      <rect x="670" y="44" width="100" height="100" rx="5" className="sim-observation-frame" />
+      <svg x="675" y="51" width="90" height="85" viewBox="393 104 228 120" aria-hidden="true">
+        <OverviewScene x={385} advanced />
       </svg>
-      <MathLabel x={782} y={150} width={80} tex="o_{t+1}" className="sim-math-observation" />
+      <MathLabel x={680} y={150} width={80} tex="o_{t+1}" className="sim-math-observation" />
     </Figure>
   );
 }

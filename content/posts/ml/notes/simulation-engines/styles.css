@@ -122,9 +122,9 @@
   margin: 0 !important;
 }
 
-.sim-scroll svg:has(> #sim-overview-title) {
-  width: 900px;
-  min-width: 900px;
+.sim-scroll > svg:has(> #sim-overview-title) {
+  width: 780px;
+  min-width: 780px;
   max-width: none;
 }
 
