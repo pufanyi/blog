@@ -43,7 +43,7 @@ function WorldActivity() {
       title="加载需求可以形成多个分离的活动区域"
       description="示意地图上，玩家周围的一组区块以及远处另一加载来源附近的区块获得模拟资格。活动区域外还有只保持数据加载的区块，其余区域可以只保留存档。区块状态由需求决定，不等于玩家视野中的一个圆。"
       height={334}
-      caption="空间资格示意，不表示任何 Minecraft 版本的精确半径、ticket 等级或边界形状。蓝色区域获得某类模拟资格，仍要满足具体机制的额外条件；玩家与远处加载来源可以共同维持分离的活动区域。"
+      caption="需求驱动的空间调度示意，形状与范围不对应某个引擎的固定参数。蓝色区域获得某类模拟资格，仍要满足具体更新条件；玩家与远处其他需求可以共同维持分离的活动区域。"
     >
       <text x="26" y="35" className="ows-heading">
         谁还需要这个区域？
@@ -224,4 +224,139 @@ function RepresentationLayers() {
   );
 }
 
-export const POST_COMPONENTS = { WorldActivity, TimeStrategies, RepresentationLayers };
+function StreamingPipeline() {
+  return (
+    <WorldFigure
+      id="ows-streaming"
+      title="读取完成之后，还要留出分批激活的时间"
+      description="时间从左向右。后台读取与解压先完成，随后把对象创建、恢复和注册工作分散到三个帧的预算内；必要工作完成后，区域才能交互。每帧未被占用的空间留给正常游戏工作。图中的时间长度和批次数是示意，不是实测。"
+      height={318}
+      caption="一种流水线示例：资源就绪与场景可交互是两个时刻。后台工作可以并行，依赖于它的创建、恢复与注册仍需安排预算。图中用三个批次展示分帧处理，不要求所有引擎都在同一线程完成这些阶段。"
+    >
+      <text x="26" y="35" className="ows-heading">
+        从发出请求，到真正可交互
+      </text>
+      <text x="26" y="117" className="ows-label">
+        后台工作
+      </text>
+      <rect x="168" y="89" width="212" height="44" rx="5" className="ows-loaded" />
+      <text x="274" y="117" textAnchor="middle">
+        读取与解压
+      </text>
+      <text x="380" y="72" textAnchor="middle" className="ows-small">
+        资源就绪
+      </text>
+      <path d="M380 134V162H419" className="ows-edge" />
+      <path d="M412 158L420 162L412 166Z" className="ows-dot" />
+      <text x="26" y="206" className="ows-label">
+        分帧激活
+      </text>
+      {[420, 510, 600].map((x, index) => (
+        <g key={x}>
+          <rect x={x} y="174" width="78" height="52" rx="4" className="ows-empty" />
+          <rect x={x} y="174" width="43" height="52" rx="4" className="ows-active" />
+          <text x={x + 39} y="250" textAnchor="middle" className="ows-small">
+            {`第 ${index + 1} 帧`}
+          </text>
+        </g>
+      ))}
+      <path d="M643 200H705V109" className="ows-edge" />
+      <path d="M701 116L705 108L709 116Z" className="ows-dot" />
+      <circle cx="705" cy="94" r="8" className="ows-catchup" />
+      <text x="705" y="72" textAnchor="middle" className="ows-small">
+        可交互
+      </text>
+      <path d="M168 277H736" className="ows-guide" />
+      <path d="M729 273L736 277L729 281" className="ows-guide" />
+      <text x="168" y="299" className="ows-small">
+        发出请求
+      </text>
+      <text x="516" y="299" textAnchor="middle" className="ows-small">
+        实色：激活工作；虚框余量：其他帧内工作
+      </text>
+    </WorldFigure>
+  );
+}
+
+const caravan = [
+  { id: '车 1', cargo: 8 },
+  { id: '车 2', cargo: 7 },
+  { id: '车 3', cargo: 5 },
+];
+const caravanCargo = caravan.reduce((sum, vehicle) => sum + vehicle.cargo, 0);
+
+function SimulationHandoff() {
+  return (
+    <WorldFigure
+      id="ows-handoff"
+      title="商队在详细与抽象表示之间交接"
+      description={`详细表示包含三辆车，分别装有 ${caravan.map((vehicle) => vehicle.cargo).join('、')} 袋货物。抽象表示保存同一组车辆身份、路线进度与总计 ${caravanCargo} 袋货物。离开时汇总，接近时恢复；交接不应复制货物，也不应让两种模型同时推进同一商队。`}
+      height={350}
+      caption={`原创设计示例：切换前后都保有 ${caravanCargo} 袋货物和同一组身份。可以省掉每辆车的逐帧避障，但需要保留路线进度，并明确交接前后由哪个模型推进状态。两侧表示同一商队的两种运行方式。`}
+    >
+      <text x="194" y="35" textAnchor="middle" className="ows-heading">
+        详细表示：逐车运动
+      </text>
+      <text x="587" y="35" textAnchor="middle" className="ows-heading">
+        抽象表示：路线上的一条记录
+      </text>
+      {caravan.map(({ id, cargo }, index) => {
+        const x = 55 + index * 95;
+        return (
+          <g key={id}>
+            <text x={x + 37} y="83" textAnchor="middle" className="ows-small">
+              {id}
+            </text>
+            <rect x={x} y="103" width="73" height="44" rx="4" className="ows-house" />
+            <circle cx={x + 16} cy="154" r="8" className="ows-dot" />
+            <circle cx={x + 57} cy="154" r="8" className="ows-dot" />
+            <text x={x + 37} y="131" textAnchor="middle">
+              {`${cargo} 袋`}
+            </text>
+          </g>
+        );
+      })}
+      <path d="M42 176H332" className="ows-guide" />
+      <text x="194" y="218" textAnchor="middle" className="ows-label">
+        {`合计 ${caravanCargo} 袋`}
+      </text>
+      <path d="M348 108H422M422 176H348" className="ows-edge" />
+      <path d="M415 104L423 108L415 112ZM355 172L347 176L355 180Z" className="ows-dot" />
+      <text x="385" y="94" textAnchor="middle" className="ows-small">
+        汇总
+      </text>
+      <text x="385" y="200" textAnchor="middle" className="ows-small">
+        恢复
+      </text>
+      <rect x="453" y="60" width="268" height="174" rx="8" className="ows-loaded" />
+      <path d="M476 142H696" className="ows-edge" />
+      <circle cx="476" cy="142" r="4" className="ows-dot" />
+      <circle cx="696" cy="142" r="4" className="ows-dot" />
+      <circle cx="571" cy="142" r="8" className="ows-catchup" />
+      <text x="571" y="116" textAnchor="middle" className="ows-label">
+        {`${caravanCargo} 袋`}
+      </text>
+      <text x="587" y="176" textAnchor="middle" className="ows-small">
+        沿路线推进
+      </text>
+      <text x="587" y="214" textAnchor="middle">
+        {caravan.map((vehicle) => vehicle.id).join(' · ')}
+      </text>
+      <path d="M194 246V272H587V246" className="ows-guide" />
+      <text x="390" y="304" textAnchor="middle" className="ows-label">
+        交接推进职责，保持身份与货物总量
+      </text>
+      <text x="390" y="330" textAnchor="middle" className="ows-small">
+        新模型接管后，旧模型停止相关结算
+      </text>
+    </WorldFigure>
+  );
+}
+
+export const POST_COMPONENTS = {
+  WorldActivity,
+  TimeStrategies,
+  RepresentationLayers,
+  StreamingPipeline,
+  SimulationHandoff,
+};

@@ -72,7 +72,7 @@ same-author undated citations separate because the existing citation renderer
 has a known grouped-undated-reference limitation. Research downloads stay in
 `/tmp/offscreen-research`; browser artifacts stay under ignored `tmp/`.
 
-## Validation
+## Initial draft validation
 
 Node 24.18.1 and pnpm 12.3.4 match the repository. Lifecycle commands ran
 sequentially. Formatting touched only the new bibliography and diagram source.
@@ -109,3 +109,55 @@ were stubbed; local production assets and article navigation were exercised.
 Logs, browser results and screenshots are in `tmp/world-review/`. This was not
 a full site-wide E2E run, a game runtime benchmark, or a gameplay experiment.
 No commit, push or deployment was performed.
+
+
+## Problem-first revision — 2026-09-24
+
+The user asked to make contemporary large-world problems and solutions the
+main learning path, with the three original games serving as examples. The
+revision was inspected against `e2de541` (after the user's article commits
+`17d1488` and `e2de541`). Preserve the current Fanyi Pu and GPT-6 Astra byline.
+The initial validation above describes the earlier draft only.
+
+The new title is “大世界如何运转：流式加载、分级模拟与状态一致性”. The stable route
+is unchanged. A travel-world example connects memory/residency, steady work
+and transition budgets; partition dependencies; the read-to-activation pipeline;
+prefetch and hysteresis; visual representations; sparse and event-driven work;
+frequency reduction and ECS layout; catch-up and simulation model changes;
+per-client interest, lockstep and ownership; and persistence/time semantics.
+Minecraft, Terraria and Don't Starve now appear in optional case disclosures
+beside their respective mechanisms. Five static figures include two new
+original diagrams for incremental activation and conserved caravan handoff.
+
+Additional primary sources were read directly:
+
+- Epic's UE 5.6 release article (2025-06-03): asynchronous physics state
+  creation/destruction and experimental Fast Geometry Streaming for immutable
+  static geometry. This is a dated implementation example, not a claim that
+  5.6 is the latest version or that experimental features are universally ready.
+- Epic's Nanite, Streaming Virtual Texturing, Large World Coordinates,
+  Replication Graph and Actor Network Dormancy documentation: cluster/tile
+  residency, feedback costs, precision, persistent replication candidate lists
+  and waking before replicated property changes. World Partition and Mass
+  documentation were reread for actor dependencies and independent LOD roles.
+- Unity Entities 1.4 archetype documentation, marked 1.4.8 when read: packed
+  component arrays, archetype grouping and structural move costs. A memory
+  chunk is not assumed to be a spatial cell.
+- Box2D's Simulation documentation, Sleep Parameters: physical inactivity and
+  wake conditions are independent of camera visibility.
+- Factorio FFF 364 (2021-01-29): inserter wake registration and deterministic
+  merging of parallel wake requests. FFF 76 (2015-03-06) explains deterministic
+  lockstep; FFF 147 (2016-07-15) separates subsequent server communication work
+  from the earlier pure P2P topology. Neither historical topology is presented
+  as an unverified current implementation.
+
+There are 33 bibliography entries. New load, inventory, and transition examples
+are explanatory models, not engine benchmarks. Distributed ownership and
+snapshot consistency are presented as design constraints rather than claims
+about proprietary implementations. No authoring/runtime contract changed, so
+no public handbook change is required. No client runtime code was added.
+
+### Revision validation
+
+Pending final sequential checks, build and focused production reading review.
+Artifacts for this revision belong in `tmp/world-review-v2/`.
