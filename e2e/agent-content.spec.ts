@@ -4,6 +4,40 @@ import { DOCS } from '../src/app/data/docs';
 import { POSTS } from '../src/app/data/posts';
 import { docMarkdownPath, docPath } from '../src/app/models/doc.model';
 
+test('fingerprinted assets have immutable caching while negotiated pages revalidate', async ({
+  request,
+}, info) => {
+  test.skip(info.project.name !== 'cloudflare', 'Requires Cloudflare static asset headers');
+  const home = await request.get('/');
+  expect(home.headers()['cache-control']).toBe('private, no-cache');
+  expect(home.headers()['vary'].toLowerCase()).toContain('accept');
+  const html = await home.text();
+  const main = html.match(/src="(main-[^"]+\.js)"/)?.[1];
+  const stylesheet = html.match(/href="(styles-[^"]+\.css)"/)?.[1];
+  expect(main).toBeTruthy();
+  expect(stylesheet).toBeTruthy();
+  const css = await request.get(`/${stylesheet}`);
+  const font = (await css.text()).match(/(?:\.\/)?(media\/phosphor-[^"')]+\.woff2)/)?.[1];
+  expect(font).toBeTruthy();
+  for (const path of [main, stylesheet, font]) {
+    const response = await request.get(`/${path}`);
+    expect(response.status()).toBe(200);
+    expect(response.headers()['cache-control']).toBe('public, max-age=31536000, immutable');
+  }
+  for (const path of [
+    '/avatar.avif',
+    '/profile.md',
+    '/posts/ml/ml-revisit/umm/images/model_diagram.svg',
+  ]) {
+    const response = await request.get(path);
+    expect(response.status()).toBe(200);
+    expect(response.headers()['cache-control'] ?? '').not.toContain('immutable');
+  }
+  const markdown = await request.get('/', { headers: { Accept: 'text/markdown' } });
+  expect(markdown.headers()['content-type']).toContain('text/markdown');
+  expect(markdown.headers()['cache-control']).toBe('private, no-cache');
+});
+
 test('contents directories are prerendered with immediate children and publication dates', async ({
   request,
 }) => {

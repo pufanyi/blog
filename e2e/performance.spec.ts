@@ -15,18 +15,32 @@ const limit = (baseline: number) => Math.ceil(baseline * 1.1);
 for (const [path, baseline] of Object.entries(baselines)) {
   test(`cold production resource budget: ${path}`, async ({ page, context, baseURL }, info) => {
     const resources: { path: string; bytes: number; type: string }[] = [];
+    const delivery: {
+      path: string;
+      type: string;
+      encoding: string;
+      encodedBodyBytes: number;
+      decodedBodyBytes: number;
+    }[] = [];
     const pending: Promise<void>[] = [];
     // Context events include worker requests, unlike window resource timing.
     context.on('response', (response) => {
       const type = response.request().resourceType();
-      if (
-        !response.url().startsWith(`${baseURL}/`) ||
-        !['script', 'stylesheet', 'fetch', 'xhr'].includes(type)
-      )
-        return;
+      if (!response.url().startsWith(`${baseURL}/`)) return;
       pending.push(
-        response.body().then((body) => {
-          resources.push({ path: new URL(response.url()).pathname, bytes: body.length, type });
+        response.body().then(async (body) => {
+          const path = new URL(response.url()).pathname;
+          const sizes = await response.request().sizes();
+          delivery.push({
+            path,
+            type,
+            encoding: (await response.headerValue('content-encoding')) ?? 'identity',
+            encodedBodyBytes: sizes.responseBodySize,
+            decodedBodyBytes: body.length,
+          });
+          if (['script', 'stylesheet', 'fetch', 'xhr'].includes(type)) {
+            resources.push({ path, bytes: body.length, type });
+          }
         }),
       );
     });
@@ -44,6 +58,7 @@ for (const [path, baseline] of Object.entries(baselines)) {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     if (path.includes('/blog/'))
       await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
     await Promise.all(pending);
     const dom = new JSDOM(html);
     const styles = [...dom.window.document.querySelectorAll('style')].reduce(
@@ -52,6 +67,7 @@ for (const [path, baseline] of Object.entries(baselines)) {
     );
     dom.window.close();
     const initial = [...resources];
+    const initialDelivery = [...delivery];
     const code = initial.reduce((sum, resource) => sum + resource.bytes, 0);
     let search;
     if (path === '/') {
@@ -77,6 +93,7 @@ for (const [path, baseline] of Object.entries(baselines)) {
         coldReadyMs,
         warmQueryMs,
         resources: coldResources,
+        delivery: delivery.slice(initialDelivery.length),
       };
     }
     const report = {
@@ -86,6 +103,7 @@ for (const [path, baseline] of Object.entries(baselines)) {
       styles,
       search,
       resources: initial,
+      delivery: initialDelivery,
     };
     const json = JSON.stringify(report, null, 2);
     await writeFile(info.outputPath('resources.json'), json);
@@ -96,7 +114,7 @@ for (const [path, baseline] of Object.entries(baselines)) {
         code,
         html: report.html,
         styles,
-        search: search && { ...search, resources: undefined },
+        search: search && { ...search, resources: undefined, delivery: undefined },
       }),
     );
     expect(code).toBeGreaterThan(0);

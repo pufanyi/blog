@@ -14,6 +14,12 @@ The generator rewrites the URL to `/posts/<slug>/images/example.avif`, reads dim
 
 Convert newly added or changed raster images to AVIF. Check whether a GIF or WebP is animated before conversion: preserve all composited frames, dimensions, frame durations, and loops. Verify decoded metadata and served playback; a successful converter exit does not prove the animation survived. Keep conversion originals outside `content/posts` unless they are intentional public downloads.
 
+Keep vector diagrams as SVG. For large SVGs with embedded raster data, optimize
+the embedded images while retaining vector labels, lines, original image dimensions,
+and crop transforms. Compare at reading and zoom sizes, especially for noise or
+fine-detail examples. External image references inside an SVG used as an HTML
+image are not a reliable replacement for embedded data.
+
 Download links use explicit `/posts/<slug>/<file>` URLs. Only Markdown image paths are rewritten automatically. Include just the files the article uses. Build-time `.mts`, `.ts`, and `.tsx` helpers are excluded from article asset publication; other non-excluded attachments are public, including attachments under draft articles.
 
 ## Static technical diagrams

@@ -186,7 +186,7 @@
 
 .post-body details > summary::before {
   font-family: "Phosphor";
-  content: "\e13a";
+  content: var(--icon-caret-right);
   font-size: 1em;
   color: var(--text-secondary);
   transition: transform 0.2s ease;

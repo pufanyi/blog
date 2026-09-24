@@ -39,6 +39,31 @@ copying a live worktree can capture another task's incomplete edits.
 
 ## Tool ownership
 
+### Icon subset maintenance
+
+The site uses a checked-in WOFF2 subset of Phosphor regular in
+`src/styles/icons`, retaining the upstream icon geometry and class names.
+Content generation rejects icon names missing from its stylesheet. Use complete
+`ph-name` literals in templates, TypeScript, or CV/configuration YAML; use
+`var(--icon-caret-right)` for the article disclosure marker. Do not assemble
+icon names from string fragments, since discovery cannot resolve them.
+
+After adding icons or updating `@phosphor-icons/web`, regenerate with the optional
+maintenance tool FontTools (ordinary builds need only Node and pnpm):
+
+```bash
+python -m venv /tmp/blog-font-tools
+/tmp/blog-font-tools/bin/pip install 'fonttools[woff]==4.61.1'
+PHOSPHOR_SUBSETTER=/tmp/blog-font-tools/bin/pyftsubset node scripts/subset-icons.mts
+pnpm exec biome format --write src/styles/icons/phosphor.css
+```
+
+Commit both the generated CSS and WOFF2. The generator retains the upstream MIT
+license in the stylesheet. Check toolbar, CV/social icons, directory icons and
+article disclosure markers in the production browser build.
+
+### Source checks
+
 | Files | Formatting/lint | Type and behavior validation |
 | --- | --- | --- |
 | Application TS | Biome + ESLint | Angular compiler/strict templates + unit tests |

@@ -61,7 +61,7 @@
               "node_modules/modern-normalize/modern-normalize.css",
               "node_modules/@angular/cdk/overlay-prebuilt.css",
               "node_modules/charter-webfont/charter.css",
-              "node_modules/@phosphor-icons/web/src/regular/style.css",
+              "src/styles/icons/phosphor.css",
               "src/styles.css"
             ],
             "server": "src/main.server.ts",

@@ -337,6 +337,10 @@ version. Its worker compatibility adapter and removal criteria are documented in
 - Production builds promote the prerendered `/404` route to `404.html` for
   Cloudflare's `404-page` handling and generate `_redirects` from
   `configs/redirects.yaml`; do not edit either file under `dist` manually.
+  Postbuild also appends immutable caching rules for Angular's fingerprinted
+  JS, CSS and media, validating the reserved output namespaces. See
+  [deployment](deployment.md) for their scope; negotiated HTML/Markdown caching
+  remains separate.
 
 - The postbuild step generates `sitemap.xml` and `robots.txt` from Angular's
   prerender manifest and page canonicals. It excludes noindex and redirect

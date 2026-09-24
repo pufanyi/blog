@@ -100,8 +100,10 @@ For Jekyll, Hexo, or Typst imports, also read
   Persistent authored arrows and variations require a Study chapter embed.
   `bg=system` follows the reader's OS theme, independently of the site toggle.
 
-- When adding or touching image assets, manually convert any non-AVIF images to
+- When adding or touching raster image assets, manually convert non-AVIF images to
   AVIF and reference the converted files instead.
+  Preserve vector diagrams as SVG; optimize embedded raster payloads separately
+  without rasterizing their text, lines, or mathematical labels.
   Inspect GIF/WebP frame counts before converting: animations must become AVIF
   sequences with all composited frames, original dimensions, per-frame durations,
   and loop counts preserved. Verify decoded metadata and playback on the served

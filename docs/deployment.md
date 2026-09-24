@@ -45,6 +45,15 @@ or fails again.
 
 Never hand-edit generated files. The Worker entry and its map stay outside public static assets. A build validates that every advertised Markdown alternate exists.
 
+Postbuild appends one-year immutable browser-cache rules to the copied `_headers`
+for Angular's hashed root `main-*.js`, `chunk-*.js`, `styles-*.css`, and `media/*`
+assets. These namespaces are reserved for build output; postbuild rejects
+unversioned files within them. Keep authored downloads under `/posts` or `/assets`.
+HTML, Markdown, and unversioned article images retain their existing cache policy.
+The negotiated page Worker still owns `Vary: Accept` and private revalidation.
+Verify cache headers through the Cloudflare preview, since the Node preview does
+not apply `_headers`. A deployment is required for production headers to change.
+
 ## URLs, redirects, and missing pages
 
 Canonicals use slashless URLs such as `/blog/notes/example` and `/docs/development`. Cloudflare `assets.html_handling` is `drop-trailing-slash`, so these canonical URLs must return 200 directly. Check direct visits as well as Angular navigation when adding a route.

@@ -4,12 +4,14 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Active work
 
+- [Compression modernization research — 2026-09-24](audits/2026-09-24-compression-modernization.md): live compression/cache headers, asset inventory, and prioritized optimization candidates.
 - [Long article rendering review — 2026-09-20](audits/2026-09-20-long-article-rendering.md): current production measurements, body delivery/hydration findings, and rendering recommendations.
 - [Long article reading experience](maintenance/long-article-reading.md): reader-journey findings, the interface proposal, and its ordered implementation tasks.
 - [Long article runtime investigation — 2026-09-13](audits/2026-09-13-long-article-performance.md): production measurements and runtime follow-ups supporting the reading proposal.
 
 ## Historical evidence
 
+- [Compression implementation — 2026-09-24](maintenance/2026-09-24-compression-implementation.md): icon and diagram reductions, cache policy, delivery diagnostics, and isolated reproduction of pre-existing budget failures.
 - [RL score-centering chapter — 2026-09-22](audits/2026-09-22-rl-score-centering.md): source verification, baseline/IS/BPO distinctions, numerical examples, and isolated article validation.
 - [ViT model explanations — 2026-09-22](audits/2026-09-22-vit-model-explanations.md): independent model chapters, original-source verification, compression diagrams, and validation evidence.
 - [Modern communication protocols tutorial — 2026-09-22](audits/2026-09-22-modern-communication-protocols.md): course/specification source boundaries, worked examples, and article validation.

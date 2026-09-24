@@ -46,6 +46,17 @@ those requests before changing the baseline. Explain intentional growth in the
 change description; do not raise all budgets because one article grows. Keep
 unrelated diagram styles out of this representative article.
 
+The report also includes a separate `delivery` list for all observed first-party
+responses, including documents, fonts, images and worker requests. It records
+`Content-Encoding`, encoded response-body bytes from Playwright request sizes,
+and decoded body bytes, split between initial reading and cold search. These
+exclude HTTP headers but may include transfer framing reported by the browser.
+The Node preview
+normally uses `identity`; its results must not be labeled production compression
+savings. Lazy images not requested by that journey and stubbed third-party
+resources are outside this observation. Existing decoded-code budgets remain
+independent of these delivery diagnostics.
+
 ## Long article runtime
 
 Payload budgets do not measure the browser's formula-processing or scrolling
