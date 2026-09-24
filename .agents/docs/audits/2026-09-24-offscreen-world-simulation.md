@@ -195,3 +195,47 @@ runtime experiment. Commit `7b7ba53` appeared in the shared checkout during
 validation and contains the reviewed article, bibliography and diagrams; those
 files have no remaining working-tree diff. Only this final validation record
 remains modified. This agent did not run commit, push or deployment commands.
+
+
+## Temporary Cloudflare withdrawal — 2026-09-24
+
+The user requested hiding this page using Cloudflare. The clean baseline was
+`0ac7e8c`, including the subsequent author additions; none of that prose or the
+byline was changed. Set only `draft: true` in the article front matter and use
+the documented draft lifecycle to omit the page, public discovery and browser
+content from the production build. The article contains only authoring sources
+and build-time diagrams, with no separately published attachments to remove.
+
+The current Wrangler OAuth session can deploy the blog Worker but the existing
+zone-level Access application API returns HTTP 403. No Access policy was
+modified. The implemented behavior is temporary public withdrawal with HTTP
+404, rather than a newly created owner-login policy. The user was informed of
+this approach before the edit and deployment. Existing publishing, architecture
+and deployment guides already cover drafts and hosting; their contracts did not
+change and no handbook edit is needed.
+
+Validation and deployment:
+
+- `pnpm check` passed; only the existing ignored broken-symlink warnings and
+  punycode deprecation remain.
+- `pnpm test --watch=false` passed: 92 content tests and 226 application tests
+  across 31 files. The generated-post test count decreases with the draft.
+- `pnpm build` passed: 171 prerendered routes, 154 sitemap URLs and 153 Markdown
+  alternatives. No published HTML, JS, JSON, Markdown, XML or text file contains
+  the hidden slug; the article's HTML directory and Markdown export are absent.
+- Local Wrangler on port 8794 passed 14 HTTP checks: the canonical URL, trailing
+  slash, `.html`, `/index.html`, `.md`, and negotiated Markdown return HTML 404;
+  eight public pages/discovery endpoints remain 200 and omit the article.
+- Deployed using `pnpm exec wrangler deploy --strict --keep-vars` with the
+  message “Temporarily hide offscreen world simulation article”. Production
+  Worker version: `b170f6cf-12af-4fda-a3e8-8e96f92e9582`.
+- Live `https://pufanyi.com` passed the same checks plus an unaffected public
+  article (15 checks). The existing private simulation-engines article still
+  redirects unauthenticated requests to Cloudflare Access.
+- Local Wrangler was stopped. Logs and machine-readable checks are in ignored
+  `tmp/hide-world/`; no credentials are included in this record.
+
+To restore publication, remove `draft: true`, run the usual checks/build and
+redeploy. This task did not push Git changes. The Cloudflare deployment is
+already live; the source flag must remain in future repository deployments
+until the author wants to restore the article.
