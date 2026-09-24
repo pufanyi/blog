@@ -239,3 +239,54 @@ To restore publication, remove `draft: true`, run the usual checks/build and
 redeploy. This task did not push Git changes. The Cloudflare deployment is
 already live; the source flag must remain in future repository deployments
 until the author wants to restore the article.
+
+
+## Correction: owner-only access — 2026-09-24
+
+The user clarified that the article must remain readable to the owner after
+Cloudflare login. Temporary withdrawal did not fulfill that intent. Against
+clean baseline `5a1620e`, replaced `draft: true` with `private: true`, preserving
+all article prose and authors. The private build is prepared but has NOT been
+deployed: deploying it before Access protects the route would expose the HTML.
+The currently deployed version still returns HTTP 404 at the original URL.
+
+The user asked to use the CLI. Checked the pinned Wrangler 4.129.1 CLI directly:
+`wrangler access --help` reports `Unknown argument: access`. The available OAuth
+scopes do not include Access application/policy management. Refreshed the normal
+Wrangler OAuth session with `wrangler whoami` before retrying authenticated
+calls, to distinguish token expiry from permissions. Account-level reads of
+apps/identity providers return empty lists, while organization access returns
+403. A real, narrowly scoped account-level POST to create a self-hosted Access
+application for `pufanyi.com/blog/cs/notes/offscreen-world-simulation*` was denied
+with HTTP 403, code 1010, `auth.forbidden`. Its requested empty policy list would
+have denied access by default while an owner policy was configured; the failed
+call created no application. Existing Access rules were not modified.
+
+The official application-create API requires `Access: Apps and Policies Write`:
+https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/applications/methods/create/
+
+To finish, provide a suitable scoped API token through the local environment,
+or add this path to the existing owner-only Access application in the dashboard.
+Then verify the allowed owner identity and coverage of canonical/HTML aliases,
+deploy the prepared build, and verify anonymous login redirects plus owner
+access. A refreshed Workers-only login is insufficient. Do not publish the
+private HTML without the host rule.
+
+Prepared-source validation:
+
+- `pnpm check`, `pnpm test --watch=false`, and `pnpm build` all passed
+  sequentially: 92 content tests, 226 application tests across 31 files.
+- Build emits 172 prerendered routes, 154 sitemap URLs and 153 Markdown
+  alternatives. The article's HTML exists with noindex; the public Markdown,
+  feed, sitemap and archive exports omit it. Its body text is absent from
+  public JavaScript chunks.
+- Local Wrangler and Chromium 151.0.7922.34 verified HTTP 200 for the private
+  HTML, successful hydration, five figures, noindex, Markdown 404, no archive
+  link and no browser exceptions. The local server was stopped afterward.
+- Final live request still returns 404. No deployment, commit or push was made
+  in this correction. Logs and the failed API response are under ignored
+  `tmp/private-world/`; no credentials are recorded here.
+
+The private-post authoring and runtime contracts are unchanged. The remaining
+step depends on Access configuration/credentials from the user, not additional
+article code.
