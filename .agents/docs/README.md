@@ -11,6 +11,7 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Historical evidence
 
+- [Offscreen world simulation tutorial — 2026-09-24](audits/2026-09-24-offscreen-world-simulation.md): version-pinned game implementation research, modern world streaming and simulation techniques, and article validation.
 - [Compression implementation — 2026-09-24](maintenance/2026-09-24-compression-implementation.md): icon and diagram reductions, cache policy, delivery diagnostics, and isolated reproduction of pre-existing budget failures.
 - [RL score-centering chapter — 2026-09-22](audits/2026-09-22-rl-score-centering.md): source verification, baseline/IS/BPO distinctions, numerical examples, and isolated article validation.
 - [ViT model explanations — 2026-09-22](audits/2026-09-22-vit-model-explanations.md): independent model chapters, original-source verification, compression diagrams, and validation evidence.

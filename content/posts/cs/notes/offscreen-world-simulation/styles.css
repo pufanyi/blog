@@ -1,0 +1,114 @@
+.ows-figure {
+  margin: 1.8rem 0;
+  break-inside: avoid;
+}
+
+.ows-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0.8rem;
+  background: var(--paper-bg);
+}
+
+.ows-scroll > svg {
+  display: block;
+  width: 100%;
+  min-width: 740px;
+  max-width: none;
+  height: auto;
+}
+
+.ows-scroll text {
+  fill: var(--text-color);
+  font: 15px var(--font-body);
+}
+
+.ows-scroll .ows-heading {
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.ows-scroll .ows-label {
+  font-weight: 600;
+}
+
+.ows-scroll .ows-small {
+  fill: var(--text-secondary);
+  font-size: 13px;
+}
+
+.ows-cell {
+  stroke-width: 1;
+}
+
+.ows-stored {
+  fill: var(--paper-bg);
+  stroke: var(--border-color);
+}
+
+.ows-loaded {
+  fill: color-mix(in srgb, var(--accent-sage) 13%, var(--paper-bg));
+  stroke: var(--accent-sage);
+}
+
+.ows-active,
+.ows-state {
+  fill: color-mix(in srgb, var(--accent-blue) 19%, var(--paper-bg));
+  stroke: var(--accent-blue);
+}
+
+.ows-player,
+.ows-dot {
+  fill: var(--accent-blue);
+}
+
+.ows-source,
+.ows-catchup {
+  fill: var(--accent-ochre);
+  stroke: var(--paper-bg);
+  stroke-width: 2;
+}
+
+.ows-guide,
+.ows-edge,
+.ows-skip {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.ows-guide {
+  stroke: var(--border-color);
+  stroke-width: 1.2;
+}
+
+.ows-edge {
+  stroke: var(--accent-blue);
+  stroke-width: 1.6;
+}
+
+.ows-skip {
+  stroke: var(--accent-ochre);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 6;
+}
+
+.ows-away {
+  fill: color-mix(in srgb, var(--accent-ochre) 9%, var(--paper-bg));
+}
+
+.ows-house {
+  fill: color-mix(in srgb, var(--accent-blue) 10%, var(--paper-bg));
+  stroke: var(--accent-blue);
+  stroke-width: 1.5;
+}
+
+.ows-window {
+  fill: color-mix(in srgb, var(--accent-ochre) 23%, var(--paper-bg));
+  stroke: var(--accent-blue);
+}
+
+.ows-empty {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-dasharray: 5 5;
+}
