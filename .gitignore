@@ -34,6 +34,7 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
+/.env.local
 /.angular/cache
 /.wrangler
 .sass-cache/

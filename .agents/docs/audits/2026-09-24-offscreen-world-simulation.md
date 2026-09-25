@@ -287,6 +287,30 @@ Prepared-source validation:
   in this correction. Logs and the failed API response are under ignored
   `tmp/private-world/`; no credentials are recorded here.
 
-The private-post authoring and runtime contracts are unchanged. The remaining
-step depends on Access configuration/credentials from the user, not additional
-article code.
+The private-post authoring and runtime contracts were unchanged. At this point,
+the remaining step depended on Access configuration/credentials from the user,
+not additional article code.
+
+## Owner-only Cloudflare Access — 2026-09-25
+
+The live canonical URL returned the full 329 KB article HTML to an anonymous
+request, while the existing `simulation-engines` private article redirected to
+Access. The GitHub source repository is private. The user provided a short-term
+API token in `.env.local`; `.gitignore` now ignores that file, and its local mode
+is `0600`. The token was never printed or committed.
+
+Created account-level self-hosted Access application
+`f59dd2d4-245f-4cc0-81ba-35f515d4ef4f` for
+`pufanyi.com/blog/cs/notes/offscreen-world-simulation*`. Its sole policy is
+`Allow owner email`, with an exact email match for `pufanyi@gmail.com`. The
+existing `simulation-engines` Access application and policy were left intact.
+After creation, anonymous requests to the canonical URL, trailing-slash alias,
+`.html`, `/index.html`, and `.md` all returned HTTP 302 to Access; the existing
+private article continued to return 302.
+
+The current source had already been deployed, so no Worker deployment was
+needed. Before configuring Access, `pnpm check`, `pnpm test --watch=false`, and
+`pnpm build` passed sequentially: 92 content tests, 226 application tests, and
+172 prerendered routes. The local private HTML is present; public discovery and
+Markdown exports omit the article. The owner confirmed that the canonical URL
+displays the article normally after Cloudflare Access login.

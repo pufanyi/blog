@@ -62,6 +62,17 @@ Prerender every article, ancestor category, archive page, and documentation page
 
 Sitemap generation excludes redirect and noindex pages. Article `lastmod` comes from `updated ?? date`; a build timestamp is not a content modification date. Documentation has no invented publication/update timestamps, so it has no article dates or `BlogPosting` structured data.
 
+## Private article access
+
+`private: true` removes an article from public discovery but still prerenders its
+direct HTML route. Before publishing one, create a Cloudflare Access self-hosted
+application for `pufanyi.com/blog/<slug>*` with an Allow policy for the exact
+owner email. The trailing wildcard covers the canonical route, slash and HTML
+aliases, and Markdown URL. Verify anonymous requests to each return an Access
+login redirect, then confirm the owner can read the article after login. Protect
+post-local assets separately when a private article has any. Keep the source
+repository private if the authored prose itself must remain private.
+
 ## Markdown negotiation and discovery
 
 Every handbook page advertises its Markdown alternative. `/docs` uses `/docs/index.md`; other pages use `/docs/<slug>.md`. Article exports use `/blog/<slug>.md`; archive pages share `/blog/index.md`; homepage and CV share `/profile.md`.
