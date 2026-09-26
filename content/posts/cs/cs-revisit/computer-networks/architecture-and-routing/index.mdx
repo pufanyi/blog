@@ -1,5 +1,5 @@
 ---
-title: "Computer Networks 01: Architecture and Routing"
+title: "Computer Networks: Architecture and Routing"
 date: "2026-09-26"
 description: "CS Revisited：从一个包的旅程推导 Internet 架构、资源共享、分布式路由与分层寻址。"
 authors:
@@ -11,7 +11,7 @@ authors:
 
 这就引出了计算机网络的几个核心问题：数据怎样被拆开和转发？共享资源不足时怎么办？每个节点只知道局部信息，怎样共同找到一条正确的路径？当网络规模继续增长，又怎样避免每台路由器都记住每台机器？
 
-这是 **CS Revisited / Computer Networks** 的第一篇。Computer Networks 会按主题持续分篇，本篇先建立架构与路由的基础。假设读者熟悉基本的数据结构、图和概率；协议术语会在用到时引入。本文覆盖 Berkeley CS 168 Fall 2026 第 1–4 周的七讲，按问题之间的依赖组织，也补充一些推导和协议细节。课程范围截至 2026-09-26 核对。[@cs168fa26]
+这是 **CS Revisited / Computer Networks** 的第一篇。Computer Networks 会按主题持续分篇，本篇先建立架构与路由的基础。假设读者熟悉基本的数据结构、图和概率；协议术语会在用到时引入。本文覆盖 Berkeley CS 168 [@cs168fa26] 第 1–4 周的七讲，按问题之间的依赖组织，也补充一些推导和协议细节。
 
 ## 从一条链路到一张网络
 
