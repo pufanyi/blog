@@ -1,0 +1,104 @@
+.csnet-figure {
+  margin: 1.75rem 0;
+}
+
+.csnet-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  overscroll-behavior-inline: contain;
+}
+
+.csnet-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+.csnet-topology,
+.csnet-packets {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-inline: auto;
+  font-family: var(--font-body);
+}
+
+.csnet-topology {
+  min-width: 350px;
+  max-width: 470px;
+}
+
+.csnet-packets {
+  min-width: 600px;
+  max-width: 720px;
+}
+
+.csnet-edge,
+.csnet-change {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 2;
+}
+
+.csnet-change {
+  stroke: var(--accent-blue);
+  stroke-dasharray: 4 3;
+}
+
+.csnet-node {
+  fill: var(--paper-bg);
+  stroke: var(--accent-blue);
+  stroke-width: 2;
+}
+
+.csnet-destination {
+  fill: color-mix(in srgb, var(--accent-blue) 8%, var(--paper-bg));
+  stroke-width: 4;
+}
+
+.csnet-label,
+.csnet-cost,
+.csnet-packet-label {
+  fill: var(--text-color);
+  text-anchor: middle;
+  font-size: 17px;
+}
+
+.csnet-packet-label,
+.csnet-row-label {
+  font-size: 14px;
+}
+
+.csnet-row-label {
+  fill: var(--text-secondary);
+}
+
+.csnet-link,
+.csnet-ip,
+.csnet-tcp,
+.csnet-data {
+  stroke: var(--text-secondary);
+  stroke-width: 1;
+}
+
+.csnet-link {
+  fill: color-mix(in srgb, var(--accent-sage) 16%, var(--paper-bg));
+}
+
+.csnet-ip {
+  fill: color-mix(in srgb, var(--accent-blue) 16%, var(--paper-bg));
+}
+
+.csnet-tcp {
+  fill: color-mix(in srgb, var(--accent-lavender) 16%, var(--paper-bg));
+}
+
+.csnet-data {
+  fill: var(--paper-bg);
+}
+
+.csnet-figure figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.8;
+}

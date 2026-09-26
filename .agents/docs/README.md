@@ -11,6 +11,8 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Historical evidence
 
+- [CS Revisited: Computer Networks 01 — 2026-09-26](audits/2026-09-26-cs-revisit-networks.md): FA26 weeks 1–4 coverage, protocol-source boundaries, nested series organization, and article validation.
+
 - [Offscreen world simulation tutorial — 2026-09-24](audits/2026-09-24-offscreen-world-simulation.md): problem-first large-world tutorial, primary-source research on streaming, simulation, networking and persistence, article revisions, and owner-only Cloudflare Access setup.
 - [Compression implementation — 2026-09-24](maintenance/2026-09-24-compression-implementation.md): icon and diagram reductions, cache policy, delivery diagnostics, and isolated reproduction of pre-existing budget failures.
 - [RL score-centering chapter — 2026-09-22](audits/2026-09-22-rl-score-centering.md): source verification, baseline/IS/BPO distinctions, numerical examples, and isolated article validation.

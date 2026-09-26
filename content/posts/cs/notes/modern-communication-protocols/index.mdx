@@ -80,6 +80,13 @@ $$
 
 这也解释了为什么实时通信不能简单地把拥塞控制关掉：发送得越积极，可能越是在替未来的语音积累延迟。
 
+<details>
+<summary>推荐材料：可靠传输与拥塞控制</summary>
+
+Berkeley CS 168 的教材先推导 TCP 怎样从编号、确认和超时中组织出可靠的 byte stream，再在另一章中解释拥塞窗口为什么不能只由接收端决定。这两章适合在继续阅读 QUIC 之前建立"为什么要付出这些代价"的直觉，后面遇到 QUIC 对同一问题的不同处理方式时也更容易比较。
+
+</details>
+
 ## HTTP/2 到 QUIC：不要让无关的请求一起等待
 
 打开白板页面时，浏览器可能同时请求样式、脚本和缩略图。它们不必全部依次完成。
@@ -126,6 +133,13 @@ QUIC 使用 UDP 承载，但可靠性不是 UDP 提供的。确认、丢包检�
 “QUIC 已经独立分流”也不等于 HTTP/3 完全没有等待。为了压缩 header，QPACK 可以引用动态表中的条目；如果解码某个 header 所需的表更新还没到，它仍可能被阻塞。这是压缩状态的依赖，不是 TCP 字节流的缺口。[@rfc9114]
 
 所以，更准确的结论是：QUIC 拆开了一类原本不必要的交付依赖，而不是消灭了一切依赖，也不是保证任何网络、任何负载下都比 TCP 更快。
+
+<details>
+<summary>推荐材料：QUIC 与传输演进</summary>
+
+ETH Zürich 2025 年 Advanced Topics in Communication Networks 的 transport 课件从传统拥塞控制和 TCP 的局限走到 QUIC 的设计选择，适合把前面的 TCP 基础连接到 QUIC 的多路复用与握手优化。Stanford CS 249I 的 Web Protocol Evolution 材料则覆盖 HTTP 演进的工程背景，但其中 QUIC 握手部分包含早期 Google QUIC 的设计，理解现代 IETF QUIC 时应以 RFC 9000/9001 为准。
+
+</details>
 
 ## 实时通信：正确的数据也可能已经失去价值
 
@@ -217,6 +231,13 @@ RTP 承担媒体序号和时间戳等信息，RTCP 提供相关反馈；真正�
 
 同理，白板上的持久笔画不能因为“也是实时数据”就随便丢弃。它可以使用可靠传输，也可以由应用设计版本、确认和补同步机制；可靠性必须在某一层真正落实。
 
+<details>
+<summary>推荐材料：实时媒体与 WebRTC</summary>
+
+UCSB CS 176C Spring 2026 的 Lecture 12 从 VoIP 场景出发，解释 jitter buffer 为什么必须在延迟和连续性之间做取舍，适合理解上面"多等一点换来什么"的量化直觉。接着可以读 WebRTC for the Curious 的 connecting、securing、media communication 和 data communication 章节，它把 ICE、DTLS、SRTP 和 DataChannel 串成一条完整路径，而不是把每个缩写当作独立条目介绍。涉及延迟计算时，始终先确认每个时间量的起止点。
+
+</details>
+
 ## WebTransport：对端是服务器时，还需要什么
 
 如果光标、游戏状态或协作数据本来就要经过服务器，那么应用未必需要整套对等媒体会话机制。它可能只想在同一个会话里同时拥有可靠 stream 和不可靠 datagram。
@@ -298,6 +319,13 @@ SSE 的自动重连和事件 ID 不会自动让服务器拥有永久事件历史
 
 现在可以把几个“确认”分开：transport ACK 说明某些传输数据到达；RPC 响应可以报告方法的结果；业务是否持久生效，则取决于服务端怎样定义成功并提交状态。它们可能接近发生，但不是同一件事。
 
+<details>
+<summary>推荐材料：RPC 与失败语义</summary>
+
+MIT 6.5840 的 Threads and RPC notes 值得完整阅读，它从"一次超时至少意味着几种不同的过去"出发，解释 at-most-once 和 at-least-once 的边界各在哪里。Cornell CS 4414 的 networking slides 则提供了一个更短的 gRPC 简介，适合快速建立接口印象，但涉及失败处理时仍需回到上面的推导。引用的是 2024 年秋季课程提供的 Spring 2023 课件。
+
+</details>
+
 ## 发布订阅：如果发送者不该认识每个接收者
 
 RPC 很适合“请这个服务执行这个操作”。但另一类问题是：“这里发生了一次更新，谁关心谁来接收。”
@@ -340,6 +368,13 @@ DDS 围绕带类型的数据和发布订阅关系组织通信，提供相应 QoS
 
 CoAP Observe 则允许客户端持续接收资源状态变化通知。它关心观察者跟上当前状态，不保证每个中间状态都成为不可遗漏的事件日志。因此，“观察当前温度”和“保存每笔交易”不能只因为都需要推送，就采用完全相同的交付假设。[@rfc7641]
 
+<details>
+<summary>推荐材料：物联网与发布订阅</summary>
+
+Washington University in St. Louis 的 MQTT 讲义从 IoT 消息场景出发，介绍 broker、topic 和三级 QoS 的交互流程，适合建立 MQTT 的工作画面。具体 QoS 行为应对照 MQTT 5.0 标准。Northwestern ME 495 的 DDS notes 则把视角转向机器人中间件，展示 Reliability、History、Lifespan 等维度怎样分别配置，可以结合 ROS 2 的 QoS 文档继续研究发布端和订阅端如何匹配。
+
+</details>
+
 ## 回到白板：把协议组合起来
 
 现在重新设计开头的在线白板，不需要先选一个包办全部通信的协议。可以按数据的含义拆开选择。
@@ -358,20 +393,3 @@ CoAP Observe 则允许客户端持续接收资源状态变化通知。它关心�
 选择之前，可以沿着同一条顺序追问：数据是完整文件、增量操作，还是可覆盖的状态？缺了前一条，后一条还能不能独立使用？晚到是否仍有价值？超时之后，远端可能已经做了什么？确认停在哪个边界？
 
 QUIC 让独立的数据流不必因为别人的缺口一起等待；实时协议让数据的时间价值进入设计；RPC 和消息协议让通信拥有操作与分发语义。但应用最终仍要定义：**什么必须被保留，什么可以过期，什么效果不能重复发生。**
-
-## 继续阅读
-
-如果希望沿着本文的推导补齐基础，可以先读 Berkeley CS 168 的 [TCP 设计](https://textbook.cs168.io/transport/tcp-design.html)。[@berkeleyTCP] 接着补齐[拥塞控制](https://textbook.cs168.io/transport/cc-principles.html)，再进入下面几组材料。[@berkeleyCC] 课程用于建立整体理解，具体线协议和安全性质则应与对应版本的标准一起阅读。
-
-| 方向 | 课程或教材 | 适合带着什么问题读 |
-| --- | --- | --- |
-| QUIC 与传输演进 | ETH Zürich Advanced Topics in Communication Networks，2025 年 transport 课件；Stanford CS 249I 的 Web Protocol Evolution | 为什么 HTTP 多路复用还需要传输层配合？握手与部署分别限制了什么？ |
-| 实时媒体 | UCSB CS 176C，Spring 2026 Lecture 12；WebRTC for the Curious | 如何分配播放预算？发现地址、验证路径、保护媒体为何是不同步骤？ |
-| RPC 与失败 | MIT 6.5840，2026 年 Threads and RPC；Cornell CS 4414 的 networking slides | 为什么一次超时不能证明远端没有执行？接口抽象隐藏了什么？ |
-| 物联网与机器人 | Washington University in St. Louis 的 MQTT 讲义；Northwestern ME495 的 DDS notes | 消费者是谁来管理？可靠性、历史与有效期怎样分别表达？ |
-
-ETH 的 2025 年课件适合连接传统 transport 与 QUIC。[@eth2025transport] Stanford 的材料适合看 Web 协议演进，不过其中 QUIC 握手部分包含早期设计，理解现代 IETF QUIC 时应以 RFC 9000/9001 为准。[@durumeric2025web]
-
-实时媒体可以先读 UCSB 的场景导向讲解。[@gupta2026realtime] 再读 WebRTC for the Curious 的 connecting、securing、media communication 和 data communication 章节。[@webrtcCurious] 涉及延迟计算时，始终先确认每个时间量的起止点。
-
-MIT 的 RPC notes 值得完整阅读。[@mit2026rpc] Cornell 的 gRPC 部分更适合作为短简介，引用的是 2024 年秋季课程提供的 Spring 2023 课件。[@birman2023networking] MQTT 的课程材料采用 2021 年版本，具体 QoS 行为对照 MQTT 5.0。[@jain2021mqtt] Northwestern 的 DDS notes 则可以结合 ROS 2 的 QoS 配置，继续研究发布端和订阅端如何匹配。[@elwinDDS]
