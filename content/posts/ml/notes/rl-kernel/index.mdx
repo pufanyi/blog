@@ -1,0 +1,83 @@
+---
+title: "大模型 RL 后训练中的训推一致性实践 (RL-Kernel v0.1.0 笔记)"
+date: "2026-09-26"
+updated: "2026-09-26"
+private: true
+description: "Vensen Mu 在 2026.09.26 分享的 RL-Kernel v0.1.0 笔记，探讨大模型 RL 后训练中 Rollout 与 Training 引擎间的 LogP 一致性问题及实践。"
+authors:
+  - "Fanyi Pu"
+  - "Gemini 3.1 Pro"
+---
+
+{/* 听课笔记，细节待补充 */}
+
+> **分享人**：Vensen Mu (RL-Kernel 核心维护者)
+> **时间**：2026.09.26
+> **项目地址**：[RL-Align/RL-Kernel](https://github.com/RL-Align/RL-Kernel)
+> **课件下载**：[PDF](./ppts/RL-Kernel-v0.1.0.pdf) | [PPTX](./ppts/RL-Kernel-v0.1.0.pptx)
+
+## 1. 问题背景：Rollout LogP 与 Training LogP 的偏差
+
+* **Rollout 阶段** (如 vLLM)：基于当前权重和 prompt 生成 response token，并记录 token LogP。
+* **Training 阶段** (如 Megatron-LM)：基于同一版权重和完整的 prompt + response tokens，重新计算该批次 token 的 LogP。
+* **问题现象**：在权重更新前，理论上 `train_logp` 应等于 `rollout_logp`。但由于两套引擎底层算子路径不同，常出现偏差。
+* **连锁反应**：LogP 的末位偏差会改变 importance ratio，使其远离 1，进而可能提前触发 clipping。
+* **偏差来源探究**：浮点归约顺序
+  * GPU 将大规模计算拆分为多个局部块。局部结果按不同顺序合并时，浮点舍入发生的位置不同，导致最后几位不一致。
+  * 常见触发点：GEMM 的 K 维累加、Attention 的 key 归一化、跨 rank 的结果合并、精度转换的位置等。
+* **比较前需对齐的五项先决条件**：
+  1. **权重版本**：同一权重和训练步。
+  2. **输入边界**：prompt、response、目标 token 和有效 mask。
+  3. **位置信息**：position、RoPE、causal mask、KV 可见范围。
+  4. **逻辑状态**：token / rank 归属、真实词表范围、分片映射。
+  5. **随机条件**：seed 与采样状态。
+
+## 2. 项目定位：vime 与 RL-Kernel 的分工
+
+* **vime (调度框架)**：负责工作流时序。组织 rollout, reference, actor train 的先后顺序；记录权重版本与数据流；闭环采样、训练、更新。
+* **RL-Kernel (一致性算子)**：负责关键计算的数值对齐。位于执行引擎与硬件后端之间。
+  * 算术契约
+  * 恢复 token 顺序并固定结果合并顺序
+  * 比较 selected-token LogP 并保存运行记录
+* **训推两侧需要重点对齐的计算**：
+  * **算术定义**：RMSNorm、Attention、LogP 需要有相同的输入范围和归一化定义。
+  * **Token 顺序**：TP/CP 切分后，要先恢复到同一个逻辑 token 顺序再做比较。
+  * **结果合并**：局部或 rank 结果必须按固定顺序合并。
+  * **精度边界**：明确哪些步骤用 FP32 累加，以及在哪一步转换精度。
+
+## 3. 验证方法：定位 Mismatch 的五类归约
+
+v0.1.0 覆盖了以下五类归约（归约维度）：
+1. **RMSNorm** (hidden dimension)
+2. **Attention** (visible keys) - 依赖 LogSumExp (局部最大值、指数和累加顺序)
+3. **GEMM / SwiGLU** (K dimension)
+4. **Linear LogP** (vocabulary) - 依赖 LogSumExp (在完整词表上计算)
+5. **Collectives** (ranks)
+
+* **0 mismatch 验证流程 (排查第一处差异)**：
+  1. **固定 replay**：锁定 token、mask 和 position（排除采样随机性）。
+  2. **逐层对比**：比较两边的中间结果。
+  3. **找到首个差异**：记录发生差异的对应层并修复。
+  4. **回到在线训练**：验证完整 RL step 是否 0 mismatch。
+
+## 4. v0.1.0 实践结果：CUDA 与 ROCm
+
+* **CUDA 实践 (Qwen3-8B, 8xH100)**：
+  * TP4 / CP2，Global Batch 128
+  * 连续 200 个训练 steps，LogP mismatch 始终保持为 0。
+  * 端到端性能不低于 vime 原生路径（如 GEMM 选择 cuBLASLt no-split-K/SM90，Attention FA4 strict core 等）。
+* **ROCm 实践 (Qwen3-8B, 8xMI300X)**：
+  * TP4 / CP2，Global Batch 8
+  * 200 steps 逐 Bit 一致（比较了 9,400,614 个元素）。
+  * 性能与原生路径基本持平（自研 MFMA kernel，AITER/CK strict core）。
+
+## 5. 当前边界与下一步计划
+
+* **当前边界**：
+  * **已验证**：200 step LogP mismatch 0；CUDA/ROCm 公开曲线；Qwen3-8B Dense 单机快速启动。
+  * **待验证**：消除 LogP mismatch 后，训练收益是否能稳定提升；MoE、多模态、多机等复杂场景。
+* **下一阶段接入计划**：
+  1. **DeepSeek-V4**：Flash MoE 正在开发中。
+  2. **Gemma / Qwen3-Next**：模型与算子 RFC。
+  3. **更多框架**：verl / AReaL 接入。
+  4. **更多后端**：MUSA / Ascend 继续完善。
