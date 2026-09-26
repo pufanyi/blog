@@ -169,10 +169,11 @@ For Jekyll, Hexo, or Typst imports, also read
 
 - Use citations selectively and place them at the point of attribution: next to
   the named paper, lecture, method, or specific claim they support, including
-  within a sentence. Cite distinct named sources separately instead of bundling
-  them at the paragraph's end. Group citations only when they support the same
-  claim; use a paragraph-end citation only when its scope is clear. Avoid
-  mechanically citing every paragraph or repeating the same source throughout
+  within a sentence. **Do not lazily default to placing citations at the end of a paragraph.**
+  Cite distinct named sources separately instead of bundling them at the paragraph's end.
+  Group citations only when they support the same claim; use a paragraph-end
+  citation *only* when its scope unambiguously covers the entire preceding paragraph.
+  Avoid mechanically citing every paragraph or repeating the same source throughout
   one explanation. Keep specific results, quotations, empirical claims, and
   adapted figures attributable.
 
