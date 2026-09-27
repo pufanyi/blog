@@ -12,6 +12,10 @@ do not add temporary host workarounds to project dependencies or CI.
   supplied by extracting matching distro packages into a temporary directory
   and setting a process-scoped `LD_LIBRARY_PATH`. Use `FONTCONFIG_FILE` for
   temporary fonts; keep these host workarounds out of project dependencies.
+  The fallback WebKit WPE bundle's `minibrowser-wpe/MiniBrowser` launcher resets
+  `LD_LIBRARY_PATH`; a process-scoped value alone will not reach that browser.
+  Use an isolated browser bundle or temporarily adjust its launcher to preserve
+  the inherited path; restore any modified cached launcher after validation.
   On older glibc hosts, point `MINIFLARE_WORKERD_PATH` at a temporary wrapper
   that launches the installed workerd through a newer extracted glibc loader.
   Verify actual CJK glyph rendering: a previous task's subset font may omit
@@ -24,7 +28,8 @@ check. A temporary matching supported-platform download plus a private newer
 runtime can work, but its loader and C++ libraries must be isolated to the
 browser executable. Putting a newer glibc in global `LD_LIBRARY_PATH` can break
 Node and Chromium. Keep any such wrapper outside the repository and report the
-engine used. The maintenance validation used WebKit 26.5.
+engine used. The 2026-09-27 dependency refresh validated WebKit 26.6 and
+compared failures against the previous WebKit 26.5 build.
 Use the same `PLAYWRIGHT_HOST_PLATFORM_OVERRIDE` when installing and running that
 supported build; otherwise the driver may still use a frozen platform's protocol
 settings with the newer executable (for example, the removed `PushAPIEnabled`).

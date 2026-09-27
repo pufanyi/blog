@@ -53,12 +53,12 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `PORT=${previewPort} pnpm preview`,
+      command: `PORT=${previewPort} node scripts/serve-preview.mts`,
       url: previewUrl,
       reuseExistingServer: false,
     },
     {
-      command: `pnpm exec wrangler dev --local --ip 127.0.0.1 --port ${cloudflarePort}`,
+      command: `node node_modules/wrangler/wrangler-dist/cli.js dev --local --ip 127.0.0.1 --port ${cloudflarePort}`,
       url: cloudflareUrl,
       reuseExistingServer: false,
     },

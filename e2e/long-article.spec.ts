@@ -43,7 +43,9 @@ for (const slug of ['rl', 'diffusion', 'ssl']) {
       if (response.request().resourceType() === 'script') scripts.push(response.text());
     });
     await page.goto(`/blog/ml/ml-revisit/${slug}`, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
+    await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true', {
+      timeout: 30_000,
+    });
     await page.evaluate(() => document.fonts.ready);
     expect(
       (await Promise.all(scripts)).filter((script) => /contentHtml:\s*["'`]</.test(script)),

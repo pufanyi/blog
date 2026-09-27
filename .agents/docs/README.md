@@ -11,6 +11,8 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Historical evidence
 
+- [Dependency refresh — 2026-09-27](maintenance/2026-09-27-dependency-refresh.md): Node/pnpm and package updates, exception cleanup, isolated baseline comparison, and validation boundaries.
+
 - [CS Revisited: Computer Networks 01 — 2026-09-26](audits/2026-09-26-cs-revisit-networks.md): FA26 weeks 1–4 coverage, protocol-source boundaries, nested series organization, and article validation.
 
 - [Offscreen world simulation tutorial — 2026-09-24](audits/2026-09-24-offscreen-world-simulation.md): problem-first large-world tutorial, primary-source research on streaming, simulation, networking and persistence, article revisions, and owner-only Cloudflare Access setup.

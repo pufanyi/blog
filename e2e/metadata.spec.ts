@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { JSDOM } from 'jsdom';
+import { PERSON_DATA } from '../src/app/data/person';
 import { POSTS } from '../src/app/data/posts';
 import { SITE_CONFIG } from '../src/app/data/site-config';
 import { test } from './fixtures';
@@ -30,7 +31,16 @@ test('prerendered HTML contains article metadata and missing routes return the 4
       headline: post.title,
       ...(post.description ? { description: post.description } : {}),
       datePublished: post.date,
-      author: [{ '@type': 'Person', name: SITE_CONFIG.author.name, url: `${SITE_CONFIG.url}/` }],
+      author: (post.authors?.length ? post.authors : [SITE_CONFIG.author.name]).map((name) =>
+        name === SITE_CONFIG.author.name
+          ? {
+              '@type': 'Person',
+              '@id': PERSON_DATA['@id'],
+              name,
+              url: `${SITE_CONFIG.url}/`,
+            }
+          : { name },
+      ),
       mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_CONFIG.url}/blog/${post.slug}` },
     });
     dom.window.close();

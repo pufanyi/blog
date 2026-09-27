@@ -47,6 +47,9 @@ pnpm exec playwright test e2e/docs.spec.ts --project=desktop --project=mobile
 ```
 
 Calling Playwright directly reuses existing production output, so build after changing source. `BLOG_PREVIEW_PORT` and `BLOG_CLOUDFLARE_PORT` select isolated server ports when defaults are occupied. Playwright owns its servers and does not reuse an existing development server. See [host troubleshooting](browser-troubleshooting.md) for Linux library, font, and workerd issues.
+The Playwright configuration starts the preview and Wrangler Node entrypoints
+directly so their server processes exit when the test run finishes under native
+pnpm.
 
 Shared browser fixtures stub third-party analytics/comments and external webfonts.
 Generated formulas are already static; reading/scroll tests must not load a browser
@@ -63,3 +66,6 @@ Wait for `.post-body[data-rendered="true"]` before testing attached article cont
 The quality workflow runs source checks and unit tests. The quality job generates once and uses `*:generated` commands afterward; the final required `check` status depends only on that job. Browser tests are not run in GitHub CI; run them locally when relevant. Keep generated and normal commands aligned when adding checks.
 
 Resource budgets cover representative production pages and cold search with worker traffic included. Warm queries must add no resources. Use the per-request reports to explain changes rather than increasing a threshold without investigation. Local browser runs retain reports and visual diagnostics, including successful rendering captures; screenshots are diagnostic artifacts rather than pixel baselines. See [performance records](maintenance/performance.md).
+The long-article Chromium diagnostic applies fourfold CPU throttling and waits
+for article font/layout readiness before sampling; its host timings are
+diagnostic, while engine loading and body growth remain assertions.

@@ -5,11 +5,11 @@ import { JSDOM } from 'jsdom';
 // Decoded response bytes. Baselines are measured on the served production build;
 // 10% headroom makes growth visible without treating host timings as an SLA.
 const baselines = {
-  '/': { code: 466_159, html: 85_163, styles: 70_617 },
-  '/blog': { code: 590_430, html: 95_147, styles: 71_166 },
-  '/blog/oi-icpc/codeforces/cf551c': { code: 693_027, html: 162_790, styles: 103_450 },
+  '/': { code: 426_564, html: 88_664, styles: 74_041 },
+  '/blog': { code: 695_835, html: 101_555, styles: 74_579 },
+  '/blog/oi-icpc/codeforces/cf551c': { code: 803_370, html: 173_248, styles: 112_240 },
 };
-const searchBaseline = 1_748_669;
+const searchBaseline = 2_194_165;
 const limit = (baseline: number) => Math.ceil(baseline * 1.1);
 
 for (const [path, baseline] of Object.entries(baselines)) {

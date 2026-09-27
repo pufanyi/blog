@@ -36,10 +36,12 @@ test('search finds articles outside the current archive page', async ({ page }) 
   test.skip(archivePages < 2, 'The configured archive fits on one page');
   const older = POSTS[BLOG_CONFIG.postsPerPage]!;
   await page.goto('/blog');
-  await expect(page.locator('.post-entry').filter({ hasText: older.title })).toHaveCount(0);
+  await expect(page.locator(`.post-entry[href="/blog/${older.slug}"]`)).toHaveCount(0);
   const { input } = await openSearch(page);
   await input.fill(older.title);
-  const result = page.getByRole('option').filter({ hasText: older.title });
+  const result = page
+    .getByRole('option')
+    .filter({ has: page.locator('.result-title').getByText(older.title, { exact: true }) });
   await expect(result).toBeVisible();
   await result.click();
   await expect(page).toHaveURL(`/blog/${older.slug}`);

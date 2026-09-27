@@ -15,24 +15,20 @@ stubs with the actual pinned MathJax engine and fonts.
 
 | Route/action | Decoded program resources | HTML | Inline styles |
 | --- | ---: | ---: | ---: |
-| Home | 466,159 B | 85,163 B | 70,617 B |
-| Blog archive | 590,430 B | 95,147 B | 71,166 B |
-| CF551C article | 693,027 B | 162,790 B | 103,450 B |
-| First search, additional resources | 1,748,669 B | — | — |
+| Home | 426,564 B | 88,664 B | 74,041 B |
+| Blog archive | 695,835 B | 101,555 B | 74,579 B |
+| CF551C article | 803,370 B | 173,248 B | 112,240 B |
+| First search, additional resources | 2,194,165 B | — | — |
 
-Measurement: 2026-09-12, 97 articles including the consolidated reinforcement
-learning notes, Angular build/CLI/SSR 22.1.8. These results include the concurrent
-search refactor and content updates. Against the original audit, CF551C inline
-styles decreased 37.2%, HTML 28.1%, and program resources 5.3%. Home and search
-program resources grew 5.6% and 3.7%; this is a combined revision comparison,
-not an isolated attribution to any one change.
-
-Article/search rows were remeasured on 2026-09-20 (99 articles). Static formula
-HTML replaces browser typesetting and initial body-module duplication: CF551C
-HTML grows by 25,095 B while decoded program resources fall by 25,895 B. Inline
-formula CSS is included in HTML, not additional transfer. The search baseline
-reflects intervening authored corpus growth; formula expansion is deliberately
-excluded from search. Home/archive budgets retain their previous limits.
+Measurement: 2026-09-27, 105 articles, Node 24.21.0, Angular 22.2.0, and
+Playwright 1.63.0 Chromium on the served production build. The old 2026-09-12
+and 2026-09-20 limits predated later article and search-corpus growth. On an
+isolated checkout of the unchanged commit with Node 24.18.1 and the previous
+lockfile, the same three code and search gates failed: home 422,741 B, blog
+692,172 B, CF551C 799,490 B, and first search 2,194,246 B. The dependency
+refresh measured 426,564 B, 695,835 B, 803,370 B, and 2,194,165 B respectively.
+The new baselines retain 10% headroom and track the current corpus and build
+output. Static formula CSS remains included in HTML, not an additional transfer.
 
 A local sample recorded 83 ms to focus the search input, 218 ms from opening to
 the first Chinese results, and 20 ms for a warm English query. These host timings
