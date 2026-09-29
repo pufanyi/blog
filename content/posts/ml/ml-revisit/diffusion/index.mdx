@@ -897,7 +897,7 @@ $$
 
 我们会建立这样一个训练循环：对同一个 prompt 生成一组结果，比较 reward，再调整产生这些结果的采样决策。Reward 只需要为输出打分，可以来自不可微的评判程序。
 
-本节把前面的 velocity prediction 与 ODE/SDE sampling 接到这个训练循环中，继续使用 $t=0$ 为 noise、$t=1$ 为 data 的时间方向。Policy gradient 和 clipped policy update 的一般原理，分别见 [RL 的 policy gradient](/blog/ml/ml-revisit/rl#direct-policy-differentiation) 与 [PPO](/blog/ml/ml-revisit/rl#proximal-policy-optimization)；下面直接在生成过程上建立它们所需的量。
+本节把前面的 velocity prediction 与 ODE/SDE sampling 接到这个训练循环中，继续使用 $t=0$ 为 noise、$t=1$ 为 data 的时间方向。Policy gradient 和 clipped policy update 的一般原理，分别见 [RL 的 policy gradient](/blog/ml/ml-revisit/rl-policy-gradient#direct-policy-differentiation) 与 [PPO](/blog/ml/ml-revisit/rl-policy-updates#proximal-policy-optimization)；下面直接在生成过程上建立它们所需的量。
 
 ### Denoising as an MDP
 
@@ -1007,7 +1007,7 @@ $$
 
 若 $\hat A_i>0$，提高 $\rho_{i,k}$ 会提高 $\rho_{i,k}\hat A_i$，因而鼓励模型增加这个 action 的 density；$\hat A_i<0$ 时方向相反。同一条 trajectory 的各步骤共享终点 advantage，ratio 则各自计算。
 
-多次更新后，当前 policy 可能逐渐偏离收集数据时的 policy。[PPO clipping](/blog/ml/ml-revisit/rl#ppo-clip) 限制 surrogate 对过大更新的激励；还可以加 reference KL，约束它偏离预训练模型的程度。把两者写在一起，得到最大化目标：
+多次更新后，当前 policy 可能逐渐偏离收集数据时的 policy。[PPO clipping](/blog/ml/ml-revisit/rl-policy-updates#ppo-clip) 限制 surrogate 对过大更新的激励；还可以加 reference KL，约束它偏离预训练模型的程度。把两者写在一起，得到最大化目标：
 
 $$
 \mathcal J(\theta)

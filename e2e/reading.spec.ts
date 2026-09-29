@@ -180,7 +180,7 @@ for (const layout of ['sidebar', 'drawer'] as const) {
       height: 560,
     });
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/blog/ml/ml-revisit/rl');
+    await page.goto('/blog/ml/ml-revisit/diffusion');
     await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
     await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
     if (layout === 'drawer') {

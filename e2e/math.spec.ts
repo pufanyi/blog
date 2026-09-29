@@ -74,7 +74,7 @@ test('static formulas remain readable and copy as TeX without browser MathJax', 
   page.on('request', (request) => {
     if (request.url().includes('/mathjax@')) browserMathRequests++;
   });
-  await page.goto('/blog/ml/ml-revisit/rl');
+  await page.goto('/blog/ml/ml-revisit/rl-policy-gradient');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   await page.locator('.post-body details').evaluateAll((elements) => {
     elements.forEach((element) => {
@@ -146,7 +146,7 @@ test('right-clicking static math preserves its geometry and reading position', a
 test('static math matches browser typesetting across surrounding fonts and sizes', async ({
   page,
 }) => {
-  await page.goto('/blog/ml/ml-revisit/rl');
+  await page.goto('/blog/ml/ml-revisit/rl-policy-gradient');
   await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
   // Keep the same static nodes as their typography changes, including a font
   // change after initial display. Only the reference column is re-typeset.

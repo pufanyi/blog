@@ -1,0 +1,578 @@
+---
+title: "Reinforcement Learning: Training-inference Mismatch 与 Score Centering"
+date: "2024-10-16"
+updated: "2026-09-29"
+description: "Reinforcement Learning: Training-inference Mismatch 与 Score Centering：RL 系列第 4 篇。"
+authors:
+  - "Fanyi Pu"
+  - "GPT‑5.6 Sol"
+  - "GPT-6 Astra"
+---
+
+[Policy gradient](/blog/ml/ml-revisit/rl-policy-gradient) 通常从当前策略采样，或者像 [importance sampling](/blog/ml/ml-revisit/rl-policy-updates#off-policy-policy-gradients) 那样显式处理分布差异。这篇专门讨论 LLM 的 sampler 与 trainer 不一致时，更新中会出现什么偏差，以及 Score Centering 能修正其中哪一部分。阅读时需要熟悉 baseline；涉及 group statistics 的讨论可以对照 [GRPO](/blog/ml/ml-revisit/rl-llm#group-relative-policy-optimization)。
+
+[系列导读](/blog/ml/ml-revisit/rl) · [上一篇](/blog/ml/ml-revisit/rl-llm)
+
+On-policy policy gradient 的无偏性依赖一个条件：**产生 action 的 distribution，必须与计算 $\nabla_\theta\log\pi_\theta$ 的 distribution 对得上。** 对 LLM 来说，rollout engine 和 trainer 即使拿着同一份权重，也可能因为量化、不同的 kernel 或数值计算顺序，给出不同的 next-token probabilities；异步训练还会让 rollout 使用较旧的权重。这些差异通常放在 training-inference mismatch（TIM）这个问题下讨论。
+
+Score Centering [@marek2026scorecentering] 给出了一个值得接着 baseline 和 GRPO 往下想的切入点：如果所有回答的 reward 都一样，policy 理应没有值得优化的方向，但 mismatch 会让朴素的更新仍然移动。我们先把这个现象算清楚，再设计修正，最后比较它与 importance sampling、Bellman Policy Optimization（BPO）的关系。本节依据两篇论文的 September 2026 v1，数值例子是用于核对公式的独立构造。
+
+这一节分四步：先在固定 prefix 下推导 drift 与 SC，再比较 baseline、IS 和 BPO；随后讨论实现，最后回到完整 rollout 与实验结论。
+
+## From mismatch to centered scores
+
+### A constant reward should not move the policy
+
+先固定一个 prefix $s=(x,y_{<t})$，只看当前位置选择哪个 token。为避免把 state 和 score 都写成 $s$，这里记
+
+$$
+p_a=\pi_\theta(a\mid s),\qquad
+q_a=\pi_{\mathrm{sampler}}(a\mid s),\qquad
+z_a=\nabla_\theta\log p_a.
+$$
+
+$p$ 是 trainer，$q$ 是实际采样分布，$z_a$ 是一个参数空间中的向量，叫作 score；它与 reward 不是同一个「分数」。一次更新中，rollout、$q$ 和 reward targets 都固定，不对采样过程反向传播。先假设词表有限、$p_a>0$，且 $p$ 对参数可微。
+
+如果每个 action 都给常数 reward $c$，目标就是 $\sum_a p_a c=c$，梯度应该为零。用[基础篇推导的 score identity](/blog/ml/ml-revisit/rl-policy-gradient#dont-let-the-past-distract-you)，有
+
+$$
+\mathbb E_p[z]
+=\sum_a p_a\nabla_\theta\log p_a
+=\nabla_\theta\sum_a p_a=0.
+$$
+
+但 trainer 实际收到的是 $a\sim q$。直接用 $cz_a$ 更新，平均起来得到
+
+$$
+c\,m_q,\qquad m_q:=\mathbb E_q[z]=\sum_a q_a z_a.
+$$
+
+这个平均 score 一般不为零。我们甚至不需要长序列就能看到问题：设只有两个 action，$p(A)=\sigma(\theta)=0.8$，$p(B)=0.2$，而 sampler 给出 $q(A)=0.6$、$q(B)=0.4$。对这个 scalar logit 求导，
+
+$$
+z_A=1-p(A)=0.2,\qquad z_B=-p(A)=-0.8.
+$$
+
+在 $p$ 下，它们刚好抵消：$0.8\times0.2+0.2\times(-0.8)=0$。换成 $q$，则
+
+$$
+m_q=0.6\times0.2+0.4\times(-0.8)=-0.2.
+$$
+
+于是即使每个 action 都得到 $+1$，gradient ascent 也会减小 $\theta$，降低 trainer 选择 $A$ 的概率。这一步在模仿 sampler 的偏好，却没有利用任何 reward 差异。
+
+### Separating drift from the reward signal
+
+现在让 action 的好坏不同。记 $Q_a$ 为固定的 action-value signal；此处先在 $p$、$q$ 下比较**同一个 $Q$ 函数**，并记
+
+$$
+V_q=\mathbb E_q[Q],\qquad
+g^\star=\mathbb E_p[Qz].
+$$
+
+$V_q$ 只是这个 signal 在 $q$ 下的平均值；若取 $Q=\mathcal Q^q(s,\cdot)$，它就等于该策略的 state value $\mathcal V^q(s)$。我们稍后再把 prefix 的访问分布和后续 rollout 放回来，不能把这个局部比较直接当成整个 RL objective 的梯度。
+
+为了分清更新有没有使用 action 之间的优劣，先把每个 $Q_a$ 拆成「大家共有的平均部分」$V_q$ 和「相对平均值的差异」$Q_a-V_q$：
+
+$$
+\begin{aligned}
+g_{\mathrm{naive}}
+&=\mathbb E_q[Qz]\\
+&=V_qm_q+\mathbb E_q[(Q-V_q)z]\\
+&=V_qm_q+\operatorname{Cov}_q(Q,z).
+\end{aligned}
+$$
+
+这里 scalar 与 vector 的 covariance 定义为
+
+$$
+\operatorname{Cov}_q(Q,z)
+=\mathbb E_q[(Q-V_q)(z-m_q)].
+$$
+
+最后一步成立，是因为 $\mathbb E_q[Q-V_q]=0$。第一项 $V_qm_q$ 只知道平均 reward 有多大，不知道哪个 action 更好；第二项才把 reward 的差异与 score 的方向对应起来。我们把第一项称为 **mean-score drift**。
+
+这个 drift 还有一个直观的方向：固定 $q$，$m_q$ 正是 $\mathbb E_q[\log p_a]$ 的梯度，也就是把 $q$ 当 teacher 做 maximum likelihood 的方向。若 $V_q>0$，它把 trainer 拉向 sampler；若 $V_q<0$，则反向推动。固定 teacher 的拟合与不断从 trainer 同步权重、又持续引入偏差的 sampler，具有不同的反馈结构。后者可能累积误差，不过这段代数本身没有证明任意 mismatch 都一定导致 collapse。
+
+回到两个 action 的例子，令 $Q_A=1$、$Q_B=0$。有
+
+$$
+g^\star=0.16,\qquad
+V_qm_q=0.6\times(-0.2)=-0.12,\qquad
+\operatorname{Cov}_q(Q,z)=0.24.
+$$
+
+所以 naive update 为 $-0.12+0.24=0.12$。更有意思的是，把所有 reward 加 $1$，action 之间的优劣完全没有改变，理想更新仍为 $0.16$，但 naive update 变成
+
+$$
+0.6\times2\times0.2+0.4\times1\times(-0.8)=-0.08.
+$$
+
+它连方向都反过来了。一般地，$Q\mapsto Q+c$ 会给 naive update 增加 $cm_q$；这正是我们希望消除的依赖。
+
+### Center the score under the sampler
+
+我们想保留不同 action 的 score 差异，同时让常数 reward 不再产生平均更新。最直接的操作，是给所有 action 的 score 减去同一个向量 $d$。这个操作保留 $z_a-z_b$，而零均值要求
+
+$$
+\mathbb E_q[z-d]=m_q-d=0.
+$$
+
+因此必须选 $d=m_q$，得到 centered score $\widetilde z_a=z_a-m_q$。这就是 Score Centering（SC）的修正。把它放进更新，
+
+$$
+\begin{aligned}
+g_{\mathrm{SC}}
+&=\mathbb E_q[Q(z-m_q)]\\
+&=\mathbb E_q[Qz]-V_qm_q\\
+&=\operatorname{Cov}_q(Q,z).
+\end{aligned}
+$$
+
+在两个 action 的例子中，centered scores 是 $0.4$ 和 $-0.6$，在 $q$ 下的平均值为零。用 $Q=(1,0)$ 或 $Q=(2,1)$，SC 的平均更新都为 $0.24$。
+
+<ScoreShiftDiagram />
+
+这解决了 reward 平移导致的 drift，但 $0.24$ 仍然不等于 on-policy 的 $0.16$。由于 $\mathbb E_p[z]=0$，理想更新可以写成 $g^\star=\operatorname{Cov}_p(Q,z)$，所以
+
+$$
+\boxed{
+g_{\mathrm{SC}}-g^\star
+=\operatorname{Cov}_q(Q,z)-\operatorname{Cov}_p(Q,z).
+}
+$$
+
+**精确 SC 消掉了 mean-score drift，剩下的 covariance 仍然是在 $q$ 下衡量的。** 恢复 reward-shift invariance、得到无偏的 on-policy gradient、降低 estimator variance，是三个不同的要求。上面的推导只保证第一个，以及对 drift 的精确消除。
+
+<details>
+<summary>Mean score 为零，是否就说明 sampler 与 trainer 相同？</summary>
+
+如果直接把整个 vocabulary 的 logits $\ell$ 当独立参数，softmax score 为 $\nabla_\ell\log p_a=e_a-p$，所以
+
+$$
+\mathbb E_q[\nabla_\ell\log p_a]=q-p.
+$$
+
+此时平均 score 为零确实等价于 $q=p$。但神经网络参数 $\theta$ 通过 logits 的 Jacobian $J_\ell=\partial\ell/\partial\theta$ 影响概率，有
+
+$$
+m_q=J_\ell^\top(q-p).
+$$
+
+投影后可能出现抵消。因此一般参数化下只能说 $p=q$ 必然使 $m_q=0$，不能反过来推断；总 drift 为零还可能只是因为 $V_q=0$。
+
+</details>
+
+## Baselines, importance sampling, and BPO
+
+SC 与前面的方法都有关联，但需要分别比较它们的期望更新、逐样本梯度和实际近似。
+
+### What a baseline already fixes
+
+[基础篇的 baseline](/blog/ml/ml-revisit/rl-policy-gradient#introducing-baselines) 也是从 reward 中减去一个与当前 action 无关的数。那为什么不直接用 $Q-V$？
+
+固定 prefix 下的 baseline $V$，按照刚才的拆法，
+
+$$
+\begin{aligned}
+g_V
+&=\mathbb E_q[(Q-V)z]\\
+&=(V_q-V)m_q+\operatorname{Cov}_q(Q,z).
+\end{aligned}
+$$
+
+所以 **exact $q$-baseline $V=V_q$ 与 exact SC 的期望更新相同**。若 baseline 有误差 $V-V_q$，残余 drift 就是 $-(V-V_q)m_q$。一个准确的 $\mathcal V^p$ 也未必是这里所需的 $V_q$：评估的策略或 $Q$ signal 不同，就不是同一个 target。
+
+不过两种 estimator 并不逐样本相同：
+
+$$
+(Q-V_q)z\quad\text{与}\quad Q(z-m_q)
+$$
+
+分别把中心化放在 scalar reward 和 vector score 上。它们的期望相同，variance 不必相同；on-policy 时 SC 原样保留 $Qz$，baseline 仍然可以改变 variance。SC 绕过了对每个 prefix 的 expected return 的估计，转而要求 sampler 的 next-token distribution。这解释了为什么这项操作在 vocabulary 可以求和的 LLM 中有实现价值。
+
+还可以同时使用二者。只要 $V$ 在给定 prefix 后不依赖当前 action，
+
+$$
+\mathbb E_q[(Q-V)(z-m_q)]
+=\operatorname{Cov}_q(Q,z).
+$$
+
+这里 $V$ 的选择不再改变期望，但仍可能影响 variance。
+
+GRPO 的 group mean 为什么没有自动完成这件事？因为它在**同一 prompt 的多个完整回答之间**居中，而我们要求在**每个具体 prefix 的下一步选择之间**居中。假设一个 prompt 的平均成功率为 $0.5$，某个正确推导的 prefix 之后成功率为 $0.9$，那么减去 prompt baseline 后，这个 prefix 的 expected advantage 仍为 $0.4$。Group 中正负 advantage 的总和为零，并不意味着每个 prefix 的条件均值都为零。
+
+这里还沿用[GRPO 中的有限 group 提醒](/blog/ml/ml-revisit/rl-llm#grpo-with-binary-rewards)：同一组样本的 mean、standard deviation 是随机变量。把包含当前回答的 group mean 当成独立 baseline，或把 sample standard deviation 当成固定常数，会改变期望计算。以上 baseline 等式针对固定的 state-dependent baseline；GAE 的 bootstrapping、有限 group 的相关性，需要另外分析，不能直接藏进一个精确 $V_q$ 符号中。
+
+### Importance sampling and centering can be combined
+
+如果我们希望连 covariance 的采样分布也改回 $p$，就回到了 importance sampling。假设 $p_a>0$ 的 action 都满足 $q_a>0$，则
+
+$$
+\mathbb E_q\left[\frac{p_a}{q_a}Q_a z_a\right]
+=\mathbb E_p[Qz]=g^\star.
+$$
+
+同样，$\mathbb E_q[(p_a/q_a)z_a]=\mathbb E_p[z]=0$，因此 exact IS 已经消除了 drift。对这个 **exact weighted score** 再做精确 SC，修正项本来就是零。
+
+困难在于稀有 action 可能带来很大的 ratio。IS 的 variance 并非在每个问题中都必然增大，但当 $p/q$ 有重尾时，少数样本可能主导更新。实践中会用 truncated IS（TIS）限制权重，或用 masked IS（MIS）丢掉 ratio 过于极端的项。例如，
+
+$$
+w_a^{\mathrm{TIS}}=\min\left(\frac{p_a}{q_a},C\right),\qquad
+w_a^{\mathrm{MIS}}=\frac{p_a}{q_a}
+\mathbf1\left\{\ell\le\frac{p_a}{q_a}\le u\right\}.
+$$
+
+这些操作改变了重新加权后的分布，$\mathbb E_q[wz]$ 不再保证为零。既然我们实际用来更新的向量已经从 $z$ 变成 $wz$，要居中的也应当是**整个 weighted score**：
+
+$$
+m_w:=\mathbb E_q[wz],\qquad
+g_{w+\mathrm{SC}}=\mathbb E_q[Q(wz-m_w)]
+=\operatorname{Cov}_q(Q,wz).
+$$
+
+它消除了加权后的 $V_qm_w$，仍保留裁剪造成的 covariance bias。注意这通常不等于先居中再乘权重：
+
+$$
+w_a(z_a-m_q)\ne w_a z_a-m_w.
+$$
+
+前一种写法的平均值为 $m_w-\mathbb E_q[w]m_q$，没有理由恰好为零。这个次序区别，也是把 SC 接到已有 TIS/MIS 实现时最容易遗漏的地方。
+
+若 sampler 使用 top-p、top-k 等截断采样，使部分 $q_a=0$，而目标 $p_a>0$，exact IS 的 support 条件就不成立。SC 也不会凭空补回没有采到的动作。这里的 $q$ 必须是温度、截断及重新归一化之后**真正产生 action 的概率**，而不是随手记录的一份截断前 logprob。
+
+### The connection to Bellman Policy Optimization
+
+Bellman Policy Optimization [@song2026bellman] 从 Policy Mirror Descent（PMD）出发，通过 Bellman equations 把中间 state 的 value 消去，再逐步近似成可训练的 loss。要理解它与 SC 的联系，关键是区分三个阶段：trajectory residual、保留完整 KL 的线性化更新，以及最终的 binary-KL 实现。
+
+先看为什么完整 KL 会产生同一个修正。固定 $q$，考虑
+
+$$
+K(s)=D_{\mathrm{KL}}(q(\cdot\mid s)\|p_\theta(\cdot\mid s)).
+$$
+
+它把 trainer 的 log probability 对整个 sampler distribution 求了平均，所以
+
+$$
+\nabla_\theta K(s)
+=-\sum_vq_v\nabla_\theta\log p_v=-m_q.
+$$
+
+因此，如果一个更新使用 $\log p_a+K(s)$ 的梯度，自然就会得到 $z_a-m_q$。这里把 KL 的方向明确写成 $q\|p$；不同文章的 forward/reverse 命名参照可能不同，只说「加了一个 KL」不足以确定梯度。
+
+BPO 的完整-KL 线性化阶段恰好出现了这个组合。省略固定的 prompt scaling，用 $A$ 表示该回答的固定 advantage coefficient，其每个 token 的 ascent update 是
+
+$$
+A\nabla_\theta\bigl[\log p_a+K(s)\bigr]
+=A(z_a-m_q).
+$$
+
+**在相同的 $p,q,A$ 和相同聚合权重下，这个阶段与 exact SC 连单个样本的梯度都相同。** 若进一步取 $A=Q-b(s)$，其中 $b(s)$ 与 action 无关，就回到 $\operatorname{Cov}_q(Q,z)$。但这不是在说 BPO 的原始平方残差目标、最终 loss，以及所有 SC 实现都等价。
+
+<details>
+<summary>从 PMD 到 trajectory residual：完整 KL 为什么出现在这里？</summary>
+
+PMD 希望多选择 advantage 高的 action，同时控制相对 rollout policy $q$ 的变化。暂时直接优化每个 state 的 probability distribution，步长为 $\eta>0$：
+
+$$
+p^+(\cdot\mid s)
+=\arg\max_p\left\{
+\mathbb E_{a\sim p}[\mathcal A^q(s,a)]
+-\frac1\eta D_{\mathrm{KL}}(p\|q)
+\right\}.
+$$
+
+在归一化约束下求导，stationarity 条件给出 $\log(p_a^+/q_a)=\eta\mathcal A^q(s,a)-\log Z(s)$。也就是说，先按 $\exp(\eta\mathcal A^q)$ 增减 $q$ 的质量，再归一化。我们不想显式估计每个中间 state 的 advantage，可以尝试反过来从概率比恢复它。
+
+由于 $\mathbb E_q[\mathcal A^q]=0$，在 $q$ 下对这个 log-ratio 关系取平均，得到
+
+$$
+\log Z(s)=D_{\mathrm{KL}}(q\|p^+).
+$$
+
+因此在最优 policy 处，
+
+$$
+\eta\mathcal A^q(s,a)
+=\log\frac{p_a^+}{q_a}+D_{\mathrm{KL}}(q\|p^+).
+$$
+
+接下来利用 LLM 的结构：state 是完整 prefix，action 是追加一个 token，转移确定，只有末尾给 reward。把终止 reward 放进终止 prefix 的 value 边界条件，则沿一条回答，
+
+$$
+\mathcal A^q(s_t,a_t)
+=\mathcal V^q(s_{t+1})-\mathcal V^q(s_t),\qquad
+\sum_t\mathcal A^q(s_t,a_t)=R(x,y)-\mathcal V^q(x).
+$$
+
+这里使用的是把 terminal reward 吸收到 terminal value 的记账方式；与[基础篇](/blog/ml/ml-revisit/rl-policy-gradient#definition)「在最后一次转移支付 reward、终止后 value 为零」的约定等价。中间的 value 两两抵消后，我们可以用整条回答构造 residual：
+
+$$
+\delta(x,y;p,q)
+=\eta\bigl(R(x,y)-\mathcal V^q(x)\bigr)
+-\sum_t\left[
+\log\frac{p(a_t\mid s_t)}{q(a_t\mid s_t)}+K(s_t)
+\right].
+$$
+
+这给出目标 $\mathbb E_{y\sim q}[\delta^2/(2\eta)]$，只需要 prompt 的 initial value 与最终 reward。PMD 解使每条轨迹的 residual 为零；BPO 论文进一步在其有限时域、support 等假设下证明了最优解的等价性。这并不保证一个共享参数的神经网络能精确实现所有 state 的最优 distribution。
+
+对平方残差求导，token $t$ 的 ascent contribution 为
+
+$$
+\frac{\delta}{\eta}(z_{a_t}-m_q(s_t)).
+$$
+
+这个系数依赖整条轨迹与当前 $p$。BPO 在 $p=q$ 时的 residual 附近线性化，用 $R-\mathcal V^q(x)$ 替换 $\delta/\eta$，再以 group statistics 估计和归一化它，才得到正文中的 $A(z-m_q)$。因此「完整 KL 产生 centered score」是梯度恒等式，而「把 residual 换成 advantage」是另外一次近似。
+
+</details>
+
+接下来是实际算法与 exact SC 分开的地方。完整 KL 需要 sampler 的整个 vocabulary distribution，BPO 把词表合并成「当前 token $a$」与「其他所有 tokens」两类，只保留两个概率：
+
+$$
+K_{\mathrm{bin}}(a)
+=q_a\log\frac{q_a}{p_a}
++(1-q_a)\log\frac{1-q_a}{1-p_a}.
+$$
+
+这个合并丢掉了其他 tokens 之间的概率分配。因为 $\nabla p_a=p_a z_a$，
+
+$$
+\begin{aligned}
+\nabla K_{\mathrm{bin}}(a)
+&=\left(-\frac{q_a}{p_a}+\frac{1-q_a}{1-p_a}\right)p_a z_a\\
+&=\frac{p_a-q_a}{1-p_a}z_a,\\
+\nabla[\log p_a+K_{\mathrm{bin}}(a)]
+&=\frac{1-q_a}{1-p_a}z_a.
+\end{aligned}
+$$
+
+因此出现的是 complementary-probability ratio $(1-q_a)/(1-p_a)$，不是 IS ratio $p_a/q_a$。前者来自对 binary KL 求导，后者来自变换积分的测度，二者解决问题的途径不同。
+
+当 $p_a$ 接近 $1$，这个 complementary ratio 可能很大。Practical BPO 进一步使用 additive smoothing、cap 和依赖 advantage 符号的 clipping mask：
+
+$$
+\omega_a=\frac{1+\epsilon-q_a}{1+\epsilon-p_a},\qquad
+\overline\omega(a,A)=M(a,A)\min\{\omega_a,C\},
+$$
+
+$$
+M(a,A)=
+\begin{cases}
+0,&A>0\ \text{且}\ \omega_a>1+\epsilon_{\mathrm{high}},\\
+0,&A<0\ \text{且}\ \omega_a<1-\epsilon_{\mathrm{low}},\\
+1,&\text{其他情况}.
+\end{cases}
+$$
+
+对应的 ascent contribution 为 $A\overline\omega(a,A)z_a$，实现时对这个 weight stop-gradient。它一般不再具有 $\mathbb E_q[\overline\omega z]=0$ 的性质，不能沿用完整-KL 阶段的 exact-centering 结论。
+
+<details>
+<summary>三个 tokens 的反例：binary KL 已经足以打破精确中心化</summary>
+
+令 $p=(1/2,1/4,1/4)$、$q=(1/4,1/2,1/4)$，直接对三个 logits 求导，则 $z_a=e_a-p$。暂时不加 smoothing、mask、cap，complementary weights 为
+
+$$
+\omega=(3/2,2/3,1),\qquad
+q\odot\omega=(3/8,1/3,1/4),\qquad
+\sum_aq_a\omega_a=23/24.
+$$
+
+所以
+
+$$
+\mathbb E_q[\omega z]
+=q\odot\omega-\frac{23}{24}p
+=\frac1{96}(-10,9,1)\ne0.
+$$
+
+Exact SC 的平均 centered score 则为零。这里只有两个真正的 action 时，binary KL 与完整 KL 相同，所以不能用两动作情形验证它们在大 vocabulary 下是否仍等价。上面的反例检验的是修正向量的零均值性质；实际 BPO 若对常数 reward 做 group centering，会得到零 advantage，整个更新也会为零。
+
+</details>
+
+## Implementing the correction without storing score vectors
+
+$z_a$ 的维度等于参数量，逐个 token 构造这些向量显然不合适。不过我们只需要一个 scalar loss，让它的梯度恰好产生这些 score 的线性组合。固定一次 rollout 的 advantage $A$，完整分布版本可以写成
+
+$$
+\mathcal L_{\mathrm{SC}}
+=-\operatorname{sg}[A]\left(
+\log p_a-\sum_v\operatorname{sg}[q_v]\log p_v
+\right),
+$$
+
+其中 $\operatorname{sg}$ 表示 stop-gradient。对括号求导就是 $z_a-m_q$，于是 $-\nabla\mathcal L_{\mathrm{SC}}=A(z_a-m_q)$。不用显式保存任何参数维度的 score；代价转移到了保留 sampler 的 probability information。
+
+一个只演示单个 prefix、完整 vocabulary 的 PyTorch 实现如下。`sampler_probs` 必须已经是实际采样分布，`logits` 是 trainer 在这个 prefix 的 logits：
+
+```python
+import torch
+
+
+def full_score_centering_loss(logits, sampler_probs, action, advantage):
+    log_probs = torch.log_softmax(logits.float(), dim=-1)
+    teacher = sampler_probs.detach().to(log_probs)
+    coefficient = advantage.detach()
+    centered_log_prob = log_probs[action] - torch.dot(teacher, log_probs)
+    return -coefficient * centered_log_prob
+```
+
+这段代码返回单个 token 的 scalar loss；batch 中需要按训练目标聚合，并排除 padding、prompt 等不参与该项训练的位置。它也不是在要求 `centered_log_prob` 构成一个归一化 log distribution：我们要的是正确的 surrogate gradient。
+
+实际更昂贵的是存储每个生成位置的完整 $q$。作者公开实现 [@marek2026scorecode] 保留 sampler 的 top-k probabilities，再用 trainer distribution 的形状补 tail。这个近似可以从两个约束推出：head 上保留真实 $q_v$；tail 总质量仍等于 sampler 的剩余质量。设 head 为 $H$、tail 为 $T$；当 tail 非空且 trainer 的 tail mass 为正时，
+
+$$
+\widehat q_v=
+\begin{cases}
+q_v,&v\in H,\\
+\rho p_v,&v\in T,
+\end{cases}
+\qquad
+\rho=\frac{1-\sum_{v\in H}q_v}{1-\sum_{v\in H}p_v}.
+$$
+
+这里的 top-k 是**记录概率时的压缩**，不等于前面讨论的 top-k 截断采样。利用完整 trainer distribution 的 score 均值为零，tail 求和可以被 head 求和替代：
+
+$$
+\begin{aligned}
+\widehat m_q
+&=\sum_{v\in H}q_vz_v+\rho\sum_{v\in T}p_vz_v\\
+&=\sum_{v\in H}(q_v-\rho p_v)z_v.
+\end{aligned}
+$$
+
+于是 loss 中只需减去 $\sum_{v\in H}\operatorname{sg}[q_v-\rho p_v]\log p_v$。**要 detach 的是整个系数**：其中的 $p_v$ 和 $\rho$ 都依赖 trainer，漏掉它们的 stop-gradient 就会多出不属于上述 score correction 的导数。
+
+代价是 residual drift。真实采样仍然来自 $q$，因此
+
+$$
+\mathbb E_q[Q(z-\widehat m_q)]-g^\star
+=V_q(m_q-\widehat m_q)
++\operatorname{Cov}_q(Q,z)-\operatorname{Cov}_p(Q,z).
+$$
+
+「完整词表求和精确消除 drift」与「top-k 工程近似表现接近」必须分开。小 tail mass 也不能单独保证小梯度误差，还要看 tail 上的 score 大小；当 trainer 的 tail mass 接近零时，$\rho$ 的计算还会受数值精度影响。实现中的 clamp 是额外近似，不能在代数里当成从未发生。
+
+<details>
+<summary>Top-k 下如何组合 TIS/MIS？</summary>
+
+设权重函数为 $w_v=f(p_v/q_v)$。在 head 上可以算真实 ratio；在模型补出的 tail 上，$p_v/\widehat q_v=1/\rho$ 为常数。因此令 $\alpha=\rho f(1/\rho)$，就有
+
+$$
+\widehat m_w
+=\sum_{v\in H}\bigl(q_vf(p_v/q_v)-\alpha p_v\bigr)z_v.
+$$
+
+实际采到的 token 可以使用它单独记录的真实 $q_a$ 计算权重；centering 项则使用上面的近似求和。相应 loss 是
+
+$$
+-\operatorname{sg}[A]\left[
+\operatorname{sg}[w_a]\log p_a
+-\sum_{v\in H}\operatorname{sg}\bigl[q_vf(p_v/q_v)-\alpha p_v\bigr]\log p_v
+\right].
+$$
+
+这也提供一个方便的检查：取 exact IS 的 $f(r)=r$，则 $\alpha=1$，head 上 $q_vf(p_v/q_v)=p_v$，centering 系数全部为零。只取普通 SC 的 $f=1$，则 $\alpha=\rho$，回到上一式。
+
+</details>
+
+## Scope and evidence
+
+先在相同的局部假设下汇总各类更新，再逐项放回完整 rollout 中的分布差异，最后看实验实际支持了哪些结论。
+
+### Comparing the updates under one set of assumptions
+
+现在可以把关系放在同一张表里。以下均固定 prefix、同一个 $Q_a$，baseline $V$ 与 action 无关，所有 correction coefficients 在反向传播中固定。定义
+
+$$
+\Delta=\operatorname{Cov}_q(Q,z)-\operatorname{Cov}_p(Q,z),\qquad
+\Delta_w=\operatorname{Cov}_q(Q,wz)-\operatorname{Cov}_p(Q,z).
+$$
+
+表中的 bias 指**期望更新减去局部目标 $g^\star=\mathbb E_p[Qz]$**。为便于阅读，先看不带乘法权重的情况：
+
+<div className="rl-sc-comparison">
+
+| 更新方式 | 期望 ascent update | 相对 $g^\star$ 的 bias |
+| --- | --- | --- |
+| On-policy PG | $\mathbb E_p[Qz]$ | $0$ |
+| Naive off-policy PG | $\mathbb E_q[Qz]$ | $V_qm_q+\Delta$ |
+| 固定 baseline $V$ | $\mathbb E_q[(Q-V)z]$ | $(V_q-V)m_q+\Delta$ |
+| Exact $q$-baseline | $\mathbb E_q[(Q-V_q)z]$ | $\Delta$ |
+| Exact SC | $\mathbb E_q[Q(z-m_q)]$ | $\Delta$ |
+| BPO 线性化、完整 KL，$A=Q-b(s)$ | $\mathbb E_q[A(z-m_q)]$ | $\Delta$ |
+| Top-k approximate SC | $\mathbb E_q[Q(z-\widehat m_q)]$ | $V_q(m_q-\widehat m_q)+\Delta$ |
+
+</div>
+
+对于带权重的更新，仍记 $m_w=\mathbb E_q[wz]$：
+
+<div className="rl-sc-comparison">
+
+| 更新方式 | 期望 ascent update | 相对 $g^\star$ 的 bias |
+| --- | --- | --- |
+| Exact IS，support 覆盖 | $\mathbb E_q[(p/q)Qz]$ | $0$ |
+| TIS / MIS | $\mathbb E_q[Qwz]$ | $V_qm_w+\Delta_w$ |
+| TIS / MIS + exact SC | $\mathbb E_q[Q(wz-m_w)]$ | $\Delta_w$ |
+| Exact IS + exact SC | $\mathbb E_q[Q((p/q)z-m_{p/q})]$ | $0$，因为 $m_{p/q}=0$ |
+| Practical BPO，固定 $A_a=Q_a-V$ | $\mathbb E_q[(Q-V)\overline\omega z]$ | $(V_q-V)m_{\overline\omega}+\Delta_{\overline\omega}$ |
+
+</div>
+
+最后一行有一个额外条件：这里用的是确定的 $A_a=Q_a-V$，所以可以把包含 mask 的 $\overline\omega$ 当成 action 的函数。**真实 BPO 的 mask 依赖采到的 advantage 的符号**；当后续 reward 或 group statistics 随机时，不能先把它们替换成 $Q_a$，再声称这张表已经精确描述了实现。
+
+更一般地，要在 action、后续 rollout 和 group 的联合分布下计算
+
+$$
+\mathbb E[A\overline\omega(a,A)z_a]
+=\mathbb E[A]\,\mathbb E[\overline\omega(a,A)z_a]
++\operatorname{Cov}\bigl(A,\overline\omega(a,A)z_a\bigr).
+$$
+
+由于 mask 是非线性的，$\mathbb E[A\overline\omega(a,A)\mid a]$ 通常不等于 $\mathbb E[A\mid a]\overline\omega(a,\mathbb E[A\mid a])$。因此，对实际训练配方比较时，还要对齐 advantage estimator、mask、group normalization、token/sequence averaging 和 optimizer；局部均值相同并不能推出学习曲线相同。
+
+### Returning to the full rollout
+
+前面的共同 $Q$ 假设让我们能准确比较各种 correction，但实际 rollout 中还存在两层分布差异。令 $d_{p,t}$ 为第 $t$ 步在 policy $p$ 下的 state 分布，原始目标的梯度是
+
+$$
+\nabla_\theta\mathcal J(p)
+=\sum_t\mathbb E_{s\sim d_{p,t}}\left[
+\sum_a p(a\mid s)\mathcal Q^p(s,a)z(s,a)
+\right].
+$$
+
+而从 $q$ 生成的完整回答，用 terminal reward 乘 exact centered scores，在没有额外 normalization 的情况下，其期望为
+
+$$
+\sum_t\mathbb E_{s\sim d_{q,t}}\left[
+\operatorname{Cov}_{a\sim q(\cdot\mid s)}
+\bigl(\mathcal Q^q(s,a),z(s,a)\bigr)
+\right].
+$$
+
+除了当前 action 的 sampling distribution，还改变了 **prefix 的访问分布** $d_q$，以及 **action 之后如何继续生成** 所决定的 $\mathcal Q^q$。只给当前 token 乘 $p_a/q_a$，也不会自动把这两者变成 $d_p$ 和 $\mathcal Q^p$。
+
+[策略更新篇的 Off-Policy Policy Gradients](/blog/ml/ml-revisit/rl-policy-updates#off-policy-policy-gradients) 中的完整 trajectory IS 则使用
+
+$$
+W(\tau)=\prod_t\frac{p(a_t\mid s_t)}{q(a_t\mid s_t)},\qquad
+\nabla_\theta\mathcal J(p)
+=\mathbb E_{\tau\sim q}\left[
+W(\tau)R(\tau)\sum_tz(s_t,a_t)
+\right],
+$$
+
+在环境相同、support 覆盖等条件下，才确实把整个轨迹的分布换回去。长序列的乘积权重也解释了为什么实际方法愿意接受一定 bias，换取更可用的 estimator。比较表中的「Exact IS 无偏」，应当连同它指定的采样空间一起读。
+
+### Reading the experimental evidence
+
+SC 论文的主要对照，是在相同的 group-centered REINFORCE objective 上替换 correction rule，每个 batch 做一次 SGD update。它有意放大 weight noise、量化差异与 staleness，以便在较短训练内区分方法。在 Qwen3-30B-A3B-Base 的 INT8 weights/activations、INT4 KV 设置下，报告的训练准确率约为 SC $30\%$、TIS $12\%$；在每 $64$ 步才同步 sampler 的实验中，SC 与 TIS/MIS 的组合优于单独 SC。[@marek2026scorecentering]
+
+这些结果支持把 drift 看作一个有用的诊断与修正对象。它们没有建立 SC 在所有 RL 配方上的排序，也没有给出 SC 与 practical BPO 的直接对照；训练准确率更不能自动替换成 held-out reasoning benchmark 的结论。把短程、强 mismatch 的表现外推到长期、弱 mismatch 的生产训练，仍然需要实验验证。
+
+如果要在自己的训练系统里验证这个机制，可以按推导设置三个小检查：常数 reward 下比较修正前后的期望更新；给 reward 加同一个常数，检查更新是否发生不应有的变化；在可枚举的小 vocabulary 上，比较完整求和、top-k 近似和 exact IS。然后再观察真实训练的稳定性、评测表现与成本。这样，数学上声称消掉的项与工程上真正获得的收益，才对应到同一件事。
+
+---
+
+[系列导读](/blog/ml/ml-revisit/rl) · [上一篇](/blog/ml/ml-revisit/rl-llm)

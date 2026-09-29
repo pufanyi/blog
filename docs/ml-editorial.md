@@ -5,10 +5,18 @@ retained so existing links stay stable; the ML Revisited series remains the
 reference style, while topic-specific continuity rules below still apply only to
 their named articles.
 
-- The RL notes are one article at `rl/index.mdx`. Their Typst source and original
-  bibliography remain under `tmp/typst-originals/`; preserve the later policy
-  gradient revisions when consulting that older source. Keep unfinished sections
-  marked as pending unless the author asks to complete them.
+- The RL series keeps `rl/index.mdx` as its reading guide and static recovery
+  page for legacy section links. The four sibling articles are
+  `rl-policy-gradient`, `rl-policy-updates`, `rl-llm`, and `rl-score-centering`.
+  Keep the REINFORCE–actor-critic–GAE derivation together; policy updates, LLM
+  applications, and training-inference mismatch each have their own article.
+  Article discovery stops at an `index.mdx`, so do not nest these posts inside
+  the guide's article directory. Keep references, diagrams, and styles with
+  their owning article, and preserve cross-article links and old guide anchors.
+  Their Typst source and original bibliography remain under
+  `tmp/typst-originals/`; preserve the later policy gradient revisions when
+  consulting that older source. Keep unfinished sections marked as pending
+  unless the author asks to complete them.
   Motivate REINFORCE by distinguishing the full trajectory integral from one
   sampled integrand value, then derive its unbiased gradient estimator once.
   The GAE section is a complete tutorial: introduce rollout horizons and their

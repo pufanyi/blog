@@ -1,0 +1,58 @@
+.rl-gae-figure {
+  margin: 1.5rem 0;
+}
+
+.rl-gae-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--paper-bg);
+}
+
+.rl-gae-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 3px;
+}
+
+.rl-gae-diagram {
+  display: block;
+  width: 704px;
+  min-width: 704px;
+  max-width: none;
+  height: 298px;
+  margin-inline: auto;
+  color: var(--text-color);
+  font-family: var(--font-body);
+}
+
+.rl-gae-reward {
+  fill: var(--surface-soft);
+  stroke: var(--accent-blue);
+  stroke-width: 1.5;
+}
+
+.rl-gae-bootstrap {
+  fill: var(--paper-bg);
+  stroke: var(--accent-rose);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+}
+
+.rl-gae-note {
+  fill: var(--text-secondary);
+  font-size: 14px;
+}
+
+.rl-gae-math {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-color);
+  font-size: 15px;
+}
+
+.rl-gae-math mjx-container {
+  margin: 0 !important;
+}

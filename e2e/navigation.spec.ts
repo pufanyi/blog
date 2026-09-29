@@ -10,7 +10,7 @@ const archivePages = Math.max(1, Math.ceil(POSTS.length / BLOG_CONFIG.postsPerPa
 test('full-width toolbar stays flush with the top and clear of page content', async ({
   page,
 }, testInfo) => {
-  await page.goto('/blog/ml/ml-revisit/rl');
+  await page.goto('/blog/ml/ml-revisit/rl-policy-gradient');
   const toolbar = page.locator('app-toolbar');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   const widths = testInfo.project.name === 'mobile' ? [320, 390, 600, 601, 768] : [769, 1280, 1600];
@@ -130,7 +130,7 @@ test('toolbar covers the top safe area and keeps anchor targets below its contro
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/blog/ml/ml-revisit/rl');
+  await page.goto('/blog/ml/ml-revisit/rl-policy-gradient');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   await page.addStyleTag({ content: 'html { --toolbar-safe-area-top: 24px; }' });
   const header = page.locator('.toolbar');

@@ -1,0 +1,353 @@
+---
+title: "Reinforcement Learning: LLM Post-training"
+date: "2024-10-16"
+updated: "2026-09-29"
+description: "Reinforcement Learning: LLM Post-training：RL 系列第 3 篇。"
+authors:
+  - "Fanyi Pu"
+  - "GPT‑5.6 Sol"
+  - "GPT-6 Astra"
+---
+
+这篇把 [policy gradient 与 advantage estimation](/blog/ml/ml-revisit/rl-policy-gradient) 和 [PPO](/blog/ml/ml-revisit/rl-policy-updates#proximal-policy-optimization) 用到语言模型中，整理 RLHF、DPO 与 GRPO 的关系。部分论文与实现笔记仍未完成，保留原来的待续标记。
+
+[系列导读](/blog/ml/ml-revisit/rl) · [上一篇](/blog/ml/ml-revisit/rl-policy-updates) · [下一篇](/blog/ml/ml-revisit/rl-score-centering)
+
+把 RL 的交互过程放到文本生成中，state 是 prompt 与已生成的 prefix，action 是下一个 token。一条完整回答可以得到 reward，也可以参与偏好比较。下面先看从人类偏好训练 reward model、再用 PPO 更新策略的路径，接着整理 DPO 和 GRPO。
+
+## Reinforcement Learning from Human Feedback
+
+这里把 reward model、reference policy 与 PPO 的更新限制放在同一个训练流程中理解。
+
+### Learning to summarize from human feedback
+
+Learning to summarize from human feedback [@stiennon2020summarize] / [demo](https://openai.com/index/learning-to-summarize-with-human-feedback/)。
+
+TL;DR dataset [@volske-etal-2017-tl]：一个 summarize 任务，主要是对 Reddit 的帖子生成摘要。
+
+Reward model $r_\phi(x,y)$ 只对最终的结果给 reward。这里可以取 $\gamma=1$，不额外折扣后面的 token；终点给 reward 本身并不意味着 $\gamma$ 永远没有影响。Reward model 的数据是一大堆 preference data $\langle x,y_0,y_1\rangle$，其中 $y_0$ 更被喜欢。
+
+$$
+\mathcal L(\phi)
+=-\mathbb E_{(x,y_0,y_1)\sim\mathcal D}\left[
+\log\sigma(r_\phi(x,y_0)-r_\phi(x,y_1))\right].
+$$
+
+最终我们训练模型的时候，用 PPO 优化的 reward 里加入相对 reference policy 的 KL penalty：
+
+$$
+R_\theta(x,y)=r(x,y)
+-\beta\log\frac{\pi_\theta(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}.
+$$
+
+这个 reference penalty 和 PPO 控制单次更新时相对旧策略的限制不是同一个东西。
+
+然后我们就发现，这个 $\mathbb E_{y\sim\pi_\theta}[\log(\pi_\theta(y\mid x)/\pi_{\mathrm{ref}}(y\mid x))]$ 外面的期望咋被吞掉了。其实上面写的是一条 sampled response 的 reward，整体目标还要对 $y\sim\pi_\theta$ 取期望：
+
+$$
+\begin{aligned}
+\mathcal R(\theta)
+&=\mathbb E_{x\sim\mathcal D,\,y\sim\pi_\theta(\cdot\mid x)}
+\left[r(x,y)-\beta\log\frac{\pi_\theta(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}\right]\\
+&=\mathbb E_{x\sim\mathcal D,\,y\sim\pi_\theta(\cdot\mid x)}[r(x,y)]\\
+&\quad-\beta\mathbb E_{x\sim\mathcal D}
+\left[D_{\mathrm{KL}}(\pi_\theta(\cdot\mid x)\|\pi_{\mathrm{ref}}(\cdot\mid x))\right].
+\end{aligned}
+$$
+
+对于这个 reward model，可以联想到 Bradley–Terry model [@bradley1952rank]。这个在 DPO 那篇文章里提了很多。这个 [Stanford STATS 200 notes](https://web.stanford.edu/class/archive/stats/stats200/stats200.1172/Lecture24.pdf) 写的感觉非常好。
+
+$n$ 个球队，每个球队有个 strength $\beta_i$，$i$ 跟 $j$ 打的赢率为
+
+$$
+p_{ij}=\frac{e^{\beta_i-\beta_j}}{1+e^{\beta_i-\beta_j}}
+=\frac{e^{\beta_i}}{e^{\beta_i}+e^{\beta_j}}.
+$$
+
+但是有时候主客场之类的位置不是可交换嘟，所以说还可以加一个位置效应：
+
+$$
+p_{ij}=\frac{e^{\alpha+\beta_i-\beta_j}}{1+e^{\alpha+\beta_i-\beta_j}}.
+$$
+
+当然咱这儿没有 $\alpha$。其实这个 $r$ 预测的就是这个 $\beta$ 嘛。
+
+### InstructGPT
+
+InstructGPT [@ouyang2022training]。
+
+对于 reward model，它把两个改成了 $K$ 个。就是让人排 $K$ 个 $y$，再从这个排序构造 $\binom K2$ 对偏好。这样的话，对每个 prompt 的这些 pair 取平均：
+
+$$
+\mathcal L(\phi)
+=-\mathbb E_{(x,\{y_j\}_{j=1}^K)\sim\mathcal D}\left[
+\frac1{\binom K2}\sum_{y_w\succ y_l}
+\log\sigma(r_\phi(x,y_w)-r_\phi(x,y_l))
+\right].
+$$
+
+然后 RL 部分，待续。
+
+### Implementation
+
+Implementation Matters [@engstrom2019implementation] / The N Implementation Details of RLHF with PPO [@huang2024n] / The N+ Implementation Details of RLHF with PPO [@huang2024nplus]。
+
+实现笔记待续。
+
+## Direct Preference Optimization
+
+DPO paper [@rafailov2024direct] / [HF docs](https://huggingface.co/docs/trl/main/en/dpo_trainer) / [HF tutorial](https://huggingface.co/blog/dpo-trl)。
+
+前面的 RLHF 显式训练 reward model；DPO 则利用 reward 与最优 policy 的关系，直接让 policy 对应的隐式 reward 拟合 preference data。下面先保留这条思路，再整理已有的最优 policy 推导。
+
+### Key Ideas
+
+[DPO 概览图：论文 Figure 1](https://arxiv.org/html/2305.18290v3#S1.F1)。
+
+我的大概猜测是，作者主要有两个 key observations：
+
+1. Preference data 本身可以体现一种 reward function（BT model）。
+2. 给定 reference policy 和 $\beta$，最优 $\pi$ 可以对应到一类 reward；这类 reward 只相差一个依赖 prompt 的常数 $c(x)$，会导出同一个最优 policy。
+
+整条线大概是 $\pi\leftrightarrow[r]\to p_\succ\to\mathcal L$，其中 $[r]$ 表示上面这个等价类。
+
+也就是说，我们其实可以通过调整 $\pi$，来让对应的隐式 reward 去吻合 preference data。
+
+具体的 learning objective 推导待续。
+
+<span id="other-details" />
+
+### From reward to the optimal policy
+
+In eq. 12，把最大化 reward 加 KL penalty 的目标换成等价的最小化形式：
+
+$$
+\begin{aligned}
+&\min_\pi\mathbb E_{x\sim\mathcal D}\mathbb E_{y\sim\pi(\cdot\mid x)}
+\left[\log\frac{\pi(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}
+-\frac1\beta r(x,y)\right]\\
+={}&\min_\pi\mathbb E_{x\sim\mathcal D}\mathbb E_{y\sim\pi(\cdot\mid x)}
+\left[\log\frac{\pi(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}}\right]\\
+={}&\min_\pi\mathbb E_{x\sim\mathcal D}\mathbb E_{y\sim\pi(\cdot\mid x)}
+\left[\log\frac{\pi(y\mid x)}{Z(x)^{-1}\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}}
+-\log Z(x)\right].
+\end{aligned}
+$$
+
+While
+
+$$
+Z(x)=\sum_y\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}.
+$$
+
+这里假设 $\beta>0$、$Z(x)$ 有限，且 policy 在 reference 的 support 内。比较有意思的点是，它把外面的 $r(x,y)/\beta$ 强行塞进了 $\log$ 里面，构造一个新的 policy：
+
+$$
+\pi^*(y\mid x)
+=\frac1{Z(x)}\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}.
+$$
+
+酱紫的话，里面的 $\log(\pi(y\mid x)/\pi^*(y\mid x))$ 就构成了一个新的 KL：
+
+$$
+\begin{aligned}
+&\mathbb E_{x\sim\mathcal D}\mathbb E_{y\sim\pi(\cdot\mid x)}
+\left[\log\frac{\pi(y\mid x)}{\pi^*(y\mid x)}\right]\\
+={}&\mathbb E_{x\sim\mathcal D}
+\left[D_{\mathrm{KL}}(\pi(\cdot\mid x)\|\pi^*(\cdot\mid x))\right].
+\end{aligned}
+$$
+
+### Paper Details
+
+待续。
+
+## Group Relative Policy Optimization
+
+DeepSeekMath [@shao2024deepseekmath]。
+
+对于同一个 prompt $x$，从旧策略采样 $G$ 个回答。先记每个 token 的 probability ratio：
+
+$$
+\rho_{i,t}(\theta)
+=\frac{\pi_\theta(y_{i,t}\mid x,y_{i,<t})}
+{\pi_{\theta_{\mathrm{old}}}(y_{i,t}\mid x,y_{i,<t})}.
+$$
+
+原来的目标可以整理为
+
+$$
+\mathcal J(\theta)
+=\mathbb E_{x\sim\mathcal D,\,\{y_i\}_{i=1}^G\sim\pi_{\theta_{\mathrm{old}}}}\left[
+\frac1G\sum_{i=1}^G\frac1{|y_i|}\sum_{t=1}^{|y_i|}
+\left(f(\rho_{i,t}(\theta),\hat{\mathcal A}_{i,t})
+-\beta D_{i,t}(\theta)\right)
+\right],
+$$
+
+其中
+
+$$
+f(w,A)=\min\{wA,\operatorname{clip}(w,1-\epsilon,1+\epsilon)A\},
+$$
+
+$$
+D_{i,t}(\theta)
+=D_{\mathrm{KL}}\!\left(
+\pi_\theta(\cdot\mid x,y_{i,<t})\|
+\pi_{\mathrm{ref}}(\cdot\mid x,y_{i,<t})
+\right).
+$$
+
+这里把 KL 项写成条件分布之间的散度来说明目标；原论文实现使用相应的逐 token 估计量。
+
+欸为啥看着这么像 offline learning 捏。冷静分析发现，式子里居然有 $\pi_{\theta_{\mathrm{old}}}$ 和 $\pi_{\mathrm{ref}}$ 两个东西。所以它其实是一轮从旧策略采样，再沿 surrogate 的梯度更新：
+
+$$
+\theta_{\mathrm{new}}
+\leftarrow\theta_{\mathrm{old}}
++\left.\eta\nabla_\theta\mathcal J(\theta;\theta_{\mathrm{old}})
+\right|_{\theta=\theta_{\mathrm{old}}}.
+$$
+
+这是最大化 $\mathcal J$ 的一步梯度上升；实际可以在一批旧数据上做若干次更新，再重新采样。通常从 reference 初始化 policy，但之后 $\theta_{\mathrm{old}}$ 会更新，$\theta_{\mathrm{ref}}$ 保持固定。这俩确实应该是不一样的。
+
+所以它想控制两个事情：
+
+1. $\theta_{\mathrm{old}}\to\theta_{\mathrm{new}}$：单轮更新不要偏得太多，用 clip 抑制继续改善已过界样本的 surrogate。
+2. $\theta_{\mathrm{ref}}\to\theta_{\mathrm{new}}$：不要过度偏离 reference，用 KL penalty 约束。
+
+那这个 clip 和直接修改 learning rate 有啥区别呢？Learning rate 缩放整次参数更新，clip 则让某些样本在有利方向上超过阈值后不再贡献这部分改进梯度。因此两者不能互相替代，clip 也不保证所有 action 的概率比都留在区间内。
+
+如果是 outcome supervision，advantage 就方便多了：同一个回答中的所有 tokens 共用这个回答的归一化 reward，**仍然使用逐 token 的 probability ratio**。
+
+$$
+\hat{\mathcal A}_{i,t}=\hat{\mathcal A}(x,y_i)
+=\frac{r(x,y_i)-\bar r}{\sigma_r},\qquad
+\bar r=\frac1G\sum_{j=1}^G r(x,y_j).
+$$
+
+所以对应的目标是
+
+$$
+\mathcal J(\theta)
+=\mathbb E_{x,\{y_i\}\sim\pi_{\theta_{\mathrm{old}}}}\left[
+\frac1G\sum_{i=1}^G\frac1{|y_i|}\sum_{t=1}^{|y_i|}
+\left(f(\rho_{i,t}(\theta),\hat{\mathcal A}(x,y_i))
+-\beta D_{i,t}(\theta)\right)
+\right].
+$$
+
+如果是 process supervision，论文会先归一化各个 reasoning step 的 reward，再把当前 token 之后的 step rewards 累加成 $\hat{\mathcal A}_{i,t}$，而不是只使用当前位置的一项 reward。
+
+回到采样回答、根据 reward 更新 policy 的路径。GRPO 沿用 PPO 的 clipped surrogate，下面重点看它如何用同一 prompt 下的一组回答构造 advantage。
+
+### GRPO with Binary Rewards
+
+Mroueh [@mroueh_2025] 从 binary rewards 理解 GRPO。也就是说 $r(y)\in\{0,1\}$。
+
+他的结论大概是说，GRPO 会根据模型整体回答的好坏，对正确和错误回答赋予不同的相对权重。
+
+不过其实有点没咋搞懂的是，他直接把 advantage 看成了
+
+$$
+\hat{\mathcal A}(x,y)
+=\frac{r(x,y)-\mathbb E_{y'\sim\pi_{\theta_{\mathrm{old}}}(\cdot\mid x)}[r(x,y')]}
+{\sqrt{\operatorname{Var}_{y'\sim\pi_{\theta_{\mathrm{old}}}(\cdot\mid x)}(r(x,y'))}}.
+$$
+
+但有限 group 的均值、标准差本来都是随机变量，这里把它们换成了总体统计量。因此下面是总体近似下的分析，不能直接当成有限 group estimator 的等式。
+
+但是确实感性上还是有一定道理的。如果 $r(x,y)\sim\operatorname{Bernoulli}(p)$，其中 $0<p<1$，我们就可以方便地代进去得到
+
+$$
+\hat{\mathcal A}(x,y)
+=\frac{r(x,y)-p}{\sqrt{p(1-p)}}
+=\begin{cases}
+\sqrt{\dfrac{1-p}{p}},&\text{if correct},\\
+-\sqrt{\dfrac p{1-p}},&\text{if incorrect}.
+\end{cases}
+$$
+
+以下固定一个 prompt $x$，并按这篇笔记使用整条回答的概率比 $\rho(y)=\pi_\theta(y\mid x)/\pi_{\theta_{\mathrm{old}}}(y\mid x)$ 作简化分析；它与上面的逐 token 训练目标要区分开。
+
+辣么
+
+$$
+\begin{aligned}
+f(\rho,y)
+&=\min\{\rho\hat{\mathcal A}(y),
+\operatorname{clip}(\rho,1-\epsilon,1+\epsilon)\hat{\mathcal A}(y)\}\\
+&=\begin{cases}
+\min\{\rho,1+\epsilon\}\sqrt{\dfrac{1-p}{p}},&\text{if correct},\\
+-\max\{\rho,1-\epsilon\}\sqrt{\dfrac p{1-p}},&\text{if incorrect}.
+\end{cases}
+\end{aligned}
+$$
+
+所以说，下面的期望都按 $y\sim\pi_{\theta_{\mathrm{old}}}(\cdot\mid x)$ 取：
+
+$$
+\begin{aligned}
+\mathbb E[f(\rho(y),y)]
+&=\mathbb E\left[
+\begin{cases}
+\min\{\rho(y),1+\epsilon\}\sqrt{\dfrac{1-p}{p}},&r(y)=1,\\
+-\max\{\rho(y),1-\epsilon\}\sqrt{\dfrac p{1-p}},&r(y)=0
+\end{cases}\right]\\
+&=\mathbb E\left[\min\{\rho(y),1+\epsilon\}\mathbf1_{r(y)=1}\right]
+\sqrt{\frac{1-p}{p}}\\
+&\quad-\mathbb E\left[\max\{\rho(y),1-\epsilon\}\mathbf1_{r(y)=0}\right]
+\sqrt{\frac p{1-p}}.
+\end{aligned}
+$$
+
+所以说，如果 $p$ 比较小，这个问题模型很难回答，那么单个正确回答的正权重更大。也就是说，它会更「乐观」，更倾向于表扬少见的正确做法。如果 $p$ 很大，也就是模型很容易回答，单个错误回答的负权重绝对值更大，这时候就会更加「严苛」，去批评那些做得不好的回答。这里比较的是每个样本的系数，不是说某一类在总梯度里一定占主导；采样频率和 score gradient 也会影响结果。
+
+有限 group 若全对或全错，会出现 $\sigma_r=0$，实现中需要显式处理，不能直接代入除法。
+
+原文好像又往下推了一点。其实没理解还要干啥，我觉得前面的式子已经足够解释这两个权重了。
+
+<details>
+<summary>继续展开裁剪项</summary>
+
+记 $p_{\mathrm{old}}(y)=\pi_{\theta_{\mathrm{old}}}(y\mid x)$、$p_\theta(y)=\pi_\theta(y\mid x)$，并定义两个概率阈值
+
+$$
+\ell(y)=(1-\epsilon)p_{\mathrm{old}}(y),\qquad
+u(y)=(1+\epsilon)p_{\mathrm{old}}(y).
+$$
+
+那么
+
+$$
+\begin{aligned}
+\mathbb E[f(\rho(y),y)]
+&=\mathbb E\left[\rho(y)\mathbf1_{\{r(y)=1,\,p_\theta(y)<u(y)\}}\right]
+\sqrt{\frac{1-p}{p}}\\
+&\quad+(1+\epsilon)\mathbb E\left[\mathbf1_{\{r(y)=1,\,p_\theta(y)\ge u(y)\}}\right]
+\sqrt{\frac{1-p}{p}}\\
+&\quad-\mathbb E\left[\rho(y)\mathbf1_{\{r(y)=0,\,p_\theta(y)>\ell(y)\}}\right]
+\sqrt{\frac p{1-p}}\\
+&\quad-(1-\epsilon)\mathbb E\left[\mathbf1_{\{r(y)=0,\,p_\theta(y)\le\ell(y)\}}\right]
+\sqrt{\frac p{1-p}}.
+\end{aligned}
+$$
+
+</details>
+
+### DeepSeek R1
+
+DeepSeek-R1 [@guo2025deepseek]。阅读笔记待续。
+
+## Reinforcement Learning from Verifiable Rewards
+
+Tülu 3 [@lambert2024t]。阅读笔记待续。
+
+## Reward Hacking
+
+[Lilian Weng: Reward Hacking in Reinforcement Learning](https://lilianweng.github.io/posts/2024-11-28-reward-hacking/)。阅读笔记待续。
+
+---
+
+[系列导读](/blog/ml/ml-revisit/rl) · [上一篇](/blog/ml/ml-revisit/rl-policy-updates) · [下一篇](/blog/ml/ml-revisit/rl-score-centering)

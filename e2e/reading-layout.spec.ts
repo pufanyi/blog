@@ -8,7 +8,7 @@ test('independent article paper keeps the outline outside and aligned with its t
   // Each viewport reflows the full long article and exercises both themes.
   testInfo.setTimeout(15_000 * widths.length);
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/blog/ml/ml-revisit/rl');
+  await page.goto('/blog/ml/ml-revisit/diffusion');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
@@ -94,7 +94,7 @@ test('chapters expand independently and subsection navigation retains context an
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/blog/ml/ml-revisit/rl');
+  await page.goto('/blog/ml/ml-revisit/diffusion');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   const panel = page.locator('.post-toc-sidebar');
   const chapter = panel
@@ -133,7 +133,7 @@ test('persistent contents opens the mobile sheet and restores its trigger after 
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/blog/ml/ml-revisit/rl');
+  await page.goto('/blog/ml/ml-revisit/diffusion');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   const entry = page.locator('.post-contents-dock');
   const dialog = page.getByRole('dialog', { name: 'Table of contents', exact: true });
@@ -170,7 +170,7 @@ test('the wide outline remains reachable at the page end and can collapse withou
 }, info) => {
   await page.setViewportSize({ width: 1100, height: 900 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/blog/ml/ml-revisit/rl');
+  await page.goto('/blog/ml/ml-revisit/diffusion');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   const sidebar = page.locator('.post-toc-sidebar');
   const headerBottom = (await page.locator('.toolbar').boundingBox())!.height;
@@ -233,7 +233,7 @@ test('the mobile contents dock stays visible through reading and never covers th
 }, info) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/blog/ml/ml-revisit/rl');
+  await page.goto('/blog/ml/ml-revisit/diffusion');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   const dock = page.locator('.post-contents-dock');
   for (const fraction of [0, 0.5, 1]) {
@@ -287,7 +287,7 @@ test('without JavaScript the wide outline retains every chapter and subsection l
   });
   try {
     const page = await context.newPage();
-    await page.goto(`${baseURL}/blog/ml/ml-revisit/rl`);
+    await page.goto(`${baseURL}/blog/ml/ml-revisit/diffusion`);
     await expect(page.locator('.post-toc-sidebar')).toBeVisible();
     expect(
       await page.locator('.post-toc-sidebar .toc-sublist:not([hidden])').count(),

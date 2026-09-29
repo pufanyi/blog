@@ -16,7 +16,7 @@ test('comments wait until the reader approaches the end of the article', async (
   page.on('request', (request) => {
     if (request.url() === 'https://giscus.app/client.js') requests++;
   });
-  await page.goto('/blog/ml/ml-revisit/rl');
+  await page.goto('/blog/ml/ml-revisit/rl-policy-gradient');
   await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
   expect(requests).toBe(0);
   await page.locator('app-giscus-comments').scrollIntoViewIfNeeded();
@@ -31,7 +31,7 @@ test('formulas and closed derivations remain readable with JavaScript disabled',
   try {
     const page = await context.newPage();
     await page.route('https://**/*', (route) => route.fulfill({ body: '' }));
-    await page.goto('/blog/ml/ml-revisit/rl');
+    await page.goto('/blog/ml/ml-revisit/rl-policy-gradient');
     expect(await page.locator('mjx-container[data-static-math]').count()).toBeGreaterThan(100);
     const details = page
       .locator('details')

@@ -1,1629 +1,30 @@
 ---
 title: "Reinforcement Learning"
 date: "2024-10-16"
-updated: "2026-09-22"
-description: "RL 学习笔记：policy gradient、actor-critic、GAE、PPO、DPO 与 GRPO，以及 training-inference mismatch、Score Centering、BPO 和 diffusion models 的 RL post-training。"
+updated: "2026-09-29"
+description: "RL 系列导读：policy gradient、advantage estimation、PPO、LLM post-training 与 training-inference mismatch。"
 authors:
   - "Fanyi Pu"
   - "GPT‑5.6 Sol"
   - "GPT-6 Astra"
 ---
 
-[Berkeley CS285](https://rail.eecs.berkeley.edu/deeprlcourse/) / [Stanford CS224R](https://cs224r.stanford.edu/) / [Yezhen 学长推荐嘟](https://zhuanlan.zhihu.com/p/7461863937) / [Li Bo 学长推荐嘟](https://hijkzzz.notion.site/Jian-Hu-s-Blogpost-147d9a33ecc980d89400c3006d4173c2)
+Reinforcement learning 关心的是如何通过与环境交互，学到让长期期望 return 更高的 policy。这组笔记沿着「估计梯度 → 更新策略 → 用于语言模型 → 处理采样偏差」展开。
 
-## Definition
+## Reading order
 
-我们把 $\langle s_t,a_t\rangle$ 打包起来，在 Markov 环境和只依赖当前 state 的策略下，其实它就构成了一个 Markov chain。记一条轨迹为 $\tau=(s_1,a_1,\ldots,s_T,a_T,s_{T+1})$：
+1. [Policy Gradient 与 Advantage Estimation](/blog/ml/ml-revisit/rl-policy-gradient)：从目标和轨迹出发，推导 REINFORCE，再用 baseline、critic 和 GAE 构造 advantage。
+2. [从旧策略数据到 PPO](/blog/ml/ml-revisit/rl-policy-updates)：用 importance sampling 理解旧数据复用，再看 TRPO 与 PPO 如何控制策略变化。
+3. [LLM Post-training](/blog/ml/ml-revisit/rl-llm)：整理 RLHF、DPO、GRPO；InstructGPT、DeepSeek-R1、RLVR 和 Reward Hacking 等未完成部分继续保留待续。
+4. [Training-inference Mismatch 与 Score Centering](/blog/ml/ml-revisit/rl-score-centering)：从 mean-score drift 出发，比较 Score Centering、baseline、IS 与 BPO，并讨论实现和结论边界。
 
-$$
-p_\theta(\tau)
-=p(s_1)\prod_{t=1}^T
-\pi_\theta(a_t\mid s_t)\mathbb{P}(s_{t+1}\mid s_t,a_t).
-$$
+前两篇是基础主线。熟悉 policy gradient 和 PPO 后，可以直接阅读 LLM 应用或 mismatch 专题。
 
-这里 $\pi_\theta(a_t\mid s_t)$ 是策略，$\mathbb P$ 是环境转移；初始状态分布与环境转移不依赖 $\theta$。后文也把整条轨迹的分布 $p_\theta(\tau)$ 简记为 $\pi_\theta(\tau)$。
+## Other directions
 
-对于 learning objective：
+上面的主线显式优化 policy。这里保留 value-based 方法的开头，以及把 policy optimization 用于 diffusion models 的阅读入口。
 
-$$
-\theta^*=\arg\max_\theta\mathcal J(\theta)
-=\arg\max_\theta\mathbb E_{\tau\sim\pi_\theta}[r(\tau)].
-$$
-
-我们定义我现在在 $s_t$，做了 action $a_t$，然后按照 $\pi$ 所得到的期望总 reward 为
-
-$$
-\mathcal Q^\pi(s_t,a_t)
-=\mathbb E_\pi\left[
-\sum_{t'=t}^T r(s_{t'},a_{t'})\mid s_t,a_t
-\right].
-$$
-
-然后我们定义 $\mathcal V$ 表示现在我在 $s_t$ 的时候遵循 $\pi$ 所得到的期望总 reward：
-
-$$
-\begin{aligned}
-\mathcal V^\pi(s_t)
-&=\mathbb E_\pi\left[\sum_{t'=t}^T r(s_{t'},a_{t'})\mid s_t\right]\\
-&=\mathbb E_{a_t\sim\pi(\cdot\mid s_t)}[\mathcal Q^\pi(s_t,a_t)].
-\end{aligned}
-$$
-
-先考虑有限时域、不打折的 return；有限时域中把剩余时间也视为 state 的一部分，并令终止状态的 value 为 $0$。后面再引入 discount factor。
-
-## Types of Algorithms
-
-- **Policy Gradients**：跟往常一样，就是求导然后去做优化。
-- **Value-based**：去估计最优的 $\mathcal Q$ 或 $\mathcal V$，然后通过这个推出 $\pi$。
-- **Actor-critic**：通过估计当前策略的 $\hat{\mathcal Q}$ 和 $\hat{\mathcal V}$，然后用它们指导策略优化。
-- **Model-based RL**：学习或使用环境的转移、reward 模型，再借助模型规划或优化策略。
-
-## Policy Gradient Algorithms
-
-### Direct policy differentiation
-
-记整条轨迹的总 reward 为 $r(\tau)=\sum_{t=1}^T r(s_t,a_t)$，我们想最大化它在当前策略下的期望：
-
-$$
-\mathcal{J}(\theta)
-=\mathbb{E}_{\tau\sim\pi_\theta}[r(\tau)]
-=\int\pi_\theta(\tau)r(\tau)\,\mathrm{d}\tau.
-$$
-
-采样得到一条 $\tau$ 后，很容易觉得：既然有它的概率 $\pi_\theta(\tau)$，又有它的 reward $r(\tau)$，那就直接最大化两者的乘积。这里漏掉了积分：**$\pi_\theta(\tau)r(\tau)$ 只是被积函数在这条轨迹上的取值，目标 $\mathcal J(\theta)$ 是对所有轨迹的积分。** 如果能算出整个积分，直接对 $\mathcal J$ 求导当然可以；但只拿到一条采样轨迹时，直接对这个乘积求导，并不能给出整个目标梯度的无偏估计。
-
-实际训练通常无法遍历所有轨迹，只能按当前策略采样。我们希望每条样本给出一个梯度，平均起来就能无偏地估计整个目标的梯度。**下面推导的目的，就是把 $\nabla_\theta\mathcal J(\theta)$ 写成一个可以用采样估计的期望，从而确定每条样本应该贡献什么梯度。**
-
-沿用环境与 reward 不依赖 $\theta$ 的假设，在积分与求导可以交换的条件下，利用 $\nabla_\theta\log\pi_\theta(\tau)=\nabla_\theta\pi_\theta(\tau)/\pi_\theta(\tau)$，得到 REINFORCE [@williams1992simple] 的梯度表达式：
-
-$$
-\begin{aligned}
-\nabla_\theta \mathcal{J}(\theta)
-&= \int r(\tau)\nabla_\theta\pi_\theta(\tau)\,\mathrm{d}\tau \\
-&= \int \pi_\theta(\tau)\frac{\nabla_\theta\pi_\theta(\tau)}{\pi_\theta(\tau)}r(\tau)\,\mathrm{d}\tau \\
-&= \mathbb{E}_{\tau\sim\pi_\theta}\left[
-r(\tau)\nabla_\theta\log\pi_\theta(\tau)
-\right].
-\end{aligned}
-$$
-
-这就告诉我们，对 $\tau\sim\pi_\theta$，$r(\tau)\nabla_\theta\log\pi_\theta(\tau)$ 是所需的无偏梯度估计。为了用反向传播得到它，取下面的 loss [@SpinningUp2018]，求导时固定采到的轨迹和 reward：
-
-$$
-\begin{aligned}
-\ell_\theta(\tau)&=-r(\tau)\log\pi_\theta(\tau),\\
--\nabla_\theta\ell_\theta(\tau)
-&=r(\tau)\nabla_\theta\log\pi_\theta(\tau).
-\end{aligned}
-$$
-
-负号用于把最大化写成梯度下降。使用 $\log\pi_\theta(\tau)$ 的理由就在这里：**这个 loss 的负梯度，在采样所用的策略参数处，是目标梯度的无偏估计。**
-
-实现时，由于初始状态分布和环境转移与 $\theta$ 无关，有
-
-$$
-\nabla_\theta\log\pi_\theta(\tau)
-=\sum_{t=1}^T\nabla_\theta\log\pi_\theta(a_t\mid s_t).
-$$
-
-因此，对一条轨迹，把实际采到的各步 action 的 log probability 相加，再乘总 reward 即可：
-
-```python
-trajectory_log_prob = action_log_probs.sum()
-loss = -trajectory_return.detach() * trajectory_log_prob
-```
-
-这里 `trajectory_return` 是总奖励，求导时作为常量；`action_log_probs` 保留策略参数的计算图。对一个 batch，再平均各条轨迹的 loss。这个估计虽然无偏，但 variance 很高，接下来考虑怎么减小它。
-
-### Reduce Variance
-
-仔细观察这个式子，其实这玩意儿是 MLE 那个梯度对 $r(s_t,a_t)$ 加权了：
-
-$$
-\nabla_\theta\mathcal{J}(\theta)
-= \mathbb{E}_{\tau\sim\pi_\theta}\left[
-\sum_{t=1}^T\Psi_t\nabla_\theta\log\pi_\theta(a_t\mid s_t)
-\right]
-$$
-
-当前我们是有：$\Psi_t=\sum_{t'=1}^T r(s_{t'},a_{t'})$
-
-### Don't Let the Past Distract You
-
-一种简单的方法来减小 variance，是我们令 $\Psi_t=\sum_{t'=t}^T r(s_{t'},a_{t'})$
-
-因为其实对于 $a_t$ 来说，他做啥对于 $t$ 之前的 reward 来说是不具有参考价值的。因此我们主要考虑后面的 reward。这玩意儿直觉上挺清楚的，但数学上想了半天才想明白为啥是对的。主要参考了[这篇文章](https://spinningup.openai.com/en/latest/spinningup/extra_pg_proof1.html) [@SpinningUp2018]。
-
-证明的不造为啥让我想起了 MLE。主要用到的就是一个叫做 EGLP lemma 的东西（其实好像用这个 lemma 需要积分和导数的可交换性，貌似 [@hogg2013introduction] 里写挺详细的）：
-
-$$
-\begin{aligned}
-\mathbb{E}_{x\sim\mathbb{P}_\theta}\left[\nabla_\theta\log\mathbb{P}_\theta(x)\right]
-&= \int\mathbb{P}_\theta(x)\nabla_\theta\log\mathbb{P}_\theta(x)\,\mathrm{d}x \\
-&= \int\mathbb{P}_\theta(x)\frac{\nabla_\theta\mathbb{P}_\theta(x)}{\mathbb{P}_\theta(x)}\,\mathrm{d}x \\
-&= \nabla_\theta\int\mathbb{P}_\theta(x)\,\mathrm{d}x=0
-\end{aligned}
-$$
-
-其实跟 MLE 是一样的嘛：
-
-$$
-\mathbb{E}\left[\frac{\partial}{\partial\theta}\log\mathcal{L}(x\mid\theta)\right]=0
-$$
-
-其实我们是要证明嘟是：
-
-$$
-\mathbb{E}_{\tau\sim\pi_\theta}\left[
-\sum_{t=1}^T\sum_{t'<t}r(s_{t'},a_{t'})\nabla_\theta\log\pi_\theta(a_t\mid s_t)
-\right]=0
-$$
-
-也就是要证明当 $t'<t$ 这个时候：
-
-$$
-\mathbb{E}_{s_t,a_t,s_{t'},a_{t'}\sim\pi_\theta}\left[
-r(s_{t'},a_{t'})\nabla_\theta\log\pi_\theta(a_t\mid s_t)
-\right]=0
-$$
-
-那么中心思想其实就是咋来区分 $t'<t$ 捏，我们考虑 $t'<t$ 是先 reward，再选择：
-
-$$
-\mathbb{E}_{s_{t'},a_{t'}\sim\pi_\theta}\left[
-r(s_{t'},a_{t'})\cdot
-\mathbb{E}_{s_t,a_t\sim\pi_\theta(\cdot\mid s_{t'},a_{t'})}\left[
-\nabla_\theta\log\pi_\theta(a_t\mid s_t)\mid s_{t'},a_{t'}
-\right]
-\right]
-$$
-
-关键是先固定过去的历史，再对当前 action 取条件期望：给定 $s_t$，有 $\mathbb E_{a_t\sim\pi_\theta(\cdot\mid s_t)}[\nabla_\theta\log\pi_\theta(a_t\mid s_t)]=0$。过去的 reward 可以和当前 state 相关，但不会由之后采样的 action 改写。
-
-所以说最终结果是整个期望 $0$。
-
-### Introducing Baselines
-
-另一个优化是我们考虑加入 baseline。这个直觉就更对了。就是我们考虑把 $r(s,a)$ 替换成 $r(s,a)-b$。这里减去的是梯度估计器中的 baseline，不是在改环境的 reward；baseline 不依赖当前 action 时，它乘上 score gradient 的期望为零。
-
-当然从数学上来讲也是 EGLP 用用易证的，这里就不多写了。但是我们 baseline 设多少最好呢？从直觉上来讲，是这个 $b$ 让整个 $r$ 尽量居中。接下来我们从数学上进行考虑。
-
-我们考虑
-
-$$
-\nabla_\theta\mathcal{J}(\theta)
-= \mathbb{E}_{\tau\sim\pi_\theta}\left[
-\nabla_\theta\log\pi_\theta(\tau)\cdot(r(\tau)-b)
-\right]
-$$
-
-的方差（对于向量梯度，这里取各分量方差之和）
-
-$$
-\begin{aligned}
-\sigma^2
-&= \mathbb{E}_{\tau\sim\pi_\theta}\left[
-\left\|\nabla_\theta\log\pi_\theta(\tau)\cdot(r(\tau)-b)\right\|^2
-\right] \\
-&\quad -\left\|\mathbb{E}_{\tau\sim\pi_\theta}\left[
-\nabla_\theta\log\pi_\theta(\tau)\cdot(r(\tau)-b)
-\right]\right\|^2 \\
-&= \mathbb{E}_{\tau\sim\pi_\theta}\left[
-\left\|\nabla_\theta\log\pi_\theta(\tau)\cdot(r(\tau)-b)\right\|^2
-\right] \\
-&\quad -\left\|\mathbb{E}_{\tau\sim\pi_\theta}\left[
-\nabla_\theta\log\pi_\theta(\tau)\cdot r(\tau)
-\right]\right\|^2
-\end{aligned}
-$$
-
-我们解
-
-$$
-\frac{\partial}{\partial b}\sigma^2
-= \frac{\partial}{\partial b}\mathbb{E}_{\tau\sim\pi_\theta}\left[
-\left\|\nabla_\theta\log\pi_\theta(\tau)\cdot(r(\tau)-b)\right\|^2
-\right]=0
-$$
-
-可以得到
-
-$$
-b=\frac{
-\mathbb{E}_{\tau\sim\pi_\theta}\left[\left\|\nabla_\theta\log\pi_\theta(\tau)\right\|^2\cdot r(\tau)\right]
-}{
-\mathbb{E}_{\tau\sim\pi_\theta}\left[\left\|\nabla_\theta\log\pi_\theta(\tau)\right\|^2\right]
-}
-$$
-
-这啥捏，这其实是 reward 的加权期望。
-
-但其实这个 baseline 挺难算的，所以我们通常不会用这个最优的 baseline。而是去找一个相对比较好的。
-
-### Off-Policy Policy Gradients
-
-之前我们做的都是 on-policy 的。但真实在训练的时候，我们很难做到稍稍改一点 $\theta$，就重新生成一堆新的 $\tau$。这样是非常 inefficient 的。
-
-所以现在可能的问题是，我们没有关于 $\tau\sim\pi_\theta$ 的数据，但是我们可能有一个其他的 distribution，通过这个 distribution 来 sample 出的数据。也就是 $\tau\sim\overline{\pi}$。
-
-我们需要使用的一个 trick 叫做 importance sampling：
-
-$$
-\begin{aligned}
-\mathbb{E}_{x\sim p(x)}[f(x)]
-&= \int p(x)f(x)\,\mathrm{d}x \\
-&= \int q(x)\frac{p(x)}{q(x)}f(x)\,\mathrm{d}x \\
-&= \mathbb{E}_{x\sim q(x)}\left[\frac{p(x)}{q(x)}f(x)\right]
-\end{aligned}
-$$
-
-所以说我们的 RL objective 可以改成：
-
-$$
-\begin{aligned}
-\mathcal{J}(\theta)
-&= \mathbb{E}_{\tau\sim\overline{\pi}}\left[
-\frac{\pi_\theta(\tau)}{\overline{\pi}(\tau)}r(\tau)
-\right] \\
-&= \mathbb{E}_{\tau\sim\overline{\pi}}\left[
-\frac{p(s_1)\prod_{t=1}^T\pi_\theta(a_t\mid s_t)p(s_{t+1}\mid s_t,a_t)}
-{p(s_1)\prod_{t=1}^T\overline{\pi}(a_t\mid s_t)p(s_{t+1}\mid s_t,a_t)}
-r(\tau)
-\right] \\
-&= \mathbb{E}_{\tau\sim\overline{\pi}}\left[
-r(\tau)\prod_{t=1}^T\frac{\pi_\theta(a_t\mid s_t)}{\overline{\pi}(a_t\mid s_t)}
-\right]
-\end{aligned}
-$$
-
-所以说我们可以推导梯度
-
-$$
-\begin{aligned}
-\nabla_\theta\mathcal{J}(\theta)
-&= \mathbb{E}_{\tau\sim\overline{\pi}}\left[
-\frac{\pi_\theta(\tau)}{\overline{\pi}(\tau)}\nabla_\theta\log\pi_\theta(\tau)r(\tau)
-\right] \\
-&= \mathbb{E}_{\tau\sim\overline{\pi}}\left[
-\left(\prod_{t=1}^T\frac{\pi_\theta(a_t\mid s_t)}{\overline{\pi}(a_t\mid s_t)}\right)
-\left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right)
-\left(\sum_{t=1}^T r(s_t,a_t)\right)
-\right] \\
-&= \mathbb{E}_{\tau\sim\overline{\pi}}\Biggl[
-\sum_{t=1}^T\nabla_\theta\log\pi_\theta(a_t\mid s_t)
-\left(\prod_{t'=1}^t\frac{\pi_\theta(a_{t'}\mid s_{t'})}{\overline{\pi}(a_{t'}\mid s_{t'})}\right) \\
-&\qquad\qquad\cdot\left(
-\sum_{t'=t}^T r(s_{t'},a_{t'})
-\prod_{t''=t+1}^{t'}\frac{\pi_\theta(a_{t''}\mid s_{t''})}{\overline{\pi}(a_{t''}\mid s_{t''})}
-\right)
-\Biggr]
-\end{aligned}
-$$
-
-## Actor Critic Methods
-
-### General Idea
-
-我们回到式子
-
-$$
-\nabla_\theta\mathcal J(\theta)
-\approx\frac1N\sum_{i=1}^N\sum_{t=1}^T
-\Psi_{i,t}\nabla_\theta\log\pi_\theta(a_{i,t}\mid s_{i,t}).
-$$
-
-我们观察这个 $\Psi_t$（先不考虑 baseline）：$\Psi_t=\sum_{t'=t}^T r(s_{t'},a_{t'})$。
-
-我们发现一件事情，就是它其实是在估计 $\mathcal Q^\pi(s_t,a_t)$。也就是我做了这个 action，之后继续按照 $\pi$，会得到一个什么样的结果。这个和是 $\mathcal Q^\pi(s_t,a_t)$ 的一个无偏估计。
-
-于是我们可以尝试 $\Psi_t=\mathcal Q^\pi(s_t,a_t)$。我的理解是，如果能算出这个条件期望，就可以去掉后续轨迹采样带来的部分噪声。
-
-然后我们考虑 baseline。我们大概这么想，就是某个操作比我现在的平均效果好，那么 $\Psi_t$ 要大于 $0$，让它的概率增大。如果比我现在的 $\pi$ 还要垃圾，就减小这个 action 的概率。
-
-所以我们考虑 $b=\mathcal V^\pi(s_t)$，于是我们定义：
-
-$$
-\mathcal A^\pi(s_t,a_t)
-=\mathcal Q^\pi(s_t,a_t)-\mathcal V^\pi(s_t).
-$$
-
-也就是做了这个操作，相比当前策略的平均表现能好多少。然后
-
-$$
-\nabla_\theta\mathcal J(\theta)
-\approx\frac1N\sum_{i=1}^N\sum_{t=1}^T
-\mathcal A^\pi(s_{i,t},a_{i,t})
-\nabla_\theta\log\pi_\theta(a_{i,t}\mid s_{i,t}).
-$$
-
-在采样策略就是 $\pi=\pi_\theta$、advantage 使用真值或条件无偏估计的情况下，这东西是无偏的。那我们考虑怎么算这个 $\mathcal A^\pi(s_t,a_t)$。
-
-我们考虑
-
-$$
-\mathcal Q^\pi(s_t,a_t)
-=r(s_t,a_t)+\mathbb E_{s_{t+1}\sim\mathbb P(\cdot\mid s_t,a_t)}
-[\mathcal V^\pi(s_{t+1})].
-$$
-
-所以说
-
-$$
-\mathcal A^\pi(s_t,a_t)
-=\mathbb E_{s_{t+1}\sim\mathbb P(\cdot\mid s_t,a_t)}
-[r(s_t,a_t)+\mathcal V^\pi(s_{t+1})-\mathcal V^\pi(s_t)].
-$$
-
-也就是说，$r(s_t,a_t)+\mathcal V^\pi(s_{t+1})-\mathcal V^\pi(s_t)$ 是对 $\mathcal A^\pi(s_t,a_t)$ 的一个条件无偏估计。这里需要真实的 $\mathcal V^\pi$；换成学出来的近似值后，一般会引入 bias。
-
-也就是我们现在的问题来到了怎么搞这个 $\mathcal V^\pi$，最直接的方法是大力去做，然后求平均。
-
-当然，更成熟的想法是我们可以训一个模型 $\phi$ 去预测这个 $\mathcal V^\pi$。我们考虑 loss，一种直接的方法是：
-
-$$
-\mathcal L(\phi)
-=\frac12\sum_{i=1}^N\sum_{t=1}^T
-\left\|
-\hat{\mathcal V}_\phi^\pi(s_{i,t})
--\sum_{t'=t}^T r(s_{i,t'},a_{i,t'})
-\right\|^2.
-$$
-
-但是我们考虑有没有方差更低一些的方法，就是用 $r(s_t,a_t)+\hat{\mathcal V}_\phi^\pi(s_{t+1})$ 来代替整个求和。这就变成了 TD error 的平方：
-
-$$
-\mathcal L(\phi)
-=\frac12\sum_{i=1}^N\sum_{t=1}^T
-\left\|
-\hat{\mathcal V}_\phi^\pi(s_{i,t})
--\operatorname{sg}\!\left[
-r(s_{i,t},a_{i,t})+\hat{\mathcal V}_\phi^\pi(s_{i,t+1})
-\right]
-\right\|^2.
-$$
-
-这里 $\operatorname{sg}$ 表示 stop-gradient：当前更新把 bootstrap target 当作固定目标。它降低了对完整 Monte Carlo return 的依赖，但 target 本身的估计误差也会传过来。
-
-### Introducing Discount Factors
-
-有时候我们会考虑 $T\to\infty$ 的情况。为了在 reward 有界时让总 return 也是有穷的，我们可以取 $0\le\gamma<1$，增加一个 discount factor。这个其实是比较直觉的，因为现在给你一块钱和以后给你一块钱，肯定选马上要。
-
-$$
-r(\tau)=\sum_{t=1}^T\gamma^{t-1}r(s_t,a_t).
-$$
-
-那么我们就需要稍稍改一改式子。此时 $\mathcal V^{\pi,\gamma}$ 从当前时刻开始计算折扣 return：
-
-$$
-\mathcal A^{\pi,\gamma}(s_t,a_t)
-=\mathbb E_{s_{t+1}\sim\mathbb P(\cdot\mid s_t,a_t)}
-\left[r(s_t,a_t)+\gamma\mathcal V^{\pi,\gamma}(s_{t+1})
--\mathcal V^{\pi,\gamma}(s_t)\right].
-$$
-
-这时候其实我们在估计导数的时候，要小心折扣的位置。直接用整条轨迹的 return，可以写成：
-
-$$
-\nabla_\theta\mathcal J(\theta)
-\approx\frac1N\sum_{i=1}^N
-\left(\sum_{t=1}^T\gamma^{t-1}r(s_{i,t},a_{i,t})\right)
-\left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta(a_{i,t}\mid s_{i,t})\right).
-$$
-
-利用 reward-to-go，也可以使用下面的估计量：
-
-$$
-\hat g
-=\frac1N\sum_{i=1}^N\sum_{t=1}^T
-\gamma^{t-1}\nabla_\theta\log\pi_\theta(a_{i,t}\mid s_{i,t})
-\left(\sum_{t'=t}^T\gamma^{t'-t}r(s_{i,t'},a_{i,t'})\right).
-$$
-
-外层的 $\gamma^{t-1}$ 与 return 内的 $\gamma^{t'-t}$ 作用不同，不能直接漏掉。两种估计量的期望相同，同一批轨迹上算出的数值不必相同。Thomas [@thomas2014bias] 专门讨论了 discount 与 policy gradient bias 的问题，有空填坑。
-
-### Implementation Details
-
-在真正写代码的时候，我们需要构造一个能产生 policy gradient 的 surrogate。和前面 REINFORCE 的 loss 一样，考虑一个看似无意义的函数：
-
-$$
-\widetilde{\mathcal J}(\theta)
-=\frac1N\sum_{i=1}^N\sum_{t=1}^T
-\operatorname{sg}\!\left[\hat{\mathcal A}_\phi(s_{i,t},a_{i,t})\right]
-\log\pi_\theta(a_{i,t}\mid s_{i,t}).
-$$
-
-求导时，采到的 state、action 和 $\hat{\mathcal A}_\phi$ 都作为常量，所以这个 $\nabla_\theta\widetilde{\mathcal J}(\theta)$ 就是相应的 actor gradient 估计。也就是说，我们其实是借助自动求导程序去计算前面推出来的更新。它的数值不是 $\mathcal J(\theta)$；critic 若有误差，也不能直接声称这个梯度无偏。对于前面从初始状态定义的 discounted objective，还要给第 $t$ 项乘上 $\gamma^{t-1}$。
-
-也就是说我们要训练两个网络 $\theta$ 和 $\phi$。用当前策略采到的数据集 $\mathcal D_k$，一轮更新里的两个目标可以写成：
-
-$$
-\begin{aligned}
-\mathcal L_V(\phi)
-&=\widehat{\mathbb E}_{(s,a,r,s')\in\mathcal D_k}
-\left[\frac12\left\|
-\operatorname{sg}[r+\gamma\hat{\mathcal V}_\phi(s')]
--\hat{\mathcal V}_\phi(s)\right\|^2\right],\\
-\mathcal L_\pi(\theta)
-&=-\widehat{\mathbb E}_{(s,a)\in\mathcal D_k}
-\left[\operatorname{sg}[\hat{\mathcal A}_\phi(s,a)]
-\log\pi_\theta(a\mid s)\right].
-\end{aligned}
-$$
-
-两者都用梯度下降；actor loss 前面的负号对应最大化 surrogate。这里沿用不额外写外层时间权重的实现记法，具体采样与折扣约定仍要和目标一致。
-
-## Generalized Advantage Estimation
-
-Actor-critic 用 advantage 判断一个 action 比当前策略的平均表现好多少。实际训练时，真实的 $\mathcal Q$ 和 $\mathcal V$ 都未知，我们需要从采到的轨迹和 critic 的预测中构造 $\hat{\mathcal A}_t$。
-
-我们需要决定观察多少步真实 reward，再让 critic 预测剩下的收益。只观察一步，估计很依赖 critic；一直观察到终点，又会混入后续 action 和环境带来的随机性。Schulman 等人提出的 **Generalized Advantage Estimation（GAE）** [@schulman2015high] 把不同步数的估计结合起来，用 $\lambda$ 调节两者的取舍。
-
-### From one step to multiple steps
-
-固定采样策略 $\pi$ 和 discount factor $\gamma$，记 $r_t=r(s_t,a_t)$，把 critic 对 $\mathcal V^{\pi,\gamma}(s_t)$ 的预测简记为 $v_t=\hat{\mathcal V}_\phi(s_t)$。在同一条轨迹上，我们可以在不同位置交给 critic 接手：
-
-<GaeHorizonDiagram />
-
-观察 $n$ 步后，前半段用实际 reward，后半段用 $v_{t+n}$ 补足。这种用估计值预测尚未观察到的收益的做法叫做 bootstrap。再减去当前状态的 baseline $v_t$，得到 $n$-step advantage estimate：
-
-$$
-\hat{\mathcal A}_t^{(n)}
-=\underbrace{\sum_{l=0}^{n-1}\gamma^l r_{t+l}}_{\text{observed rewards}}
-+\underbrace{\gamma^n v_{t+n}}_{\text{bootstrap}}
--v_t.
-$$
-
-$n=1$ 时，它就是 TD residual：
-
-$$
-\delta_t=r_t+\gamma v_{t+1}-v_t.
-$$
-
-增加 $n$，就是用更多实际发生的 reward 替换 critic 对未来的预测。这样通常能减少 bootstrap 误差的影响，但也纳入了更多后续轨迹的随机性。
-
-### Mixing the horizons
-
-GAE 为这些不同长度的估计分配指数衰减的权重。先考虑 $0\le\lambda<1$：
-
-$$
-\hat{\mathcal A}_t^{\mathrm{GAE}(\gamma,\lambda)}
-=(1-\lambda)\sum_{n=1}^{\infty}
-\lambda^{n-1}\hat{\mathcal A}_t^{(n)}.
-$$
-
-这些权重之和为 $1$。较小的 $\lambda$ 把权重集中在短步数估计上；较大的 $\lambda$ 让长步数估计参与得更多。对于已经终止的 episode，可以把终止后的 reward 和 value 都延拓为 $0$。
-
-把各个 $n$-step estimate 展开并合并，GAE 就变成了 TD residual 的折扣和：
-
-$$
-\hat{\mathcal A}_t^{\mathrm{GAE}(\gamma,\lambda)}
-=\sum_{l=0}^{\infty}(\gamma\lambda)^l\delta_{t+l}
-=\delta_t+\gamma\lambda\delta_{t+1}
-+(\gamma\lambda)^2\delta_{t+2}+\cdots.
-$$
-
-前一个式子说明 GAE 如何结合不同步数的估计，后一个式子更方便计算。$\lambda=1$ 时使用后一个表达式，或取前一个表达式在 $\lambda\to1$ 时的极限。
-
-<details>
-<summary>从 n-step average 到 TD residual sum</summary>
-
-把 TD residual 展开后，中间的 value 项相消：
-
-$$
-\hat{\mathcal A}_t^{(n)}
-=\sum_{l=0}^{n-1}\gamma^l\delta_{t+l}
-=\sum_{l=0}^{n-1}\gamma^l r_{t+l}
-+\gamma^n v_{t+n}-v_t.
-$$
-
-$\delta_{t+l}$ 出现在所有 $n\ge l+1$ 的估计里，因此它在加权平均中的系数是
-
-$$
-(1-\lambda)\gamma^l\sum_{n=l+1}^{\infty}\lambda^{n-1}
-=(\gamma\lambda)^l.
-$$
-
-若只采到后续 $H$ 步，有限长度版本把剩余权重交给最长的估计：
-
-$$
-\begin{aligned}
-\hat{\mathcal A}_t^{\mathrm{GAE},H}
-&=(1-\lambda)\sum_{n=1}^{H-1}\lambda^{n-1}\hat{\mathcal A}_t^{(n)}
-+\lambda^{H-1}\hat{\mathcal A}_t^{(H)}\\
-&=\sum_{l=0}^{H-1}(\gamma\lambda)^l\delta_{t+l}.
-\end{aligned}
-$$
-
-其中 $H=1$ 时只有 $\hat{\mathcal A}_t^{(1)}$。最长那一项仍可以在采样边界使用 critic 的预测。
-
-</details>
-
-### What λ controls
-
-| $\lambda$ | 使用的信息 | 主要取舍 |
-| --- | --- | --- |
-| $0$ | 一步 reward 和下一状态的 value，$\hat{\mathcal A}_t=\delta_t$ | 通常方差较低，更依赖 critic 的准确性 |
-| $0<\lambda<1$ | 不同步数估计的加权平均 | 在 bootstrap 误差和轨迹采样噪声之间折中 |
-| $1$ | 若采到真正终止，使用完整 discounted return 减去 $v_t$ | 后续收益完全来自采样，通常方差较高 |
-
-Bootstrap 可能把 critic 的预测误差带入 policy gradient。若 critic 恰好等于真实的 $\mathcal V^{\pi,\gamma}$，一步 TD 就已经是 advantage 的条件无偏估计；在同样的采样与边界条件下，其他 $\lambda$ 也不会额外引入这种 bias。
-
-$\gamma$ 和 $\lambda$ 的作用不同：$\gamma$ 定义本节要估计的 discounted return；固定 $\gamma$ 后，$\lambda$ 调节估计这个量时观察多长的轨迹。改变 $\lambda$ 不会改变真实 advantage 的定义。
-
-<details>
-<summary>Advantage bias 与 policy-gradient bias</summary>
-
-GAE 最终要放进 actor 的梯度里，因此还要区分 advantage 数值的误差与它给 policy gradient 带来的 bias。原论文把满足下面条件的估计量称为 $\gamma$-just：
-
-$$
-\mathbb E\left[\hat{\mathcal A}_t\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right]
-=\mathbb E\left[\mathcal A^{\pi_\theta,\gamma}(s_t,a_t)
-\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right].
-$$
-
-当 $v_t=\mathcal V^{\pi,\gamma}(s_t)$ 时，
-
-$$
-\mathbb E[\delta_t\mid s_t,a_t]
-=\mathcal A^{\pi,\gamma}(s_t,a_t).
-$$
-
-此时一步估计已经满足要求。使用近似 critic 并且 $\lambda<1$ 时，bootstrap 误差一般会传入 policy gradient。
-
-记完整的 discounted return 为 $G_t$。当 $\lambda=1$ 且采到真正终止时，$\hat{\mathcal A}_t=G_t-v_t$。即使 $v_t$ 不准确，$G_t$ 仍是 discounted $\mathcal Q$ 的条件无偏估计，而 $v_t$ 是不依赖当前 action 的 baseline，所以这个估计量仍是 $\gamma$-just。但它的条件期望是 $\mathcal Q^{\pi,\gamma}(s_t,a_t)-v_t$，未必等于真实 advantage。
-
-这里固定采样策略，并把 critic 当作给定的函数。$\gamma$-just 讨论的是 discounted policy-gradient 项；对于前文从初始状态定义的 discounted objective，仍沿用相应的外层时间权重。
-
-</details>
-
-### Computing GAE on a rollout
-
-实际收集到的轨迹是有限的。设最后一个 action 是 $a_T$，下一状态为 $s_{T+1}$。从后往前计算即可：
-
-$$
-\hat{\mathcal A}_t
-=\delta_t+\gamma\lambda\hat{\mathcal A}_{t+1},
-\qquad \hat{\mathcal A}_{T+1}=0.
-$$
-
-这里的 $\hat{\mathcal A}_{T+1}=0$ 表示没有更多已采样的 TD residual；未来收益仍通过最后一个 $\delta_T$ 中的 $v_{T+1}$ 进入估计。边界 value 按轨迹停止的原因确定：
-
-- **真正终止**：未来没有 reward，令 $v_{T+1}=0$。
-- **rollout 收集结束或外部 time limit 截断**：任务本可继续，使用停止前最后一个状态的 critic 预测作为 $v_{T+1}$。
-
-Spinning Up 的 [PPOBuffer 实现](https://spinningup.openai.com/en/latest/_modules/spinup/algos/pytorch/ppo/ppo.html) 就通过最后一个 value 处理这两种情况。Gymnasium [@faramaHandlingTimeLimits] 用 `terminated` 和 `truncated` 区分真正终止与外部截断；任务本身定义的有限时域终点属于前者。
-
-有限 rollout 下，即使 $\lambda=1$，仍有
-
-$$
-\hat{\mathcal A}_t
-=\sum_{l=0}^{T-t}\gamma^l r_{t+l}
-+\gamma^{T-t+1}v_{T+1}-v_t.
-$$
-
-采到真正终止时，边界项为零，才得到纯 Monte Carlo return 减 baseline；截断时则保留 bootstrap。
-
-下面用普通列表实现单段 rollout 的计算。`rewards` 长度为 $T$，`values` 长度为 $T+1$，最后一个元素已经按上面的规则设置。它们都是采样时记录并固定下来的数值。
-
-```python
-def gae(rewards, values, gamma, lam):
-    assert len(values) == len(rewards) + 1
-    advantages = [0.0] * len(rewards)
-    carry = 0.0
-    for t in reversed(range(len(rewards))):
-        delta = rewards[t] + gamma * values[t + 1] - values[t]
-        carry = delta + gamma * lam * carry
-        advantages[t] = carry
-    return advantages
-```
-
-多条 episode 应分别计算；截断后 reset 得到的新初始状态也不属于上一段轨迹，不能把它的 value 或 advantage 接到上一段。
-
-例如，一条三步后终止的轨迹只有最后一步得到 reward。取 $\gamma=0.9$、$\lambda=0.8$，因此 $\gamma\lambda=0.72$，并设终止状态 $v_4=0$：
-
-| $t$ | $r_t$ | $v_t$ | $\delta_t$ | $\hat{\mathcal A}_t$ |
-| --- | --- | --- | --- | --- |
-| $1$ | $0$ | $0.4$ | $0.05$ | $0.28616$ |
-| $2$ | $0$ | $0.5$ | $0.04$ | $0.328$ |
-| $3$ | $1$ | $0.6$ | $0.4$ | $0.4$ |
-
-从最后一步开始，先得到 $\hat{\mathcal A}_3=0.4$，再算 $\hat{\mathcal A}_2=0.04+0.72\times0.4=0.328$，最后得到 $\hat{\mathcal A}_1=0.05+0.72\times0.328=0.28616$。终点的信息通过这次反向递推传到更早的 action。
-
-训练 actor 时，把算好的 advantage 当作固定权重，代入前面的 policy-gradient loss 或后面的 PPO objective。GAE 负责构造这个权重；接下来的 TRPO 和 PPO 则控制策略如何利用它更新。
-
-## Trust Region Policy Optimization
-
-TRPO [@schulman2015trust] / [Spinning Up tutorial](https://spinningup.openai.com/en/latest/algorithms/trpo.html) [@SpinningUp2018]。
-
-$$
-\begin{aligned}
-\theta_{k+1}&=\arg\max_\theta\mathcal L_{\theta_k}(\theta)\\
-\text{s.t.}\quad
-\overline D_{\mathrm{KL}}(\theta_k\|\theta)&\le\delta.
-\end{aligned}
-$$
-
-其中
-
-$$
-\mathcal L_{\theta_k}(\theta)
-=\mathbb E_{(s,a)\sim\pi_{\theta_k}}\left[
-\frac{\pi_\theta(a\mid s)}{\pi_{\theta_k}(a\mid s)}
-\hat{\mathcal A}^{\pi_{\theta_k}}(s,a)\right],
-$$
-
-$$
-\overline D_{\mathrm{KL}}(\theta_k\|\theta)
-=\mathbb E_{s\sim\pi_{\theta_k}}\left[
-D_{\mathrm{KL}}\!\left(
-\pi_{\theta_k}(\cdot\mid s)\|\pi_\theta(\cdot\mid s)
-\right)\right].
-$$
-
-这里的 state 分布来自旧策略的访问分布；一轮优化中，采样数据、旧策略与 advantage estimates 都固定。
-
-## Proximal Policy Optimization
-
-PPO paper [@schulman2017proximal] / [OpenAI tutorial](https://spinningup.openai.com/en/latest/algorithms/ppo.html) [@SpinningUp2018] / [Hugging Face tutorial](https://huggingface.co/blog/deep-rl-ppo) [@deep-rl-course]。
-
-TRPO 这么复杂，主要是因为它的限制和 $\mathcal L$ 是分开的。文章提出了两种把更新限制放进 surrogate objective 的方法：PPO-Penalty 和 PPO-Clip。
-
-### PPO-Clip
-
-我们对式子略加修改。先记概率比
-
-$$
-\rho_\theta(s,a)=\frac{\pi_\theta(a\mid s)}{\pi_{\theta_k}(a\mid s)}.
-$$
-
-那么
-
-$$
-\theta_{k+1}=\arg\max_\theta
-\mathbb E_{(s,a)\sim\pi_{\theta_k}}\left[
-\min\left\{
-\rho_\theta(s,a)\hat{\mathcal A}(s,a),
-\operatorname{clip}(\rho_\theta(s,a),1-\epsilon,1+\epsilon)
-\hat{\mathcal A}(s,a)
-\right\}\right].
-$$
-
-其中
-
-$$
-\operatorname{clip}(x,l,u)=
-\begin{cases}
-l,&x<l,\\
-x,&l\le x\le u,\\
-u,&x>u.
-\end{cases}
-$$
-
-大概感性理解是这样的：$\hat{\mathcal A}>0$ 时，我们希望增大这个 action 的概率；$\hat{\mathcal A}<0$ 时，希望减小它的概率。但是当概率比沿着有利方向变化太多，就不再继续奖励这个变化。具体地，正 advantage 在 $\rho_\theta>1+\epsilon$ 时截平，负 advantage 在 $\rho_\theta<1-\epsilon$ 时截平。
-
-它不是把所有概率比硬限制在区间里；共享参数下，其他样本的梯度仍可能继续改变这个 action 的概率。
-
-### PPO-Penalty
-
-非常直觉的式子：
-
-$$
-\theta_{k+1}=\arg\max_\theta\left\{
-\mathbb E_{(s,a)\sim\pi_{\theta_k}}\left[
-\rho_\theta(s,a)\hat{\mathcal A}(s,a)\right]
--\beta\overline D_{\mathrm{KL}}(\theta_k\|\theta)
-\right\}.
-$$
-
-但是捏，固定一个 $\beta$ 不一定合适。我们既想优化前面那部分，又想控制每一步离旧策略多远。那咋搞呢，就是让 $\beta$ 动起来。跑一段优化，就去康康这个
-
-$$
-d=\widehat{\mathbb E}_{s\sim\pi_{\theta_k}}\left[
-D_{\mathrm{KL}}(\pi_{\theta_k}(\cdot\mid s)\|\pi_\theta(\cdot\mid s))
-\right].
-$$
-
-直觉上就是这玩意儿如果大了，就说明太远了，那我们得稍微调高一下 $\beta$；如果太小，就可以把 $\beta$ 搞低，允许更大的更新。
-
-所以说我们可以定一个阈值 $d_{\mathrm{targ}}$：
-
-$$
-\beta\leftarrow
-\begin{cases}
-\beta/2,&d<d_{\mathrm{targ}}/1.5,\\
-\beta,&d_{\mathrm{targ}}/1.5\le d\le1.5d_{\mathrm{targ}},\\
-2\beta,&d>1.5d_{\mathrm{targ}}.
-\end{cases}
-$$
-
-### Learning to summarize from human feedback
-
-Learning to summarize from human feedback [@stiennon2020summarize] / [demo](https://openai.com/index/learning-to-summarize-with-human-feedback/)。
-
-TL;DR dataset [@volske-etal-2017-tl]：一个 summarize 任务，主要是对 Reddit 的帖子生成摘要。
-
-Reward model $r_\phi(x,y)$ 只对最终的结果给 reward。这里可以取 $\gamma=1$，不额外折扣后面的 token；终点给 reward 本身并不意味着 $\gamma$ 永远没有影响。Reward model 的数据是一大堆 preference data $\langle x,y_0,y_1\rangle$，其中 $y_0$ 更被喜欢。
-
-$$
-\mathcal L(\phi)
-=-\mathbb E_{(x,y_0,y_1)\sim\mathcal D}\left[
-\log\sigma(r_\phi(x,y_0)-r_\phi(x,y_1))\right].
-$$
-
-最终我们训练模型的时候，用 PPO 优化的 reward 里加入相对 reference policy 的 KL penalty：
-
-$$
-R_\theta(x,y)=r(x,y)
--\beta\log\frac{\pi_\theta(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}.
-$$
-
-这个 reference penalty 和 PPO 控制单次更新时相对旧策略的限制不是同一个东西。
-
-然后我们就发现，这个 $\mathbb E_{y\sim\pi_\theta}[\log(\pi_\theta(y\mid x)/\pi_{\mathrm{ref}}(y\mid x))]$ 外面的期望咋被吞掉了。其实上面写的是一条 sampled response 的 reward，整体目标还要对 $y\sim\pi_\theta$ 取期望：
-
-$$
-\begin{aligned}
-\mathcal R(\theta)
-&=\mathbb E_{x\sim\mathcal D,\,y\sim\pi_\theta(\cdot\mid x)}
-\left[r(x,y)-\beta\log\frac{\pi_\theta(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}\right]\\
-&=\mathbb E_{x\sim\mathcal D,\,y\sim\pi_\theta(\cdot\mid x)}[r(x,y)]\\
-&\quad-\beta\mathbb E_{x\sim\mathcal D}
-\left[D_{\mathrm{KL}}(\pi_\theta(\cdot\mid x)\|\pi_{\mathrm{ref}}(\cdot\mid x))\right].
-\end{aligned}
-$$
-
-对于这个 reward model，可以联想到 Bradley–Terry model [@bradley1952rank]。这个在 DPO 那篇文章里提了很多。这个 [Stanford STATS 200 notes](https://web.stanford.edu/class/archive/stats/stats200/stats200.1172/Lecture24.pdf) 写的感觉非常好。
-
-$n$ 个球队，每个球队有个 strength $\beta_i$，$i$ 跟 $j$ 打的赢率为
-
-$$
-p_{ij}=\frac{e^{\beta_i-\beta_j}}{1+e^{\beta_i-\beta_j}}
-=\frac{e^{\beta_i}}{e^{\beta_i}+e^{\beta_j}}.
-$$
-
-但是有时候主客场之类的位置不是可交换嘟，所以说还可以加一个位置效应：
-
-$$
-p_{ij}=\frac{e^{\alpha+\beta_i-\beta_j}}{1+e^{\alpha+\beta_i-\beta_j}}.
-$$
-
-当然咱这儿没有 $\alpha$。其实这个 $r$ 预测的就是这个 $\beta$ 嘛。
-
-### InstructGPT
-
-InstructGPT [@ouyang2022training]。
-
-对于 reward model，它把两个改成了 $K$ 个。就是让人排 $K$ 个 $y$，再从这个排序构造 $\binom K2$ 对偏好。这样的话，对每个 prompt 的这些 pair 取平均：
-
-$$
-\mathcal L(\phi)
-=-\mathbb E_{(x,\{y_j\}_{j=1}^K)\sim\mathcal D}\left[
-\frac1{\binom K2}\sum_{y_w\succ y_l}
-\log\sigma(r_\phi(x,y_w)-r_\phi(x,y_l))
-\right].
-$$
-
-然后 RL 部分，待续。
-
-### Implementation
-
-Implementation Matters [@engstrom2019implementation] / The N Implementation Details of RLHF with PPO [@huang2024n] / The N+ Implementation Details of RLHF with PPO [@huang2024nplus]。
-
-实现笔记待续。
-
-## Direct Preference Optimization
-
-DPO paper [@rafailov2024direct] / [HF docs](https://huggingface.co/docs/trl/main/en/dpo_trainer) / [HF tutorial](https://huggingface.co/blog/dpo-trl)。
-
-### Key Ideas
-
-[DPO 概览图：论文 Figure 1](https://arxiv.org/html/2305.18290v3#S1.F1)。
-
-我的大概猜测是，作者主要有两个 key observations：
-
-1. Preference data 本身可以体现一种 reward function（BT model）。
-2. 给定 reference policy 和 $\beta$，最优 $\pi$ 可以对应到一类 reward；这类 reward 只相差一个依赖 prompt 的常数 $c(x)$，会导出同一个最优 policy。
-
-整条线大概是 $\pi\leftrightarrow[r]\to p_\succ\to\mathcal L$，其中 $[r]$ 表示上面这个等价类。
-
-也就是说，我们其实可以通过调整 $\pi$，来让对应的隐式 reward 去吻合 preference data。
-
-具体的 learning objective 推导待续。
-
-### Paper Details
-
-待续。
-
-### Other Details
-
-In eq. 12，把最大化 reward 加 KL penalty 的目标换成等价的最小化形式：
-
-$$
-\begin{aligned}
-&\min_\pi\mathbb E_{x\sim\mathcal D}\mathbb E_{y\sim\pi(\cdot\mid x)}
-\left[\log\frac{\pi(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}
--\frac1\beta r(x,y)\right]\\
-={}&\min_\pi\mathbb E_{x\sim\mathcal D}\mathbb E_{y\sim\pi(\cdot\mid x)}
-\left[\log\frac{\pi(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}}\right]\\
-={}&\min_\pi\mathbb E_{x\sim\mathcal D}\mathbb E_{y\sim\pi(\cdot\mid x)}
-\left[\log\frac{\pi(y\mid x)}{Z(x)^{-1}\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}}
--\log Z(x)\right].
-\end{aligned}
-$$
-
-While
-
-$$
-Z(x)=\sum_y\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}.
-$$
-
-这里假设 $\beta>0$、$Z(x)$ 有限，且 policy 在 reference 的 support 内。比较有意思的点是，它把外面的 $r(x,y)/\beta$ 强行塞进了 $\log$ 里面，构造一个新的 policy：
-
-$$
-\pi^*(y\mid x)
-=\frac1{Z(x)}\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}.
-$$
-
-酱紫的话，里面的 $\log(\pi(y\mid x)/\pi^*(y\mid x))$ 就构成了一个新的 KL：
-
-$$
-\begin{aligned}
-&\mathbb E_{x\sim\mathcal D}\mathbb E_{y\sim\pi(\cdot\mid x)}
-\left[\log\frac{\pi(y\mid x)}{\pi^*(y\mid x)}\right]\\
-={}&\mathbb E_{x\sim\mathcal D}
-\left[D_{\mathrm{KL}}(\pi(\cdot\mid x)\|\pi^*(\cdot\mid x))\right].
-\end{aligned}
-$$
-
-## Reward Hacking
-
-[Lilian Weng: Reward Hacking in Reinforcement Learning](https://lilianweng.github.io/posts/2024-11-28-reward-hacking/)。阅读笔记待续。
-
-## Group Relative Policy Optimization
-
-DeepSeekMath [@shao2024deepseekmath]。
-
-对于同一个 prompt $x$，从旧策略采样 $G$ 个回答。先记每个 token 的 probability ratio：
-
-$$
-\rho_{i,t}(\theta)
-=\frac{\pi_\theta(y_{i,t}\mid x,y_{i,<t})}
-{\pi_{\theta_{\mathrm{old}}}(y_{i,t}\mid x,y_{i,<t})}.
-$$
-
-原来的目标可以整理为
-
-$$
-\mathcal J(\theta)
-=\mathbb E_{x\sim\mathcal D,\,\{y_i\}_{i=1}^G\sim\pi_{\theta_{\mathrm{old}}}}\left[
-\frac1G\sum_{i=1}^G\frac1{|y_i|}\sum_{t=1}^{|y_i|}
-\left(f(\rho_{i,t}(\theta),\hat{\mathcal A}_{i,t})
--\beta D_{i,t}(\theta)\right)
-\right],
-$$
-
-其中
-
-$$
-f(w,A)=\min\{wA,\operatorname{clip}(w,1-\epsilon,1+\epsilon)A\},
-$$
-
-$$
-D_{i,t}(\theta)
-=D_{\mathrm{KL}}\!\left(
-\pi_\theta(\cdot\mid x,y_{i,<t})\|
-\pi_{\mathrm{ref}}(\cdot\mid x,y_{i,<t})
-\right).
-$$
-
-这里把 KL 项写成条件分布之间的散度来说明目标；原论文实现使用相应的逐 token 估计量。
-
-欸为啥看着这么像 offline learning 捏。冷静分析发现，式子里居然有 $\pi_{\theta_{\mathrm{old}}}$ 和 $\pi_{\mathrm{ref}}$ 两个东西。所以它其实是一轮从旧策略采样，再沿 surrogate 的梯度更新：
-
-$$
-\theta_{\mathrm{new}}
-\leftarrow\theta_{\mathrm{old}}
-+\left.\eta\nabla_\theta\mathcal J(\theta;\theta_{\mathrm{old}})
-\right|_{\theta=\theta_{\mathrm{old}}}.
-$$
-
-这是最大化 $\mathcal J$ 的一步梯度上升；实际可以在一批旧数据上做若干次更新，再重新采样。通常从 reference 初始化 policy，但之后 $\theta_{\mathrm{old}}$ 会更新，$\theta_{\mathrm{ref}}$ 保持固定。这俩确实应该是不一样的。
-
-所以它想控制两个事情：
-
-1. $\theta_{\mathrm{old}}\to\theta_{\mathrm{new}}$：单轮更新不要偏得太多，用 clip 抑制继续改善已过界样本的 surrogate。
-2. $\theta_{\mathrm{ref}}\to\theta_{\mathrm{new}}$：不要过度偏离 reference，用 KL penalty 约束。
-
-那这个 clip 和直接修改 learning rate 有啥区别呢？Learning rate 缩放整次参数更新，clip 则让某些样本在有利方向上超过阈值后不再贡献这部分改进梯度。因此两者不能互相替代，clip 也不保证所有 action 的概率比都留在区间内。
-
-如果是 outcome supervision，advantage 就方便多了：同一个回答中的所有 tokens 共用这个回答的归一化 reward，**仍然使用逐 token 的 probability ratio**。
-
-$$
-\hat{\mathcal A}_{i,t}=\hat{\mathcal A}(x,y_i)
-=\frac{r(x,y_i)-\bar r}{\sigma_r},\qquad
-\bar r=\frac1G\sum_{j=1}^G r(x,y_j).
-$$
-
-所以对应的目标是
-
-$$
-\mathcal J(\theta)
-=\mathbb E_{x,\{y_i\}\sim\pi_{\theta_{\mathrm{old}}}}\left[
-\frac1G\sum_{i=1}^G\frac1{|y_i|}\sum_{t=1}^{|y_i|}
-\left(f(\rho_{i,t}(\theta),\hat{\mathcal A}(x,y_i))
--\beta D_{i,t}(\theta)\right)
-\right].
-$$
-
-如果是 process supervision，论文会先归一化各个 reasoning step 的 reward，再把当前 token 之后的 step rewards 累加成 $\hat{\mathcal A}_{i,t}$，而不是只使用当前位置的一项 reward。
-
-### DeepSeek R1
-
-DeepSeek-R1 [@guo2025deepseek]。阅读笔记待续。
-
-### GRPO with Binary Rewards
-
-Mroueh [@mroueh_2025] 从 binary rewards 理解 GRPO。也就是说 $r(y)\in\{0,1\}$。
-
-他的结论大概是说，GRPO 会根据模型整体回答的好坏，对正确和错误回答赋予不同的相对权重。
-
-不过其实有点没咋搞懂的是，他直接把 advantage 看成了
-
-$$
-\hat{\mathcal A}(x,y)
-=\frac{r(x,y)-\mathbb E_{y'\sim\pi_{\theta_{\mathrm{old}}}(\cdot\mid x)}[r(x,y')]}
-{\sqrt{\operatorname{Var}_{y'\sim\pi_{\theta_{\mathrm{old}}}(\cdot\mid x)}(r(x,y'))}}.
-$$
-
-但有限 group 的均值、标准差本来都是随机变量，这里把它们换成了总体统计量。因此下面是总体近似下的分析，不能直接当成有限 group estimator 的等式。
-
-但是确实感性上还是有一定道理的。如果 $r(x,y)\sim\operatorname{Bernoulli}(p)$，其中 $0<p<1$，我们就可以方便地代进去得到
-
-$$
-\hat{\mathcal A}(x,y)
-=\frac{r(x,y)-p}{\sqrt{p(1-p)}}
-=\begin{cases}
-\sqrt{\dfrac{1-p}{p}},&\text{if correct},\\
--\sqrt{\dfrac p{1-p}},&\text{if incorrect}.
-\end{cases}
-$$
-
-以下固定一个 prompt $x$，并按这篇笔记使用整条回答的概率比 $\rho(y)=\pi_\theta(y\mid x)/\pi_{\theta_{\mathrm{old}}}(y\mid x)$ 作简化分析；它与上面的逐 token 训练目标要区分开。
-
-辣么
-
-$$
-\begin{aligned}
-f(\rho,y)
-&=\min\{\rho\hat{\mathcal A}(y),
-\operatorname{clip}(\rho,1-\epsilon,1+\epsilon)\hat{\mathcal A}(y)\}\\
-&=\begin{cases}
-\min\{\rho,1+\epsilon\}\sqrt{\dfrac{1-p}{p}},&\text{if correct},\\
--\max\{\rho,1-\epsilon\}\sqrt{\dfrac p{1-p}},&\text{if incorrect}.
-\end{cases}
-\end{aligned}
-$$
-
-所以说，下面的期望都按 $y\sim\pi_{\theta_{\mathrm{old}}}(\cdot\mid x)$ 取：
-
-$$
-\begin{aligned}
-\mathbb E[f(\rho(y),y)]
-&=\mathbb E\left[
-\begin{cases}
-\min\{\rho(y),1+\epsilon\}\sqrt{\dfrac{1-p}{p}},&r(y)=1,\\
--\max\{\rho(y),1-\epsilon\}\sqrt{\dfrac p{1-p}},&r(y)=0
-\end{cases}\right]\\
-&=\mathbb E\left[\min\{\rho(y),1+\epsilon\}\mathbf1_{r(y)=1}\right]
-\sqrt{\frac{1-p}{p}}\\
-&\quad-\mathbb E\left[\max\{\rho(y),1-\epsilon\}\mathbf1_{r(y)=0}\right]
-\sqrt{\frac p{1-p}}.
-\end{aligned}
-$$
-
-所以说，如果 $p$ 比较小，这个问题模型很难回答，那么单个正确回答的正权重更大。也就是说，它会更「乐观」，更倾向于表扬少见的正确做法。如果 $p$ 很大，也就是模型很容易回答，单个错误回答的负权重绝对值更大，这时候就会更加「严苛」，去批评那些做得不好的回答。这里比较的是每个样本的系数，不是说某一类在总梯度里一定占主导；采样频率和 score gradient 也会影响结果。
-
-有限 group 若全对或全错，会出现 $\sigma_r=0$，实现中需要显式处理，不能直接代入除法。
-
-原文好像又往下推了一点。其实没理解还要干啥，我觉得前面的式子已经足够解释这两个权重了。
-
-<details>
-<summary>继续展开裁剪项</summary>
-
-记 $p_{\mathrm{old}}(y)=\pi_{\theta_{\mathrm{old}}}(y\mid x)$、$p_\theta(y)=\pi_\theta(y\mid x)$，并定义两个概率阈值
-
-$$
-\ell(y)=(1-\epsilon)p_{\mathrm{old}}(y),\qquad
-u(y)=(1+\epsilon)p_{\mathrm{old}}(y).
-$$
-
-那么
-
-$$
-\begin{aligned}
-\mathbb E[f(\rho(y),y)]
-&=\mathbb E\left[\rho(y)\mathbf1_{\{r(y)=1,\,p_\theta(y)<u(y)\}}\right]
-\sqrt{\frac{1-p}{p}}\\
-&\quad+(1+\epsilon)\mathbb E\left[\mathbf1_{\{r(y)=1,\,p_\theta(y)\ge u(y)\}}\right]
-\sqrt{\frac{1-p}{p}}\\
-&\quad-\mathbb E\left[\rho(y)\mathbf1_{\{r(y)=0,\,p_\theta(y)>\ell(y)\}}\right]
-\sqrt{\frac p{1-p}}\\
-&\quad-(1-\epsilon)\mathbb E\left[\mathbf1_{\{r(y)=0,\,p_\theta(y)\le\ell(y)\}}\right]
-\sqrt{\frac p{1-p}}.
-\end{aligned}
-$$
-
-</details>
-
-### Reinforcement Learning from Verifiable Rewards
-
-Tülu 3 [@lambert2024t]。阅读笔记待续。
-
-## Training-inference mismatch and score centering
-
-前面的 policy gradient 推导一直依赖一个条件：**产生 action 的 distribution，必须与计算 $\nabla_\theta\log\pi_\theta$ 的 distribution 对得上。** 对 LLM 来说，rollout engine 和 trainer 即使拿着同一份权重，也可能因为量化、不同的 kernel 或数值计算顺序，给出不同的 next-token probabilities；异步训练还会让 rollout 使用较旧的权重。这些差异通常放在 training-inference mismatch（TIM）这个问题下讨论。
-
-Score Centering [@marek2026scorecentering] 给出了一个值得接着 baseline 和 GRPO 往下想的切入点：如果所有回答的 reward 都一样，policy 理应没有值得优化的方向，但 mismatch 会让朴素的更新仍然移动。我们先把这个现象算清楚，再设计修正，最后比较它与 importance sampling、Bellman Policy Optimization（BPO）的关系。本节依据两篇论文的 September 2026 v1，数值例子是用于核对公式的独立构造。
-
-### A constant reward should not move the policy
-
-先固定一个 prefix $s=(x,y_{<t})$，只看当前位置选择哪个 token。为避免把 state 和 score 都写成 $s$，这里记
-
-$$
-p_a=\pi_\theta(a\mid s),\qquad
-q_a=\pi_{\mathrm{sampler}}(a\mid s),\qquad
-z_a=\nabla_\theta\log p_a.
-$$
-
-$p$ 是 trainer，$q$ 是实际采样分布，$z_a$ 是一个参数空间中的向量，叫作 score；它与 reward 不是同一个「分数」。一次更新中，rollout、$q$ 和 reward targets 都固定，不对采样过程反向传播。先假设词表有限、$p_a>0$，且 $p$ 对参数可微。
-
-如果每个 action 都给常数 reward $c$，目标就是 $\sum_a p_a c=c$，梯度应该为零。用前面已经推导过的 score identity，有
-
-$$
-\mathbb E_p[z]
-=\sum_a p_a\nabla_\theta\log p_a
-=\nabla_\theta\sum_a p_a=0.
-$$
-
-但 trainer 实际收到的是 $a\sim q$。直接用 $cz_a$ 更新，平均起来得到
-
-$$
-c\,m_q,\qquad m_q:=\mathbb E_q[z]=\sum_a q_a z_a.
-$$
-
-这个平均 score 一般不为零。我们甚至不需要长序列就能看到问题：设只有两个 action，$p(A)=\sigma(\theta)=0.8$，$p(B)=0.2$，而 sampler 给出 $q(A)=0.6$、$q(B)=0.4$。对这个 scalar logit 求导，
-
-$$
-z_A=1-p(A)=0.2,\qquad z_B=-p(A)=-0.8.
-$$
-
-在 $p$ 下，它们刚好抵消：$0.8\times0.2+0.2\times(-0.8)=0$。换成 $q$，则
-
-$$
-m_q=0.6\times0.2+0.4\times(-0.8)=-0.2.
-$$
-
-于是即使每个 action 都得到 $+1$，gradient ascent 也会减小 $\theta$，降低 trainer 选择 $A$ 的概率。这一步在模仿 sampler 的偏好，却没有利用任何 reward 差异。
-
-### Separating drift from the reward signal
-
-现在让 action 的好坏不同。记 $Q_a$ 为固定的 action-value signal；此处先在 $p$、$q$ 下比较**同一个 $Q$ 函数**，并记
-
-$$
-V_q=\mathbb E_q[Q],\qquad
-g^\star=\mathbb E_p[Qz].
-$$
-
-$V_q$ 只是这个 signal 在 $q$ 下的平均值；若取 $Q=\mathcal Q^q(s,\cdot)$，它就等于前文的 $\mathcal V^q(s)$。我们稍后再把 prefix 的访问分布和后续 rollout 放回来，不能把这个局部比较直接当成整个 RL objective 的梯度。
-
-为了分清更新有没有使用 action 之间的优劣，先把每个 $Q_a$ 拆成「大家共有的平均部分」$V_q$ 和「相对平均值的差异」$Q_a-V_q$：
-
-$$
-\begin{aligned}
-g_{\mathrm{naive}}
-&=\mathbb E_q[Qz]\\
-&=V_qm_q+\mathbb E_q[(Q-V_q)z]\\
-&=V_qm_q+\operatorname{Cov}_q(Q,z).
-\end{aligned}
-$$
-
-这里 scalar 与 vector 的 covariance 定义为
-
-$$
-\operatorname{Cov}_q(Q,z)
-=\mathbb E_q[(Q-V_q)(z-m_q)].
-$$
-
-最后一步成立，是因为 $\mathbb E_q[Q-V_q]=0$。第一项 $V_qm_q$ 只知道平均 reward 有多大，不知道哪个 action 更好；第二项才把 reward 的差异与 score 的方向对应起来。我们把第一项称为 **mean-score drift**。
-
-这个 drift 还有一个直观的方向：固定 $q$，$m_q$ 正是 $\mathbb E_q[\log p_a]$ 的梯度，也就是把 $q$ 当 teacher 做 maximum likelihood 的方向。若 $V_q>0$，它把 trainer 拉向 sampler；若 $V_q<0$，则反向推动。固定 teacher 的拟合与不断从 trainer 同步权重、又持续引入偏差的 sampler，具有不同的反馈结构。后者可能累积误差，不过这段代数本身没有证明任意 mismatch 都一定导致 collapse。
-
-回到两个 action 的例子，令 $Q_A=1$、$Q_B=0$。有
-
-$$
-g^\star=0.16,\qquad
-V_qm_q=0.6\times(-0.2)=-0.12,\qquad
-\operatorname{Cov}_q(Q,z)=0.24.
-$$
-
-所以 naive update 为 $-0.12+0.24=0.12$。更有意思的是，把所有 reward 加 $1$，action 之间的优劣完全没有改变，理想更新仍为 $0.16$，但 naive update 变成
-
-$$
-0.6\times2\times0.2+0.4\times1\times(-0.8)=-0.08.
-$$
-
-它连方向都反过来了。一般地，$Q\mapsto Q+c$ 会给 naive update 增加 $cm_q$；这正是我们希望消除的依赖。
-
-### Center the score under the sampler
-
-我们想保留不同 action 的 score 差异，同时让常数 reward 不再产生平均更新。最直接的操作，是给所有 action 的 score 减去同一个向量 $d$。这个操作保留 $z_a-z_b$，而零均值要求
-
-$$
-\mathbb E_q[z-d]=m_q-d=0.
-$$
-
-因此必须选 $d=m_q$，得到 centered score $\widetilde z_a=z_a-m_q$。这就是 Score Centering（SC）的修正。把它放进更新，
-
-$$
-\begin{aligned}
-g_{\mathrm{SC}}
-&=\mathbb E_q[Q(z-m_q)]\\
-&=\mathbb E_q[Qz]-V_qm_q\\
-&=\operatorname{Cov}_q(Q,z).
-\end{aligned}
-$$
-
-在两个 action 的例子中，centered scores 是 $0.4$ 和 $-0.6$，在 $q$ 下的平均值为零。用 $Q=(1,0)$ 或 $Q=(2,1)$，SC 的平均更新都为 $0.24$。
-
-<ScoreShiftDiagram />
-
-这解决了 reward 平移导致的 drift，但 $0.24$ 仍然不等于 on-policy 的 $0.16$。由于 $\mathbb E_p[z]=0$，理想更新可以写成 $g^\star=\operatorname{Cov}_p(Q,z)$，所以
-
-$$
-\boxed{
-g_{\mathrm{SC}}-g^\star
-=\operatorname{Cov}_q(Q,z)-\operatorname{Cov}_p(Q,z).
-}
-$$
-
-**精确 SC 消掉了 mean-score drift，剩下的 covariance 仍然是在 $q$ 下衡量的。** 恢复 reward-shift invariance、得到无偏的 on-policy gradient、降低 estimator variance，是三个不同的要求。上面的推导只保证第一个，以及对 drift 的精确消除。
-
-<details>
-<summary>Mean score 为零，是否就说明 sampler 与 trainer 相同？</summary>
-
-如果直接把整个 vocabulary 的 logits $\ell$ 当独立参数，softmax score 为 $\nabla_\ell\log p_a=e_a-p$，所以
-
-$$
-\mathbb E_q[\nabla_\ell\log p_a]=q-p.
-$$
-
-此时平均 score 为零确实等价于 $q=p$。但神经网络参数 $\theta$ 通过 logits 的 Jacobian $J_\ell=\partial\ell/\partial\theta$ 影响概率，有
-
-$$
-m_q=J_\ell^\top(q-p).
-$$
-
-投影后可能出现抵消。因此一般参数化下只能说 $p=q$ 必然使 $m_q=0$，不能反过来推断；总 drift 为零还可能只是因为 $V_q=0$。
-
-</details>
-
-### What a baseline already fixes
-
-前面的 baseline 也是从 reward 中减去一个与当前 action 无关的数。那为什么不直接用 $Q-V$？
-
-固定 prefix 下的 baseline $V$，按照刚才的拆法，
-
-$$
-\begin{aligned}
-g_V
-&=\mathbb E_q[(Q-V)z]\\
-&=(V_q-V)m_q+\operatorname{Cov}_q(Q,z).
-\end{aligned}
-$$
-
-所以 **exact $q$-baseline $V=V_q$ 与 exact SC 的期望更新相同**。若 baseline 有误差 $V-V_q$，残余 drift 就是 $-(V-V_q)m_q$。一个准确的 $\mathcal V^p$ 也未必是这里所需的 $V_q$：评估的策略或 $Q$ signal 不同，就不是同一个 target。
-
-不过两种 estimator 并不逐样本相同：
-
-$$
-(Q-V_q)z\quad\text{与}\quad Q(z-m_q)
-$$
-
-分别把中心化放在 scalar reward 和 vector score 上。它们的期望相同，variance 不必相同；on-policy 时 SC 原样保留 $Qz$，baseline 仍然可以改变 variance。SC 绕过了对每个 prefix 的 expected return 的估计，转而要求 sampler 的 next-token distribution。这解释了为什么这项操作在 vocabulary 可以求和的 LLM 中有实现价值。
-
-还可以同时使用二者。只要 $V$ 在给定 prefix 后不依赖当前 action，
-
-$$
-\mathbb E_q[(Q-V)(z-m_q)]
-=\operatorname{Cov}_q(Q,z).
-$$
-
-这里 $V$ 的选择不再改变期望，但仍可能影响 variance。
-
-GRPO 的 group mean 为什么没有自动完成这件事？因为它在**同一 prompt 的多个完整回答之间**居中，而我们要求在**每个具体 prefix 的下一步选择之间**居中。假设一个 prompt 的平均成功率为 $0.5$，某个正确推导的 prefix 之后成功率为 $0.9$，那么减去 prompt baseline 后，这个 prefix 的 expected advantage 仍为 $0.4$。Group 中正负 advantage 的总和为零，并不意味着每个 prefix 的条件均值都为零。
-
-这里还沿用上一节的有限 group 提醒：同一组样本的 mean、standard deviation 是随机变量。把包含当前回答的 group mean 当成独立 baseline，或把 sample standard deviation 当成固定常数，会改变期望计算。以上 baseline 等式针对固定的 state-dependent baseline；GAE 的 bootstrapping、有限 group 的相关性，需要另外分析，不能直接藏进一个精确 $V_q$ 符号中。
-
-### Importance sampling and centering can be combined
-
-如果我们希望连 covariance 的采样分布也改回 $p$，就回到了 importance sampling。假设 $p_a>0$ 的 action 都满足 $q_a>0$，则
-
-$$
-\mathbb E_q\left[\frac{p_a}{q_a}Q_a z_a\right]
-=\mathbb E_p[Qz]=g^\star.
-$$
-
-同样，$\mathbb E_q[(p_a/q_a)z_a]=\mathbb E_p[z]=0$，因此 exact IS 已经消除了 drift。对这个 **exact weighted score** 再做精确 SC，修正项本来就是零。
-
-困难在于稀有 action 可能带来很大的 ratio。IS 的 variance 并非在每个问题中都必然增大，但当 $p/q$ 有重尾时，少数样本可能主导更新。实践中会用 truncated IS（TIS）限制权重，或用 masked IS（MIS）丢掉 ratio 过于极端的项。例如，
-
-$$
-w_a^{\mathrm{TIS}}=\min\left(\frac{p_a}{q_a},C\right),\qquad
-w_a^{\mathrm{MIS}}=\frac{p_a}{q_a}
-\mathbf1\left\{\ell\le\frac{p_a}{q_a}\le u\right\}.
-$$
-
-这些操作改变了重新加权后的分布，$\mathbb E_q[wz]$ 不再保证为零。既然我们实际用来更新的向量已经从 $z$ 变成 $wz$，要居中的也应当是**整个 weighted score**：
-
-$$
-m_w:=\mathbb E_q[wz],\qquad
-g_{w+\mathrm{SC}}=\mathbb E_q[Q(wz-m_w)]
-=\operatorname{Cov}_q(Q,wz).
-$$
-
-它消除了加权后的 $V_qm_w$，仍保留裁剪造成的 covariance bias。注意这通常不等于先居中再乘权重：
-
-$$
-w_a(z_a-m_q)\ne w_a z_a-m_w.
-$$
-
-前一种写法的平均值为 $m_w-\mathbb E_q[w]m_q$，没有理由恰好为零。这个次序区别，也是把 SC 接到已有 TIS/MIS 实现时最容易遗漏的地方。
-
-若 sampler 使用 top-p、top-k 等截断采样，使部分 $q_a=0$，而目标 $p_a>0$，exact IS 的 support 条件就不成立。SC 也不会凭空补回没有采到的动作。这里的 $q$ 必须是温度、截断及重新归一化之后**真正产生 action 的概率**，而不是随手记录的一份截断前 logprob。
-
-### The connection to Bellman Policy Optimization
-
-Bellman Policy Optimization [@song2026bellman] 从 Policy Mirror Descent（PMD）出发，通过 Bellman equations 把中间 state 的 value 消去，再逐步近似成可训练的 loss。要理解它与 SC 的联系，关键是区分三个阶段：trajectory residual、保留完整 KL 的线性化更新，以及最终的 binary-KL 实现。
-
-先看为什么完整 KL 会产生同一个修正。固定 $q$，考虑
-
-$$
-K(s)=D_{\mathrm{KL}}(q(\cdot\mid s)\|p_\theta(\cdot\mid s)).
-$$
-
-它把 trainer 的 log probability 对整个 sampler distribution 求了平均，所以
-
-$$
-\nabla_\theta K(s)
-=-\sum_vq_v\nabla_\theta\log p_v=-m_q.
-$$
-
-因此，如果一个更新使用 $\log p_a+K(s)$ 的梯度，自然就会得到 $z_a-m_q$。这里把 KL 的方向明确写成 $q\|p$；不同文章的 forward/reverse 命名参照可能不同，只说「加了一个 KL」不足以确定梯度。
-
-BPO 的完整-KL 线性化阶段恰好出现了这个组合。省略固定的 prompt scaling，用 $A$ 表示该回答的固定 advantage coefficient，其每个 token 的 ascent update 是
-
-$$
-A\nabla_\theta\bigl[\log p_a+K(s)\bigr]
-=A(z_a-m_q).
-$$
-
-**在相同的 $p,q,A$ 和相同聚合权重下，这个阶段与 exact SC 连单个样本的梯度都相同。** 若进一步取 $A=Q-b(s)$，其中 $b(s)$ 与 action 无关，就回到 $\operatorname{Cov}_q(Q,z)$。但这不是在说 BPO 的原始平方残差目标、最终 loss，以及所有 SC 实现都等价。
-
-<details>
-<summary>从 PMD 到 trajectory residual：完整 KL 为什么出现在这里？</summary>
-
-PMD 希望多选择 advantage 高的 action，同时控制相对 rollout policy $q$ 的变化。暂时直接优化每个 state 的 probability distribution，步长为 $\eta>0$：
-
-$$
-p^+(\cdot\mid s)
-=\arg\max_p\left\{
-\mathbb E_{a\sim p}[\mathcal A^q(s,a)]
--\frac1\eta D_{\mathrm{KL}}(p\|q)
-\right\}.
-$$
-
-在归一化约束下求导，stationarity 条件给出 $\log(p_a^+/q_a)=\eta\mathcal A^q(s,a)-\log Z(s)$。也就是说，先按 $\exp(\eta\mathcal A^q)$ 增减 $q$ 的质量，再归一化。我们不想显式估计每个中间 state 的 advantage，可以尝试反过来从概率比恢复它。
-
-由于 $\mathbb E_q[\mathcal A^q]=0$，在 $q$ 下对这个 log-ratio 关系取平均，得到
-
-$$
-\log Z(s)=D_{\mathrm{KL}}(q\|p^+).
-$$
-
-因此在最优 policy 处，
-
-$$
-\eta\mathcal A^q(s,a)
-=\log\frac{p_a^+}{q_a}+D_{\mathrm{KL}}(q\|p^+).
-$$
-
-接下来利用 LLM 的结构：state 是完整 prefix，action 是追加一个 token，转移确定，只有末尾给 reward。把终止 reward 放进终止 prefix 的 value 边界条件，则沿一条回答，
-
-$$
-\mathcal A^q(s_t,a_t)
-=\mathcal V^q(s_{t+1})-\mathcal V^q(s_t),\qquad
-\sum_t\mathcal A^q(s_t,a_t)=R(x,y)-\mathcal V^q(x).
-$$
-
-这里使用的是把 terminal reward 吸收到 terminal value 的记账方式；与前文「在最后一次转移支付 reward、终止后 value 为零」的约定等价。中间的 value 两两抵消后，我们可以用整条回答构造 residual：
-
-$$
-\delta(x,y;p,q)
-=\eta\bigl(R(x,y)-\mathcal V^q(x)\bigr)
--\sum_t\left[
-\log\frac{p(a_t\mid s_t)}{q(a_t\mid s_t)}+K(s_t)
-\right].
-$$
-
-这给出目标 $\mathbb E_{y\sim q}[\delta^2/(2\eta)]$，只需要 prompt 的 initial value 与最终 reward。PMD 解使每条轨迹的 residual 为零；BPO 论文进一步在其有限时域、support 等假设下证明了最优解的等价性。这并不保证一个共享参数的神经网络能精确实现所有 state 的最优 distribution。
-
-对平方残差求导，token $t$ 的 ascent contribution 为
-
-$$
-\frac{\delta}{\eta}(z_{a_t}-m_q(s_t)).
-$$
-
-这个系数依赖整条轨迹与当前 $p$。BPO 在 $p=q$ 时的 residual 附近线性化，用 $R-\mathcal V^q(x)$ 替换 $\delta/\eta$，再以 group statistics 估计和归一化它，才得到正文中的 $A(z-m_q)$。因此「完整 KL 产生 centered score」是梯度恒等式，而「把 residual 换成 advantage」是另外一次近似。
-
-</details>
-
-接下来是实际算法与 exact SC 分开的地方。完整 KL 需要 sampler 的整个 vocabulary distribution，BPO 把词表合并成「当前 token $a$」与「其他所有 tokens」两类，只保留两个概率：
-
-$$
-K_{\mathrm{bin}}(a)
-=q_a\log\frac{q_a}{p_a}
-+(1-q_a)\log\frac{1-q_a}{1-p_a}.
-$$
-
-这个合并丢掉了其他 tokens 之间的概率分配。因为 $\nabla p_a=p_a z_a$，
-
-$$
-\begin{aligned}
-\nabla K_{\mathrm{bin}}(a)
-&=\left(-\frac{q_a}{p_a}+\frac{1-q_a}{1-p_a}\right)p_a z_a\\
-&=\frac{p_a-q_a}{1-p_a}z_a,\\
-\nabla[\log p_a+K_{\mathrm{bin}}(a)]
-&=\frac{1-q_a}{1-p_a}z_a.
-\end{aligned}
-$$
-
-因此出现的是 complementary-probability ratio $(1-q_a)/(1-p_a)$，不是 IS ratio $p_a/q_a$。前者来自对 binary KL 求导，后者来自变换积分的测度，二者解决问题的途径不同。
-
-当 $p_a$ 接近 $1$，这个 complementary ratio 可能很大。Practical BPO 进一步使用 additive smoothing、cap 和依赖 advantage 符号的 clipping mask：
-
-$$
-\omega_a=\frac{1+\epsilon-q_a}{1+\epsilon-p_a},\qquad
-\overline\omega(a,A)=M(a,A)\min\{\omega_a,C\},
-$$
-
-$$
-M(a,A)=
-\begin{cases}
-0,&A>0\ \text{且}\ \omega_a>1+\epsilon_{\mathrm{high}},\\
-0,&A<0\ \text{且}\ \omega_a<1-\epsilon_{\mathrm{low}},\\
-1,&\text{其他情况}.
-\end{cases}
-$$
-
-对应的 ascent contribution 为 $A\overline\omega(a,A)z_a$，实现时对这个 weight stop-gradient。它一般不再具有 $\mathbb E_q[\overline\omega z]=0$ 的性质，不能沿用完整-KL 阶段的 exact-centering 结论。
-
-<details>
-<summary>三个 tokens 的反例：binary KL 已经足以打破精确中心化</summary>
-
-令 $p=(1/2,1/4,1/4)$、$q=(1/4,1/2,1/4)$，直接对三个 logits 求导，则 $z_a=e_a-p$。暂时不加 smoothing、mask、cap，complementary weights 为
-
-$$
-\omega=(3/2,2/3,1),\qquad
-q\odot\omega=(3/8,1/3,1/4),\qquad
-\sum_aq_a\omega_a=23/24.
-$$
-
-所以
-
-$$
-\mathbb E_q[\omega z]
-=q\odot\omega-\frac{23}{24}p
-=\frac1{96}(-10,9,1)\ne0.
-$$
-
-Exact SC 的平均 centered score 则为零。这里只有两个真正的 action 时，binary KL 与完整 KL 相同，所以不能用两动作情形验证它们在大 vocabulary 下是否仍等价。上面的反例检验的是修正向量的零均值性质；实际 BPO 若对常数 reward 做 group centering，会得到零 advantage，整个更新也会为零。
-
-</details>
-
-### Implementing the correction without storing score vectors
-
-$z_a$ 的维度等于参数量，逐个 token 构造这些向量显然不合适。不过我们只需要一个 scalar loss，让它的梯度恰好产生这些 score 的线性组合。固定一次 rollout 的 advantage $A$，完整分布版本可以写成
-
-$$
-\mathcal L_{\mathrm{SC}}
-=-\operatorname{sg}[A]\left(
-\log p_a-\sum_v\operatorname{sg}[q_v]\log p_v
-\right),
-$$
-
-其中 $\operatorname{sg}$ 表示 stop-gradient。对括号求导就是 $z_a-m_q$，于是 $-\nabla\mathcal L_{\mathrm{SC}}=A(z_a-m_q)$。不用显式保存任何参数维度的 score；代价转移到了保留 sampler 的 probability information。
-
-一个只演示单个 prefix、完整 vocabulary 的 PyTorch 实现如下。`sampler_probs` 必须已经是实际采样分布，`logits` 是 trainer 在这个 prefix 的 logits：
-
-```python
-import torch
-
-
-def full_score_centering_loss(logits, sampler_probs, action, advantage):
-    log_probs = torch.log_softmax(logits.float(), dim=-1)
-    teacher = sampler_probs.detach().to(log_probs)
-    coefficient = advantage.detach()
-    centered_log_prob = log_probs[action] - torch.dot(teacher, log_probs)
-    return -coefficient * centered_log_prob
-```
-
-这段代码返回单个 token 的 scalar loss；batch 中需要按训练目标聚合，并排除 padding、prompt 等不参与该项训练的位置。它也不是在要求 `centered_log_prob` 构成一个归一化 log distribution：我们要的是正确的 surrogate gradient。
-
-实际更昂贵的是存储每个生成位置的完整 $q$。作者公开实现 [@marek2026scorecode] 保留 sampler 的 top-k probabilities，再用 trainer distribution 的形状补 tail。这个近似可以从两个约束推出：head 上保留真实 $q_v$；tail 总质量仍等于 sampler 的剩余质量。设 head 为 $H$、tail 为 $T$；当 tail 非空且 trainer 的 tail mass 为正时，
-
-$$
-\widehat q_v=
-\begin{cases}
-q_v,&v\in H,\\
-\rho p_v,&v\in T,
-\end{cases}
-\qquad
-\rho=\frac{1-\sum_{v\in H}q_v}{1-\sum_{v\in H}p_v}.
-$$
-
-这里的 top-k 是**记录概率时的压缩**，不等于前面讨论的 top-k 截断采样。利用完整 trainer distribution 的 score 均值为零，tail 求和可以被 head 求和替代：
-
-$$
-\begin{aligned}
-\widehat m_q
-&=\sum_{v\in H}q_vz_v+\rho\sum_{v\in T}p_vz_v\\
-&=\sum_{v\in H}(q_v-\rho p_v)z_v.
-\end{aligned}
-$$
-
-于是 loss 中只需减去 $\sum_{v\in H}\operatorname{sg}[q_v-\rho p_v]\log p_v$。**要 detach 的是整个系数**：其中的 $p_v$ 和 $\rho$ 都依赖 trainer，漏掉它们的 stop-gradient 就会多出不属于上述 score correction 的导数。
-
-代价是 residual drift。真实采样仍然来自 $q$，因此
-
-$$
-\mathbb E_q[Q(z-\widehat m_q)]-g^\star
-=V_q(m_q-\widehat m_q)
-+\operatorname{Cov}_q(Q,z)-\operatorname{Cov}_p(Q,z).
-$$
-
-「完整词表求和精确消除 drift」与「top-k 工程近似表现接近」必须分开。小 tail mass 也不能单独保证小梯度误差，还要看 tail 上的 score 大小；当 trainer 的 tail mass 接近零时，$\rho$ 的计算还会受数值精度影响。实现中的 clamp 是额外近似，不能在代数里当成从未发生。
-
-<details>
-<summary>Top-k 下如何组合 TIS/MIS？</summary>
-
-设权重函数为 $w_v=f(p_v/q_v)$。在 head 上可以算真实 ratio；在模型补出的 tail 上，$p_v/\widehat q_v=1/\rho$ 为常数。因此令 $\alpha=\rho f(1/\rho)$，就有
-
-$$
-\widehat m_w
-=\sum_{v\in H}\bigl(q_vf(p_v/q_v)-\alpha p_v\bigr)z_v.
-$$
-
-实际采到的 token 可以使用它单独记录的真实 $q_a$ 计算权重；centering 项则使用上面的近似求和。相应 loss 是
-
-$$
--\operatorname{sg}[A]\left[
-\operatorname{sg}[w_a]\log p_a
--\sum_{v\in H}\operatorname{sg}\bigl[q_vf(p_v/q_v)-\alpha p_v\bigr]\log p_v
-\right].
-$$
-
-这也提供一个方便的检查：取 exact IS 的 $f(r)=r$，则 $\alpha=1$，head 上 $q_vf(p_v/q_v)=p_v$，centering 系数全部为零。只取普通 SC 的 $f=1$，则 $\alpha=\rho$，回到上一式。
-
-</details>
-
-### Comparing the updates under one set of assumptions
-
-现在可以把关系放在同一张表里。以下均固定 prefix、同一个 $Q_a$，baseline $V$ 与 action 无关，所有 correction coefficients 在反向传播中固定。定义
-
-$$
-\Delta=\operatorname{Cov}_q(Q,z)-\operatorname{Cov}_p(Q,z),\qquad
-\Delta_w=\operatorname{Cov}_q(Q,wz)-\operatorname{Cov}_p(Q,z).
-$$
-
-表中的 bias 指**期望更新减去局部目标 $g^\star=\mathbb E_p[Qz]$**。为便于阅读，先看不带乘法权重的情况：
-
-<div className="rl-sc-comparison">
-
-| 更新方式 | 期望 ascent update | 相对 $g^\star$ 的 bias |
-| --- | --- | --- |
-| On-policy PG | $\mathbb E_p[Qz]$ | $0$ |
-| Naive off-policy PG | $\mathbb E_q[Qz]$ | $V_qm_q+\Delta$ |
-| 固定 baseline $V$ | $\mathbb E_q[(Q-V)z]$ | $(V_q-V)m_q+\Delta$ |
-| Exact $q$-baseline | $\mathbb E_q[(Q-V_q)z]$ | $\Delta$ |
-| Exact SC | $\mathbb E_q[Q(z-m_q)]$ | $\Delta$ |
-| BPO 线性化、完整 KL，$A=Q-b(s)$ | $\mathbb E_q[A(z-m_q)]$ | $\Delta$ |
-| Top-k approximate SC | $\mathbb E_q[Q(z-\widehat m_q)]$ | $V_q(m_q-\widehat m_q)+\Delta$ |
-
-</div>
-
-对于带权重的更新，仍记 $m_w=\mathbb E_q[wz]$：
-
-<div className="rl-sc-comparison">
-
-| 更新方式 | 期望 ascent update | 相对 $g^\star$ 的 bias |
-| --- | --- | --- |
-| Exact IS，support 覆盖 | $\mathbb E_q[(p/q)Qz]$ | $0$ |
-| TIS / MIS | $\mathbb E_q[Qwz]$ | $V_qm_w+\Delta_w$ |
-| TIS / MIS + exact SC | $\mathbb E_q[Q(wz-m_w)]$ | $\Delta_w$ |
-| Exact IS + exact SC | $\mathbb E_q[Q((p/q)z-m_{p/q})]$ | $0$，因为 $m_{p/q}=0$ |
-| Practical BPO，固定 $A_a=Q_a-V$ | $\mathbb E_q[(Q-V)\overline\omega z]$ | $(V_q-V)m_{\overline\omega}+\Delta_{\overline\omega}$ |
-
-</div>
-
-最后一行有一个额外条件：这里用的是确定的 $A_a=Q_a-V$，所以可以把包含 mask 的 $\overline\omega$ 当成 action 的函数。**真实 BPO 的 mask 依赖采到的 advantage 的符号**；当后续 reward 或 group statistics 随机时，不能先把它们替换成 $Q_a$，再声称这张表已经精确描述了实现。
-
-更一般地，要在 action、后续 rollout 和 group 的联合分布下计算
-
-$$
-\mathbb E[A\overline\omega(a,A)z_a]
-=\mathbb E[A]\,\mathbb E[\overline\omega(a,A)z_a]
-+\operatorname{Cov}\bigl(A,\overline\omega(a,A)z_a\bigr).
-$$
-
-由于 mask 是非线性的，$\mathbb E[A\overline\omega(a,A)\mid a]$ 通常不等于 $\mathbb E[A\mid a]\overline\omega(a,\mathbb E[A\mid a])$。因此，对实际训练配方比较时，还要对齐 advantage estimator、mask、group normalization、token/sequence averaging 和 optimizer；局部均值相同并不能推出学习曲线相同。
-
-### Returning to the full rollout
-
-前面的共同 $Q$ 假设让我们能准确比较各种 correction，但实际 rollout 中还存在两层分布差异。令 $d_{p,t}$ 为第 $t$ 步在 policy $p$ 下的 state 分布，原始目标的梯度是
-
-$$
-\nabla_\theta\mathcal J(p)
-=\sum_t\mathbb E_{s\sim d_{p,t}}\left[
-\sum_a p(a\mid s)\mathcal Q^p(s,a)z(s,a)
-\right].
-$$
-
-而从 $q$ 生成的完整回答，用 terminal reward 乘 exact centered scores，在没有额外 normalization 的情况下，其期望为
-
-$$
-\sum_t\mathbb E_{s\sim d_{q,t}}\left[
-\operatorname{Cov}_{a\sim q(\cdot\mid s)}
-\bigl(\mathcal Q^q(s,a),z(s,a)\bigr)
-\right].
-$$
-
-除了当前 action 的 sampling distribution，还改变了 **prefix 的访问分布** $d_q$，以及 **action 之后如何继续生成** 所决定的 $\mathcal Q^q$。只给当前 token 乘 $p_a/q_a$，也不会自动把这两者变成 $d_p$ 和 $\mathcal Q^p$。
-
-前面 [Off-Policy Policy Gradients](#off-policy-policy-gradients) 中的完整 trajectory IS 则使用
-
-$$
-W(\tau)=\prod_t\frac{p(a_t\mid s_t)}{q(a_t\mid s_t)},\qquad
-\nabla_\theta\mathcal J(p)
-=\mathbb E_{\tau\sim q}\left[
-W(\tau)R(\tau)\sum_tz(s_t,a_t)
-\right],
-$$
-
-在环境相同、support 覆盖等条件下，才确实把整个轨迹的分布换回去。长序列的乘积权重也解释了为什么实际方法愿意接受一定 bias，换取更可用的 estimator。比较表中的「Exact IS 无偏」，应当连同它指定的采样空间一起读。
-
-### Reading the experimental evidence
-
-SC 论文的主要对照，是在相同的 group-centered REINFORCE objective 上替换 correction rule，每个 batch 做一次 SGD update。它有意放大 weight noise、量化差异与 staleness，以便在较短训练内区分方法。在 Qwen3-30B-A3B-Base 的 INT8 weights/activations、INT4 KV 设置下，报告的训练准确率约为 SC $30\%$、TIS $12\%$；在每 $64$ 步才同步 sampler 的实验中，SC 与 TIS/MIS 的组合优于单独 SC。[@marek2026scorecentering]
-
-这些结果支持把 drift 看作一个有用的诊断与修正对象。它们没有建立 SC 在所有 RL 配方上的排序，也没有给出 SC 与 practical BPO 的直接对照；训练准确率更不能自动替换成 held-out reasoning benchmark 的结论。把短程、强 mismatch 的表现外推到长期、弱 mismatch 的生产训练，仍然需要实验验证。
-
-如果要在自己的训练系统里验证这个机制，可以按推导设置三个小检查：常数 reward 下比较修正前后的期望更新；给 reward 加同一个常数，检查更新是否发生不应有的变化；在可枚举的小 vocabulary 上，比较完整求和、top-k 近似和 exact IS。然后再观察真实训练的稳定性、评测表现与成本。这样，数学上声称消掉的项与工程上真正获得的收益，才对应到同一件事。
-
-## RL for diffusion models
-
-<span id="denoising-as-an-mdp" />
-<span id="from-a-deterministic-flow-to-a-stochastic-policy" />
-<span id="group-rewards-and-policy-updates" />
-<span id="flow-grpo-and-dancegrpo" />
-<span id="sampling-details-that-change-the-rl-objective" />
-
-把 denoising 的每一步看成一次 action，就可以用最终图片或视频的 reward 更新生成模型。[Diffusion 中的 RL for diffusion models](/blog/ml/ml-revisit/diffusion#rl-for-diffusion-models) 接着采样过程，介绍这个 MDP、group-relative policy updates，以及 Flow-GRPO 和 DanceGRPO。
-
-<span id="coefficients-preserving-sampling" />
-
-随机 rollout 中已有 noise 与新 noise 的分配，以及它对 RL 训练的影响，见该章的 [Coefficients-Preserving Sampling（CPS）](/blog/ml/ml-revisit/diffusion#coefficients-preserving-sampling)。
-
-## Q Learning
+### Q Learning
 
 之前其实我们都显式维护一个 $\pi_\theta$，也可能通过 $\mathcal V$ 和 $\mathcal Q$ 来指导这个 policy 的更新。
 
@@ -1637,3 +38,256 @@ $$
 $$
 
 后面的 Q-learning 更新与推导待续。
+
+### RL for diffusion models
+
+<span id="denoising-as-an-mdp" />
+<span id="from-a-deterministic-flow-to-a-stochastic-policy" />
+<span id="group-rewards-and-policy-updates" />
+<span id="flow-grpo-and-dancegrpo" />
+<span id="sampling-details-that-change-the-rl-objective" />
+
+把 denoising 的每一步看成一次 action，就可以用最终图片或视频的 reward 更新生成模型。[Diffusion 中的 RL for diffusion models](/blog/ml/ml-revisit/diffusion#rl-for-diffusion-models) 接着采样过程，介绍这个 MDP、group-relative policy updates，以及 Flow-GRPO 和 DanceGRPO。
+
+<span id="coefficients-preserving-sampling" />
+
+随机 rollout 中已有 noise 与新 noise 的分配，以及它对 RL 训练的影响，见该章的 [Coefficients-Preserving Sampling（CPS）](/blog/ml/ml-revisit/diffusion#coefficients-preserving-sampling)。
+
+
+<span id="references" />
+
+## Further reading
+
+[Berkeley CS285](https://rail.eecs.berkeley.edu/deeprlcourse/) / [Stanford CS224R](https://cs224r.stanford.edu/) / [Yezhen 学长推荐嘟](https://zhuanlan.zhihu.com/p/7461863937) / [Li Bo 学长推荐嘟](https://hijkzzz.notion.site/Jian-Hu-s-Blogpost-147d9a33ecc980d89400c3006d4173c2)
+
+## Previous section links
+
+旧文章的章节链接仍可在这里找到对应的新位置。
+
+<details>
+<summary>Policy Gradient 与 Advantage Estimation</summary>
+
+<span id="problem-setup" />
+
+- [Problem setup](/blog/ml/ml-revisit/rl-policy-gradient#problem-setup)
+
+<span id="definition" />
+
+- [Definition](/blog/ml/ml-revisit/rl-policy-gradient#definition)
+
+<span id="types-of-algorithms" />
+
+- [Types of Algorithms](/blog/ml/ml-revisit/rl-policy-gradient#types-of-algorithms)
+
+<span id="policy-gradient-algorithms" />
+
+- [Policy Gradient Algorithms](/blog/ml/ml-revisit/rl-policy-gradient#policy-gradient-algorithms)
+
+<span id="direct-policy-differentiation" />
+
+- [Direct policy differentiation](/blog/ml/ml-revisit/rl-policy-gradient#direct-policy-differentiation)
+
+<span id="reduce-variance" />
+
+- [Reduce Variance](/blog/ml/ml-revisit/rl-policy-gradient#reduce-variance)
+
+<span id="dont-let-the-past-distract-you" />
+
+- [Don't Let the Past Distract You](/blog/ml/ml-revisit/rl-policy-gradient#dont-let-the-past-distract-you)
+
+<span id="introducing-baselines" />
+
+- [Introducing Baselines](/blog/ml/ml-revisit/rl-policy-gradient#introducing-baselines)
+
+<span id="actor-critic-methods" />
+
+- [Actor Critic Methods](/blog/ml/ml-revisit/rl-policy-gradient#actor-critic-methods)
+
+<span id="general-idea" />
+
+- [General Idea](/blog/ml/ml-revisit/rl-policy-gradient#general-idea)
+
+<span id="introducing-discount-factors" />
+
+- [Introducing Discount Factors](/blog/ml/ml-revisit/rl-policy-gradient#introducing-discount-factors)
+
+<span id="implementation-details" />
+
+- [Implementation Details](/blog/ml/ml-revisit/rl-policy-gradient#implementation-details)
+
+<span id="generalized-advantage-estimation" />
+
+- [Generalized Advantage Estimation](/blog/ml/ml-revisit/rl-policy-gradient#generalized-advantage-estimation)
+
+<span id="from-one-step-to-multiple-steps" />
+
+- [From one step to multiple steps](/blog/ml/ml-revisit/rl-policy-gradient#from-one-step-to-multiple-steps)
+
+<span id="mixing-the-horizons" />
+
+- [Mixing the horizons](/blog/ml/ml-revisit/rl-policy-gradient#mixing-the-horizons)
+
+<span id="what-λ-controls" />
+
+- [What λ controls](/blog/ml/ml-revisit/rl-policy-gradient#what-λ-controls)
+
+<span id="computing-gae-on-a-rollout" />
+
+- [Computing GAE on a rollout](/blog/ml/ml-revisit/rl-policy-gradient#computing-gae-on-a-rollout)
+
+</details>
+
+<details>
+<summary>从旧策略数据到 PPO</summary>
+
+<span id="policy-updates" />
+
+- [Policy updates](/blog/ml/ml-revisit/rl-policy-updates#off-policy-policy-gradients)
+
+<span id="off-policy-policy-gradients" />
+
+- [Off-Policy Policy Gradients](/blog/ml/ml-revisit/rl-policy-updates#off-policy-policy-gradients)
+
+<span id="trust-region-policy-optimization" />
+
+- [Trust Region Policy Optimization](/blog/ml/ml-revisit/rl-policy-updates#trust-region-policy-optimization)
+
+<span id="proximal-policy-optimization" />
+
+- [Proximal Policy Optimization](/blog/ml/ml-revisit/rl-policy-updates#proximal-policy-optimization)
+
+<span id="ppo-clip" />
+
+- [PPO-Clip](/blog/ml/ml-revisit/rl-policy-updates#ppo-clip)
+
+<span id="ppo-penalty" />
+
+- [PPO-Penalty](/blog/ml/ml-revisit/rl-policy-updates#ppo-penalty)
+
+</details>
+
+<details>
+<summary>LLM Post-training</summary>
+
+<span id="llm-post-training" />
+
+- [LLM post-training](/blog/ml/ml-revisit/rl-llm#reinforcement-learning-from-human-feedback)
+
+<span id="reinforcement-learning-from-human-feedback" />
+
+- [Reinforcement Learning from Human Feedback](/blog/ml/ml-revisit/rl-llm#reinforcement-learning-from-human-feedback)
+
+<span id="learning-to-summarize-from-human-feedback" />
+
+- [Learning to summarize from human feedback](/blog/ml/ml-revisit/rl-llm#learning-to-summarize-from-human-feedback)
+
+<span id="instructgpt" />
+
+- [InstructGPT](/blog/ml/ml-revisit/rl-llm#instructgpt)
+
+<span id="implementation" />
+
+- [Implementation](/blog/ml/ml-revisit/rl-llm#implementation)
+
+<span id="direct-preference-optimization" />
+
+- [Direct Preference Optimization](/blog/ml/ml-revisit/rl-llm#direct-preference-optimization)
+
+<span id="key-ideas" />
+
+- [Key Ideas](/blog/ml/ml-revisit/rl-llm#key-ideas)
+
+<span id="from-reward-to-the-optimal-policy" />
+
+- [From reward to the optimal policy](/blog/ml/ml-revisit/rl-llm#from-reward-to-the-optimal-policy)
+
+<span id="paper-details" />
+
+- [Paper Details](/blog/ml/ml-revisit/rl-llm#paper-details)
+
+<span id="group-relative-policy-optimization" />
+
+- [Group Relative Policy Optimization](/blog/ml/ml-revisit/rl-llm#group-relative-policy-optimization)
+
+<span id="grpo-with-binary-rewards" />
+
+- [GRPO with Binary Rewards](/blog/ml/ml-revisit/rl-llm#grpo-with-binary-rewards)
+
+<span id="deepseek-r1" />
+
+- [DeepSeek R1](/blog/ml/ml-revisit/rl-llm#deepseek-r1)
+
+<span id="reinforcement-learning-from-verifiable-rewards" />
+
+- [Reinforcement Learning from Verifiable Rewards](/blog/ml/ml-revisit/rl-llm#reinforcement-learning-from-verifiable-rewards)
+
+<span id="reward-hacking" />
+
+- [Reward Hacking](/blog/ml/ml-revisit/rl-llm#reward-hacking)
+
+<span id="other-details" />
+
+- [From reward to the optimal policy](/blog/ml/ml-revisit/rl-llm#other-details)
+
+</details>
+
+<details>
+<summary>Training-inference Mismatch 与 Score Centering</summary>
+
+<span id="training-inference-mismatch-and-score-centering" />
+
+- [Training-inference mismatch and score centering](/blog/ml/ml-revisit/rl-score-centering#from-mismatch-to-centered-scores)
+
+<span id="from-mismatch-to-centered-scores" />
+
+- [From mismatch to centered scores](/blog/ml/ml-revisit/rl-score-centering#from-mismatch-to-centered-scores)
+
+<span id="a-constant-reward-should-not-move-the-policy" />
+
+- [A constant reward should not move the policy](/blog/ml/ml-revisit/rl-score-centering#a-constant-reward-should-not-move-the-policy)
+
+<span id="separating-drift-from-the-reward-signal" />
+
+- [Separating drift from the reward signal](/blog/ml/ml-revisit/rl-score-centering#separating-drift-from-the-reward-signal)
+
+<span id="center-the-score-under-the-sampler" />
+
+- [Center the score under the sampler](/blog/ml/ml-revisit/rl-score-centering#center-the-score-under-the-sampler)
+
+<span id="baselines-importance-sampling-and-bpo" />
+
+- [Baselines, importance sampling, and BPO](/blog/ml/ml-revisit/rl-score-centering#baselines-importance-sampling-and-bpo)
+
+<span id="what-a-baseline-already-fixes" />
+
+- [What a baseline already fixes](/blog/ml/ml-revisit/rl-score-centering#what-a-baseline-already-fixes)
+
+<span id="importance-sampling-and-centering-can-be-combined" />
+
+- [Importance sampling and centering can be combined](/blog/ml/ml-revisit/rl-score-centering#importance-sampling-and-centering-can-be-combined)
+
+<span id="the-connection-to-bellman-policy-optimization" />
+
+- [The connection to Bellman Policy Optimization](/blog/ml/ml-revisit/rl-score-centering#the-connection-to-bellman-policy-optimization)
+
+<span id="implementing-the-correction-without-storing-score-vectors" />
+
+- [Implementing the correction without storing score vectors](/blog/ml/ml-revisit/rl-score-centering#implementing-the-correction-without-storing-score-vectors)
+
+<span id="scope-and-evidence" />
+
+- [Scope and evidence](/blog/ml/ml-revisit/rl-score-centering#scope-and-evidence)
+
+<span id="comparing-the-updates-under-one-set-of-assumptions" />
+
+- [Comparing the updates under one set of assumptions](/blog/ml/ml-revisit/rl-score-centering#comparing-the-updates-under-one-set-of-assumptions)
+
+<span id="returning-to-the-full-rollout" />
+
+- [Returning to the full rollout](/blog/ml/ml-revisit/rl-score-centering#returning-to-the-full-rollout)
+
+<span id="reading-the-experimental-evidence" />
+
+- [Reading the experimental evidence](/blog/ml/ml-revisit/rl-score-centering#reading-the-experimental-evidence)
+
+</details>
