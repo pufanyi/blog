@@ -123,7 +123,7 @@ function PacketJourney() {
       >
         <svg
           className="csnet-journey"
-          viewBox="0 0 760 540"
+          viewBox="0 0 760 710"
           role="img"
           aria-labelledby="csnet-journey-title csnet-journey-desc"
         >
@@ -176,35 +176,40 @@ function PacketJourney() {
           <text x="25" y="210" className="csnet-journey-heading">
             ② 逐跳传输：链路送 bit，router 选出口
           </text>
-          {['M 115 286 H 262', 'M 318 286 H 485', 'M 535 286 H 647'].map((d) => (
-            <path
-              key={d}
-              d={d}
-              className="csnet-journey-arrow"
-              markerEnd="url(#csnet-journey-arrow)"
-            />
+          <text x="25" y="239" className="csnet-row-label">
+            本次转发路径：A → R1 → R2 → B
+          </text>
+          {['M 115 300 H 254', 'M 326 300 H 484', 'M 536 300 H 648'].map((d) => (
+            <path key={d} d={d} className="csnet-flow" markerEnd="url(#csnet-journey-selected)" />
           ))}
-          <path d="M 315 310 L 485 360" className="csnet-journey-unused" />
-          <text x="190" y="254" className="csnet-packet-label">
-            链路
+          <path d="M 290 336 V 378 H 484" className="csnet-journey-unused" />
+          <text x="185" y="277" className="csnet-packet-label">
+            bit 串 →
           </text>
-          <text x="190" y="320" className="csnet-packet-label">
-            bit →
+          <text x="407" y="277" className="csnet-packet-label">
+            下一跳 R2
           </text>
-          <text x="395" y="254" className="csnet-packet-label">
-            选中出口 2
+          <text x="593" y="277" className="csnet-packet-label">
+            继续转发
           </text>
-          <text x="391" y="367" className="csnet-packet-label">
-            另一出口
-          </text>
-          <rect x="25" y="263" width="90" height="46" rx="8" className="csnet-data" />
-          <text x="70" y="291" className="csnet-packet-label">
+          <rect x="25" y="277" width="90" height="46" rx="8" className="csnet-data" />
+          <text x="70" y="305" className="csnet-packet-label">
             电脑 A
           </text>
+          <rect
+            x="255"
+            y="264"
+            width="71"
+            height="72"
+            rx="10"
+            className="csnet-node csnet-destination"
+          />
+          <text x="290" y="306" className="csnet-label">
+            R1
+          </text>
           {[
-            { x: 290, y: 286, label: 'R1' },
-            { x: 510, y: 286, label: 'R2' },
-            { x: 510, y: 367, label: 'R3' },
+            { x: 510, y: 300, label: 'R2' },
+            { x: 510, y: 378, label: 'R3' },
           ].map((router) => (
             <g key={router.label}>
               <circle cx={router.x} cy={router.y} r="25" className="csnet-node" />
@@ -213,61 +218,114 @@ function PacketJourney() {
               </text>
             </g>
           ))}
-          {[115, 265, 315, 485, 535, 647].map((x) => (
-            <rect key={x} x={x - 3} y="281" width="6" height="10" className="csnet-interface" />
-          ))}
-          <rect x="650" y="263" width="85" height="46" rx="8" className="csnet-link" />
-          <text x="692" y="291" className="csnet-packet-label">
+          <rect x="251" y="293" width="8" height="14" className="csnet-interface" />
+          <rect x="322" y="293" width="8" height="14" className="csnet-interface" />
+          <rect x="283" y="332" width="14" height="8" className="csnet-interface" />
+          <text x="225" y="328" className="csnet-packet-label">
+            入口 1
+          </text>
+          <text x="361" y="328" className="csnet-packet-label">
+            出口 2 ✓
+          </text>
+          <text x="365" y="368" className="csnet-packet-label">
+            出口 3 · 未选中
+          </text>
+          <rect x="650" y="277" width="85" height="46" rx="8" className="csnet-link" />
+          <text x="692" y="305" className="csnet-packet-label">
             服务器 B
           </text>
-          <text x="25" y="347" className="csnet-row-label">
-            小方块 = 接口
+          <text x="25" y="373" className="csnet-row-label">
+            蓝色小方块：R1 的接口
+          </text>
+          <text x="25" y="396" className="csnet-row-label">
+            实线：本次路径；虚线：其他链路
           </text>
 
-          <rect x="25" y="427" width="185" height="65" rx="8" className="csnet-tcp" />
-          <text x="117" y="453" className="csnet-packet-label">
-            routing
+          <rect x="25" y="428" width="710" height="263" rx="12" className="csnet-data" />
+          <text x="45" y="459" className="csnet-journey-heading">
+            放大 R1：一个包到来后，怎样选择出口？
           </text>
-          <text x="117" y="477" className="csnet-packet-label">
-            建立 / 更新转发表
+          <text x="125" y="497" className="csnet-packet-label">
+            1. 从入口 1 收到包
+          </text>
+          <rect x="50" y="512" width="150" height="34" className="csnet-ip" />
+          <text x="125" y="534" className="csnet-packet-label">
+            header：目的 B
+          </text>
+          <rect x="50" y="546" width="150" height="34" className="csnet-link" />
+          <text x="125" y="568" className="csnet-packet-label">
+            payload
           </text>
           <path
-            d="M 215 459 H 265"
-            className="csnet-change"
-            markerEnd="url(#csnet-journey-control)"
+            d="M 205 535 H 267"
+            className="csnet-flow"
+            markerEnd="url(#csnet-journey-selected)"
           />
-          <rect x="278" y="415" width="300" height="88" rx="8" className="csnet-data" />
-          <text x="428" y="439" className="csnet-packet-label">
-            R1 的转发表（简化）
+          <text x="237" y="601" className="csnet-packet-label">
+            用目的 B 查表
           </text>
+
+          <text x="390" y="497" className="csnet-packet-label">
+            2. 查 R1 的转发表
+          </text>
+          <rect x="280" y="512" width="220" height="68" rx="5" className="csnet-ip" />
+          <path d="M 280 546 H 500" className="csnet-edge" />
           {[
-            { x: 333, heading: '目的地', value: 'B' },
-            { x: 428, heading: '下一跳', value: 'R2' },
-            { x: 523, heading: '出口', value: '2' },
+            { x: 318, heading: '目的地', value: 'B' },
+            { x: 392, heading: '下一跳', value: 'R2' },
+            { x: 462, heading: '出口', value: '2' },
           ].map((column) => (
             <g key={column.heading}>
-              <text x={column.x} y="465" className="csnet-packet-label">
+              <text x={column.x} y="534" className="csnet-packet-label">
                 {column.heading}
               </text>
-              <text x={column.x} y="488" className="csnet-packet-label">
+              <text x={column.x} y="568" className="csnet-packet-label">
                 {column.value}
               </text>
             </g>
           ))}
-          <path d="M 290 415 V 321" className="csnet-edge" />
-          <text x="304" y="398" className="csnet-row-label">
-            查表
+          <path
+            d="M 507 535 H 565"
+            className="csnet-flow"
+            markerEnd="url(#csnet-journey-selected)"
+          />
+          <text x="633" y="497" className="csnet-packet-label">
+            3. 从出口 2 发出
           </text>
-          <text x="605" y="447" className="csnet-row-label">
+          <rect x="577" y="512" width="112" height="68" rx="8" className="csnet-link" />
+          <text x="633" y="540" className="csnet-packet-label">
+            下一跳 R2
+          </text>
+          <text x="633" y="562" className="csnet-packet-label">
+            最终目的 B
+          </text>
+          <path
+            d="M 392 639 V 589"
+            className="csnet-change"
+            markerEnd="url(#csnet-journey-control)"
+          />
+          <rect x="245" y="642" width="294" height="30" rx="5" className="csnet-tcp" />
+          <text x="392" y="662" className="csnet-packet-label">
+            routing：建立 / 更新这张表
+          </text>
+          <text x="559" y="655" className="csnet-row-label">
+            上面三步是
+          </text>
+          <text x="559" y="676" className="csnet-row-label">
             forwarding
           </text>
-          <text x="605" y="471" className="csnet-row-label">
-            读目的地址 → 查表
-          </text>
-          <text x="605" y="495" className="csnet-row-label">
-            → 从选中接口发出
-          </text>
           <defs>
+            <marker
+              id="csnet-journey-selected"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto"
+            >
+              <path d="M 1 1 L 9 5 L 1 9" className="csnet-flow" />
+            </marker>
             <marker
               id="csnet-journey-arrow"
               viewBox="0 0 10 10"
@@ -296,7 +354,8 @@ function PacketJourney() {
       <figcaption>
         A → B：文件拆成多个 packet，每个都有 header 和
         payload；图中每行是一个包，框宽不代表实际长度。 R1 根据 header 的目的地址 B 查表，将包从出口
-        2 交给 R2，再送往 B。 实线箭头表示数据传输，虚线箭头表示 routing 建表；forwarding
+        2 交给 R2，再送往 B。 蓝色实线表示本次数据路径，灰色虚线表示未选中的链路。下方放大 R1
+        的处理：读目的 B、查表、从出口 2 发往 R2。表下方的蓝色虚线箭头表示 routing 建表；forwarding
         使用这张表处理到来的包，无需理解文件内容。
       </figcaption>
     </figure>
