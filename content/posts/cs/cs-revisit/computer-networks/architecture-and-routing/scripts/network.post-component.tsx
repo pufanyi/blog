@@ -1,16 +1,4 @@
-const nodes = [
-  { id: 'A', x: 65, y: 80 },
-  { id: 'B', x: 235, y: 80 },
-  { id: 'C', x: 405, y: 80 },
-  { id: 'D', x: 235, y: 255 },
-] as const;
-const edges = [
-  { from: 'A', to: 'B', cost: 1, labelX: 150, labelY: 62 },
-  { from: 'B', to: 'C', cost: 1, labelX: 320, labelY: 62 },
-  { from: 'C', to: 'D', cost: 2, labelX: 335, labelY: 184 },
-  { from: 'B', to: 'D', cost: 5, labelX: 216, labelY: 173 },
-  { from: 'A', to: 'D', cost: 7, labelX: 135, labelY: 184 },
-] as const;
+import { networkEdges as edges, networkNodes as nodes } from './routing-model';
 
 function NetworkTopology() {
   return (

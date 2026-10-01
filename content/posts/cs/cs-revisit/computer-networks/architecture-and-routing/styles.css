@@ -174,3 +174,150 @@
   font-size: 0.85rem;
   line-height: 1.8;
 }
+
+.csnet-idea {
+  display: block;
+  width: 100%;
+  min-width: 620px;
+  height: auto;
+  font-family: var(--font-body);
+}
+
+.csnet-flow {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 2.5;
+}
+
+.csnet-physical {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.3;
+  stroke-dasharray: 4 5;
+}
+
+.csnet-muted-label {
+  fill: var(--text-secondary);
+  text-anchor: middle;
+  font-size: 14px;
+}
+
+.csnet-error-label {
+  fill: var(--accent-red);
+  text-anchor: middle;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.csnet-settled {
+  fill: color-mix(in srgb, var(--accent-sage) 28%, var(--paper-bg));
+  stroke: var(--accent-sage);
+  stroke-width: 4;
+}
+
+.csnet-routing-graph {
+  display: block;
+  width: 100%;
+  max-width: 470px;
+  height: auto;
+  margin-inline: auto;
+  font-family: var(--font-body);
+}
+
+.csnet-player,
+.csnet-prefix {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.csnet-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.csnet-controls[hidden] {
+  display: none;
+}
+
+.csnet-controls button,
+.csnet-controls select,
+.csnet-controls input:not([type="checkbox"]) {
+  min-height: 44px;
+  max-width: 100%;
+  box-sizing: border-box;
+  color: var(--text-color);
+  background: var(--paper-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 0.4rem 0.6rem;
+  font: inherit;
+}
+
+.csnet-controls label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  max-width: 100%;
+}
+
+.csnet-controls input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent-blue);
+}
+
+.csnet-controls input[type="range"] {
+  width: 180px;
+  padding-inline: 0;
+  accent-color: var(--accent-blue);
+}
+
+.csnet-controls button:disabled {
+  opacity: 0.5;
+}
+
+.csnet-controls :focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.csnet-controls button:not(:disabled) {
+  cursor: pointer;
+}
+
+.csnet-player-stage > p {
+  margin-block: 0.5rem;
+}
+
+.csnet-player-stage [data-frame-progress] {
+  margin-inline-start: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.csnet-transcript {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.csnet-prefix tr[data-winner="true"] {
+  background: color-mix(in srgb, var(--accent-sage) 14%, var(--paper-bg));
+}
+
+.csnet-prefix tr[data-winner="true"] td:last-child {
+  font-weight: 600;
+}
+
+@media print {
+  .csnet-controls {
+    display: none;
+  }
+  .csnet-idea {
+    min-width: 0;
+  }
+}

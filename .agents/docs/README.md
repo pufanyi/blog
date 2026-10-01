@@ -11,6 +11,8 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Historical evidence
 
+- [Architecture and routing expansion — 2026-10-01](audits/2026-10-01-networks-expansion.md): architectural reasoning, fifteen new visual groups, routing/LPM interactions, source verification and validation.
+
 - [Dependency refresh — 2026-09-27](maintenance/2026-09-27-dependency-refresh.md): Node/pnpm and package updates, exception cleanup, isolated baseline comparison, and validation boundaries.
 
 - [CS Revisited: Computer Networks 01 — 2026-09-26](audits/2026-09-26-cs-revisit-networks.md): FA26 weeks 1–4 coverage, protocol-source boundaries, nested series organization, and article validation.
