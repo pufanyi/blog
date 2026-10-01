@@ -321,3 +321,51 @@
     min-width: 0;
   }
 }
+
+.csnet-journey-focus {
+  fill: color-mix(in srgb, var(--accent-blue) 10%, transparent);
+  stroke: var(--accent-blue);
+  stroke-width: 3;
+  stroke-dasharray: 7 3;
+  pointer-events: none;
+}
+
+[data-journey-status] {
+  border-inline-start: 3px solid var(--accent-blue);
+  padding: 0.6rem 0.8rem;
+  min-height: 5em;
+  background: color-mix(in srgb, var(--accent-blue) 7%, var(--paper-bg));
+}
+
+@media print {
+  [data-journey-controls],
+  [data-journey-status],
+  [data-journey-focus] {
+    display: none;
+  }
+}
+
+[data-journey-playing] .csnet-bit-train {
+  animation: csnet-bits-forward 1s linear infinite;
+}
+
+@keyframes csnet-bits-forward {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .csnet-bit-train {
+    animation: none !important;
+  }
+}
+
+@media print {
+  [data-journey-bits] {
+    display: none;
+  }
+}

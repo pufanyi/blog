@@ -1,3 +1,4 @@
+import { journeySteps } from './journey-model';
 import { networkEdges as edges, networkNodes as nodes } from './routing-model';
 
 function NetworkTopology() {
@@ -114,7 +115,32 @@ function NetworkEncapsulation() {
 
 function PacketJourney() {
   return (
-    <figure className="csnet-figure">
+    <figure className="csnet-figure" data-journey data-post-enhancement="journey">
+      <div className="csnet-controls" data-journey-controls hidden data-agent-omit>
+        <button type="button" data-journey-action="previous">
+          上一步
+        </button>
+        <button type="button" data-journey-action="next">
+          下一步
+        </button>
+        <button type="button" data-journey-action="play" aria-pressed="false">
+          播放
+        </button>
+        <button type="button" data-journey-action="reset">
+          重置
+        </button>
+        <label>
+          进度{' '}
+          <input
+            type="range"
+            min="0"
+            max={journeySteps.length - 1}
+            defaultValue="0"
+            data-journey-progress
+          />
+        </label>
+      </div>
+      <p data-journey-status hidden data-agent-omit aria-live="polite" aria-atomic="true" />
       <div
         className="csnet-scroll"
         role="region"
@@ -314,6 +340,31 @@ function PacketJourney() {
           <text x="559" y="676" className="csnet-row-label">
             forwarding
           </text>
+          <g data-journey-bits visibility="hidden" aria-hidden="true">
+            <g className="csnet-bit-train">
+              {[0, 1, 2, 3].map((bit) => (
+                <rect
+                  key={bit}
+                  x={bit * 16}
+                  y="-5"
+                  width="9"
+                  height="10"
+                  rx="2"
+                  className="csnet-interface"
+                />
+              ))}
+            </g>
+          </g>
+          <rect
+            data-journey-focus
+            x="250"
+            y="43"
+            width="340"
+            height="42"
+            rx="7"
+            className="csnet-journey-focus"
+            visibility="hidden"
+          />
           <defs>
             <marker
               id="csnet-journey-selected"
@@ -358,6 +409,17 @@ function PacketJourney() {
         的处理：读目的 B、查表、从出口 2 发往 R2。表下方的蓝色虚线箭头表示 routing 建表；forwarding
         使用这张表处理到来的包，无需理解文件内容。
       </figcaption>
+      <details className="csnet-transcript">
+        <summary>逐步阅读这个包的旅程</summary>
+        <ol>
+          {journeySteps.map((step) => (
+            <li key={step.title}>
+              <strong>{step.title}：</strong>
+              {step.text}
+            </li>
+          ))}
+        </ol>
+      </details>
     </figure>
   );
 }
