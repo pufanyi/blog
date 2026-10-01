@@ -14,12 +14,84 @@
 }
 
 .csnet-topology,
+.csnet-journey,
+.csnet-link-figure,
 .csnet-packets {
   display: block;
   width: 100%;
   height: auto;
   margin-inline: auto;
   font-family: var(--font-body);
+}
+
+.csnet-journey {
+  min-width: 700px;
+  max-width: 800px;
+}
+
+.csnet-link-figure {
+  min-width: 700px;
+  max-width: 800px;
+}
+
+.csnet-time-band {
+  fill: color-mix(in srgb, var(--accent-blue) 9%, var(--paper-bg));
+}
+
+.csnet-first-bit,
+.csnet-last-bit {
+  stroke: var(--accent-blue);
+  stroke-width: 2;
+}
+
+.csnet-first-bit {
+  stroke-dasharray: 6 4;
+}
+
+.csnet-send-interval,
+.csnet-receive-interval {
+  stroke: var(--accent-blue);
+  stroke-width: 5;
+}
+
+.csnet-receive-interval {
+  stroke: var(--accent-sage);
+}
+
+.csnet-delay-send {
+  fill: var(--accent-blue);
+}
+
+.csnet-delay-propagation {
+  fill: color-mix(in srgb, var(--accent-sage) 20%, var(--paper-bg));
+  stroke: var(--accent-sage);
+  stroke-width: 1;
+}
+
+.csnet-journey-heading {
+  fill: var(--text-color);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.csnet-journey-arrow,
+.csnet-journey-control-tip,
+.csnet-journey-unused {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 2;
+}
+
+.csnet-journey-control-tip {
+  stroke: var(--accent-blue);
+}
+
+.csnet-journey-unused {
+  stroke-dasharray: 3 5;
+}
+
+.csnet-interface {
+  fill: var(--accent-blue);
 }
 
 .csnet-topology {

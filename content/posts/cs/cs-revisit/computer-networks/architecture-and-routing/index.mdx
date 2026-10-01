@@ -19,9 +19,15 @@ authors:
 
 链路把 bit 从一个接口送到另一个接口。中间节点收到 packet 后，决定从哪个接口继续发送，这叫 **forwarding**。如果它按 IP 目的地址跨网络转发，我们称它为 router。它不用理解文件内容，但必须有一张“目的地 → 下一跳”的表。怎样获得这张表，是后面要解决的 **routing**。
 
+<PacketJourney />
+
 Internet 的特别之处还在于：这些链路和路由器不属于同一个管理员。校园网、运营商和云网络有不同技术、成本和策略，却需要互相传递数据。因而协议不仅要能运行，还要允许独立部署、局部升级，以及在部分设备失效时继续工作。Internet 是连接这些网络的基础设施；Web 只是运行在它上面的一类应用。
 
 ### Bandwidth 与 latency 是两件事
+
+先看一个容易画清楚的例子：一个 4 kbit 的包，通过 1 kbit/s 的链路发送；信号走完链路需要 3 s。发送端每秒送入 1 kbit，已经上链路的数据则继续向接收端移动。到了第 4 秒，发送端刚把整个包送上线，接收端却只收到了开头的 1 kbit。
+
+<LinkSnapshots />
 
 假设链路的发送速率为 $R$ bit/s，一个包长 $L$ bit。发送端每秒只能把 $R$ bit 放上链路，因此最后一个 bit 离开发送端需要
 
@@ -29,13 +35,19 @@ $$
 t_{\mathrm{tx}}=\frac{L}{R}.
 $$
 
-这叫 transmission delay，也常叫 serialization delay。发出去之后，信号还得走完距离 $d$；若传播速度为 $v$，这部分需要 $t_{\mathrm{prop}}=d/v$。从开始发送到最后一个 bit 到达，对一条空闲链路有
+这叫 transmission delay，也常叫 serialization delay。发出去之后，信号还得走完距离 $d$；若传播速度为 $v$，这部分需要 $t_{\mathrm{prop}}=d/v$。把刚才的例子改画成时间线，就能看到这两个时间怎样叠加：首 bit 一开始就出发，最后一个 bit 却要等发送端把前面的数据送完，才能开始自己的传播。
+
+<LinkTiming />
+
+从开始发送到最后一个 bit 到达，对一条空闲链路有
 
 $$
 t_{\mathrm{arrival}}=\frac{L}{R}+\frac{d}{v}.
 $$
 
-提高 $R$ 缩短的是把包放上线的时间，并不会让已经在线上的 bit 传播得更快。一个 1,500 byte 的包在 100 Mbit/s 链路上需要 $0.12$ ms 才能全部发出；若 propagation delay 为 5 ms，最后一个 bit 在 $5.12$ ms 到达。把带宽提高十倍，结果是 $5.012$ ms，而不是 $0.512$ ms。这里使用十进制 Mbit/s，并暂时忽略额外帧开销。[@cs168links]
+提高 $R$ 缩短的是把包放上线的时间，并不会让已经在线上的 bit 传播得更快。一个 1,500 byte 的包在 100 Mbit/s 链路上需要 $0.12$ ms 才能全部发出；若 propagation delay 为 5 ms，最后一个 bit 在 $5.12$ ms 到达。把带宽提高十倍，结果是 $5.012$ ms，而不是 $0.512$ ms。这里使用十进制 Mbit/s，并暂时忽略额外帧开销。
+
+<LinkBandwidthComparison />
 
 如果路径包含三条这样的链路，且 router 必须收齐包才开始转发，即 **store-and-forward**，单包就需要三次 serialization：$3\times 5.12=15.36$ ms。实际路径还会增加处理时间和排队时间：
 
