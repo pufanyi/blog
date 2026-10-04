@@ -58,7 +58,10 @@ their named articles.
   specific topic for the first time. A tutorial should support both initial
   learning and review. Briefly establish necessary prerequisites and introduce
   the terms needed to follow the explanation; do not assume ML background for a
-  non-ML subject.
+  non-ML subject. Let the intended audience and learning goals guide the choice
+  of examples and depth without restating the writing brief in the article.
+  Open with the subject or a concrete problem; avoid preambles about how the
+  reader should learn or why the article was written for them.
 - Use courses and papers to develop a coherent explanation for students.
   Organize the prose around the reader's questions, mechanisms, and worked
   examples; explain the subject directly instead of narrating how different
