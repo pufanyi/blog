@@ -32,7 +32,7 @@ test('site configuration normalizes origins and preserves configurable metadata'
 });
 
 test('the author avatar accepts local and HTTP(S) images independently of the sharing image', () => {
-  for (const avatar of ['/avatar.avif', 'https://example.org/avatar.avif']) {
+  for (const avatar of ['/avatar.svg', 'https://example.org/avatar.svg', '/avatar.avif']) {
     const site = parseSiteConfig({
       ...configuration.site,
       defaultImage: '/sharing.png',

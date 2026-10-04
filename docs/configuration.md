@@ -55,13 +55,15 @@ of references cited within the article.
 - In `redirects.yaml`, `from` is a site-relative route and `to` is an absolute
   HTTP(S) destination URL. Use `[]` when there are no redirects.
 
-The current avatar assets are resized from the supplied `dog_small.png`, without
-changing the illustration: `public/avatar.avif` is 192×192 for the 32px toolbar
-avatar, and `public/avatar.png` is 512×512 for sharing. Browser icons remain PNG
-for compatibility: `public/favicon-32x32.png` and `public/apple-touch-icon.png`
-are 32×32 and 180×180. When changing the avatar, update these derivatives together
-and the icon version query in `src/index.html` to refresh cached icons. Keep
-`public/me.avif` for the introductions.
+`public/avatar.svg` is the editable vector source for the illustrated avatar.
+The toolbar and generated Person metadata use it through `site.author.avatar`;
+the browser favicon also uses the SVG, with a PNG fallback. Export the PNG
+derivatives from the same SVG: `public/avatar.png` is 512×512 for Open Graph and
+Twitter sharing, `public/favicon-32x32.png` is the 32×32 favicon fallback, and
+`public/apple-touch-icon.png` is 180×180 for Apple home-screen compatibility.
+When changing the SVG, regenerate these derivatives and update the icon version
+query in `src/index.html` to refresh cached icons. Keep `public/me.avif` for the
+introductions.
 
 ## Apply changes
 

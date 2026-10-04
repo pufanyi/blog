@@ -59,13 +59,17 @@ test('site avatar appears in navigation and metadata while introductions keep th
   }
 
   for (const [path, size] of [
-    [SITE_CONFIG.author.avatar, 192],
+    [SITE_CONFIG.author.avatar, 512],
     [SITE_CONFIG.defaultImage, 512],
-    [await page.locator('link[rel="icon"]').getAttribute('href'), 32],
+    [await page.locator('link[rel="icon"][type="image/svg+xml"]').getAttribute('href'), 512],
+    [await page.locator('link[rel="icon"][type="image/png"]').getAttribute('href'), 32],
     [await page.locator('link[rel="apple-touch-icon"]').getAttribute('href'), 180],
   ] as const) {
     const response = await request.get(path!);
     expect(response.status()).toBe(200);
+    if (new URL(path!, SITE_CONFIG.url).pathname.endsWith('.svg')) {
+      expect(response.headers()['content-type']).toContain('image/svg+xml');
+    }
     const dimensions = imageSize(await response.body());
     expect(dimensions).toMatchObject({ width: size, height: size });
   }

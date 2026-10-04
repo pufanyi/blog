@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="avatar-title avatar-description">
+  <title id="avatar-title">Little yellow companion</title>
+  <desc id="avatar-description">A seated pale yellow cartoon animal with round ears, shiny black eyes, tiny paws, and a pink collar on a white background.</desc>
+  <defs>
+    <linearGradient id="fur" x1="150" y1="125" x2="370" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f6dfb1"/>
+      <stop offset="1" stop-color="#efd4a3"/>
+    </linearGradient>
+    <clipPath id="body-clip">
+      <path d="M165 299C141 285 130 265 134 242C137 226 146 216 158 207L169 185C146 190 132 169 134 145C136 127 149 108 164 108C178 104 186 115 189 132C191 142 197 150 207 156C235 147 265 147 286 160C300 155 310 144 321 131C334 115 350 108 365 112C384 115 393 132 390 151C387 181 360 207 325 212C332 231 335 249 335 270C358 292 384 313 388 341C391 362 382 377 367 385C345 384 321 384 300 377C285 388 253 389 239 374C227 384 201 383 187 372C177 349 172 326 165 299Z"/>
+    </clipPath>
+  </defs>
+  <path fill="#fff" d="M0 0h512v512H0z"/>
+  <g stroke="#191d1b" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- The far paw sits behind the chest. -->
+    <path fill="url(#fur)" d="M173 326C156 330 144 344 149 360C153 376 172 381 190 373L187 347Z"/>
+    <path fill="url(#fur)" stroke="none" d="M165 299C141 285 130 265 134 242C137 226 146 216 158 207L169 185C146 190 132 169 134 145C136 127 149 108 164 108C178 104 186 115 189 132C191 142 197 150 207 156C235 147 265 147 286 160C300 155 310 144 321 131C334 115 350 108 365 112C384 115 393 132 390 151C387 181 360 207 325 212C332 231 335 249 335 270C358 292 384 313 388 341C391 362 382 377 367 385C345 384 321 384 300 377C285 388 253 389 239 374C227 384 201 383 187 372C177 349 172 326 165 299Z"/>
+    <!-- The collar follows the rounded chest and is clipped at its edges. -->
+    <path d="M162 302C206 328 285 310 337 273" fill="none" stroke="#ff8581" stroke-width="10" clip-path="url(#body-clip)"/>
+    <g fill="none">
+      <path d="M166 188C144 184 132 166 134 145C136 127 149 108 164 108C178 104 186 115 189 132C191 142 197 150 207 156"/>
+      <path d="M190 168C216 147 257 143 288 163"/>
+      <path d="M286 160C300 155 310 144 321 131C334 115 350 108 365 112C384 115 393 132 390 151C387 181 360 207 325 212C332 231 335 249 335 270C358 292 384 313 388 341C391 362 382 377 367 385"/>
+      <path d="M169 185L158 207C146 216 137 226 134 242C130 265 141 285 165 299C172 326 177 349 187 372C201 383 227 384 239 374"/>
+      <path d="M231 339L238 368C241 387 277 390 300 377"/>
+      <path d="M311 330C297 327 286 342 290 357C293 377 315 384 347 379"/>
+      <path d="M354 360C362 358 368 354 371 348"/>
+      <path d="M360 374L363 372"/>
+    </g>
+    <g fill="#191d1b" stroke="none">
+      <ellipse cx="181" cy="249" rx="14" ry="14.5"/>
+      <ellipse cx="259" cy="247" rx="15" ry="15"/>
+      <rect x="201" y="253" width="17" height="10" rx="5"/>
+    </g>
+    <g fill="#fff" stroke="none">
+      <path d="M181 242C171 240 170 254 179 255C182 256 185 254 186 251C179 253 176 247 181 242Z"/>
+      <path d="M259 239C249 238 248 251 257 253C260 254 263 252 264 249C257 251 254 245 259 239Z"/>
+    </g>
+    <path d="M209 261V279M193 284L209 279C220 280 231 284 240 287" fill="none"/>
+  </g>
+</svg>

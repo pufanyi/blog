@@ -14,7 +14,7 @@ test('fingerprinted cache rules preserve MIME headers and exclude authored asset
     'chunk-Ab_cd-12.js',
     'styles-12345678.css',
     'media/phosphor-12345678.woff2',
-    'avatar.avif',
+    'avatar.svg',
     'index.html',
     'profile.md',
   ]) {
@@ -27,7 +27,7 @@ test('fingerprinted cache rules preserve MIME headers and exclude authored asset
   for (const pattern of ['/main-*.js', '/chunk-*.js', '/styles-*.css', '/media/*']) {
     assert.ok(headers.includes(`${pattern}\n  Cache-Control: public, max-age=31536000, immutable`));
   }
-  assert.doesNotMatch(headers, /\/(?:posts|assets)\/\*|\/index.html|\/avatar.avif/);
+  assert.doesNotMatch(headers, /\/(?:posts|assets)\/\*|\/index.html|\/avatar.svg/);
   prepareAssetCacheHeaders(directory);
   assert.equal(readFileSync(join(directory, '_headers'), 'utf8'), headers);
   writeFileSync(join(directory, 'media/unversioned.woff2'), 'font');

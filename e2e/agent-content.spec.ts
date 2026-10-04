@@ -25,7 +25,7 @@ test('fingerprinted assets have immutable caching while negotiated pages revalid
     expect(response.headers()['cache-control']).toBe('public, max-age=31536000, immutable');
   }
   for (const path of [
-    '/avatar.avif',
+    '/avatar.svg',
     '/profile.md',
     '/posts/ml/ml-revisit/umm/images/model_diagram.svg',
   ]) {
