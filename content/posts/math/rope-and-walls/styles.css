@@ -1,0 +1,72 @@
+.rope-wall-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 1rem;
+}
+
+.rope-wall-panel {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  background: var(--paper-bg);
+  padding: 0.75rem;
+}
+
+.rope-wall-panel svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.rope-wall-panel svg text {
+  fill: var(--text-color);
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-style: italic;
+}
+
+.rope-wall-panel-title,
+.rope-wall-panel-value {
+  text-align: center;
+  margin: 0;
+}
+
+.rope-wall-panel-title {
+  font-weight: 600;
+}
+
+.rope-wall-panel-value {
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}
+
+.rope-wall-region {
+  fill: color-mix(in srgb, var(--accent-sage) 17%, transparent);
+}
+
+.rope-wall-wall {
+  fill: none;
+  stroke: var(--text-color);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.rope-wall-rope {
+  fill: none;
+  stroke: var(--accent-clay);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.rope-wall-chord {
+  stroke: var(--accent-slate);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+}
+
+.rope-wall-point {
+  fill: var(--text-color);
+}
+
+.rope-wall-center {
+  fill: var(--accent-blue);
+}

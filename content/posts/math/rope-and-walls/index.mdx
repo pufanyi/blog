@@ -1,0 +1,484 @@
+---
+title: "一根绳子与两面墙：从扇形到大圆弧的面积最大化"
+date: "2026-10-09"
+description: "长度为 s 的绳子，借助夹角为 θ 的两面墙，最多围出多大面积？从无限射线的扇形解出发，推导有限墙长下的圆弧、端点约束与数值求解。"
+private: true
+---
+
+一根长度为 $s$ 的绳子，两面夹角为 $\theta$ 的墙，最多能围出多大面积？如果墙是无限长的射线，答案很漂亮：围成一个以墙角为圆心的扇形，面积为 $s^2/(2\theta)$。但把两面墙换成长度分别为 $x,y$ 的线段以后，问题就不只是把扇形的半径缩短了。
+
+绳子可以绕过墙端，圆心也可以离开墙角。绳子足够长时，最优圆弧甚至会超过半圆；在某些夹角下，只利用一面墙还会胜过把两面墙都用满。
+
+## 先把“围起来”说清楚
+
+设两面墙在 $O$ 相交，取较小的夹角
+
+$$
+0<\theta<\pi,
+$$
+
+设 $s,x,y>0$，并且所有角度都用**弧度**。绳子柔软、不可伸长，不要求拉成直线。它的两个端点分别系在两面墙上的 $A,B$，与墙段 $OA,OB$ 围成一个简单闭合区域。系绳点可以滑动，墙不消耗绳长。
+
+无限墙时，区域位于这个夹角内。有限墙时，允许绳子绕过真实的墙端，进入延长线外侧；延长线本身不是墙。我们也允许系绳点取到 $O$，即其中一段被利用的墙长退化为零。未作为外边界的墙段可以留在区域内部。
+
+如果额外要求两面墙都必须利用正长度，那么后面某些退化情形只能给出上确界，而不能取到最大值。若要求绳子始终留在两条延长线之间，则是另一个带障碍约束的问题，下面有限墙的答案不能直接套用。
+
+## 为什么绳子应该是一段圆弧？
+
+先固定 $A,B$。它们与 $O$ 组成的三角形已经固定，我们能改变的只是绳子与弦 $AB$ 之间的面积。这就是固定端点的 Dido 问题：在端点与曲线长度固定时，怎样使弓形面积最大？[UCL 的变分法讲义](https://www.homepages.ucl.ac.uk/~ucahmto/latex_html/chapter2_latex2html/node9.html)给出了这一圆弧问题及其长度约束。
+
+可以先从“把一小段绳子向外推”理解它。沿绳子的外法线推出很小的距离 $u$，一阶面积增量约为 $u$ 乘以这段弧长；长度增量还要再乘以局部曲率 $\kappa$。如果不同位置的曲率不一样，就可以把绳长从曲率大的地方转移到曲率小的地方，用相同的绳长换到更多面积。因此，最优自由边界的曲率应当处处相同，也就是圆弧。
+
+这个论证解释了形状，但“曲率相同”只是驻点条件。全局最优性可以用等周不等式补上：把候选圆弧补成一个整圆，再把同一段补弧接到其他等长曲线上；如果其他曲线围出的有向面积更大，就会得到一条周长相同、面积却超过圆的闭曲线，矛盾。这里使用的有向面积版本也允许拼接曲线发生自交。
+
+圆弧不一定是小于半圆的劣弧。端点很近而绳子很长时，最优形状会接近一整个圆，只留下很短的一条弦。
+
+## 无限墙：圆心为什么恰好是墙角？
+
+固定端点的结论还不够，因为端点也能沿墙滑动。设最优圆弧的半径为 $R$。如果绳子在系绳点处与墙不垂直，沿墙移动端点，就会一阶改变绳长；端点扫过的面积却只有二阶大小。把省下来的绳长放到圆弧上向外扩张，就能增加面积。因此，自由滑动的端点处，绳子必须与墙垂直。
+
+圆的切线与半径垂直，所以对应的半径必须沿着墙。两面墙上的端点都自由，圆心就必须同时在两条墙线上，只能是交点 $O$。
+
+于是最优区域是半径为 $R$、圆心角为 $\theta$ 的扇形。绳子只负责弧边，因此
+
+$$
+s=R\theta,
+\qquad
+A=\frac12R^2\theta.
+$$
+
+消去半径，得到
+
+$$
+\boxed{R=\frac{s}{\theta},\qquad A_{\max}=\frac{s^2}{2\theta}.}
+$$
+
+例如两面墙互相垂直，$\theta=\pi/2$，应围成四分之一圆，面积为 $s^2/\pi$。只借助一面无限长的直墙时，最优形状是半圆，面积为 $s^2/(2\pi)$；直角墙角把这个面积翻了一倍。
+
+<details>
+<summary>怎样排除其他全局最大值？</summary>
+
+记 $OA=a,OB=b$。绳子必须能连接两端，所以
+
+$$
+a^2+b^2-2ab\cos\theta\le s^2.
+$$
+
+对固定的 $0<\theta<\pi$，这使可行的 $a,b$ 有界。因此，可以先在允许所有平面圆弧的更大集合中求最大值，再检查获胜者是否位于夹角内。
+
+两个端点都不在 $O$、且弦长严格小于绳长时，端点都是自由的，上面的垂直条件迫使圆心为 $O$。若一个端点到达 $O$，退化为单墙问题，其最大面积不超过 $s^2/(2\pi)$，严格小于扇形的 $s^2/(2\theta)$。两个端点都在 $O$ 的圆也更小。
+
+弦长恰好等于绳长时，绳子拉成直线，也不可能是最大值：把两端稍微向 $O$ 缩进，使弦短一点，再把余下的长度用于向外鼓起，新增的弓形面积会超过三角形面积的一阶损失。
+
+因此，更大集合中的最大值就是这个扇形，而它也确实位于两面墙之间。这同时给出了上界与可行构造，不需要假设 $\theta$ 能整除 $2\pi$，也不需要把任意夹角反射拼成整圆。
+
+</details>
+
+## 有限墙：先固定端点，算出面积
+
+现在令两面墙的长度分别为 $x,y$，并记
+
+$$
+0\le a=OA\le x,\qquad 0\le b=OB\le y.
+$$
+
+有限墙增加的是**端点位置的约束**，不是“半径必须小于短墙”的约束。只要圆心离开 $O$，半径就不再等于被利用的墙长。
+
+为了一次处理小圆弧、半圆和大圆弧，我们用绳子对应的圆心角 $\alpha$ 描述它。注意，$\alpha$ 与墙的夹角 $\theta$ 是两个不同的量。
+
+由余弦定理，两个端点的距离为
+
+$$
+d=AB=\sqrt{a^2+b^2-2ab\cos\theta}.
+$$
+
+设圆弧半径为 $R$。弧长和弦长分别满足
+
+$$
+s=R\alpha,\qquad d=2R\sin\frac{\alpha}{2}.
+$$
+
+消去 $R$，就得到决定圆弧的方程：
+
+$$
+\boxed{\frac{d}{s}=\frac{2\sin(\alpha/2)}{\alpha},\qquad 0<\alpha<2\pi.}
+$$
+
+右侧从 $1$ 严格递减到 $0$。因此，只要 $0<d<s$，就存在唯一的 $\alpha$，直接二分即可。这里必须搜索整个 $(0,2\pi)$；只搜索 $(0,\pi]$ 会漏掉长绳子的答案。
+
+<details>
+<summary>为什么这个方程只有一个解？</summary>
+
+令 $u=\alpha/2$，右侧就是 $\sin u/u$。其导数的符号取决于 $u\cos u-\sin u$。又因为
+
+$$
+\frac{\mathrm d}{\mathrm du}(\sin u-u\cos u)=u\sin u>0,
+\qquad 0<u<\pi,
+$$
+
+且括号中的量在 $u=0$ 处趋于零，所以导数严格为负。
+
+</details>
+
+接下来，把所围区域拆成三角形 $OAB$ 与弦外侧的圆弓形：
+
+$$
+A_{\triangle OAB}=\frac12ab\sin\theta.
+$$
+
+圆弓形的面积是扇形面积减去相应的**有向**三角形面积，即
+
+$$
+A_{\text{segment}}=\frac12R^2(\alpha-\sin\alpha).
+$$
+
+当 $\alpha>\pi$ 时，$\sin\alpha<0$，这个式子自动给出大弓形的面积，不需要另外拼一个公式。
+
+暂时不把未使用墙段当作障碍，固定 $a,b$ 时的最优面积是
+
+$$
+\boxed{
+F_s(a,b)=\frac12ab\sin\theta
++\frac{s^2}{2\alpha^2}(\alpha-\sin\alpha),
+}
+$$
+
+其中 $\alpha$ 由上面的弦长方程确定。圆弧选在弦 $AB$ 背离 $O$ 的一侧，使两部分面积相加。对任意固定端点，这首先是一个上界：画出的圆弧还可能穿过未使用的真实墙段。不过，让端点一起参与全局优化以后，最大值确实存在不穿墙的构造，下面会说明原因。
+
+三个边界情况也很自然：$d>s$ 时绳子够不到；$d=s$ 时弓形面积为零；$d=0$ 时取极限 $s^2/(4\pi)$，也就是整圆面积。
+
+## 再让端点移动：有限墙的答案
+
+有限墙的统一答案可以写成
+
+$$
+\boxed{
+A_{\max}(s,x,y,\theta)
+=\max_{\substack{0\le a\le x,\;0\le b\le y\\
+ a^2+b^2-2ab\cos\theta\le s^2}}
+F_s(a,b).
+}
+$$
+
+这个表达式已经把“在所有曲线里找最优形状”化成了两个实数的优化。不过，还可以进一步降到一维。
+
+如果两个端点都严格位于各自墙段内部，垂直条件仍然成立，圆心必须为 $O$，所以唯一的内部候选仍然是
+
+$$
+a=b=\frac{s}{\theta}.
+$$
+
+它只有在
+
+$$
+\boxed{s\le\theta\min(x,y)}
+$$
+
+时才可行。一旦这个条件成立，有限墙能够实现无限墙的最优扇形，上界也就取到了，直接返回 $s^2/(2\theta)$。
+
+如果扇形放不下，最大值必在端点矩形的边界上。于是只需比较四个一维问题：
+
+$$
+\max_{0\le b\le y}F_s(x,b),\quad
+\max_{0\le a\le x}F_s(a,y),\quad
+\max_{0\le b\le y}F_s(0,b),\quad
+\max_{0\le a\le x}F_s(a,0),
+$$
+
+每项都只保留 $d\le s$ 的可行部分。最后两项是允许一个系绳点到达墙角的单墙情形，不能随意删除。
+
+这里的“一维优化”仍然要求找**全局**最大值。不同的圆弧分支可能竞争，不能未经证明就对整个区间做一次三分搜索。可以找齐区间端点与驻点，再比较面积；用于作图的密集采样加局部细化，只能视为数值近似。
+
+<details>
+<summary>用导数求一维候选，以及如何检查圆弧的位置</summary>
+
+取坐标 $O=(0,0)$、$A=(a,0)$、$B=(b\cos\theta,b\sin\theta)$。令
+
+$$
+h=R\cos\frac{\alpha}{2}.
+$$
+
+这里 $h$ 是圆心到弦中点的有向距离，大圆弧时它可以为负。圆心 $C=(c_1,c_2)$ 为
+
+$$
+\begin{aligned}
+c_1&=\frac{a+b\cos\theta}{2}-h\frac{b\sin\theta}{d},\\
+c_2&=\frac{b\sin\theta}{2}+h\frac{b\cos\theta-a}{d}.
+\end{aligned}
+$$
+
+把固定绳长的弓形面积记为 $G_s(d)$。对弦长方程和面积公式求导，可以得到
+
+$$
+G_s'(d)=-h.
+$$
+
+因此
+
+$$
+\begin{aligned}
+\frac{\partial F_s}{\partial a}
+&=\frac{b\sin\theta}{2}-h\frac{a-b\cos\theta}{d}=c_2,\\
+\frac{\partial F_s}{\partial b}
+&=\frac{a\sin\theta}{2}-h\frac{b-a\cos\theta}{d}
+=c_1\sin\theta-c_2\cos\theta.
+\end{aligned}
+$$
+
+这给出了不依赖图形直觉的端点条件：$a$ 自由时，圆心落在第一条墙线上；$b$ 自由时，圆心落在第二条墙线上；两者都自由时，圆心为 $O$。
+
+圆弧可以通过
+
+$$
+C+R\bigl(\cos(t_0+t),\sin(t_0+t)\bigr),
+\quad 0\le t\le\alpha,
+$$
+
+画出，其中 $t_0$ 是向量 $A-C$ 的极角。实际构造时，要检查整段圆弧而不只是端点：允许越过延长线，不等于允许穿过真实墙段。与第一条墙线的另一交点的坐标是 $2c_1-a$；与第二条墙线的另一交点到 $O$ 的有向距离是 $2(c_1\cos\theta+c_2\sin\theta)-b$。同时检查交点是否落在实际墙段与所选圆弧上即可。
+
+为什么统一公式的全局最大值一定能实现？分情况看：扇形没有问题；两个端点都在墙端时，没有需要绕开的剩余墙段；一个端点在 $O$ 时，可以把单墙圆弓形放到另一面墙的外侧。
+
+只剩下一端在墙端、另一端自由的情形。不妨设 $a=x$、$0<b<y$。驻点条件使圆心在第二条墙线上。若圆弧穿过这面墙的剩余部分，那么 $B$ 必须是圆与该射线的近交点，远交点到 $O$ 的距离为 $q=b+2R\le y$。因为圆心也在射线上，从 $O$ 看圆上各点的距离最小为 $b$、最大为 $q$。另一端 $A$ 不在这条直线上，所以
+
+$$
+b<x<q\le y.
+$$
+
+现在把整个构造关于墙角平分线反射，交换两端使用的墙长，得到 $(a',b')=(b,x)$。面积完全相同，却有 $0<a'<x$、$0<b'<y$：两个端点都变成了内部点。若原构造是全局最大值，反射后的构造也必须是内部驻点，圆心就应当为 $O$；但它的圆心显然不是 $O$，矛盾。
+
+因此，穿过剩余墙段的圆弧不可能赢得全局比较。这个论证使上面的无障碍面积上界在端点优化后成为可达到的答案；它并不意味着每一组固定端点的圆弧都可直接使用。
+
+</details>
+
+<details>
+<summary>不扫描整个区间：最多三个圆弧驻点就够了</summary>
+
+考虑 $a=x$、$b$ 自由的边界。圆心在第二条墙线上，$B$ 既可能是圆与这条射线的远交点，也可能是近交点。分别用 $\varepsilon=1,-1$ 表示这两种情况。沿墙线与垂直墙线的两个方向分解半径，可以得到
+
+$$
+x\sin\theta=\varepsilon R\sin\alpha,
+\qquad
+b=x\cos\theta+\varepsilon R(1-\cos\alpha).
+$$
+
+消去 $R=s/\alpha$，得到
+
+$$
+\frac{|\sin\alpha|}{\alpha}=\frac{x\sin\theta}{s},
+\qquad
+b=x\cos\theta+x\sin\theta\tan\frac{\alpha}{2}.
+$$
+
+在 $(0,\pi)$ 内，$\sin\alpha/\alpha$ 严格递减，至多有一个解。在 $(\pi,2\pi)$ 内，$-\sin\alpha/\alpha$ 先增后减，分界点是
+
+$$
+\beta\cos\beta-\sin\beta=0,
+\qquad
+\beta\in(\pi,3\pi/2),
+\qquad
+\beta\approx4.493409458.
+$$
+
+因此，将这三个单调区间分别二分，就找齐了所有驻点。把每个解代回 $b$，仅保留 $0<b<y$ 的候选。另一条边界交换 $x,y$ 即可。
+
+矩形角点还要单独检查。两端均在墙端的 $(x,y)$ 直接代入；落在坐标轴上的候选可以进一步简化：由于 $G_s'(d)=-R\cos(\alpha/2)$，弓形面积在 $\alpha=\pi$ 时最大，对应 $d=2s/\pi$。所以两条坐标轴上的最优端点分别是
+
+$$
+\left(0,\min\left(y,\frac{2s}{\pi}\right)\right),
+\qquad
+\left(\min\left(x,\frac{2s}{\pi}\right),0\right).
+$$
+
+当扇形不可行时，两个单墙候选、一个双墙端点候选，以及每条固定墙端边界上至多三个驻点，合计最多九个候选，就覆盖了全局最大值。弦长等于绳长的直线边界不会产生最大值，理由与无限墙时相同。
+
+</details>
+
+## 短墙用满之后，圆心怎样移动？
+
+为了看清最初的变化，不妨设 $x\le y$。当 $s$ 刚超过 $\theta x$，原来的扇形会先碰到短墙的墙端。此时令 $a=x$，另一个端点暂时仍可沿长墙滑动。
+
+因为 $B$ 自由，圆心 $C$ 必须在长墙所在的直线上。把 $C$ 在这条有向直线上的坐标记为 $t$，并取从扇形连续延伸出来的圆弧分支。短墙端点 $A$ 到长墙线的垂直距离为 $x\sin\theta$；同一个距离也等于 $R\sin\alpha$，所以
+
+$$
+R\sin\alpha=x\sin\theta.
+$$
+
+结合 $s=R\alpha$，得到
+
+$$
+\boxed{\frac{s}{x}=\frac{\alpha\sin\theta}{\sin\alpha},
+\qquad \theta\le\alpha<\pi.}
+$$
+
+沿长墙方向投影，还可以得到
+
+$$
+t=x\cos\theta-R\cos\alpha,
+$$
+
+而 $B$ 在圆心前方一个半径处，因此
+
+$$
+\boxed{
+b=t+R
+=x\cos\theta+x\sin\theta\tan\frac{\alpha}{2}.
+}
+$$
+
+在起点 $\alpha=\theta$，有 $R=x,t=0,b=x$，正好接上扇形。绳子继续变长，$\alpha$ 与 $b$ 随之增大，圆心离开 $O$。
+
+当这个分支碰到长墙端点时，$b=y$，对应
+
+$$
+\alpha_*=2\arctan\frac{y-x\cos\theta}{x\sin\theta},
+\qquad
+s_*=\frac{x\sin\theta\,\alpha_*}{\sin\alpha_*}.
+$$
+
+这描述了“短墙先受限、随后长墙也受限”的连续分支。**它不是任意绳长下都成立的三段式答案**：继续增加绳长以后，还要与其他边界候选比较，尤其是只利用一面墙的候选。
+
+<RopeWallDiagrams />
+
+图中取 $\theta=\pi/3,x=1,y=2$，三幅图使用相同的长度比例。实线是实际墙段，粗曲线是绳子，虚线是弦 $AB$，阴影是围出的区域。圆心从墙角 $O$ 移到长墙线上，最后在两个端点都固定时离开两条墙线；第三幅图的绳子已经绕过短墙端点，伸到夹角之外。
+
+## 一个数值例子，以及长绳子的反直觉之处
+
+继续取 $\theta=\pi/3,x=1,y=2$。用统一公式比较端点边界，可以得到下面的数值结果，均四舍五入到六位小数：
+
+| 绳长 $s$ | 使用第一面墙 $a$ | 使用第二面墙 $b$ | 圆弧角 $\alpha$ | 最大面积 |
+| --- | --- | --- | --- | --- |
+| $1$ | $0.954930$ | $0.954930$ | $1.047198$ | $0.477465$ |
+| $2$ | $1$ | $1.925377$ | $2.049649$ | $1.386966$ |
+| $4$ | $1$ | $2$ | $4.099298$ | $3.206944$ |
+| $10$ | $1$ | $2$ | $5.324652$ | $11.699509$ |
+| $30$ | $0$ | $2$ | $5.888082$ | $81.421511$ |
+
+前两行分别是扇形与短墙受限的圆弧。第三行已经有 $\alpha>\pi$，是大圆弧。最后一行却把第一面墙的使用长度变成了零：绳子从 $O$ 出发，绕出一个大弓形，再接到第二面墙的墙端。
+
+为什么不用满两面墙反而更好？因为大圆弧接近整圆时，墙提供的弦长也很重要。两面墙都用满，弦长为
+
+$$
+d_{xy}=\sqrt{x^2+y^2-2xy\cos\theta}.
+$$
+
+这个例子中 $d_{xy}=\sqrt3<2=y$。不用第一面墙，虽然失去了三角形面积，却得到了更长的弦；绳子很长时，后者带来的收益会占上风。
+
+更具体地，固定 $d$，令 $s\to\infty$。此时 $\alpha\to2\pi$，小缺口对应的弧长趋近于弦长 $d$，所以整个圆的周长约为 $s+d$。由此得到
+
+$$
+G_s(d)=\frac{s^2}{4\pi}+\frac{sd}{2\pi}+O(1).
+$$
+
+三角形面积是有界的，而弦长增加带来的收益有一个与 $s$ 成正比的项。因此，长绳子的首要选择趋向于最大化弦长。矩形 $[0,x]\times[0,y]$ 上，弦长的最大值为
+
+$$
+\boxed{d_{\max}=\max\left\{x,y,\sqrt{x^2+y^2-2xy\cos\theta}\right\}.}
+$$
+
+这解释了为什么锐角墙可能最终只利用一面墙，也说明“既然墙免费，就一定应该全部用满”并不成立。这里说的是长绳极限下的趋势；有限 $s$ 的切换点仍应比较完整面积，而不能只比较弦长。
+
+## 可直接运行的求解代码
+
+下面的 Python 代码先计算固定端点的 $F_s(a,b)$，再按上述三个单调区间找齐驻点，比较所有候选。它返回最大面积、两段被利用的墙长，以及绳子的圆弧角；数值精度受双精度浮点数限制。
+
+```python
+from math import cos, hypot, pi, sin, tan
+
+
+def area_for_endpoints(s, theta, a, b):
+    """Return (area, arc_angle); infeasible endpoints return (-inf, None)."""
+    if s <= 0 or not 0 < theta < pi or a < 0 or b < 0:
+        raise ValueError("Require s > 0, 0 < theta < pi, and a, b >= 0")
+
+    d = hypot(a - b * cos(theta), b * sin(theta))
+    triangle = a * b * sin(theta) / 2
+    if d > s:
+        return float("-inf"), None
+    if d == 0:
+        return s * s / (4 * pi), 2 * pi
+    if d == s:
+        return triangle, 0.0
+
+    lo, hi = 0.0, 2 * pi
+    for _ in range(80):
+        alpha = (lo + hi) / 2
+        chord_ratio = 2 * sin(alpha / 2) / alpha
+        if chord_ratio > d / s:
+            lo = alpha
+        else:
+            hi = alpha
+    alpha = (lo + hi) / 2
+
+    # Avoid cancellation in alpha - sin(alpha) for short arcs.
+    if alpha < 1e-3:
+        factor = alpha / 6 - alpha**3 / 120 + alpha**5 / 5040
+    else:
+        factor = (alpha - sin(alpha)) / (alpha * alpha)
+    segment = s * s * factor / 2
+    return triangle + segment, alpha
+
+
+def bisect_root(f, lo, hi):
+    """The interval must bracket a root of the continuous function f."""
+    left = f(lo)
+    if left == 0:
+        return lo
+    if f(hi) == 0:
+        return hi
+    for _ in range(80):
+        mid = (lo + hi) / 2
+        value = f(mid)
+        if (value > 0) == (left > 0):
+            lo, left = mid, value
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
+def max_area(s, x, y, theta):
+    """Return (area, used_first_wall, used_second_wall, arc_angle)."""
+    if min(s, x, y) <= 0 or not 0 < theta < pi:
+        raise ValueError("Require s, x, y > 0 and 0 < theta < pi")
+    if s / theta <= min(x, y):
+        return s * s / (2 * theta), s / theta, s / theta, theta
+
+    candidates = []
+
+    def add(a, b):
+        area, alpha = area_for_endpoints(s, theta, a, b)
+        if alpha is not None:
+            candidates.append((area, a, b, alpha))
+
+    add(0, min(y, 2 * s / pi))
+    add(min(x, 2 * s / pi), 0)
+    add(x, y)
+
+    beta = bisect_root(lambda t: t * cos(t) - sin(t), pi, 1.5 * pi)
+    peak = -sin(beta) / beta
+    for fixed, free, swap in [(x, y, False), (y, x, True)]:
+        k = fixed * sin(theta) / s
+        angles = []
+        if k < 1:
+            def minor(t):
+                return (sin(t) / t if t else 1.0) - k
+            angles.append(bisect_root(minor, 0.0, pi))
+        if k <= peak:
+            def major(t):
+                return -sin(t) / t - k
+            angles.append(bisect_root(major, pi, beta))
+            angles.append(bisect_root(major, beta, 2 * pi))
+        for alpha in angles:
+            moving = fixed * cos(theta) + fixed * sin(theta) * tan(alpha / 2)
+            if 0 < moving < free:
+                add(moving, fixed) if swap else add(fixed, moving)
+
+    return max(candidates, key=lambda result: result[0])
+
+
+# (3.2069441257..., 1, 2, 4.0992982217...)
+print(max_area(4, 1, 2, pi / 3))
+```
+
+检查实现时，至少核对这几个极限：$d=s$ 时弓形面积为零；$d=2s/\pi$ 时圆弧是半圆；$d\to0$ 时面积趋于 $s^2/(4\pi)$；$a=b=s/\theta$ 时总面积回到 $s^2/(2\theta)$。
+
+无限墙的简洁答案来自两个端点都能自由滑动，迫使圆心固定在墙角。有限墙改变了这个端点条件：墙端可以固定住绳子，让圆心移动，也让大圆弧成为可能。保留“先求圆弧，再优化端点”这两个步骤，就能在同一个公式里处理这些变化。
