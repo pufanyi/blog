@@ -1,8 +1,9 @@
 import { enclosure } from './geometry';
 
-export const playground = { theta: Math.PI / 3, x: 1, y: 2, scale: 65, ox: 200, oy: 330 };
-export const initialRope = { a: 1, b: 1.7, s: 2 };
+export const playground = { x: 1, y: 2, scale: 65, ox: 200, oy: 330 };
+export const initialRope = { a: 1, b: 1.7, s: 2, angle: 60 };
 export interface RopeState {
+  angle: number;
   a: number;
   b: number;
   s: number;
@@ -19,13 +20,15 @@ const point = (p: RopePoint) => {
   return `${q.x} ${q.y}`;
 };
 
-export function ropeFrame({ a, b, s }: RopeState) {
-  const { theta, x, y, scale } = playground;
+export function ropeFrame({ a, b, s, angle }: RopeState) {
+  const { x, y, scale } = playground;
+  const theta = (angle * Math.PI) / 180;
   const start = { x: a, y: 0 };
   const end = { x: b * Math.cos(theta), y: b * Math.sin(theta) };
   const d = Math.hypot(end.x - start.x, end.y);
   const chord = `M ${point(start)} L ${point(end)}`;
-  const base = { a: projectRope(start), b: projectRope(end), chord, d };
+  const walls = `M ${point({ x, y: 0 })} L ${point({ x: 0, y: 0 })} L ${point({ x: y * Math.cos(theta), y: y * Math.sin(theta) })}`;
+  const base = { a: projectRope(start), b: projectRope(end), chord, walls, d };
   if (s < d - 1e-9)
     return {
       ...base,
@@ -39,7 +42,7 @@ export function ropeFrame({ a, b, s }: RopeState) {
     };
   if (d < 1e-9) {
     const r = s / (2 * Math.PI);
-    const opposite = point({ x: -2 * r, y: 0 });
+    const opposite = point({ x: -2 * r * Math.cos(theta / 2), y: -2 * r * Math.sin(theta / 2) });
     const rope = `M ${point(start)} A ${r * scale} ${r * scale} 0 1 0 ${opposite} A ${r * scale} ${r * scale} 0 1 0 ${point(start)} Z`;
     return {
       ...base,
@@ -115,7 +118,8 @@ export function ropeMetrics(frame: ReturnType<typeof ropeFrame>) {
 
 export function ropeViewport(state: RopeState) {
   const { a, b, s } = state;
-  const { theta, x, y } = playground;
+  const { x, y } = playground;
+  const theta = (state.angle * Math.PI) / 180;
   const points = [
     { x: 0, y: 0 },
     { x, y: 0 },
@@ -124,7 +128,15 @@ export function ropeViewport(state: RopeState) {
   const d = Math.hypot(a - b * Math.cos(theta), b * Math.sin(theta));
   if (d < 1e-9) {
     const r = s / (2 * Math.PI);
-    points.push({ x: -2 * r, y: 0 }, { x: -r, y: r }, { x: -r, y: -r });
+    // Place the circle opposite the angle bisector so both walls remain outside.
+    const cx = -r * Math.cos(theta / 2);
+    const cy = -r * Math.sin(theta / 2);
+    points.push(
+      { x: cx - r, y: cy },
+      { x: cx + r, y: cy },
+      { x: cx, y: cy - r },
+      { x: cx, y: cy + r },
+    );
   } else if (s > d + 1e-9) {
     const shape = enclosure(s, a, b, theta);
     for (let i = 0; i <= 100; i++) {

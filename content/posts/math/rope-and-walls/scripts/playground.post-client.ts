@@ -20,13 +20,13 @@ function bindPlayground(root: HTMLElement) {
   const region = root.querySelector<SVGPathElement>('[data-rope-region]')!;
   const chord = root.querySelector<SVGPathElement>('[data-rope-chord]')!;
   const inputs = Object.fromEntries(
-    (['a', 'b', 's'] as const).map((key) => [
+    (['a', 'b', 's', 'angle'] as const).map((key) => [
       key,
       root.querySelector<HTMLInputElement>(`[data-rope-input="${key}"]`)!,
     ]),
   ) as Record<keyof RopeState, HTMLInputElement>;
   const outputs = Object.fromEntries(
-    (['a', 'b', 's'] as const).map((key) => [
+    (['a', 'b', 's', 'angle'] as const).map((key) => [
       key,
       root.querySelector<HTMLOutputElement>(`[data-rope-value="${key}"]`)!,
     ]),
@@ -42,6 +42,7 @@ function bindPlayground(root: HTMLElement) {
     arc.setAttribute('d', frame.rope);
     region.setAttribute('d', frame.region);
     chord.setAttribute('d', frame.chord);
+    root.querySelector('[data-rope-walls]')!.setAttribute('d', frame.walls);
     root.dataset['ropeKind'] = frame.kind;
     if (!drag) {
       const viewport = ropeViewport(state);
@@ -63,11 +64,11 @@ function bindPlayground(root: HTMLElement) {
     metrics.textContent = ropeMetrics(frame);
     const straighten = root.querySelector<HTMLButtonElement>('[data-rope-preset="straight"]')!;
     straighten.disabled = frame.d < Number(inputs.s.min);
-    straighten.title = straighten.disabled ? '请先将两端距离增大到 0.1，再拉直绳子。' : '';
+    straighten.title = straighten.disabled ? '请先将两端距离增大到 0.01，再拉直绳子。' : '';
     if (status.textContent !== frame.status) status.textContent = frame.status;
-    for (const key of ['a', 'b', 's'] as const) {
+    for (const key of ['a', 'b', 's', 'angle'] as const) {
       inputs[key].value = String(state[key]);
-      outputs[key].value = state[key].toFixed(2);
+      outputs[key].value = key === 'angle' ? `${state[key]}°` : state[key].toFixed(2);
     }
     for (const key of ['a', 'b'] as const) {
       handles[key].setAttribute('transform', `translate(${frame[key].x} ${frame[key].y})`);
@@ -87,7 +88,8 @@ function bindPlayground(root: HTMLElement) {
     const local = point.matrixTransform(matrix.inverse());
     const x = (local.x - playground.ox) / playground.scale;
     const y = (playground.oy - local.y) / playground.scale;
-    return key === 'a' ? x : x * Math.cos(playground.theta) + y * Math.sin(playground.theta);
+    const theta = (state.angle * Math.PI) / 180;
+    return key === 'a' ? x : x * Math.cos(theta) + y * Math.sin(theta);
   };
   const finishDrag = () => {
     if (drag && handles[drag.key].hasPointerCapture(drag.id))
@@ -95,7 +97,7 @@ function bindPlayground(root: HTMLElement) {
     drag = null;
     status.setAttribute('aria-live', 'polite');
   };
-  for (const key of ['a', 'b', 's'] as const)
+  for (const key of ['a', 'b', 's', 'angle'] as const)
     inputs[key].addEventListener('input', () => update(key, Number(inputs[key].value)), { signal });
   for (const key of ['a', 'b'] as const) {
     const handle = handles[key];
@@ -155,8 +157,11 @@ function bindPlayground(root: HTMLElement) {
       const preset = event.target.closest<HTMLElement>('[data-rope-preset]')?.dataset['ropePreset'];
       if (!preset) return;
       finishDrag();
-      if (preset === 'sector') state = { a: 1, b: 1, s: playground.theta };
-      if (preset === 'major') state = { a: 1, b: 2, s: 4 };
+      if (preset === 'sector') state = { ...state, a: 1, b: 1, s: (state.angle * Math.PI) / 180 };
+      if (preset === 'major') {
+        state = { ...state, a: 1, b: 2, s: 4 };
+        state.s = Math.max(4, (Math.PI * ropeFrame(state).d) / 2 + 0.5);
+      }
       if (preset === 'reset') state = { ...initialRope };
       if (preset === 'straight' && ropeFrame(state).d >= Number(inputs.s.min))
         state.s = ropeFrame(state).d;
