@@ -38,7 +38,119 @@ authors:
 
 可以先从“把一小段绳子向外推”理解它。沿绳子的外法线推出很小的距离 $u$，一阶面积增量约为 $u$ 乘以这段弧长；长度增量还要再乘以局部曲率 $\kappa$。如果不同位置的曲率不一样，就可以把绳长从曲率大的地方转移到曲率小的地方，用相同的绳长换到更多面积。因此，最优自由边界的曲率应当处处相同，也就是圆弧。
 
-这个论证解释了形状，但“曲率相同”只是驻点条件。全局最优性可以用等周不等式补上：把候选圆弧补成一个整圆，再把同一段补弧接到其他等长曲线上；如果其他曲线围出的有向面积更大，就会得到一条周长相同、面积却超过圆的闭曲线，矛盾。这里使用的有向面积版本也允许拼接曲线发生自交。
+把这个直觉写成变分，就可以明确得到“曲率恒定”的方程。先考虑绳长大于端点距离的非退化情形，并暂时固定两端。我们先在光滑曲线中寻找候选形状，再用后面的全局上界验证它；仅仅求出一个驻点，还不能宣布它是最大值。
+
+沿围出区域的边界逆时针走，绳子这一段从 $A$ 走到 $B$。用原曲线的弧长 $\ell$ 作参数，记绳子为 $\gamma(\ell)$，单位切向量为 $T$，外法向量为 $n$。曲率 $\kappa$ 的符号约定为：向外鼓起的圆弧取正值。于是
+
+$$
+\gamma'=T,\qquad T'=-\kappa n,\qquad n'=\kappa T.
+$$
+
+现在只推挤绳子的内部：把位置 $\ell$ 沿外法线移动 $\varepsilon f(\ell)$，其中 $f$ 在端点附近为零。正的 $f$ 表示向外推，负的 $f$ 表示向内收。扰动后的曲线是
+
+$$
+\gamma_\varepsilon(\ell)
+=\gamma(\ell)+\varepsilon f(\ell)n(\ell).
+$$
+
+这里 $\ell$ 只是原曲线的弧长参数；扰动之后，不再要求 $\gamma_\varepsilon$ 仍以单位速度走过。下面用 $\mathcal A$ 表示面积、$L$ 表示绳子的实际长度，$\delta$ 表示对 $\varepsilon$ 求导后取 $\varepsilon=0$。
+
+**面积怎样变？** 一小段长度为 $\mathrm d\ell$ 的绳子向外移动 $\varepsilon f$，一阶增加的是一条宽为 $\varepsilon f$ 的窄带。因此
+
+$$
+\delta\mathcal A=\int_0^s f(\ell)\,\mathrm d\ell.
+$$
+
+**长度怎样变？** 对扰动曲线求导，利用 $n'=\kappa T$，得到
+
+$$
+\gamma_\varepsilon'
+=(1+\varepsilon\kappa f)T+\varepsilon f'n.
+$$
+
+因为 $T,n$ 正交且都是单位向量，扰动后的长度就是
+
+$$
+L[\gamma_\varepsilon]
+=\int_0^s\sqrt{(1+\varepsilon\kappa f)^2+\varepsilon^2(f')^2}\,\mathrm d\ell.
+$$
+
+对 $\varepsilon$ 求导后取零，便得到
+
+$$
+\delta L=\int_0^s\kappa(\ell)f(\ell)\,\mathrm d\ell.
+$$
+
+这正好解释了前面的直觉：同样向外移动一小段距离，面积收益的一阶系数是 $1$，长度成本的一阶系数却是局部曲率 $\kappa$。
+
+但任意的 $f$ 未必保持绳长，所以不能直接要求 $\delta\mathcal A=0$。对约束 $L=s$ 引入拉格朗日乘子，考虑
+
+$$
+\mathcal J[\gamma]
+=\mathcal A[\gamma]-\lambda\bigl(L[\gamma]-s\bigr).
+$$
+
+这里只约束**总长度这一个数**，所以 $\lambda$ 是一个常数，不是沿绳子变化的函数。最优曲线必须使
+
+$$
+0=\delta\mathcal J
+=\int_0^s\bigl(1-\lambda\kappa(\ell)\bigr)f(\ell)\,\mathrm d\ell
+$$
+
+对任意这样的局部推挤 $f$ 都成立。若某处 $1-\lambda\kappa$ 不为零，就能在那一小段选择同号的 $f$，让积分不为零。因此
+
+$$
+\boxed{\kappa(\ell)=\frac1\lambda=\text{常数}.}
+$$
+
+**为什么恒定曲率就意味着圆？** 不必再靠图形直觉：令
+
+$$
+C(\ell)=\gamma(\ell)-\lambda n(\ell).
+$$
+
+那么
+
+$$
+C'(\ell)=T-\lambda\kappa T=0.
+$$
+
+所以 $C$ 是一个固定点，并且
+
+$$
+|\gamma(\ell)-C|=|\lambda|
+$$
+
+处处成立。绳子上的每一点到同一个点的距离相同，绳形自然就是一段圆弧。对于向外鼓起的最优分支，$\kappa>0$，于是 $\lambda=R$。
+
+<details>
+<summary>面积变分的窄带解释，怎样写成积分证明？</summary>
+
+取墙角 $O$ 为坐标原点。两条直墙段对有向面积积分的贡献为零，因此由 Green 公式，
+
+$$
+\mathcal A[\gamma]
+=\frac12\int_0^s\gamma\times\gamma'\,\mathrm d\ell,
+$$
+
+其中二维叉积定义为 $(u_1,u_2)\times(v_1,v_2)=u_1v_2-u_2v_1$。令一般的扰动向量为 $V$，对上式求变分并分部积分：
+
+$$
+\begin{aligned}
+\delta\mathcal A
+&=\frac12\int_0^s(V\times T+\gamma\times V')\,\mathrm d\ell\\
+&=\int_0^s V\times T\,\mathrm d\ell
++\frac12[\gamma\times V]_A^B.
+\end{aligned}
+$$
+
+固定端点时，边界项为零。又因为逆时针边界的外法线是 $T$ 顺时针旋转九十度的结果，$V\times T=V\cdot n$。代入 $V=fn$，就得到 $\delta\mathcal A=\int f\,\mathrm d\ell$。
+
+即使端点沿墙滑动，边界项仍然为零：在每个端点处，位置向量 $\gamma$ 与允许的位移 $V$ 都沿着同一面墙，叉积为零。这一点会在下面推导端点条件时用到。
+
+</details>
+
+变分到这里给出了**必要条件**。全局最优性还要另证：把候选圆弧补成一个整圆，再把同一段补弧接到任何其他等长曲线上。拼接后的总长度始终等于这个圆的周长；如果其他曲线贡献的有向面积更大，拼接后的有向面积就会超过圆，违反等周不等式。因此，选定端点后，这段向外鼓起的圆弧确实达到全局最大值。这里使用的有向面积版本也允许拼接曲线发生自交。
 
 圆弧不一定是小于半圆的劣弧。端点很近而绳子很长时，最优形状会接近一整个圆，只留下很短的一条弦。
 
@@ -49,6 +161,43 @@ authors:
 固定端点的结论还不够，因为端点也能沿墙滑动。设最优圆弧的半径为 $R$。如果绳子在系绳点处与墙不垂直，沿墙移动端点，就会一阶改变绳长；端点扫过的面积却只有二阶大小。把省下来的绳长放到圆弧上向外扩张，就能增加面积。因此，自由滑动的端点处，绳子必须与墙垂直。
 
 圆的切线与半径垂直，所以对应的半径必须沿着墙。两面墙上的端点都自由，圆心就必须同时在两条墙线上，只能是交点 $O$。
+
+<details>
+<summary>变分中的边界项，直接给出“端点垂直墙面”</summary>
+
+现在允许端点移动，令 $V$ 为曲线的扰动向量，$f=V\cdot n$ 为它的外法向分量。对长度求变分并分部积分，不能再丢掉端点项：
+
+$$
+\delta L
+=\int_0^s T\cdot V'\,\mathrm d\ell
+=[T\cdot V]_A^B+\int_0^s\kappa f\,\mathrm d\ell.
+$$
+
+前面已经证明，端点沿墙移动时，面积变分仍为 $\delta\mathcal A=\int f\,\mathrm d\ell$。因此
+
+$$
+\delta\mathcal J
+=\int_0^s(1-\lambda\kappa)f\,\mathrm d\ell
+-\lambda T(B)\cdot V(B)+\lambda T(A)\cdot V(A).
+$$
+
+绳子内部已经满足 $1-\lambda\kappa=0$，剩下的恰好是两个边界项。记两条墙从 $O$ 向外的单位方向为 $e_1,e_2$，端点允许的位移为
+
+$$
+V(A)=\delta a\,e_1,\qquad V(B)=\delta b\,e_2.
+$$
+
+若端点处于墙段内部，$\delta a,\delta b$ 可以独立地取正值或负值。为了使 $\delta\mathcal J=0$ 对所有这些移动成立，必须有
+
+$$
+\boxed{T(A)\cdot e_1=0,\qquad T(B)\cdot e_2=0.}
+$$
+
+也就是说，**绳子的切线垂直墙面**。于是圆心位于两条墙线上，只能是 $O$。
+
+有限墙也遵循同一个推导，只是端点碰到墙端后，位移只能向墙内取值。此时变分条件变成单边不等式，不再要求相应的点积为零，所以固定在墙端的绳子不必垂直墙面。这正是后面圆心能够离开 $O$ 的原因。
+
+</details>
 
 <RopePerpendicularDiagram />
 
