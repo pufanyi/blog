@@ -21,7 +21,7 @@ function RopeWallDiagrams() {
             <div className="rope-wall-panel" key={id}>
               <p className="rope-wall-panel-title">{title}</p>
               <svg
-                viewBox="0 0 320 285"
+                viewBox="0 60 320 215"
                 role="img"
                 aria-labelledby={`rope-${id}-title rope-${id}-desc`}
               >

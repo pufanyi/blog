@@ -146,8 +146,8 @@ export function ropeViewport(state: RopeState) {
   const xmax = Math.max(...projected.map((p) => p.x));
   const ymin = Math.min(...projected.map((p) => p.y));
   const ymax = Math.max(...projected.map((p) => p.y));
-  const width = Math.max(xmax - xmin + 50, ((ymax - ymin + 50) * 620) / 560);
-  const height = (width * 560) / 620;
+  const width = Math.max(xmax - xmin + 50, ((ymax - ymin + 50) * 620) / 480);
+  const height = (width * 480) / 620;
   return {
     box: `${(xmin + xmax - width) / 2} ${(ymin + ymax - height) / 2} ${width} ${height}`,
     uiScale: width / 620,

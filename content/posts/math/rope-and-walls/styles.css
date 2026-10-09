@@ -1,20 +1,21 @@
 .rope-wall-panels {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .rope-wall-panel {
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
   background: var(--paper-bg);
-  padding: 0.75rem;
+  padding: 0.5rem;
 }
 
 .rope-wall-panel svg {
   display: block;
   width: 100%;
   height: auto;
+  max-height: 260px;
 }
 
 .rope-wall-panel svg text {
@@ -24,8 +25,8 @@
   font-style: italic;
 }
 
-.rope-wall-panel-title,
-.rope-wall-panel-value {
+.rope-wall-panel .rope-wall-panel-title,
+.rope-wall-panel .rope-wall-panel-value {
   text-align: center;
   margin: 0;
 }
@@ -72,7 +73,7 @@
 }
 
 .rope-wall-single {
-  max-width: 460px;
+  max-width: 400px;
   margin-inline: auto;
 }
 
@@ -126,13 +127,13 @@
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
   background: var(--paper-bg);
-  padding: clamp(0.75rem, 2vw, 1.5rem);
+  padding: clamp(0.75rem, 1.5vw, 1rem);
 }
 
 .rope-playground svg {
   display: block;
   width: 100%;
-  max-width: 620px;
+  max-width: 520px;
   margin-inline: auto;
   height: auto;
 }
@@ -169,7 +170,7 @@
 
 .rope-playground-sliders {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .rope-playground-sliders label span {
@@ -218,7 +219,7 @@
 
 .rope-playground-status {
   color: var(--text-secondary);
-  min-height: 3em;
+  min-height: 2em;
 }
 
 .rope-playground[data-rope-kind="blocked"] .rope-wall-rope,
@@ -244,4 +245,25 @@
 .rope-playground-presets button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.rope-playground .rope-playground-intro,
+.rope-playground .rope-playground-metrics,
+.rope-playground .rope-playground-status,
+.rope-wall-figure .rope-wall-legend {
+  margin-block: 0.5rem;
+}
+
+.rope-wall-figure figcaption,
+.rope-playground figcaption {
+  margin-top: 0.4rem;
+  font-size: 0.9em;
+  line-height: 1.65;
+}
+
+@media (min-width: 760px) {
+  .rope-playground-sliders {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
 }
