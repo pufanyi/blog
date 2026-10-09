@@ -121,3 +121,127 @@
   height: 0;
   border: 2px solid var(--accent-clay);
 }
+
+.rope-playground {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  background: var(--paper-bg);
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.rope-playground svg {
+  display: block;
+  width: 100%;
+  max-width: 620px;
+  margin-inline: auto;
+  height: auto;
+}
+
+.rope-playground svg text {
+  fill: var(--text-color);
+  font: italic 22px var(--font-body);
+  pointer-events: none;
+}
+
+.rope-playground-handle {
+  cursor: grab;
+  touch-action: none;
+}
+
+.rope-playground-handle:active {
+  cursor: grabbing;
+}
+
+.rope-playground-hit {
+  fill: transparent;
+}
+
+.rope-playground-knob {
+  fill: var(--accent-blue);
+  stroke: var(--paper-bg);
+  stroke-width: 3;
+}
+
+.rope-playground-handle:focus .rope-playground-knob {
+  stroke: var(--text-color);
+  stroke-width: 4;
+}
+
+.rope-playground-sliders {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.rope-playground-sliders label span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rope-playground-sliders output {
+  font-variant-numeric: tabular-nums;
+}
+
+.rope-playground-sliders input {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  accent-color: var(--accent-blue);
+}
+
+.rope-playground-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block: 0.75rem;
+}
+
+.rope-playground-presets button {
+  font: inherit;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  background: var(--surface-soft);
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+.rope-playground-presets button:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.rope-playground-metrics {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.rope-playground-status {
+  color: var(--text-secondary);
+  min-height: 3em;
+}
+
+.rope-playground[data-rope-kind="blocked"] .rope-wall-rope,
+.rope-playground[data-rope-kind="short"] .rope-wall-chord {
+  stroke: var(--accent-red);
+  stroke-dasharray: 7 5;
+}
+
+.rope-playground[data-rope-kind="blocked"] .rope-playground-status,
+.rope-playground[data-rope-kind="short"] .rope-playground-status {
+  color: var(--accent-red);
+}
+
+.rope-playground svg path,
+.rope-playground-knob {
+  vector-effect: non-scaling-stroke;
+}
+
+.rope-playground svg {
+  touch-action: none;
+}
+
+.rope-playground-presets button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
