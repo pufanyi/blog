@@ -267,3 +267,37 @@
     gap: 1rem;
   }
 }
+
+.rope-variation-arrow {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rope-variation-moved {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 2.5;
+  stroke-dasharray: 6 4;
+}
+
+.rope-variation-interior {
+  fill: color-mix(in srgb, var(--accent-slate) 7%, transparent);
+}
+
+.rope-variation-panel svg .rope-variation-label {
+  font-size: 15px;
+  font-style: normal;
+}
+
+.rope-variation-panel .rope-variation-formula {
+  margin: 0.25rem 0 0;
+  text-align: center;
+  font-size: 0.9em;
+}
+
+.rope-variation-panel svg {
+  max-height: 230px;
+}
