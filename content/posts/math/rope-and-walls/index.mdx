@@ -28,23 +28,23 @@ authors:
 
 <RopeProblemDiagram />
 
-也可以先自己试一试。下面固定墙长 $x=1,y=2$，夹角初始为 $\theta=\pi/3$，可用「墙夹角」滑块在 $5^\circ$ 到 $175^\circ$ 之间调整：拖动 A、B，或者调整对应滑块，改变 $OA,OB$；再拖动绳长滑块，观察圆弧怎样从接近直线变成大圆弧。图中的墙不会随端点移动而伸长。
+先用交互图观察绳子的形状。图中固定墙长 $x=1,y=2$，夹角初始为 $\theta=\pi/3$，可用「墙夹角」滑块在 $5^\circ$ 到 $175^\circ$ 之间调整：拖动 A、B，或者调整对应滑块，改变 $OA,OB$；再拖动绳长滑块，观察圆弧怎样从接近直线变成大圆弧。图中的墙不会随端点移动而伸长。
 
 <RopePlayground />
 
-先按“扇形”，观察两端垂直墙面的形状；再按“大圆弧”，看绳子绕过墙端。保持端点不动，逐渐减小绳长，直到弧线拉直；继续减小，绳子就连接不了两个端点了。这个交互展示的是**给定端点的圆弧**，不会自动替你选择面积最大的端点。
+先按“扇形”，观察两端垂直墙面的形状；再按“大圆弧”，看绳子绕过墙端。保持端点不动，逐渐减小绳长，直到弧线拉直；继续减小，绳子就连接不了两个端点了。图中显示的是**当前端点对应的圆弧**；要寻找最大面积，还需要比较不同端点位置。
 
 ## 为什么绳子应该是一段圆弧？
 
-先固定 $A,B$。它们与 $O$ 组成的三角形已经固定，我们能改变的只是绳子与弦 $AB$ 之间的面积。这就是固定端点的 Dido 问题：在端点与曲线长度固定时，怎样使弓形面积最大？[UCL 的变分法讲义](https://www.homepages.ucl.ac.uk/~ucahmto/latex_html/chapter2_latex2html/node9.html)给出了这一圆弧问题及其长度约束。
+先固定 $A,B$。它们与 $O$ 组成的三角形已经固定，我们能改变的只是绳子与弦 $AB$ 之间的面积。这就是[固定端点的 Dido 问题](https://www.homepages.ucl.ac.uk/~ucahmto/latex_html/chapter2_latex2html/node9.html)：在端点与曲线长度固定时，怎样使弓形面积最大？
 
-先看绳子“弯得多急”。想象沿绳子走，脚下的切线方向就是前进方向。走过同样长的一小段，方向转得越多，曲率就越大。若这段弧长为 $\Delta\ell$，切线转过的角度为 $\Delta\varphi$，那么局部曲率的大小约为 $|\Delta\varphi|/\Delta\ell$，把弧段缩到一点就得到曲率。圆上有 $\Delta\ell=R\Delta\varphi$，所以半径为 $R$ 的圆处处有 $\kappa=1/R$：小圆弯得急，大圆弯得缓，直线的曲率为零。[MIT 的曲率讲义](https://ocw.mit.edu/ans7870/18/18.013a/textbook/chapter15/section03.html)也从切线方向随弧长的变化定义这一量。
+先看绳子“弯得多急”。想象沿绳子走，脚下的切线方向就是前进方向。走过同样长的一小段，方向转得越多，曲率就越大。若这段弧长为 $\Delta\ell$，切线转过的角度为 $\Delta\varphi$，那么局部曲率的大小约为 $|\Delta\varphi|/\Delta\ell$，让弧长趋于零，这个比值的极限就是该点的[曲率大小](https://ocw.mit.edu/ans7870/18/18.013a/textbook/chapter15/section03.html)。圆上有 $\Delta\ell=R\Delta\varphi$，所以半径为 $R$ 的圆处处有 $\kappa=1/R$：小圆弯得急，大圆弯得缓，直线的曲率为零。
 
 <RopeCurvatureDiagram />
 
-现在试着把一小段绳子垂直向外推。它扫过一条窄带，增加面积，同时也需要更多绳长。下面会看到：推出同样的距离 $u$，一阶面积增量约为 $u$ 乘以这段弧长，长度增量还要再乘以局部曲率 $\kappa$。弯得越急的地方，同样的面积收益需要花费越多绳长。
+现在试着把一小段绳子沿外法线推出距离 $u$。它扫过的窄带增加了面积；对于图中向外鼓起的弧段，这也需要更多绳长。为了判断这样的推挤能否改善形状，需要分别计算面积和长度的变化。
 
-把这个直觉写成变分，就可以明确得到“曲率恒定”的方程。先考虑绳长大于端点距离的非退化情形，并暂时固定两端。我们先在光滑曲线中寻找候选形状，再用后面的全局上界验证它；仅仅求出一个驻点，还不能宣布它是最大值。
+这种微小形变称为变分。先考虑绳长大于端点距离、两端固定的情形，在光滑曲线中寻找使面积取极值的候选形状。驻点条件给出候选后，还需要证明它达到全局最大值。
 
 沿围出区域的边界逆时针走，绳子这一段从 $A$ 走到 $B$。用原曲线的弧长 $\ell$ 作参数，记绳子为 $\gamma(\ell)$，单位切向量为 $T$，外法向量为 $n$。曲率 $\kappa$ 的符号约定为：向外鼓起的圆弧取正值。于是
 
@@ -77,7 +77,7 @@ $$
 
 <RopeLengthCost />
 
-一般光滑曲线在很小范围内也有这样的局部弯曲程度；下面直接求导，验证即使推挤的幅度沿绳子变化，一阶长度变化仍由同一个系数决定。对扰动曲线求导，利用 $n'=\kappa T$，得到
+对于一般光滑曲线，推挤幅度 $f$ 可以沿绳子变化。对扰动曲线求导，利用 $n'=\kappa T$，得到
 
 $$
 \gamma_\varepsilon'
@@ -99,7 +99,7 @@ $$
 
 这正好解释了前面的直觉：同样向外移动一小段距离，面积收益的一阶系数是 $1$，长度成本的一阶系数却是局部曲率 $\kappa$。
 
-这也给出一个具体的改进方向。假设两小段都向外鼓起，急弯处的曲率是缓弯处的两倍：在急弯处向内收，省下一点绳长；再把它用在缓弯处向外推。一阶近似下，得到的面积是失去面积的两倍，总面积便增加了。只要还能这样调配，原来的形状就不是最优；下面用变分把“各处应当同样弯”写成方程，并处理一般的局部扰动。
+这也给出一个具体的改进方向。假设两小段都向外鼓起，急弯处的曲率是缓弯处的两倍：在急弯处向内收，省下一点绳长；再把它用在缓弯处向外推。一阶近似下，得到的面积是失去面积的两倍，总面积便增加了。只要还能这样调配，原来的形状就不是最优。要得到所有局部扰动都必须满足的驻点条件，还需要把固定绳长的约束纳入计算。
 
 但任意的 $f$ 未必保持绳长，所以不能直接要求 $\delta\mathcal A=0$。对约束 $L=s$ 引入拉格朗日乘子，考虑
 
@@ -121,7 +121,7 @@ $$
 \boxed{\kappa(\ell)=\frac1\lambda=\text{常数}.}
 $$
 
-**为什么恒定曲率就意味着圆？** 不必再靠图形直觉：令
+**为什么恒定曲率就意味着圆？** 考察绳子上每一点沿法线偏移 $-\lambda$ 后的位置：
 
 $$
 C(\ell)=\gamma(\ell)-\lambda n(\ell).
@@ -219,7 +219,7 @@ $$
 
 <RopePerpendicularDiagram />
 
-看图中的两个直角：它们约束的是端点处的切线方向，不是说整根绳子要拉直。绳子的中间部分仍然向外鼓起，而圆心已经不能再自由移动。
+图中的两个直角分别确定一条半径的方向：两条半径沿墙面相交于 $O$，绳子的中间部分则沿圆弧向外鼓起。
 
 于是最优区域是半径为 $R$、圆心角为 $\theta$ 的扇形。绳子只负责弧边，因此
 
@@ -252,7 +252,7 @@ $$
 
 弦长恰好等于绳长时，绳子拉成直线，也不可能是最大值：把两端稍微向 $O$ 缩进，使弦短一点，再把余下的长度用于向外鼓起，新增的弓形面积会超过三角形面积的一阶损失。
 
-因此，更大集合中的最大值就是这个扇形，而它也确实位于两面墙之间。这同时给出了上界与可行构造，不需要假设 $\theta$ 能整除 $2\pi$，也不需要把任意夹角反射拼成整圆。
+因此，更大集合中的最大值就是这个扇形，而它也确实位于两面墙之间。这个证明同时给出了上界与可行构造，适用于任意 $0<\theta<\pi$。
 
 </details>
 
@@ -264,7 +264,7 @@ $$
 0\le a=OA\le x,\qquad 0\le b=OB\le y.
 $$
 
-有限墙增加的是**端点位置的约束**，不是“半径必须小于短墙”的约束。只要圆心离开 $O$，半径就不再等于被利用的墙长。
+有限墙限制了**端点的位置**。圆心可以离开 $O$，因此半径与被利用的墙长可以不同。
 
 为了一次处理小圆弧、半圆和大圆弧，我们用绳子对应的圆心角 $\alpha$ 描述它。注意，$\alpha$ 与墙的夹角 $\theta$ 是两个不同的量。
 
@@ -369,9 +369,9 @@ $$
 \max_{0\le a\le x}F_s(a,0),
 $$
 
-每项都只保留 $d\le s$ 的可行部分。最后两项是允许一个系绳点到达墙角的单墙情形，不能随意删除。
+每项都只保留 $d\le s$ 的可行部分。最后两项对应一个系绳点到达墙角的单墙情形，也属于题目允许的构造。
 
-这里的“一维优化”仍然要求找**全局**最大值。不同的圆弧分支可能竞争，不能未经证明就对整个区间做一次三分搜索。可以找齐区间端点与驻点，再比较面积；用于作图的密集采样加局部细化，只能视为数值近似。
+每个一维问题都要求找**全局**最大值。由于可能存在多个驻点，整个区间未必单峰，直接三分搜索可能漏掉最优解。可靠的做法是找齐可行区间的端点与驻点，再比较面积。
 
 <details>
 <summary>用导数求一维候选，以及如何检查圆弧的位置</summary>
@@ -519,7 +519,7 @@ $$
 s_*=\frac{x\sin\theta\,\alpha_*}{\sin\alpha_*}.
 $$
 
-这描述了“短墙先受限、随后长墙也受限”的连续分支。**它不是任意绳长下都成立的三段式答案**：继续增加绳长以后，还要与其他边界候选比较，尤其是只利用一面墙的候选。
+这个连续分支描述了短墙用满后，另一个端点怎样沿长墙移动。要确定给定绳长下的全局最优形状，仍需将它与其他边界候选比较，其中也包括只利用一面墙的构造。
 
 <RopeWallDiagrams />
 
@@ -541,7 +541,7 @@ $$
 
 <RopeLongComparison />
 
-为了让差别在图上更明显，上图另取两面等长的墙与三十度夹角。左图两段墙都在外边界上；右图只把其中一段墙作为外边界，另一段墙留在围出的区域内部。比较下面标出的面积，就能看到：省略一段外边界上的墙，确实可能围得更大。
+为了让差别在图上更明显，上图另取两面等长的墙与三十度夹角。左图两段墙都在外边界上；右图只把其中一段墙作为外边界，另一段墙留在围出的区域内部。图中标出的面积表明：只利用一面墙作为外边界，确实可能围得更大。
 
 为什么不用满两面墙反而更好？因为大圆弧接近整圆时，墙提供的弦长也很重要。两面墙都用满，弦长为
 
@@ -549,7 +549,7 @@ $$
 d_{xy}=\sqrt{x^2+y^2-2xy\cos\theta}.
 $$
 
-这个例子中 $d_{xy}=\sqrt3<2=y$。不用第一面墙，虽然失去了三角形面积，却得到了更长的弦；绳子很长时，后者带来的收益会占上风。
+回到表中 $x=1,y=2,\theta=\pi/3$ 的例子，有 $d_{xy}=\sqrt3<2=y$。不用第一面墙，虽然失去了三角形面积，却得到了更长的弦；绳子很长时，后者带来的收益会占上风。
 
 更具体地，固定 $d$，令 $s\to\infty$。此时 $\alpha\to2\pi$，小缺口对应的弧长趋近于弦长 $d$，所以整个圆的周长约为 $s+d$。由此得到
 
@@ -567,105 +567,96 @@ $$
 
 ## 可直接运行的求解代码
 
-下面的 Python 代码先计算固定端点的 $F_s(a,b)$，再按上述三个单调区间找齐驻点，比较所有候选。它返回最大面积、两段被利用的墙长，以及绳子的圆弧角；数值精度受双精度浮点数限制。
+给定绳长 $s$、墙长 $x,y$ 和夹角 $\theta$，计算分为两步：先判断最优扇形是否放得下；若放不下，就比较两个单墙候选、一个双墙端点候选，以及两条固定墙端边界上的至多六个驻点。
 
-```python
-from math import cos, hypot, pi, sin, tan
+以下 Julia 程序用 [Roots.jl](https://juliamath.github.io/Roots.jl/stable/roots/) 的 `find_zero(f, (lo, hi), Bisection())` 在各个单调区间内求根。函数 `max_area(s, x, y, θ)` 返回 `(area, a, b, α)`，分别表示最大面积、两段被利用的墙长和圆弧角；角度均以弧度为单位。
 
+先在 Julia REPL 中安装一次依赖：
 
-def area_for_endpoints(s, theta, a, b):
-    """Return (area, arc_angle); infeasible endpoints return (-inf, None)."""
-    if s <= 0 or not 0 < theta < pi or a < 0 or b < 0:
-        raise ValueError("Require s > 0, 0 < theta < pi, and a, b >= 0")
-
-    d = hypot(a - b * cos(theta), b * sin(theta))
-    triangle = a * b * sin(theta) / 2
-    if d > s:
-        return float("-inf"), None
-    if d == 0:
-        return s * s / (4 * pi), 2 * pi
-    if d == s:
-        return triangle, 0.0
-
-    lo, hi = 0.0, 2 * pi
-    for _ in range(80):
-        alpha = (lo + hi) / 2
-        chord_ratio = 2 * sin(alpha / 2) / alpha
-        if chord_ratio > d / s:
-            lo = alpha
-        else:
-            hi = alpha
-    alpha = (lo + hi) / 2
-
-    # Avoid cancellation in alpha - sin(alpha) for short arcs.
-    if alpha < 1e-3:
-        factor = alpha / 6 - alpha**3 / 120 + alpha**5 / 5040
-    else:
-        factor = (alpha - sin(alpha)) / (alpha * alpha)
-    segment = s * s * factor / 2
-    return triangle + segment, alpha
-
-
-def bisect_root(f, lo, hi):
-    """The interval must bracket a root of the continuous function f."""
-    left = f(lo)
-    if left == 0:
-        return lo
-    if f(hi) == 0:
-        return hi
-    for _ in range(80):
-        mid = (lo + hi) / 2
-        value = f(mid)
-        if (value > 0) == (left > 0):
-            lo, left = mid, value
-        else:
-            hi = mid
-    return (lo + hi) / 2
-
-
-def max_area(s, x, y, theta):
-    """Return (area, used_first_wall, used_second_wall, arc_angle)."""
-    if min(s, x, y) <= 0 or not 0 < theta < pi:
-        raise ValueError("Require s, x, y > 0 and 0 < theta < pi")
-    if s / theta <= min(x, y):
-        return s * s / (2 * theta), s / theta, s / theta, theta
-
-    candidates = []
-
-    def add(a, b):
-        area, alpha = area_for_endpoints(s, theta, a, b)
-        if alpha is not None:
-            candidates.append((area, a, b, alpha))
-
-    add(0, min(y, 2 * s / pi))
-    add(min(x, 2 * s / pi), 0)
-    add(x, y)
-
-    beta = bisect_root(lambda t: t * cos(t) - sin(t), pi, 1.5 * pi)
-    peak = -sin(beta) / beta
-    for fixed, free, swap in [(x, y, False), (y, x, True)]:
-        k = fixed * sin(theta) / s
-        angles = []
-        if k < 1:
-            def minor(t):
-                return (sin(t) / t if t else 1.0) - k
-            angles.append(bisect_root(minor, 0.0, pi))
-        if k <= peak:
-            def major(t):
-                return -sin(t) / t - k
-            angles.append(bisect_root(major, pi, beta))
-            angles.append(bisect_root(major, beta, 2 * pi))
-        for alpha in angles:
-            moving = fixed * cos(theta) + fixed * sin(theta) * tan(alpha / 2)
-            if 0 < moving < free:
-                add(moving, fixed) if swap else add(fixed, moving)
-
-    return max(candidates, key=lambda result: result[0])
-
-
-# (3.2069441257..., 1, 2, 4.0992982217...)
-print(max_area(4, 1, 2, pi / 3))
+```julia
+import Pkg
+Pkg.add("Roots")
 ```
+
+程序使用 `Float64` 进行数值计算。Julia 内置的 [`sinc(z)`](https://docs.julialang.org/en/v1/base/math/#Base.Math.sinc) 定义为 $\sin(\pi z)/(\pi z)$，因此代码中的 `q(t) = sinc(t / π)` 才对应本文的 $\sin t/t$，并且自动处理 $t=0$ 的极限。
+
+```julia
+using Roots
+
+q(t) = sinc(t / π)
+
+function area_for_endpoints(s, θ, a, b)
+    s, θ, a, b = Float64.((s, θ, a, b))
+    all(isfinite, (s, θ, a, b)) && s > 0 && 0 < θ < Float64(π) && a >= 0 && b >= 0 ||
+        throw(ArgumentError("Require finite s > 0, 0 < θ < π, and a, b >= 0"))
+
+    d = hypot(a - b * cos(θ), b * sin(θ))
+    triangle = a * b * sin(θ) / 2
+    d > s && return nothing
+    d == 0 && return (area = s^2 / (4π), α = 2π)
+    d == s && return (area = triangle, α = 0.0)
+
+    α = find_zero(t -> q(t / 2) - d / s, (0.0, 2π), Bisection())
+    # Avoid cancellation in α - sin(α) for short arcs.
+    factor = if α < 1e-3
+        α / 6 - α^3 / 120 + α^5 / 5040
+    else
+        (α - sin(α)) / α^2
+    end
+    return (area = triangle + s^2 * factor / 2, α = α)
+end
+
+function max_area(s, x, y, θ)
+    s, x, y, θ = Float64.((s, x, y, θ))
+    all(isfinite, (s, x, y, θ)) && min(s, x, y) > 0 && 0 < θ < Float64(π) ||
+        throw(ArgumentError("Require finite s, x, y > 0 and 0 < θ < π"))
+    if s / θ <= min(x, y)
+        return (area = s^2 / (2θ), a = s / θ, b = s / θ, α = θ)
+    end
+
+    candidates = NamedTuple[]
+    function add_candidate(a, b)
+        result = area_for_endpoints(s, θ, a, b)
+        isnothing(result) && return
+        push!(candidates, (area = result.area, a = a, b = b, α = result.α))
+    end
+
+    add_candidate(0.0, min(y, 2s / π))
+    add_candidate(min(x, 2s / π), 0.0)
+    add_candidate(x, y)
+
+    β = find_zero(t -> t * cos(t) - sin(t), (Float64(π), 1.5π), Bisection())
+    peak = -q(β)
+    for (fixed, free, swap) in ((x, y, false), (y, x, true))
+        k = fixed * sin(θ) / s
+        angles = Float64[]
+        if k < 1
+            push!(angles, find_zero(t -> q(t) - k, (0.0, Float64(π)), Bisection()))
+        end
+        if k == peak
+            # At the peak the two major-arc roots coincide.
+            push!(angles, β)
+        elseif k < peak
+            f(t) = -q(t) - k
+            push!(angles, find_zero(f, (Float64(π), β), Bisection()))
+            push!(angles, find_zero(f, (β, 2π), Bisection()))
+        end
+        for α in angles
+            moving = fixed * cos(θ) + fixed * sin(θ) * tan(α / 2)
+            if 0 < moving < free
+                swap ? add_candidate(moving, fixed) : add_candidate(fixed, moving)
+            end
+        end
+    end
+    return argmax(c -> c.area, candidates)
+end
+
+result = max_area(4, 1, 2, π / 3)
+println(result)
+# Approximately: (area = 3.2069441257, a = 1.0, b = 2.0, α = 4.0992982217)
+```
+
+`argmax(c -> c.area, candidates)` 返回面积最大的候选，可通过 `result.area`、`result.a`、`result.b` 和 `result.α` 读取各项结果。在分支切换附近，候选面积可能十分接近，浮点舍入会影响端点位置的选择。
 
 检查实现时，至少核对这几个极限：$d=s$ 时弓形面积为零；$d=2s/\pi$ 时圆弧是半圆；$d\to0$ 时面积趋于 $s^2/(4\pi)$；$a=b=s/\theta$ 时总面积回到 $s^2/(2\theta)$。
 

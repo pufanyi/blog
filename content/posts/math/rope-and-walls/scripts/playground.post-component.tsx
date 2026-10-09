@@ -7,8 +7,8 @@ function RopePlayground() {
   return (
     <figure className="rope-playground" data-rope-playground="" data-post-enhancement="playground">
       <p className="rope-playground-intro">
-        拖动图中的
-        A、B，或使用下方滑块，调整墙夹角和绳长，观察圆弧变化。调整滑块时视图自动缩放，直接拖动端点时比例保持固定。
+        拖动图中的 A、B
+        改变端点位置，用滑块调整墙夹角和绳长，观察圆弧变化。调整滑块时视图自动缩放，直接拖动端点时比例保持固定。
       </p>
       <svg
         viewBox={viewport.box}
