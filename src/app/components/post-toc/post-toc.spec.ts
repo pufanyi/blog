@@ -60,9 +60,20 @@ describe('PostTocComponent', () => {
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelectorAll('.toc-list mjx-container')).toHaveLength(2);
     expect(element.querySelector('.toc-link')?.textContent).toContain('Runtime O(nm)');
+    for (const formulaNode of element.querySelectorAll('mjx-math')) {
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+      formulaNode.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(true);
+    }
+    const textMenu = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+    element.querySelector('.toc-link')?.dispatchEvent(textMenu);
+    expect(textMenu.defaultPrevented).toBe(false);
     fixture.componentInstance.collapsed.set(true);
     fixture.detectChanges();
     expect(element.querySelector('.toc-collapsed-context mjx-container')).not.toBeNull();
+    const collapsedMenu = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+    element.querySelector('.toc-collapsed-context mjx-math')?.dispatchEvent(collapsedMenu);
+    expect(collapsedMenu.defaultPrevented).toBe(true);
 
     fixture.componentRef.setInput('items', items);
     fixture.detectChanges();

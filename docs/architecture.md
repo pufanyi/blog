@@ -174,6 +174,8 @@ near-viewport boundary; navigation disposes pending observers and imports.
   MathJax CHTML, per-article adaptive CSS, assistive MathML and first-party fonts.
   Formula-bearing heading labels in the table of contents reuse that build-rendered
   output; their plain-text labels remain available for navigation metadata.
+  Formula nodes in outline labels suppress the context menu, including the
+  collapsed current-section label; ordinary outline text keeps native link menus.
   Static containers express MathJax's font-height matching in CSS `ex` units,
   using the output font's x-height and minimum scale. This lets the browser use
   the actual surrounding font, including after webfont loading, instead of
