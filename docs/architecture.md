@@ -115,6 +115,10 @@ Keep the `app-post` host block-level: an inline host spanning block content can
 intercept disclosure clicks in mobile Chromium after scrolling within the flex
 shell. The code-disclosure browser regression covers that interaction.
 
+Code blocks use equal top and bottom padding. Hide only the final empty Shiki
+line produced by a terminal newline, preserving interior blank lines and the DOM
+text used by Copy and Markdown exports.
+
 Article `styles.css` is embedded in that article's rendered HTML under
 `style[data-post-style]`. Prefix selectors, preserve semantic theme variables,
 and keep same-document SVG fragment URLs intact. Styles exist before JavaScript

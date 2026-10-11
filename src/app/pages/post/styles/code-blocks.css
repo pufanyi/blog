@@ -81,7 +81,7 @@
 
 .post-body .code-block pre.shiki {
   margin: 0;
-  padding: 0.95rem 1.1rem 1.05rem;
+  padding: 0.95rem 1.1rem;
   border: none;
   border-radius: 0;
   overflow-x: auto;
@@ -118,6 +118,11 @@
   display: block;
   min-height: 1.4em;
   white-space: pre;
+}
+
+/* A final newline creates an empty Shiki line; retain its source without extra height. */
+.post-body .code-block pre.shiki code > .line:last-child:empty {
+  display: none;
 }
 
 /* @shikijs/transformers — diff lines */
@@ -159,6 +164,6 @@
   }
 
   .post-body .code-block pre.shiki {
-    padding: 0.85rem 0.8rem 0.95rem;
+    padding: 0.85rem 0.8rem;
   }
 }
