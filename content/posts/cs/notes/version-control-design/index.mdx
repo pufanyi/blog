@@ -35,7 +35,7 @@ Git 的 **blob** 保存文件内容，即一串字节，不包含文件名。**t
 
 M 的 tree 记录合并后的文件状态；两个 parent 记录被连接起来的历史。提交图描述版本关系，目录树描述文件结构，这两种关系需要区分。
 
-下面另用一个包含正文和样式的仓库，以两次提交表示“修改正文、保留原样式”。新 commit 指向新 tree，新 tree 引用新正文 blob；没有变化的样式 blob 被两个版本共同引用。
+继续使用上面的目录。第一次提交后，将 `baz.txt` 从 `git is wonderful` 改为 `git is great`，`foo/bar.txt` 不变，再提交一次。这个修改实验是在 Missing Semester 的目录示例上扩展的。新 commit 引用新的根 tree 和新的 `baz.txt` blob；`foo` 的整个子 tree 及其引用的 blob 都可以复用。
 
 <SnapshotObjectsFigure />
 
@@ -45,7 +45,7 @@ M 的 tree 记录合并后的文件状态；两个 parent 记录被连接起来�
 
 blob、tree 和 commit 都属于 Git 对象。对象通过 **object ID** 标识，其他对象用 ID 引用它。在同一种对象格式下，ID 由对象类型、长度和内容计算哈希得到；相同的对象具有相同 ID。这种用内容决定地址的方式称为内容寻址，编码规则见 [Git 对象格式](https://git-scm.com/docs/gitformat-loose)。
 
-因此，内容发生变化时，会形成新的对象，而不是覆盖原对象。例如，正文变化会产生新的正文 blob；包含它的 tree 条目随之变化，tree 也获得新的 ID。没有变化的 blob 和子 tree 可以继续复用。
+因此，内容发生变化时，会形成新的对象，而不是覆盖原对象。例如，`baz.txt` 变化会产生新的 blob；根 tree 中的对应条目随之变化，根 tree 也获得新的 ID。没有变化的 blob 和子 tree 可以继续复用。
 
 commit 的 ID 还受到父提交、身份、时间和提交说明的影响。两个 commit 可以引用同一个根 tree，却具有不同 ID：它们的文件状态相同，但历史或元数据不同。所谓改写提交，是创建新的 commit 并调整引用，不是在原 ID 下修改对象内容。
 
@@ -59,9 +59,9 @@ commit 的 ID 还受到父提交、身份、时间和提交说明的影响。两
 
 ### 读取对象与比较版本
 
-以下命令观察一个两文件、两次顺序提交的仓库：第二次提交只修改 `article.md`，`style.css` 不变。`HEAD` 是当前提交，`HEAD~1` 是它的第一个父提交。完整的建仓步骤放在本小节末尾。
+继续观察这两次提交。`HEAD` 是当前提交，`HEAD~1` 是它的第一个父提交。完整的建仓步骤放在本小节末尾。
 
-[`git ls-tree`](https://git-scm.com/docs/git-ls-tree) 列出对应快照中的目录条目：
+[`git ls-tree`](https://git-scm.com/docs/git-ls-tree) 列出根 tree 的条目：
 
 ```bash
 git ls-tree --abbrev=7 HEAD~1
@@ -71,16 +71,28 @@ git ls-tree --abbrev=7 HEAD
 两次输出依次为：
 
 ```text
-100644 blob 156b3ea article.md
-100644 blob 7338e12 style.css
+100644 blob 4448adb baz.txt
+040000 tree c68d233 foo
 ```
 
 ```text
-100644 blob 876a559 article.md
-100644 blob 7338e12 style.css
+100644 blob 8115464 baz.txt
+040000 tree c68d233 foo
 ```
 
-四列分别是文件模式、对象类型、缩短后的对象 ID 和文件名。`100644` 表示普通的非可执行文件。正文的 ID 发生变化，样式的 ID 保持不变；两份清单仍然都列出两个文件。
+四列分别是文件模式、对象类型、缩短后的对象 ID 和名字。`100644` 表示普通的非可执行文件，`040000` 表示目录。`baz.txt` 的 blob ID 变了，`foo` 的 tree ID 没变。
+
+继续沿 `foo` 查找，再读取文件内容：
+
+```bash
+git ls-tree --abbrev=7 HEAD:foo
+# 100644 blob 3b18e51 bar.txt
+
+git cat-file -p HEAD:foo/bar.txt
+# hello world
+```
+
+这里的路径是查找对象的方式。也可以将 `ls-tree` 输出的对象 ID 交给 `git cat-file -p`，直接读取同一个对象。
 
 `git cat-file -p HEAD` 显示 commit 对象。用占位名称代替实际值后，输出结构如下：
 
@@ -90,59 +102,55 @@ parent <父 commit 的 ID>
 author <作者及时间>
 committer <提交者及时间>
 
-Explain the opening example
+Update baz.txt
 ```
 
-读取旧正文时，Git 从旧 commit 找到根 tree，再按 `article.md` 查找 blob。对应的命令是：
+读取旧版 `baz.txt` 时，从旧 commit 找到根 tree，再按文件名查找 blob：
 
 ```bash
-git show HEAD~1:article.md
+git show HEAD~1:baz.txt
+# git is wonderful
 ```
 
 <ReadVersionFigure />
 
-`show` 显示所选内容，不覆盖工作目录中的文件。比较两个版本的正文则使用：
+`show` 显示所选内容，不覆盖工作目录中的文件。比较两个版本则使用：
 
 ```bash
-git diff HEAD~1 HEAD -- article.md
+git diff HEAD~1 HEAD -- baz.txt
+```
+
+其中内容变化为：
+
+```diff
+-git is wonderful
++git is great
 ```
 
 diff 是对两个版本内容的比较结果。commit 记录快照引用和历史信息，并不保存这份逐行差异。
 
 <details>
-<summary>复现这个两文件实验</summary>
+<summary>复现目录与两次提交</summary>
 
-在一个新目录中运行下面的命令。需要已经配置 Git 的提交姓名和邮箱。例子没有设置内容转换规则，两个文件都作为普通文本保存。
+在一个新目录中运行下面的命令。需要已经配置 Git 的提交姓名和邮箱。例子使用 SHA-1 对象格式、LF 换行，且没有额外的内容转换规则。
 
 ```bash
-mkdir blog-snapshot-example
-cd blog-snapshot-example
-git init
+mkdir git-objects-example
+cd git-objects-example
+git init --object-format=sha1
+git config core.autocrlf false
+mkdir foo
+printf 'hello world\n' > foo/bar.txt
+printf 'git is wonderful\n' > baz.txt
+git add foo/bar.txt baz.txt
+git commit -m "Initial snapshot"
 
-cat > article.md <<'ARTICLE'
-# Version Control
-
-修改文章后，提交保存。
-ARTICLE
-
-cat > style.css <<'STYLE'
-body { line-height: 1.8; }
-STYLE
-
-git add article.md style.css
-git commit -m "Write the opening"
-
-cat > article.md <<'ARTICLE'
-# Version Control
-
-修改文章后，提交保存，之后可以比较和找回旧版。
-ARTICLE
-
-git add article.md
-git commit -m "Explain the opening example"
+printf 'git is great\n' > baz.txt
+git add baz.txt
+git commit -m "Update baz.txt"
 ```
 
-然后执行正文中的 `ls-tree`、`cat-file`、`show` 和 `diff` 命令。本节展示的缩写来自 SHA-1 格式的仓库；使用 SHA-256 的仓库会得到不同 ID。文件的空格、换行和编码也会影响 blob ID，提交的身份和时间则会影响 commit ID。观察的重点是：文章内容变了，样式内容没变，它们的对象 ID 是否相应变化。
+然后执行正文中的 `ls-tree`、`cat-file`、`show` 和 `diff` 命令。文件的空格、换行和编码会影响 blob ID，提交的身份和时间会影响 commit ID。使用 SHA-256 对象格式时，ID 也会不同。
 
 </details>
 
@@ -162,21 +170,45 @@ Git 的日常操作涉及三种状态：
 
 ### add 与 commit
 
-[`git add article.md`](https://git-scm.com/docs/git-add) 保存执行那一刻选中的正文内容，并更新 index 中的对应条目。之后继续编辑正文，需要再次暂存，新的编辑才会进入下一次普通提交。
+暂存区允许工作目录与下一次提交包含不同内容。[Missing Semester 的暂存区示例](https://missing.csail.mit.edu/2026/version-control/#staging-area)是：修复 bug 时加入了调试输出，但只希望提交修复。
 
-例如，正文已经改好，样式仍在试验；只暂存正文，就会选中“新正文 + 原样式”：
+将这个场景具体化：`add.py` 中的 `add(a, b)` 原来误写成 `return a - b`。现在改为 `return a + b`，并临时加入 `print(a, b)` 来检查输入。修复需要保留，调试输出暂不提交。
 
 <StagingSelectionFigure />
 
-不带路径或 `-a` 的普通 `git commit` 根据 index 生成目录树，创建指向它的新 commit，并在附着于分支的状态下更新当前分支引用。样式试验仍留在工作目录中。
+可以先让文件只包含修复，执行 [`git add add.py`](https://git-scm.com/docs/git-add)，然后再加入调试输出。`add` 保存的是执行那一刻的内容；之后编辑工作目录，不会自动改变 index 中已经选定的版本。
 
 ```bash
-git add article.md
-git ls-files --stage
-git commit -m "Explain the opening example"
+# 先保存只包含修复的版本，再暂存
+printf 'def add(a, b):\n    return a + b\n' > add.py
+git add add.py
+
+# 继续调试：此时只改变工作目录
+printf 'def add(a, b):\n    print(a, b)\n    return a + b\n' > add.py
+git diff --cached -- add.py
+git diff -- add.py
+git commit -m "Fix addition"
 ```
 
-[`git ls-files --stage`](https://git-scm.com/docs/git-ls-files) 可以观察 index 中的文件模式、对象 ID 和 stage 编号。暂存选择的是内容；提交把这份选择记录为一个版本。
+这段操作假设 `add.py` 的错误版本已在当前提交中。`git diff --cached` 显示减法改为加法，`git diff` 显示新增的调试输出。普通 `git commit` 根据 index 创建新 commit，因此只提交修复，`print(a, b)` 仍是工作目录中未暂存的修改。如果两种修改已经混在工作目录中，也可以用 `git add -p` 选择要暂存的部分。
+
+不带路径或 `-a` 的普通 `git commit` 根据 index 生成目录树，并在附着于分支的状态下更新当前分支引用。[`git ls-files --stage`](https://git-scm.com/docs/git-ls-files) 可以观察 index 中的文件模式、对象 ID 和 stage 编号。
+
+<details>
+<summary>准备暂存区实验的初始版本</summary>
+
+在另一个新目录中执行，再接着运行上面的修复与调试命令：
+
+```bash
+mkdir git-index-example
+cd git-index-example
+git init
+printf 'def add(a, b):\n    return a - b\n' > add.py
+git add add.py
+git commit -m "Add function"
+```
+
+</details>
 
 ### diff 的比较对象
 
@@ -294,7 +326,7 @@ git commit -m "Explain the opening example"
 
 文件内容不变时可以复用 blob；子目录的条目不变时可以复用 tree。完整快照不意味着每次提交都复制整个项目。
 
-Git 通常先把新对象保存为单独的 [loose object](https://git-scm.com/docs/gitformat-loose)，之后可以通过维护操作将它们整理进 packfile。新旧正文虽然是不同的 blob，仍可能包含大量重复字节。[packfile](https://git-scm.com/book/en/v2/Git-Internals-Packfiles) 可以保存基准对象和 delta，用重建指令复用相似内容。
+Git 通常先把新对象保存为单独的 [loose object](https://git-scm.com/docs/gitformat-loose)，之后可以通过维护操作将它们整理进 packfile。修改前后的文件虽然是不同的 blob，仍可能包含大量重复字节。[packfile](https://git-scm.com/book/en/v2/Git-Internals-Packfiles) 可以保存基准对象和 delta，用重建指令复用相似内容。
 
 <DeltaStorageFigure />
 
