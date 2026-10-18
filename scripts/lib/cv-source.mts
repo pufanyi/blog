@@ -1,5 +1,5 @@
 import { JSON_SCHEMA, load } from 'js-yaml';
-import type { CvData } from '../../src/app/models/cv.model';
+import type { CvData } from '../../src/contracts/cv.model';
 
 type Validator = (value: unknown, path: string) => void;
 

@@ -1,8 +1,8 @@
-import type { SiteConfig } from '../../src/app/models/config.model';
-import type { CvData } from '../../src/app/models/cv.model';
-import type { PostSummary } from '../../src/app/models/post.model';
-import { blogDirectoryPath, buildBlogDirectories } from '../../src/app/utils/blog-directories';
-import { comparePostsByPublication } from '../../src/app/utils/blog-pagination';
+import { blogDirectoryPath, buildBlogDirectories } from '../../src/contracts/blog-directories';
+import { comparePostsByPublication } from '../../src/contracts/blog-pagination';
+import type { SiteConfig } from '../../src/contracts/config.model';
+import type { CvData } from '../../src/contracts/cv.model';
+import type { PostSummary } from '../../src/contracts/post.model';
 import { htmlToAgentMarkdown } from './agent-markdown.mts';
 import { publishGeneratedFiles } from './generated-files.mts';
 

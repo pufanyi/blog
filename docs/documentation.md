@@ -32,7 +32,7 @@ The published handbook contains current guidance for authors and developers. Kee
 
 ## Rendering and links
 
-`scripts/lib/docs.mts` compiles GitHub-flavored Markdown using the already-installed Marked renderer. Documentation does not execute MDX components. Put JSX, TeX, and article syntax examples in fenced blocks. Code highlighting and heading IDs reuse the blog's build-time helpers; typography, code blocks, and tables reuse its styles. The shared paper width can be adjusted through `--paper-max-width`; documentation uses a wider desktop paper for its sidebar. Tables retain a readable minimum width and scroll inside a focusable region on narrow screens.
+`scripts/lib/docs.mts` compiles GitHub-flavored Markdown using the already-installed Marked renderer. Documentation does not execute MDX components. Put JSX, TeX, and article syntax examples in fenced blocks. Code highlighting and heading IDs reuse the blog's build-time helpers; typography, code blocks, and tables share `src/app/shared/rich-content` with the reader. The documentation page owns its paper and sets `--paper-max-width` locally for its wider desktop sidebar layout. Tables retain a readable minimum width and scroll inside a focusable region on narrow screens.
 
 The generator validates navigation coverage, titles, relative documentation links, and section fragments before publishing outputs. Relative repository links outside `docs/` must exist and are rewritten to the configured repository source URL. Its `sourceUrl` is the repository's browsable branch root, currently GitHub's `blob/main` URL. Update it when moving or forking the repository. Linked repository directories use the corresponding tree URL.
 

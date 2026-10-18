@@ -1,0 +1,54 @@
+@if (items().length) {
+  <span class="post-outline-anchor" #outlineAnchor aria-hidden="true"></span>
+  <aside class="post-toc-sidebar" appOutlinePosition [outlineHost]="host" [outlineAnchor]="outlineAnchor">
+    <app-post-toc
+      idPrefix="sidebar-toc"
+      [collapsible]="true"
+      [items]="items()"
+      [postPath]="postPath()"
+      [activeHeadingId]="activeHeadingId()"
+      [progress]="readingProgress()"
+      (sectionSelected)="onTocNavigate($event)"
+    />
+  </aside>
+
+  <button class="post-contents-dock" type="button" #dock (click)="toggleToc(dock)"
+    aria-label="Open table of contents" aria-controls="post-toc-dialog"
+    [attr.aria-expanded]="tocOpen()">
+    <span class="contents-dock-label"><i class="ph ph-list" aria-hidden="true"></i> Contents</span>
+    <span class="contents-dock-context">{{ currentSection() || items().length + ' chapters' }}</span>
+    <i class="ph ph-caret-up" aria-hidden="true"></i>
+  </button>
+
+  <dialog
+    class="post-toc-dialog"
+    appContentsDialog
+    id="post-toc-dialog"
+    #tocDialog="contentsDialog"
+    tabindex="-1"
+    aria-label="Table of contents"
+  >
+    <div class="toc-drawer">
+      <button
+        class="toc-drawer-close"
+        type="button"
+        autofocus
+        aria-label="Close table of contents"
+        title="Close table of contents"
+        (click)="tocDialog.close()"
+      >
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+
+      <app-post-toc
+        idPrefix="dialog-toc"
+        [visible]="tocOpen()"
+        [items]="items()"
+        [postPath]="postPath()"
+        [activeHeadingId]="activeHeadingId()"
+        [progress]="readingProgress()"
+        (sectionSelected)="onTocNavigate($event)"
+      />
+    </div>
+  </dialog>
+}

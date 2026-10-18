@@ -1,0 +1,16 @@
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { CvPublicationLink } from '../../../../../contracts/cv.model';
+
+@Component({
+  selector: 'app-entry',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  templateUrl: './entry.html',
+})
+export class EntryComponent {
+  readonly title = input.required<string>();
+  readonly date = input.required<string>();
+  readonly detail = input<string>();
+  readonly location = input<string>();
+  readonly links = input<CvPublicationLink[]>();
+  readonly items = input<string[]>();
+}

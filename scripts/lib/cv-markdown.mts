@@ -1,5 +1,5 @@
 import { Marked } from 'marked';
-import type { CvData } from '../../src/app/models/cv.model';
+import type { CvData } from '../../src/contracts/cv.model';
 
 const markdown = new Marked();
 

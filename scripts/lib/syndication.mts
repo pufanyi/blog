@@ -1,5 +1,5 @@
-import type { SiteConfig } from '../../src/app/models/config.model';
-import type { PostSummary } from '../../src/app/models/post.model';
+import type { SiteConfig } from '../../src/contracts/config.model';
+import type { PostSummary } from '../../src/contracts/post.model';
 import { escapeXml } from './xml.mts';
 
 export function buildSyndicationFeeds(

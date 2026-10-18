@@ -39,7 +39,7 @@ their named articles.
 - The visual SSL overview is one long article at `ssl/index.mdx`, with shared
   SVG primitives in `ssl/scripts/elements.tsx` and styles in `ssl/styles.css`.
   Its former article and directory URLs redirect through `BLOG_REDIRECTS` in
-  `src/app/utils/blog-redirects.ts`, shared by client routes and prerendering.
+  `src/contracts/blog-redirects.ts`, shared by client routes and prerendering.
   Keep section anchors stable when reorganizing the article.
 
 - Image, audio, and video compression form one tutorial at

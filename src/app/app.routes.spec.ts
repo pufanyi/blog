@@ -1,13 +1,13 @@
 import { RenderMode } from '@angular/ssr';
 import { describe, expect, it } from 'vitest';
+import { blogDirectoryPath, buildBlogDirectories } from '../contracts/blog-directories';
+import { blogPageCount } from '../contracts/blog-pagination';
 import { routes } from './app.routes';
 import { serverRoutes } from './app.routes.server';
-import { blogRoutes } from './blog.routes';
 import { BLOG_CONFIG } from './data/blog-config';
 import { POST_ROUTES, PRIVATE_POST_SLUGS } from './data/post-routes';
 import { POSTS } from './data/posts';
-import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directories';
-import { blogPageCount } from './utils/blog-pagination';
+import { blogRoutes } from './features/blog/blog.routes';
 
 describe('application routes', () => {
   it('routes and prerenders every published article and ancestor directory at its full path', () => {
@@ -59,14 +59,14 @@ describe('application routes', () => {
     expect(homeRoute?.loadComponent).toBeTypeOf('function');
     expect(cvRoute?.loadComponent).toBeTypeOf('function');
 
-    const loadedHomeComponent = await homeRoute?.loadComponent?.();
+    const loadedBlogArchiveComponent = await homeRoute?.loadComponent?.();
     const loadedCvComponent = await cvRoute?.loadComponent?.();
-    const { ProfilePageComponent } = await import('./pages/profile/profile');
-    const { CvPageComponent } = await import('./pages/cv/cv');
+    const { ProfilePageComponent } = await import('./features/profile/profile');
+    const { CvPageComponent } = await import('./features/cv/cv');
 
-    expect(loadedHomeComponent).toBe(ProfilePageComponent);
+    expect(loadedBlogArchiveComponent).toBe(ProfilePageComponent);
     expect(loadedCvComponent).toBe(CvPageComponent);
-    expect(loadedHomeComponent).not.toBe(loadedCvComponent);
+    expect(loadedBlogArchiveComponent).not.toBe(loadedCvComponent);
   });
 
   it('prerenders both public profile routes', () => {
@@ -83,7 +83,7 @@ describe('application routes', () => {
     expect(icpcRoute?.loadComponent).toBeTypeOf('function');
 
     const loadedIcpcComponent = await icpcRoute?.loadComponent?.();
-    const { IcpcPageComponent } = await import('./pages/icpc/icpc');
+    const { IcpcPageComponent } = await import('./features/icpc/icpc');
 
     expect(loadedIcpcComponent).toBe(IcpcPageComponent);
     expect(serverRoutes.map((route) => route.path)).toContain('icpc');

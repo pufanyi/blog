@@ -1,0 +1,39 @@
+import { TestBed } from '@angular/core/testing';
+import { SITE_CONFIG } from '../../../data/site-config';
+import { PostCitationComponent } from './post-citation';
+
+describe('PostCitationComponent', () => {
+  it('builds a stable BibTeX entry from post metadata', () => {
+    const fixture = TestBed.createComponent(PostCitationComponent);
+    fixture.componentRef.setInput('title', 'Research & Development');
+    fixture.componentRef.setInput('date', '2026-09-01');
+    fixture.componentRef.setInput('slug', 'hello-world');
+    fixture.detectChanges();
+
+    expect(
+      fixture.componentInstance.bibtex(),
+    ).toBe(`@misc{${SITE_CONFIG.author.citationKeyPrefix}2026helloworld,
+  author = {${SITE_CONFIG.author.citationName.replace(/([&%#_{}])/g, '\\$1')}},
+  title  = {Research \\& Development},
+  year   = {2026},
+  month  = {9},
+  url    = {${SITE_CONFIG.url}/blog/hello-world}
+}`);
+    fixture.componentRef.setInput('slug', 'topic/nested/hello-world');
+    expect(fixture.componentInstance.bibtex()).toContain(
+      `${SITE_CONFIG.url}/blog/topic/nested/hello-world`,
+    );
+  });
+
+  it('preserves article bylines as literal BibTeX author names', () => {
+    const fixture = TestBed.createComponent(PostCitationComponent);
+    fixture.componentRef.setInput('title', 'Video compression');
+    fixture.componentRef.setInput('date', '2026-09-21');
+    fixture.componentRef.setInput('slug', 'video-compression');
+    fixture.componentRef.setInput('authors', ['Fanyi Pu', 'GPT-6 Astra', 'GPT‑5.6 Sol']);
+
+    expect(fixture.componentInstance.bibtex()).toContain(
+      `author = {${SITE_CONFIG.author.citationName} and {GPT-6 Astra} and {GPT‑5.6 Sol}}`,
+    );
+  });
+});

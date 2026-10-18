@@ -26,8 +26,8 @@ test('two embedded PDFs render independently and follow the article theme', asyn
       embeds.nth(index).contentFrame().locator('.page[data-page-number="1"] canvas').first(),
     ).toBeVisible({ timeout: 30_000 });
   }
-  await expect(problems.locator('app-blog-shell')).toHaveCount(0);
-  await expect(solutions.locator('app-blog-shell')).toHaveCount(0);
+  await expect(problems.locator('app-site-shell')).toHaveCount(0);
+  await expect(solutions.locator('app-site-shell')).toHaveCount(0);
   await expect(problems.locator('#pageNumber')).toHaveValue('1');
   await expect(solutions.locator('#pageNumber')).toHaveValue('1');
 

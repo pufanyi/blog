@@ -1,0 +1,37 @@
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { ProfilePageComponent } from './profile';
+
+describe('ProfilePageComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ProfilePageComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
+  });
+
+  it('renders the shared CV abstract without the full CV sections', () => {
+    const fixture = TestBed.createComponent(ProfilePageComponent);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelectorAll('.abstract-content p')).toHaveLength(5);
+    expect(element.querySelector('.abstract-heading')).toBeNull();
+    expect(element.querySelector('.section')).toBeNull();
+    expect(element.querySelector('.profile-actions')).toBeNull();
+    expect(element.querySelector<HTMLAnchorElement>('.icon-link[href="/cv"]')?.ariaLabel).toBe(
+      'Curriculum Vitae',
+    );
+    expect(element.querySelector('.icon-link[href="https://pufanyi.com"]')).toBeNull();
+    expect(element.querySelector('.abstract-content a[href="/icpc"]')?.textContent).toBe(
+      'my teammates and friends',
+    );
+    expect(
+      element.querySelector('.abstract-content a[href="https://icpc.global/"]')?.textContent,
+    ).toBe('ICPC');
+    const iconLinks = Array.from(element.querySelectorAll<HTMLAnchorElement>('.icon-link'));
+    expect(iconLinks.every((link) => link.dataset['tooltip'] === link.ariaLabel)).toBe(true);
+  });
+});

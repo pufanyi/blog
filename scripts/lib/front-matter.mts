@@ -1,5 +1,5 @@
 import { JSON_SCHEMA, load as loadYaml } from 'js-yaml';
-import type { PostSummary } from '../../src/app/models/post.model';
+import type { PostSummary } from '../../src/contracts/post.model';
 
 export type PostMetadata = Omit<PostSummary, 'slug' | 'excerptHtml'> & {
   draft?: boolean;

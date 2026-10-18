@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { load as loadYaml } from 'js-yaml';
-import type { BlogConfig, CommentsConfig, SiteConfig } from '../../src/app/models/config.model';
-import type { Redirect } from '../../src/app/models/redirect.model';
+import type { BlogConfig, CommentsConfig, SiteConfig } from '../../src/contracts/config.model';
+import type { Redirect } from '../../src/contracts/redirect.model';
 
 function fail(path: string, message: string): never {
   throw new Error(`${path}: ${message}`);

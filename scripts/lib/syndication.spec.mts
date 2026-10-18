@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
-import type { PostSummary } from '../../src/app/models/post.model';
+import type { PostSummary } from '../../src/contracts/post.model';
 import { loadSiteConfiguration } from './site-config.mts';
 import { buildSyndicationFeeds } from './syndication.mts';
 

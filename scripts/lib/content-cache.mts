@@ -6,7 +6,7 @@ import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import ts from 'typescript';
-import type { Post } from '../../src/app/models/post.model';
+import type { Post } from '../../src/contracts/post.model';
 import type { AgentPost } from './agent-content.mts';
 
 export function digest(value: string | Buffer): string {

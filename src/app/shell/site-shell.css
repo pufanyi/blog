@@ -1,0 +1,10 @@
+:host {
+  display: block;
+}
+
+@media screen and (max-width: 1023px) {
+  :host(.has-reading-dock) {
+    --post-navigation-bottom-space: calc(52px + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--post-navigation-bottom-space) + 0.75rem);
+  }
+}

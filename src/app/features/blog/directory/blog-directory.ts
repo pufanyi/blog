@@ -1,0 +1,20 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { map } from 'rxjs';
+import { type BlogDirectory, blogDirectoryPath } from '../../../../contracts/blog-directories';
+import { BlogBreadcrumbsComponent } from '../../../shared/ui/blog-breadcrumbs/blog-breadcrumbs';
+
+@Component({
+  selector: 'app-blog-directory',
+  imports: [RouterLink, BlogBreadcrumbsComponent],
+  templateUrl: './blog-directory.html',
+  styleUrl: './blog-directory.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class BlogDirectoryComponent {
+  readonly directoryPath = blogDirectoryPath;
+  readonly directory = toSignal(
+    inject(ActivatedRoute).data.pipe(map((data) => data['directory'] as BlogDirectory)),
+  );
+}

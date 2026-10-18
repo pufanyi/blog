@@ -11,6 +11,8 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Historical evidence
 
+- [Frontend ownership refactor — 2026-10-18](maintenance/2026-10-18-frontend-refactor.md): feature boundaries, explicit page/dialog ownership, unchanged visual evidence, and baseline-versus-refactor validation.
+
 - [Architecture and routing expansion — 2026-10-01](audits/2026-10-01-networks-expansion.md): architectural reasoning, fifteen new visual groups, routing/LPM interactions, source verification and validation.
 
 - [Dependency refresh — 2026-09-27](maintenance/2026-09-27-dependency-refresh.md): Node/pnpm and package updates, exception cleanup, isolated baseline comparison, and validation boundaries.

@@ -3,6 +3,63 @@
 Read the sections affected by a change. Authored data is the source of truth;
 generated modules, exports, manifests, and deployment files are disposable.
 
+## Frontend ownership
+
+The application is organized by feature, with narrow shared and platform layers:
+
+| Owner | Responsibility |
+| --- | --- |
+| `src/app/app.*` and root routes | Application composition, navigation feedback, metadata composition, browser/server providers |
+| `src/app/shell` | Site toolbar, footer and routed page slot |
+| `src/app/features/reader` | Article resolution, reading page, outline/dialog and article DOM lifetime |
+| `src/app/features/search` | Small shell launcher, deferred dialog, query session and deferred search engine |
+| Other `src/app/features/*` | Blog archive/directories, docs, profile, CV, ICPC, PDF and redirects |
+| `src/app/platform` | Theme, history/reload scrolling, page chrome registration and metadata DOM writer |
+| `src/app/shared` | Reused UI, rich-content presentation, math and focused browser helpers |
+| `src/contracts` | Framework-free build/browser types, URL/pagination rules and search encoding |
+| `src/app/data` | Disposable generated modules; this output location is unchanged |
+
+Features own their components, data adapters, runtime helpers and colocated tests.
+Small features remain flat. Shared code has actual multiple consumers; it is not
+an alternative bucket for feature-specific utilities. Build scripts use contracts
+rather than importing application implementations. Framework injection tokens stay
+with their runtime owner.
+
+Features may compose another feature's route entry point, but cannot import its
+internal implementation. Shared/platform modules cannot import features or shell.
+The shell imports only search's small launcher; the dialog and engine retain their
+separate deferred boundaries. Root composition can connect feature-specific
+metadata builders to the platform's descriptor writer. `pnpm check:boundaries`
+resolves imports, re-exports and literal dynamic imports and enforces these
+boundaries as part of `pnpm check` and CI's generated checks.
+
+Route pages coordinate their feature's state and register page chrome through
+`PageChromeService`. A registration exposes update/dispose operations; public
+chrome signals are read-only. Only the current registration may update or clear
+the state, so late cleanup from a replaced page cannot remove the new page's
+controls. Actions receive their actual activating button so dialogs can restore
+focus even when WebKit pointer activation leaves `document.activeElement` unchanged.
+Nested navigation components emit selections rather than writing to
+application services. A reused reader page updates its registration, while each
+article's keyed view owns its body runtime and navigation lifetimes.
+
+The reader page commits heading fragments through the router. The body adapter
+adopts or installs compiled HTML and attaches `ArticleRuntime`, which owns
+observers, interactions and pending completions until that DOM is replaced.
+Desktop outline positioning and mobile dialog transition/focus behavior have
+separate directives on the existing elements, avoiding extra layout wrappers.
+The TOC tree owns its disclosure state. Search similarly separates per-dialog
+query state (`SearchSession`) from modal DOM mechanics and the shared engine cache.
+
+Each route owns its paper element. `shared/layout/paper.css` supplies the ordinary
+paper rules; reader and docs own their specialized geometry. The shell has no
+paper wrapper for pages to undo. Reading pages explicitly request mobile dock
+clearance through page chrome, which the shell applies around its page/footer.
+Feature CSS does not discover ancestors to change shell geometry. Rich-content
+typography, code/table styling and code-copy behavior are shared directly by
+reader and docs. Existing rendered classes, CSS values, URLs and authored content
+contracts are preserved.
+
 ## Generation and publication
 
 `scripts/build-posts.mts` validates configuration/CV, discovers articles, renders
@@ -34,7 +91,7 @@ The shared shell uses one fixed, responsive toolbar for home/blog navigation,
 search, printing, and theme switching. Desktop controls include text; mobile
 controls keep 44px touch targets. Article directory controls join this toolbar
 below 1024px, while wider screens use the persistent article outline. Context
-labels and actions come from `ToolbarExtensionService` and reset on navigation.
+labels and actions come from the current page’s scoped `PageChromeService` registration.
 `--toolbar-safe-area-top`, `--toolbar-height` and `--toolbar-clearance` in `src/styles.css` reserve space for
 the header and device safe area in paper layout, sticky sidebars, and heading
 anchor positions. Disclosure summaries use the same clearance when scrolled into
@@ -52,7 +109,7 @@ article itself on wide screens, smoothly yielding to a 4% left gutter when both
 columns need the space. Narrower laptop widths can shrink the article paper.
 Use a row subgrid to align the external outline with the title below the
 breadcrumbs, including wrapped breadcrumbs; do not hard-code that vertical offset.
-The ordinary shell paper remains the only surface below 1024px and on articles
+The reader’s outer paper remains the only surface below 1024px and on articles
 without an outline. Screen-only surface rules leave print with one continuous,
 unframed article. Once the title row
 passes the toolbar, pin the outline to the viewport rather than the grid's bottom
@@ -66,8 +123,8 @@ top edge, separated from the page by a subtle bottom rule and shadow. Navigation
 and article controls sit at the left edge; search, print, and theme controls sit
 at the right. Responsive 12–32px gutters respect device safe areas. The toolbar
 does not inherit the paper's width limit, so controls stay in place when moving
-between different paper widths. Article/documentation styles set
-`--paper-max-width` on the shell only while their matching route is present. Desktop navigation combines
+between different paper widths. Article/documentation layouts set
+`--paper-max-width` on their own paper elements. Desktop navigation combines
 the author avatar / Blog icon and text; mobile keeps
 the avatar and compact icons. The current location uses a subtle full-button tint with a small
 corner radius, without a tab underline. It is 56px tall on desktop and 52px on
@@ -122,7 +179,7 @@ text used by Copy and Markdown exports.
 Article `styles.css` is embedded in that article's rendered HTML under
 `style[data-post-style]`. Prefix selectors, preserve semantic theme variables,
 and keep same-document SVG fragment URLs intact. Styles exist before JavaScript
-and leave with the article DOM. Shared presentation remains in `PostComponent`.
+and leave with the article DOM. Shared presentation remains in `ReaderPageComponent`.
 Build-only styles and scripts are excluded by Angular's article asset rules.
 Reusable build-time visual primitives live in `content/shared`; post components
 import them directly, and the content cache follows those imports so a shared
@@ -157,8 +214,8 @@ near-viewport boundary; navigation disposes pending observers and imports.
   This initial-only adoption is not cached as a full post. Subsequent SPA visits
   still use the article loader, including returning to the initially opened post.
 
-- Keep article presentation in `PostComponent`, DOM enhancement and cleanup
-  in `PostContentDirective`, and TOC interaction in `PostNavigationComponent`.
+- Keep article presentation in `ReaderPageComponent`, DOM enhancement and cleanup
+  in `ArticleRuntime` through `PostContentDirective`, and TOC interaction in `PostNavigationComponent`.
   Use render hooks and cleanup callbacks rather than retrying DOM queries.
   Keep a shrinkable flex chain from the bounded TOC host to its scrolling list;
   percentage heights do not inherit a sidebar's `max-height` and can leave long
@@ -193,7 +250,7 @@ near-viewport boundary; navigation disposes pending observers and imports.
   delimiters; right-click keeps the browser's native behavior and must not replace
   or resize formula DOM. Printing opens disclosures temporarily and restores their
   previous state afterward. Keep the complete article DOM.
-- MathJax loads on demand through `src/app/utils/mathjax.ts`, with automatic
+- MathJax loads on demand through `src/app/shared/math/mathjax.ts`, with automatic
   typesetting disabled. Angular-authored views outside generated post content
   must call `typesetMath` after rendering when they contain TeX delimiters. The
   runtime uses only the TeX input and disables MathJax's custom context menu.
@@ -297,7 +354,7 @@ version. Its worker compatibility adapter and removal criteria are documented in
   saving into history state during `pagehide`: Chromium has already captured
   the state that the replacement document will receive.
 
-- The shared 404 experience lives in `src/app/pages/not-found` and is also used
+- The shared 404 experience lives in `src/app/shared/ui/not-found` and is also used
   for missing blog slugs. Keep its recovery and peer-review interactions
   covered by component tests. Preserve its academic copy during style-only
   changes; simplify framing and decoration first. The review dialog must capture
