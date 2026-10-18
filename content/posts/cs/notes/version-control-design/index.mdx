@@ -17,11 +17,7 @@ Git 的 **blob** 保存文件内容，即一串字节，不包含文件名。**t
 
 例如，一个博客仓库包含正文和样式两个普通文件：
 
-```text
-根目录（tree）
-├── article.md → 正文内容（blob）
-└── style.css  → 样式内容（blob）
-```
+<DirectoryTreeFigure />
 
 文件名属于目录条目，内容属于 blob。两份目录清单可以引用同一个 blob；一个文件改名而内容不变时，也可以复用原来的 blob。快照描述的是 Git 跟踪的文件状态，不包括未跟踪文件，也不是操作系统全部文件属性的备份。
 
@@ -31,17 +27,11 @@ Git 的 **blob** 保存文件内容，即一串字节，不包含文件名。**t
 
 提交之间的父子关系构成有向无环图。以下用 A、B、C、D 代替提交 ID，箭头均从提交指向其父提交：
 
-```text
-A ← B ← C
-```
+<LinearHistoryFigure />
 
 两个修改都从 B 开始，就会形成分叉。合并提交 M 可以同时以 C 和 D 为父提交：
 
-```text
-A ← B ← C ← M
-    ↑       │
-    └── D ←─┘
-```
+<CommitHistoryFigure />
 
 M 的 tree 记录合并后的文件状态；两个 parent 记录被连接起来的历史。提交图描述版本关系，目录树描述文件结构，这两种关系需要区分。
 
@@ -63,12 +53,7 @@ commit 的 ID 还受到父提交、身份、时间和提交说明的影响。两
 
 **引用（reference）**为对象 ID 提供名称。分支引用指向一个 commit，并可以更新；commit 对象本身不随引用的移动而改变。通常附着于分支时，`HEAD` 是指向当前分支的符号引用；detached HEAD 状态下，它直接记录一个 commit ID。参见 [Git References](https://git-scm.com/book/en/v2/Git-Internals-Git-References) 和 [`git symbolic-ref`](https://git-scm.com/docs/git-symbolic-ref)。
 
-```text
-HEAD → main → C
-             │ parent
-             ↓
-             B
-```
+<BranchReferenceFigure />
 
 新建分支是增加一个引用，不需要复制项目文件或历史。多个分支可以指向同一个提交，也可以共享一段历史。切换分支时如何更新工作目录，与引用本身的表示是两个层面，后面按操作分别说明。
 

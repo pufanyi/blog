@@ -122,3 +122,29 @@
 .vcs-staging .vcs-filename {
   font-size: 16px;
 }
+
+.vcs-graph {
+  overflow-x: auto;
+  max-width: 620px;
+  margin-inline: auto;
+}
+
+.vcs-graph svg {
+  display: block;
+  width: 100%;
+  min-width: 440px;
+  height: auto;
+}
+
+.vcs-graph text {
+  fill: var(--text-color);
+  font: 15px var(--font-body);
+}
+
+.vcs-graph .vcs-graph-id {
+  font-family: var(--font-mono);
+}
+
+.vcs-graph .vcs-heading {
+  font-weight: 650;
+}

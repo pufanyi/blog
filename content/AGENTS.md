@@ -224,6 +224,9 @@ For Jekyll, Hexo, or Typst imports, also read
   paragraphs and decorative examples do not meet that test. Keep concise text
   when it explains an idea better. Follow the tutorial editorial principles
   for the balance between examples, mechanisms, and equations.
+- Render authored relationship diagrams (such as commit graphs, object trees,
+  and reference chains) as vector figures rather than ASCII art in code blocks.
+  Keep actual commands and terminal output as code.
 - Prefer post-local build-time components for authored technical diagrams.
   Put them in `content/posts/<slug>/scripts/*.post-component.tsx`, export them
   through a `POST_COMPONENTS` object, and invoke them directly from MDX.
