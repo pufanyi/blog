@@ -1,0 +1,97 @@
+.vcs-figure {
+  margin: 1.8rem 0;
+  break-inside: avoid;
+}
+
+.vcs-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  background: var(--paper-bg);
+}
+
+.vcs-scroll > svg {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  height: auto;
+}
+
+.vcs-scroll text {
+  fill: var(--text-color);
+  font: 15px var(--font-body);
+}
+
+.vcs-scroll .vcs-heading {
+  font-weight: 650;
+}
+.vcs-scroll .vcs-small {
+  font-size: 13px;
+}
+.vcs-scroll .vcs-code {
+  font: 12px var(--font-mono);
+}
+.vcs-panel,
+.vcs-photo,
+.vcs-state,
+.vcs-review {
+  fill: var(--paper-bg);
+  stroke: var(--border-color);
+  stroke-width: 1.2;
+}
+.vcs-photo {
+  fill: color-mix(in srgb, var(--accent-sky) 10%, var(--paper-bg));
+}
+.vcs-land {
+  fill: var(--accent-sage);
+}
+.vcs-sun {
+  fill: var(--accent-ochre);
+}
+.vcs-water {
+  stroke: var(--accent-blue);
+  stroke-width: 3;
+  fill: none;
+}
+.vcs-base {
+  fill: var(--accent-bg);
+}
+.vcs-sort {
+  fill: color-mix(in srgb, var(--accent-sage) 14%, var(--paper-bg));
+  stroke: var(--accent-sage);
+}
+.vcs-note {
+  fill: color-mix(in srgb, var(--accent-ochre) 14%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+}
+.vcs-review {
+  stroke: var(--accent-mauve);
+  stroke-dasharray: 5 4;
+}
+.vcs-focus {
+  fill: var(--accent-bg);
+}
+.vcs-divider,
+.vcs-edge,
+.vcs-bracket,
+.vcs-comparison {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+}
+.vcs-divider {
+  stroke: var(--border-color);
+}
+.vcs-comparison {
+  stroke: var(--accent-mauve);
+  stroke-dasharray: 5 4;
+}
+.vcs-arrow-head {
+  fill: var(--text-secondary);
+}
+.vcs-figure figcaption {
+  margin-top: 0.65rem;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  line-height: 1.7;
+}
