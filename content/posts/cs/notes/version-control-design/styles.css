@@ -3,31 +3,6 @@
   break-inside: avoid;
 }
 
-.vcs-versions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.vcs-versions svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.vcs-versions text {
-  fill: var(--text-color);
-  font: 15px var(--font-body);
-}
-
-.vcs-versions .vcs-heading {
-  font-weight: 650;
-}
-
-.vcs-versions .vcs-filename {
-  font: 13px var(--font-mono);
-}
-
 .vcs-page {
   fill: var(--paper-bg);
   stroke: var(--border-color);
@@ -44,23 +19,11 @@
   stroke-width: 2;
 }
 
-.vcs-lines {
-  fill: none;
-  stroke: var(--text-secondary);
-  stroke-width: 2;
-}
-
 .vcs-figure figcaption {
   margin-top: 0.65rem;
   color: var(--text-secondary);
   font-size: 0.9em;
   line-height: 1.7;
-}
-
-@media (max-width: 540px) {
-  .vcs-versions {
-    grid-template-columns: 1fr;
-  }
 }
 
 .vcs-object-scroll {
