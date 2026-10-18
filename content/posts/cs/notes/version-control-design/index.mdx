@@ -106,6 +106,8 @@ commit 自己也有对象 ID。因为父提交、时间和提交说明都是它�
 git show HEAD~1:article.md
 ```
 
+<ReadVersionFigure />
+
 它只显示旧内容，不会覆盖正在编辑的文件。若要比较前后两版，则可以执行：
 
 ```bash
@@ -157,6 +159,8 @@ git commit -m "Explain the opening example"
 
 假设正文已经改好，但我们还在试验另一种页面样式，暂时不想提交样式修改。此时只执行 `git add article.md`，然后普通地执行 `git commit`，得到的就应当是“新正文 + 上一次提交的样式”，而不是整个工作目录此刻的样子。
 
+<StagingSelectionFigure />
+
 **暂存区（index）就是用来准备这份待提交状态的。** 在本例没有合并冲突的情况下，它记录路径、文件模式和选定的 blob ID 等信息。未修改的已跟踪文件也有条目，因此它不只是一张“这次改过哪些文件”的清单。执行 `git add article.md` 会保存选中的正文内容，并更新对应条目；[此后继续编辑正文，需要再次暂存](https://git-scm.com/docs/git-add)，新的编辑才会进入下一次普通提交。
 
 可以用 [`git ls-files --stage`](https://git-scm.com/docs/git-ls-files) 观察暂存区中的条目：
@@ -180,6 +184,8 @@ git ls-files --stage
 | 物理存储 | 这些对象怎样占用磁盘空间？ | 相同对象复用，不同对象还可以压缩存储 |
 
 共享 blob 已经避免了反复保存未变化的样式，但正文只改了一句话，新旧 blob 之间也有大量相同内容。Git 还可以在 [packfile](https://git-scm.com/book/en/v2/Git-Internals-Packfiles) 中把相似对象做 delta 压缩：保存一个基准对象，以及重建另一个对象所需的差异。这样的存储依赖不要求与 commit 的父子关系一致，基准也不必是历史上更早的版本。
+
+<DeltaStorageFigure />
 
 因此，读取一个 blob 时，底层可能需要解压和重建；但重建后，它仍然是那个 ID 所标识的完整对象。压缩改变的是对象怎样存放，不改变 commit、tree 和 blob 之间的关系。具体的基准引用与重建指令见 [pack 格式](https://git-scm.com/docs/gitformat-pack)。
 

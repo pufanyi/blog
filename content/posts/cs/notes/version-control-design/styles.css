@@ -101,3 +101,61 @@
 .vcs-object-arrow {
   fill: var(--text-secondary);
 }
+
+.vcs-operation svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.vcs-operation text {
+  fill: var(--text-color);
+  font: 15px var(--font-body);
+}
+
+.vcs-operation .vcs-heading {
+  font-weight: 650;
+}
+
+.vcs-operation .vcs-filename {
+  font: 13px var(--font-mono);
+}
+
+.vcs-operation .vcs-emphasis {
+  fill: var(--accent-sage);
+  font-weight: 650;
+}
+
+.vcs-read,
+.vcs-delta {
+  max-width: 430px;
+  margin-inline: auto;
+}
+
+.vcs-staging {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.vcs-pending {
+  fill: color-mix(in srgb, var(--accent-ochre) 10%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+  stroke-dasharray: 5 4;
+}
+
+@media (max-width: 680px) {
+  .vcs-staging {
+    grid-template-columns: 1fr;
+    max-width: 360px;
+    margin-inline: auto;
+  }
+}
+
+.vcs-staging text {
+  font-size: 18px;
+}
+
+.vcs-staging .vcs-filename {
+  font-size: 16px;
+}
