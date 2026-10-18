@@ -15,7 +15,7 @@ Git 用对象表示项目的文件状态和版本历史，用引用为提交命�
 
 Git 的 **blob** 保存文件内容，即一串字节，不包含文件名。**tree** 表示一个目录，其中每个条目记录名字、文件模式和所引用的对象。普通文件条目指向 blob，子目录条目指向另一个 tree。根 tree 及其递归引用的对象确定整个项目的文件状态，称为一个快照。具体结构见 [Git 对象模型](https://git-scm.com/book/en/v2/Git-Internals-Git-Objects)。
 
-例如，一个博客仓库包含正文和样式两个普通文件：
+下面沿用 [Missing Semester 2026 的目录示例](https://missing.csail.mit.edu/2026/version-control/#snapshots)：根目录包含子目录 `foo` 和文件 `baz.txt`，`foo` 中包含文件 `bar.txt`。图中将目录条目与它引用的对象分开画出。
 
 <DirectoryTreeFigure />
 
@@ -35,7 +35,7 @@ Git 的 **blob** 保存文件内容，即一串字节，不包含文件名。**t
 
 M 的 tree 记录合并后的文件状态；两个 parent 记录被连接起来的历史。提交图描述版本关系，目录树描述文件结构，这两种关系需要区分。
 
-下面用两次提交表示“修改正文、保留原样式”。新 commit 指向新 tree，新 tree 引用新正文 blob；没有变化的样式 blob 被两个版本共同引用。
+下面另用一个包含正文和样式的仓库，以两次提交表示“修改正文、保留原样式”。新 commit 指向新 tree，新 tree 引用新正文 blob；没有变化的样式 blob 被两个版本共同引用。
 
 <SnapshotObjectsFigure />
 

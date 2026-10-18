@@ -114,31 +114,47 @@ function DirectoryTreeFigure() {
   return (
     <Graph
       id="vcs-directory"
-      title="目录条目引用文件内容"
-      height={180}
-      description="文件名 article.md、style.css 属于 tree 的条目，分别引用保存正文和样式内容的 blob。"
+      title="根目录、子目录与文件内容"
+      height={310}
+      description={
+        '根 tree 的 foo 条目指向子 tree，子 tree 的 bar.txt 条目指向内容为 "hello world" 的 blob；根 tree 的 baz.txt 条目直接指向内容为 "git is wonderful" 的 blob。'
+      }
     >
-      <rect x="20" y="20" width="210" height="140" rx="8" className="vcs-page" />
+      <rect x="20" y="20" width="190" height="135" rx="8" className="vcs-page" />
       <text x="40" y="48" className="vcs-heading">
-        根 tree
+        {'<root> (tree)'}
       </text>
       <text x="40" y="89" className="vcs-graph-id">
-        article.md
+        foo
       </text>
-      <text x="40" y="139" className="vcs-graph-id">
-        style.css
+      <text x="40" y="134" className="vcs-graph-id">
+        baz.txt
+      </text>
+      <rect x="300" y="20" width="200" height="100" rx="8" className="vcs-page" />
+      <text x="320" y="48" className="vcs-heading">
+        tree
+      </text>
+      <text x="320" y="89" className="vcs-graph-id">
+        bar.txt
       </text>
       <g className="vcs-object-edge" markerEnd="url(#vcs-directory-arrow)">
-        <path d="M190 84H320" />
-        <path d="M190 134H320" />
+        <path d="M170 84H300" />
+        <path d="M450 84H510V165H400V190" />
+        <path d="M170 129V190" />
       </g>
-      <rect x="325" y="64" width="175" height="40" rx="6" className="vcs-opening" />
-      <rect x="325" y="114" width="175" height="40" rx="6" className="vcs-opening" />
-      <text x="412" y="89" textAnchor="middle">
-        正文 blob
+      <rect x="20" y="195" width="245" height="90" rx="8" className="vcs-opening" />
+      <text x="40" y="223" className="vcs-heading">
+        blob
       </text>
-      <text x="412" y="139" textAnchor="middle">
-        样式 blob
+      <text x="40" y="258" className="vcs-graph-id">
+        {'"git is wonderful"'}
+      </text>
+      <rect x="290" y="195" width="210" height="90" rx="8" className="vcs-opening" />
+      <text x="310" y="223" className="vcs-heading">
+        blob
+      </text>
+      <text x="310" y="258" className="vcs-graph-id">
+        {'"hello world"'}
       </text>
     </Graph>
   );
