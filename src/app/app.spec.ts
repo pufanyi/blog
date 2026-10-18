@@ -12,7 +12,7 @@ import {
 import { Subject } from 'rxjs';
 import { afterEach, describe, expect, it } from 'vitest';
 import { App } from './app';
-import { PageScrollService } from './services/page-scroll.service';
+import { PageScrollService } from './platform/page-scroll.service';
 
 describe('navigation feedback', () => {
   afterEach(() => TestBed.resetTestingModule());

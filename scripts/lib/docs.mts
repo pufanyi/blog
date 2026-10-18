@@ -3,7 +3,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { JSDOM } from 'jsdom';
 import { Marked } from 'marked';
 import { createHighlighter } from 'shiki';
-import { type DocSummary, docMarkdownPath, docPath } from '../../src/app/models/doc.model';
+import { type DocSummary, docMarkdownPath, docPath } from '../../src/contracts/doc.model';
 import { htmlToAgentMarkdown } from './agent-markdown.mts';
 import { createCodeRenderer } from './code-renderer.mts';
 import { treeFiles } from './content-cache.mts';
@@ -185,7 +185,7 @@ export async function buildDocs(root: string, siteUrl: string) {
       }
       const toc = buildTableOfContents(document, docPath(summary.slug));
       const module = `docs/${summary.slug || 'index'}`;
-      const modelPath = `${'../'.repeat((summary.slug || 'index').split('/').length + 1)}models/post.model`;
+      const modelPath = `${'../'.repeat((summary.slug || 'index').split('/').length + 2)}contracts/post.model`;
       dataFiles.set(
         `${module}.ts`,
         `// Generated; edit docs/${file}.\nimport type { PostContent } from '${modelPath}';\nexport default ${JSON.stringify({ contentHtml: document.body.innerHTML, toc })} satisfies PostContent;\n`,
@@ -193,11 +193,11 @@ export async function buildDocs(root: string, siteUrl: string) {
     }
     dataFiles.set(
       'docs.ts',
-      `// Generated from docs/navigation.json and Markdown titles.\nimport type { DocSummary } from '../models/doc.model';\nexport const DOCS: DocSummary[] = ${JSON.stringify(summaries)};\n`,
+      `// Generated from docs/navigation.json and Markdown titles.\nimport type { DocSummary } from '../../contracts/doc.model';\nexport const DOCS: DocSummary[] = ${JSON.stringify(summaries)};\n`,
     );
     dataFiles.set(
       'doc-loaders.ts',
-      `// Generated; document bodies stay lazy.\nimport type { PostContent } from '../models/post.model';\nexport const DOC_LOADERS = new Map<string, () => Promise<PostContent>>([\n${summaries.map(({ slug }) => `[${JSON.stringify(slug)}, () => import(${JSON.stringify(`./docs/${slug || 'index'}`)}).then(m => m.default)],`).join('\n')}\n]);\n`,
+      `// Generated; document bodies stay lazy.\nimport type { PostContent } from '../../contracts/post.model';\nexport const DOC_LOADERS = new Map<string, () => Promise<PostContent>>([\n${summaries.map(({ slug }) => `[${JSON.stringify(slug)}, () => import(${JSON.stringify(`./docs/${slug || 'index'}`)}).then(m => m.default)],`).join('\n')}\n]);\n`,
     );
     return { summaries, dataFiles, agentFiles, sourceFiles: [...sourceFiles] };
   } finally {

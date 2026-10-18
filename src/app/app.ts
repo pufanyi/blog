@@ -17,8 +17,8 @@ import {
   Router,
   RouterOutlet,
 } from '@angular/router';
-import { PageScrollService } from './services/page-scroll.service';
-import { claimDynamicImportRecovery } from './utils/navigation-recovery';
+import { claimDynamicImportRecovery } from './platform/navigation-recovery';
+import { PageScrollService } from './platform/page-scroll.service';
 
 @Component({
   selector: 'app-root',

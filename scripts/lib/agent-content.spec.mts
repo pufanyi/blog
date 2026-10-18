@@ -6,7 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { Marked, type Tokens } from 'marked';
 import { createHighlighter } from 'shiki';
-import type { CvData } from '../../src/app/models/cv.model';
+import type { CvData } from '../../src/contracts/cv.model';
 import {
   type AgentPost,
   buildAgentFiles,

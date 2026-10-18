@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import type { PostTocItem } from '../contracts/post.model';
 import { CV_DATA } from './data/cv';
 import { POST_LOADERS } from './data/post-loaders';
 import { POST_ROUTES, PRIVATE_POST_SLUGS } from './data/post-routes';
 import { POSTS } from './data/posts';
 import { REDIRECTS } from './data/redirects';
-import type { PostTocItem } from './models/post.model';
-import { loadPost } from './services/post-repository';
+import { loadPost } from './features/reader/data/post-repository';
 
 function flattenIds(items: readonly PostTocItem[]): string[] {
   return items.flatMap((item) => [item.id, ...flattenIds(item.children)]);

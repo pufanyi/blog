@@ -3,10 +3,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { createHighlighter } from 'shiki';
-import type { Post } from '../src/app/models/post.model';
-import type { SearchDocument, SerializedSearchIndex } from '../src/app/models/search.model';
-import { comparePostsByPublication } from '../src/app/utils/blog-pagination';
-import { createSearchIndex } from '../src/app/utils/search-index';
+import { comparePostsByPublication } from '../src/contracts/blog-pagination';
+import type { Post } from '../src/contracts/post.model';
+import type { SearchDocument, SerializedSearchIndex } from '../src/contracts/search.model';
+import { createSearchIndex } from '../src/contracts/search-index';
 import { type AgentPost, buildAgentFiles, renderArticleMarkdown } from './lib/agent-content.mts';
 import {
   type CachedPost,
@@ -69,14 +69,14 @@ async function buildPostModules(
   const summaries = routeSummaries.filter(({ slug }) => !privateSlugs.has(slug));
   files.set(
     'posts.ts',
-    `${GENERATED}import type { PostSummary } from '../models/post.model';\n\nexport const POSTS: PostSummary[] = ${JSON.stringify(summaries, null, 2)};\n`,
+    `${GENERATED}import type { PostSummary } from '../../contracts/post.model';\n\nexport const POSTS: PostSummary[] = ${JSON.stringify(summaries, null, 2)};\n`,
   );
   files.set(
     'post-routes.ts',
-    `${GENERATED}import type { PostSummary } from '../models/post.model';\n\nexport const POST_ROUTES: PostSummary[] = ${JSON.stringify(routeSummaries, null, 2)};\n\nexport const PRIVATE_POST_SLUGS: ReadonlySet<string> = new Set(${JSON.stringify([...privateSlugs].sort(), null, 2)});\n`,
+    `${GENERATED}import type { PostSummary } from '../../contracts/post.model';\n\nexport const POST_ROUTES: PostSummary[] = ${JSON.stringify(routeSummaries, null, 2)};\n\nexport const PRIVATE_POST_SLUGS: ReadonlySet<string> = new Set(${JSON.stringify([...privateSlugs].sort(), null, 2)});\n`,
   );
   for (const { slug, contentHtml, toc } of posts) {
-    const modelPath = `${'../'.repeat(slug.split('/').length + 1)}models/post.model`;
+    const modelPath = `${'../'.repeat(slug.split('/').length + 2)}contracts/post.model`;
     files.set(
       `posts/${slug}.ts`,
       `${GENERATED}import type { PostContent } from '${modelPath}';\n\nexport const POST_CONTENT: PostContent = ${JSON.stringify({ contentHtml, toc }, null, 2)};\n`,
@@ -94,11 +94,11 @@ async function buildPostModules(
     .join('\n');
   files.set(
     'post-loaders.ts',
-    `${GENERATED}import type { PostContent } from '../models/post.model';\n\nexport const POST_LOADERS = new Map<string, () => Promise<PostContent>>([\n${loaders}\n]);\n`,
+    `${GENERATED}import type { PostContent } from '../../contracts/post.model';\n\nexport const POST_LOADERS = new Map<string, () => Promise<PostContent>>([\n${loaders}\n]);\n`,
   );
   files.set(
     'private-post-loaders.ts',
-    `${GENERATED}import type { PostContent } from '../models/post.model';\n\nexport const PRIVATE_POST_LOADERS = new Map<string, () => Promise<PostContent>>([\n${privateLoaders}\n]);\n`,
+    `${GENERATED}import type { PostContent } from '../../contracts/post.model';\n\nexport const PRIVATE_POST_LOADERS = new Map<string, () => Promise<PostContent>>([\n${privateLoaders}\n]);\n`,
   );
   const documents: SearchDocument[] = posts
     .filter(({ slug }) => !privateSlugs.has(slug))
@@ -118,7 +118,7 @@ async function buildPostModules(
   });
   files.set(
     'search-index.ts',
-    `${GENERATED}import type { SearchDocument, SerializedSearchIndex } from '../models/search.model';\n\nexport const SEARCH_DOCUMENTS: SearchDocument[] = ${JSON.stringify(documents, null, 2)};\n\nexport const SEARCH_INDEX: SerializedSearchIndex = ${JSON.stringify(serialized)};\n`,
+    `${GENERATED}import type { SearchDocument, SerializedSearchIndex } from '../../contracts/search.model';\n\nexport const SEARCH_DOCUMENTS: SearchDocument[] = ${JSON.stringify(documents, null, 2)};\n\nexport const SEARCH_INDEX: SerializedSearchIndex = ${JSON.stringify(serialized)};\n`,
   );
   return files;
 }
@@ -256,21 +256,21 @@ export async function generateData(
   ] as const) {
     dataFiles.set(
       `${filename}.ts`,
-      `${GENERATED}import type { ${type} } from '../models/config.model';\n\nexport const ${name}: ${type} = ${JSON.stringify(value, null, 2)};\n`,
+      `${GENERATED}import type { ${type} } from '../../contracts/config.model';\n\nexport const ${name}: ${type} = ${JSON.stringify(value, null, 2)};\n`,
     );
   }
   dataFiles.set(
     'redirects.ts',
-    `${GENERATED}import type { Redirect } from '../models/redirect.model';\n\nexport const REDIRECTS: Redirect[] = ${JSON.stringify(configuration.redirects, null, 2)};\n`,
+    `${GENERATED}import type { Redirect } from '../../contracts/redirect.model';\n\nexport const REDIRECTS: Redirect[] = ${JSON.stringify(configuration.redirects, null, 2)};\n`,
   );
   const cv = renderCvMarkdown(parseCvSource(readFileSync(join(root, 'content/cv.yaml'), 'utf8')));
   dataFiles.set(
     'cv.ts',
-    `${GENERATED}import type { CvData } from '../models/cv.model';\n\nexport const CV_DATA: CvData = ${JSON.stringify(cv, null, 2)};\n`,
+    `${GENERATED}import type { CvData } from '../../contracts/cv.model';\n\nexport const CV_DATA: CvData = ${JSON.stringify(cv, null, 2)};\n`,
   );
   dataFiles.set(
     'person.ts',
-    `${GENERATED}import type { PersonStructuredData } from '../models/structured-data.model';\n\nexport const PERSON_DATA: PersonStructuredData = ${JSON.stringify(buildPersonData(cv, configuration.site), null, 2)};\n`,
+    `${GENERATED}import type { PersonStructuredData } from '../../contracts/structured-data.model';\n\nexport const PERSON_DATA: PersonStructuredData = ${JSON.stringify(buildPersonData(cv, configuration.site), null, 2)};\n`,
   );
   const docs = await buildDocs(root, configuration.site.url);
   for (const [path, content] of docs.dataFiles) dataFiles.set(path, content);

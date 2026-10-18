@@ -1,5 +1,5 @@
 import { JSDOM } from 'jsdom';
-import type { PostTocItem } from '../../src/app/models/post.model';
+import type { PostTocItem } from '../../src/contracts/post.model';
 
 const TOC_HEADING_SELECTOR = 'h2, h3';
 const TOC_TEXT_EXCLUSIONS = '.heading-permalink, [data-toc-ignore]';

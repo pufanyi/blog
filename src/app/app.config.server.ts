@@ -4,7 +4,7 @@ import { appConfig } from './app.config';
 import { serverRoutes } from './app.routes.server';
 import { POST_LOADERS } from './data/post-loaders';
 import { PRIVATE_POST_LOADERS } from './data/private-post-loaders';
-import { POST_CONTENT_LOADERS } from './models/post-loader.model';
+import { POST_CONTENT_LOADERS } from './features/reader/data/post-loader.model';
 
 const serverConfig: ApplicationConfig = {
   providers: [

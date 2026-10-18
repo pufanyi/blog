@@ -5,10 +5,10 @@ import {
   withNoIncrementalHydration,
 } from '@angular/platform-browser';
 import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
+import { PageMetadataStrategy } from './app.metadata';
 import { routes } from './app.routes';
 import { POST_LOADERS } from './data/post-loaders';
-import { POST_CONTENT_LOADERS } from './models/post-loader.model';
-import { PageMetadataStrategy } from './services/page-metadata.strategy';
+import { POST_CONTENT_LOADERS } from './features/reader/data/post-loader.model';
 
 export const appConfig: ApplicationConfig = {
   providers: [

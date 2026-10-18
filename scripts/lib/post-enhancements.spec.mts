@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
 import { JSDOM } from 'jsdom';
-import type { PostEnhancementModule } from '../../src/app/models/post-enhancement.model';
-import { bindPostEnhancements } from '../../src/app/utils/post-enhancements';
+import type { PostEnhancementModule } from '../../src/app/features/reader/content/post-enhancement.model';
+import { bindPostEnhancements } from '../../src/app/features/reader/content/post-enhancements';
 
 test('navigation before a deferred module resolves never attaches its controls', async (t) => {
   const dom = new JSDOM('<article>Static explanation</article>');

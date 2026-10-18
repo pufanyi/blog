@@ -39,3 +39,9 @@ settings with the newer executable (for example, the removed `PushAPIEnabled`).
 Use the site's generated production output, not another task's development
 server. Retain traces for failed tests and inspect actual CJK glyphs and both
 themes in screenshots.
+
+On macOS, a symlinked temporary directory can make the generated Worker test's
+relative source import resolve under `/private/Users` instead of `/Users`.
+Run local validation with `TMPDIR=/private/tmp` to keep fixture creation and module
+resolution on the same canonical path. This environment setting does not change
+production output or repository dependencies.

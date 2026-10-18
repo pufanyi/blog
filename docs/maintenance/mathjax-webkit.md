@@ -11,7 +11,7 @@ the URL was revoked immediately after construction. MathJax 4.1.3's
 [HTML adaptor](https://github.com/mathjax/MathJax-src/blob/4.1.3/ts/adaptors/HTMLAdaptor.ts)
 uses the latter sequence.
 
-`src/app/utils/mathjax-worker.ts` replaces only the initialized MathJax
+`src/app/shared/math/mathjax-worker.ts` replaces only the initialized MathJax
 adaptor's `createWorker` method. It retains the URL until the first worker
 message, an error, or termination. Constructor failure also releases it.
 It preserves the configured worker path, rules path, and message listener;

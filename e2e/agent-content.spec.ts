@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { JSDOM } from 'jsdom';
 import { DOCS } from '../src/app/data/docs';
 import { POSTS } from '../src/app/data/posts';
-import { docMarkdownPath, docPath } from '../src/app/models/doc.model';
+import { docMarkdownPath, docPath } from '../src/contracts/doc.model';
 
 test('fingerprinted assets have immutable caching while negotiated pages revalidate', async ({
   request,

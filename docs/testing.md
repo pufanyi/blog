@@ -11,7 +11,7 @@ pnpm test --watch=false
 
 Run these sequentially. Their lifecycle hooks write shared generated files. Before every push, run both check and noninteractive unit tests after the final change. If anything changes afterward, run them again. For changes that need browser validation, run `pnpm test:e2e` locally; it builds production output before launching Playwright.
 
-`pnpm check` includes Biome formatting, Angular application and strict-template compilation, strict tooling and E2E typechecks, ESLint, and article MDX/BibTeX checks. Documentation structure, internal links, and anchors are validated by its generation hook. It does not execute tests or build production pages.
+`pnpm check` includes Biome formatting, import-boundary validation, Angular application and strict-template compilation, strict tooling and E2E typechecks, ESLint, and article MDX/BibTeX checks. Documentation structure, internal links, and anchors are validated by its generation hook. It does not execute tests or build production pages.
 
 `pnpm test --watch=false` runs Node content/tooling tests followed by Angular unit tests. If the host's CPU count causes Vitest worker failures, use `VITEST_MAX_WORKERS=2 pnpm test --watch=false`.
 

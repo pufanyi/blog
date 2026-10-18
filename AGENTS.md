@@ -51,6 +51,13 @@ instead of accumulating unrelated rules here.
 
 ## Essential boundaries
 
+- Keep feature implementation and tests together under `src/app/features`.
+  Shared/platform code must not import feature or shell implementations; build
+  code uses framework-free `src/contracts`. Route composition and the shell's
+  small search launcher are explicit entry points, checked by `pnpm check:boundaries`.
+- Route pages own scoped page-chrome registrations. Nested controls emit intent;
+  they do not mutate global toolbar state. Layout rules belong to their paper or
+  shell owner, without descendant-sensitive selectors changing ancestors.
 - Authored sources live in `content` and `configs`. `src/app/data` and
   `.generated` are ignored outputs; change sources, never generated files.
 - Keep articles, styles, and browser examples together: article `styles.css`

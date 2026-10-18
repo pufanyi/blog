@@ -1,7 +1,7 @@
 import { JSDOM } from 'jsdom';
-import type { SiteConfig } from '../../src/app/models/config.model';
-import type { CvData } from '../../src/app/models/cv.model';
-import type { PersonStructuredData } from '../../src/app/models/structured-data.model';
+import type { SiteConfig } from '../../src/contracts/config.model';
+import type { CvData } from '../../src/contracts/cv.model';
+import type { PersonStructuredData } from '../../src/contracts/structured-data.model';
 
 export function buildPersonData(cv: CvData, site: SiteConfig): PersonStructuredData {
   const homepage = new URL('/', site.url).href;

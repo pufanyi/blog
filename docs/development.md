@@ -10,6 +10,7 @@ Install with `pnpm install --frozen-lockfile`.
 | `pnpm start` | Generate once, then watch authored content/configuration and serve Angular |
 | `pnpm watch` | Watch content and the Angular development build |
 | `pnpm generate:data` | One content generation; unchanged outputs keep their mtimes |
+| `pnpm check:boundaries` | Resolve source imports and enforce feature/shared/build dependency directions |
 | `pnpm check` | Generate, format/lint, Angular/templates, tooling/content and E2E typechecks |
 | `pnpm test --watch=false` | Generate, Node content tests, then Angular unit tests |
 | `pnpm build` | Generate, production prerender, then deployment manifests/assets |
@@ -66,7 +67,7 @@ article disclosure markers in the production browser build.
 
 | Files | Formatting/lint | Type and behavior validation |
 | --- | --- | --- |
-| Application TS | Biome + ESLint | Angular compiler/strict templates + unit tests |
+| Application TS | Biome + ESLint + import boundaries | Angular compiler/strict templates + unit tests |
 | Angular HTML | Angular template ESLint | `ngc` strict template compilation |
 | Tooling MTS and article TS/TSX | Biome + ESLint | `tsconfig.scripts.json` + content tests |
 | Browser-test TS | Biome + ESLint | `tsconfig.e2e.json` + served production browser tests |

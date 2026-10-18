@@ -22,7 +22,7 @@ Keep existing prose author-owned. Make the requested correction without rewritin
 
 The full directory path defines the article URL. Before moving it, identify incoming links, old URLs, and any `/posts/<old-slug>/...` strings in components or CSS. Markdown image paths are rewritten automatically; absolute asset links in source code and styles need explicit updates.
 
-Choose and test a redirect from the old URL. External legacy path redirects are configured in `configs/redirects.yaml`; internal blog route migrations also have shared mappings in `src/app/utils/blog-redirects.ts`. Consult [routing and deployment](../deployment.md) before adding a redirect so both client navigation and direct static visits work. Rebuild and verify the old URL, new canonical, and affected heading fragments.
+Choose and test a redirect from the old URL. External legacy path redirects are configured in `configs/redirects.yaml`; internal blog route migrations also have shared mappings in `src/contracts/blog-redirects.ts`. Consult [routing and deployment](../deployment.md) before adding a redirect so both client navigation and direct static visits work. Rebuild and verify the old URL, new canonical, and affected heading fragments.
 
 ## Drafts and removal
 

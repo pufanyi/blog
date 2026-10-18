@@ -23,7 +23,7 @@
     "lint:bib": "node scripts/check-bibtex.mts",
     "format:bib": "node scripts/check-bibtex.mts --write",
     "check": "pnpm check:generated",
-    "check:generated": "pnpm biome:check && pnpm typecheck:app && pnpm typecheck:content && pnpm typecheck:e2e && pnpm lint",
+    "check:generated": "pnpm biome:check && pnpm check:boundaries && pnpm typecheck:app && pnpm typecheck:content && pnpm typecheck:e2e && pnpm lint",
     "preview": "node scripts/serve-preview.mts",
     "preview:cloudflare": "wrangler dev --local --ip 127.0.0.1 --port 8787",
     "pretest:e2e": "pnpm build",
@@ -31,7 +31,8 @@
     "precheck": "pnpm generate:data",
     "typecheck:e2e": "tsc --noEmit -p tsconfig.e2e.json",
     "typecheck:app": "ngc --noEmit -p tsconfig.app.json",
-    "lint:code": "eslint ."
+    "lint:code": "eslint .",
+    "check:boundaries": "node scripts/check-boundaries.mts"
   },
   "private": true,
   "engines": {

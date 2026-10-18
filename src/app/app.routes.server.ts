@@ -1,12 +1,12 @@
 import { PrerenderFallback, RenderMode, ServerRoute } from '@angular/ssr';
+import { blogDirectoryPath, buildBlogDirectories } from '../contracts/blog-directories';
+import { blogPageCount } from '../contracts/blog-pagination';
+import { BLOG_REDIRECTS } from '../contracts/blog-redirects';
+import { docPath } from '../contracts/doc.model';
 import { BLOG_CONFIG } from './data/blog-config';
 import { DOCS } from './data/docs';
 import { POST_ROUTES } from './data/post-routes';
 import { POSTS } from './data/posts';
-import { docPath } from './models/doc.model';
-import { blogDirectoryPath, buildBlogDirectories } from './utils/blog-directories';
-import { blogPageCount } from './utils/blog-pagination';
-import { BLOG_REDIRECTS } from './utils/blog-redirects';
 
 export const serverRoutes: ServerRoute[] = [
   ...DOCS.map((doc) => ({

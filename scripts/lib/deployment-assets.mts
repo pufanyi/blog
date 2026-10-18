@@ -1,6 +1,6 @@
 import { copyFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { Redirect } from '../../src/app/models/redirect.model';
+import type { Redirect } from '../../src/contracts/redirect.model';
 
 function normalizeRedirectPath(from: string): string {
   if (typeof from !== 'string') {

@@ -1,0 +1,82 @@
+app-post {
+  display: block;
+}
+
+.post-reading-content,
+.post-reading-paper {
+  min-width: 0;
+}
+
+@media screen and (min-width: 1024px) {
+  .reader-paper.has-outline {
+    --post-paper-width: 900px;
+    --post-outline-width: 200px;
+    --post-outline-gap: 40px;
+    --paper-max-width: calc(
+      var(--post-paper-width) +
+      var(--post-outline-width) +
+      var(--post-outline-gap)
+    );
+  }
+
+  .reader-paper.has-outline {
+    margin-left: max(
+      4%,
+      calc(50% - var(--post-paper-width) / 2 - var(--post-outline-width) - var(--post-outline-gap))
+    );
+    margin-right: auto;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .post-reading-layout.has-outline {
+    display: grid;
+    grid-template-columns: var(--post-outline-width) minmax(0, 1fr);
+    column-gap: var(--post-outline-gap);
+  }
+
+  .post-reading-layout.has-outline > .post-reading-paper {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    display: grid;
+    grid-template-rows: subgrid;
+    padding: 3rem 3.5rem 4rem;
+    border-radius: 3px;
+    background: var(--paper-bg);
+    box-shadow: var(--paper-shadow);
+  }
+
+  .post-reading-layout.has-outline > app-post-navigation {
+    grid-column: 1;
+    grid-row: 2;
+  }
+}
+
+.giscus-wrapper {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-light);
+}
+
+@media print {
+  .post-toc-sidebar,
+  .post-toc-dialog {
+    display: none;
+  }
+
+  .post-reading-layout.has-outline {
+    display: block;
+  }
+
+  .post-body .code-copy {
+    display: none;
+  }
+
+  .post-body pre {
+    border-color: var(--surface-strong);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+}

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import type { CvData } from '../../src/app/models/cv.model';
+import type { CvData } from '../../src/contracts/cv.model';
 import { renderCvMarkdown } from './cv-markdown.mts';
 import { buildPersonData } from './person-data.mts';
 import { loadSiteConfiguration } from './site-config.mts';

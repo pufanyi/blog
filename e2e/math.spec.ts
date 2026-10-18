@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { test as base, expect } from '@playwright/test';
-import type {} from '../src/app/utils/mathjax';
+import type {} from '../src/app/shared/math/mathjax';
 import { serveMathJaxWorker } from './mathjax-assets';
 
 const test = base.extend<{
