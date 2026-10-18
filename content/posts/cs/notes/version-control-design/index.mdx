@@ -1,0 +1,240 @@
+---
+title: 'Version Control'
+date: '2026-10-18'
+description: '从日常 Git 操作出发，探索不同版本控制系统的数据模型、协作方式与客户端和服务端设计，以及大规模文件和 Agent 并发工作的管理。'
+draft: true
+---
+
+## 从一次熟悉的修改开始
+
+假设我们维护一个照片浏览网站：程序读取照片信息，按拍摄时间排列图片，再把结果展示在页面上。项目里有几类文件：
+
+```text
+photo-library/
+├── src/gallery.ts
+├── docs/gallery.md
+├── data/photos.csv
+└── assets/photos/
+    ├── mountain.avif
+    └── sea.avif
+```
+
+`src/gallery.ts` 实现展示逻辑，`docs/gallery.md` 记录使用方式，`data/photos.csv` 保存图片路径、拍摄时间等信息，图片本身则放在 `assets/photos/`。先假设这些文件都已经由普通 Git 跟踪，工作目录没有未提交的修改，当前位于 `main` 分支。
+
+现在要做一个很小的调整：把默认顺序从“最早拍摄的照片在前”改成“最近拍摄的照片在前”。我们创建一个分支，修改排序逻辑，并同步更新文档：
+
+```bash
+git switch -c newest-first
+# Edit src/gallery.ts and docs/gallery.md.
+git diff
+```
+
+这里的 `git diff` 展示了尚未暂存的修改。因为开始时工作目录干净，也还没有执行 `git add`，我们看到的正好就是这次编辑带来的变化。但“看到文件变了”与“决定下一次提交包含什么”是两件可以分开进行的事。比如，整理文档时顺手改了其他段落，可能就不希望把它们混入这次功能调整。
+
+为了先把过程走完整，假设这两个文件的修改都属于同一个任务。检查以后，将它们暂存：
+
+```bash
+git add src/gallery.ts docs/gallery.md
+git diff --cached
+```
+
+`git diff --cached` 展示准备提交的内容相对于当前提交的变化。这里值得停一下：`git add` 保存的是执行那一刻选定的文件内容。按照 [`git add` 的定义](https://git-scm.com/docs/git-add)，暂存以后继续编辑文件，需要再次暂存，后续修改才会进入下一次普通提交。
+
+例如，此时又给 `src/gallery.ts` 补了一条解释排序方向的注释，却没有再次执行 `git add`。同一个文件便同时对应三个状态：
+
+| 位置 | `src/gallery.ts` 的内容 |
+| --- | --- |
+| 当前提交 | 最早拍摄的照片在前 |
+| 暂存区（index） | 最近拍摄的照片在前 |
+| 工作目录 | 最近拍摄的照片在前，并增加了注释 |
+
+这时 `git diff` 显示新增注释，`git diff --cached` 显示排序逻辑的变化。暂存区让我们能够在继续编辑的同时，保留一份已经选好的提交内容。它具体怎样表示这份状态，以及其他系统是否也需要相同的中间层，后面再展开。
+
+我们把注释也纳入这次修改，再创建提交：
+
+```bash
+git add src/gallery.ts
+git diff --cached
+git commit -m "Show newest photos first"
+```
+
+这里不带路径或 `-a` 的 [`git commit`](https://git-scm.com/docs/git-commit) 根据暂存区记录项目状态。代码和文档进入同一个新版本，未修改的数据和图片也仍然属于这个版本描述的项目。这个版本怎样引用未修改的文件、是否需要复制它们，是理解底层存储时要回答的问题。
+
+截至这一步，新提交已经存在于本地，创建它不需要 GitHub 接收请求。我们可以查看它、比较前后的变化，或者继续在它之上修改。要让远端也能访问这项工作，再执行：
+
+```bash
+git push -u origin newest-first
+```
+
+假设 `origin` 指向 GitHub 上的项目仓库，这次 [`push`](https://git-scm.com/docs/git-push) 会发送远端需要的相关对象，并请求创建或更新远端的 `newest-first` 分支。它不会把这个分支自动合入 `main`。接下来，我们在 GitHub 创建一个以 `main` 为目标的 [pull request](https://docs.github.com/en/pull-requests/reference/pull-requests)，让协作者查看差异、讨论修改，并在项目配置的检查通过后决定是否合入。
+
+这条熟悉的路径里，几种状态分别向前推进：编辑器改变工作目录，暂存选择下一次提交的内容，提交保存本地版本，推送共享版本，PR 则组织围绕修改的评审。Git 负责版本记录与交换；GitHub 提供仓库托管，以及 PR、权限和检查结果等协作能力。我们在一个界面里使用它们，但需要分别理解这些职责，才能判断另一种工具究竟改变了哪一部分。
+
+现在再给这个项目增加两个条件。照片从几十张增长到数百万张，或者数据文件增长到几十 GB：检查文件是否变化、恢复某个版本和把内容传给远端，各自会遇到什么成本？与此同时，让两个 Agent 分别修改排序逻辑和照片信息的格式：它们需要怎样的工作环境，交付的结果又应该在哪一个具体版本上共同验证？
+
+这些问题都从同一次修改延伸出来。接下来可以沿着状态表示、修改组合、文件存储和协作流程，看看不同版本控制系统如何回答它们。
+
+## 版本控制有哪些不同的设计方向
+
+- 先区分数据模型、工作流、协作平台、存储与传输、服务端架构；一个系统可以同时涉及多个层面。
+- 对每条路线追问同一组问题：记录什么、如何标识变化、怎样组合修改、客户端保留什么、服务器负责什么，以及适用条件和代价。
+- 调研覆盖下面所有路线；用具体机制和小实验展开，避免写成工具名单或从 SVN 到 Git 再到 jj 的单线升级史。
+
+| 研究方向 | 系统与工具 | 要解释的问题 |
+| --- | --- | --- |
+| 集中式版本管理 | SVN、Perforce | 全局版本、工作副本、原子提交、路径权限和文件锁怎样配合？ |
+| 分布式版本管理 | Git、Mercurial | 本地历史、提交身份、分支、存储格式和同步有哪些不同选择？ |
+| 基于 patch 的模型 | Darcs、Pijul | 变更的上下文、依赖、交换顺序和冲突解决怎样表示？ |
+| 本地修改与历史整理 | jj、Sapling | 怎样保存工作进展、追踪改写、调整提交堆栈和恢复操作？ |
+| Git 上的协作工作流 | GitButler、Graphite | 并行修改与 stacked PR 怎样组织？哪些状态属于 Git，哪些属于工具？ |
+| 集成式项目协作 | Fossil | 代码、issue、wiki 等信息如何保存、同步、部署与迁移？ |
+| 文件与数据版本管理 | Git LFS、git-annex、DVC、Xet、Oxen、lakeFS | 文件身份、位置、分块、数据版本与代码版本如何关联？ |
+| 大规模服务端与工作区 | Piper、Mononoke、EdenFS、Scion | 查询、提交、缓存和按需获取如何分工，规模与可用性如何取舍？ |
+
+## 一次提交究竟记录了什么
+
+- 从“恢复整个项目需要哪些信息”出发，建立内容、路径、目录与版本的关系。
+- 结合 `git cat-file`、`git ls-tree` 等观察 blob、tree、commit 和引用；解释内容寻址与对象复用。
+- 区分逻辑上的快照、展示出来的 diff，以及物理存储中的压缩与 delta。
+- 对照工作目录、index 与提交中的状态，解释暂存到底选择了什么。
+- 对照 Mercurial 的 changelog、manifest、filelog 与 revlog，分清逻辑版本模型和实际存储结构；研究 named branches、bookmarks 与 Git 分支的区别。
+
+## 如果历史主要保存在服务器上
+
+### SVN：一个仓库版本与多个工作副本
+
+- 从 SVN 的全局 revision 和原子提交出发，对照 Git 的本地提交与后续 push，解释“保存一个版本”在两者中的不同含义。
+- 观察工作副本的基准、局部更新和 mixed revisions；区分仓库中的完整状态与本地文件的组合。
+- 研究以目录复制表示 branch/tag 的方式、merge tracking、离线可完成的操作与必须访问服务器的操作。
+- 小实验：两个工作副本分别修改、提交、更新与合并；记录每一步客户端和服务器的状态。
+
+### Perforce：workspace、changelist 与文件协作
+
+- 研究 depot 到 workspace 的映射，以及 pending/submitted changelist、shelve 和 streams 分别表达什么。
+- 从难以自动合并的素材出发，比较并发编辑、提交锁与 exclusive checkout；区分 `p4 lock` 和 `+l` 的作用。
+- 讨论路径权限、局部同步、断线工作与恢复；分析为什么文件锁仍然无法保证跨文件的语义一致性。
+- 对照实验：两人修改同一二进制文件，以及分别修改相互依赖的两个文件，观察需要在哪里协调。
+
+## 分支、合并和变基在改变什么
+
+- 从共同版本出发，让两项修改形成分叉；解释提交图与分支引用。
+- 从“只比较两个最终文件缺少什么信息”推导共同祖先与三方合并。
+- 通过一个小例子观察 merge、rebase 和 amend 前后的提交图与身份变化。
+- 区分文本冲突与行为上的不兼容：没有冲突标记，不代表组合后的程序正确。
+- 解释撤销修改、移动引用与恢复历史的区别，以及 reflog 能帮助找回什么。
+
+## 如果把可组合的变更放在中心
+
+- 从“只拿走一项功能，却不带上无关修改”的需求出发，研究 Darcs 和 Pijul 的 patch 模型。
+- 用两项独立修改和一项依赖修改，逐步解释上下文、依赖与 patch commutation；区分交换操作与任意重排。
+- 分别研究 Darcs 的 patch algebra 与 Pijul 的图表示，不把它们合并成同一种实现。
+- 观察冲突与冲突解决怎样被记录、传播和复用，比较 Git cherry-pick、rebase 与 patch 选择的语义。
+- 区分这里的逻辑变更模型与文件压缩的 delta；理论上的合并性质不等于程序行为正确。
+- 小实验：让两个副本以不同顺序引入独立修改，再加入依赖和冲突，记录结果与限制。
+
+## 本地工作流还有哪些设计
+
+### 用 jj 重新组织同一项工作
+
+- 完成一个连续任务：实现功能、拆出无关修改、补充前面的提交、处理上游冲突、撤销一次错误操作。
+- 每一步给出操作意图、必要命令和前后的状态图，再与 Git 的表达方式对照。
+- 展开 working-copy commit、change ID 与 commit ID、bookmarks、后续修改的调整、冲突记录及 operation log。
+- 解释 jj 的工作流模型与 Git 存储后端之间的关系；补充与现有 Git 工具协作的边界。
+- 待实验时记录 jj 版本，核对命令与兼容性，不把两套操作方式简单逐条对应。
+
+### Mercurial 与 Sapling：怎样追踪正在演化的修改
+
+- 研究 Mercurial 的 phases、obsolescence markers 与 changeset evolution，区分已发布历史、可修改历史及改写关系；核对相关扩展和实验性功能的边界。
+- 用同一项任务研究 Sapling 的 smartlog、提交堆栈、历史改写与恢复，并与 Git、jj 对照。
+- 区分 Sapling CLI、Mononoke 服务端和 EdenFS 工作区各自的职责，分别核对可用功能与 Git 兼容模式。
+
+### GitButler 与 Graphite：怎样组织并行修改与评审
+
+- 用 GitButler 研究同一工作目录里的并行修改、改动归属与提交整理；检查共享目录并未隔离的运行状态。
+- 用 Graphite 研究 stacked branches/PR、评审修改和 restack；与多个提交放进一个 PR 的方式对照。
+- 区分提交依赖、任务依赖和评审依赖；观察工具元数据、普通 Git 操作与远端平台如何保持一致。
+- 比较退出这些工具后能够保留的历史和仍需迁移的协作状态。
+
+## 一次 clone、fetch 和 push 交换了什么
+
+- 追踪本地与远端分别持有哪些对象和引用，以及同步时如何确定缺失的数据。
+- 区分对象传输、引用更新和工作目录的生成；解释为什么拿到版本信息不等于已经展开所有文件。
+- 比较完整克隆、shallow clone、partial clone 与 sparse checkout 各自减少了什么，以及保留了哪些成本。
+- 贯穿讨论历史查询、diff 与 merge 等计算发生的位置，以及离线能力、网络请求和缓存的取舍。
+
+## 文件数量和文件体积，是两种规模问题
+
+### 大量小文件：时间花在哪里
+
+- 分别考察目录遍历、变更检测、元数据索引、对象查找、网络请求和文件展开的成本。
+- 从重复扫描与重复读取出发，讨论文件监听、缓存、批量请求、按需检出和虚拟文件系统。
+- 设计对照实验：在总字节数接近时改变文件数量，分别观察 status、传输与 checkout；区分冷缓存和热缓存。
+
+### 超大文件：能否只保存和传输变化的部分
+
+- 从外置文件开始，推导指针、内容身份、数据上传与旧版本恢复的配合；在这里解释 Git LFS。
+- 区分整文件去重、文件分块与内容定义分块，观察局部修改、插入和重新编码对复用的影响。
+- 用 Xet 作为分块存储与传输的案例，核对客户端、服务端及托管环境的要求。
+- 分开衡量存储量、上传量、下载量和重建成本，不用单一“更快”概括全部操作。
+
+### 代码和数据怎样恢复到同一个实验状态
+
+- 从“旧代码配上新数据无法复现”引出代码、数据、配置和产物之间的版本对应，在这里讨论 DVC。
+- 讨论历史数据保留、可达性、垃圾回收与缺失对象；区分版本记录和备份。
+- 用 git-annex 研究文件位置、按需获取、离线介质和副本保留策略。
+- 用 Oxen 研究独立的数据仓库、数据差异、分支与客户端/服务端协作；用 lakeFS 研究对象存储上的版本元数据、分支与发布。
+- 对照实验：固定代码与数据版本、恢复旧状态、在独立分支修改数据；检查版本一致性与实际复制的数据量。
+
+## 协作信息是否也属于项目历史
+
+- 从 Git 仓库迁移后 PR、issue 和评审记录可能仍留在原平台的问题出发，划分版本控制与托管平台的边界。
+- 研究 Fossil 的 SQLite 存储、版本历史与内置 issue/wiki 等协作功能，观察这些信息如何同步和关联。
+- 对照 Git 加独立托管平台的组合，分析备份、离线使用、权限、部署和迁移的取舍。
+- 小实验：在另一个位置恢复一个项目，检查代码之外的讨论、文档与链接还保留了什么。
+
+## 多个 Agent 怎样共同修改一个项目
+
+### 一项任务需要怎样的工作环境
+
+- 跟踪任务从起始版本、获取文件、执行修改到交付结果的过程，明确任务与提交的关系。
+- 比较共享目录、独立 worktree 与独立运行环境分别隔离了什么。
+- 检查依赖、生成文件、缓存、进程和外部服务是否仍被共享；区分历史隔离与执行隔离。
+- 讨论按任务获取文件、复用只读内容，以及任务、修改和验证记录的关联。
+
+### 多份结果怎样成为一个可信的新版本
+
+- 构造两个 Agent 修改不同文件、各自测试通过、整合后却失败的例子。
+- 解释验证针对的具体版本，以及检查期间主分支变化带来的问题；讨论整合顺序与重新验证。
+- 区分保存工作进展、提交评审、接纳结果与部署；明确权限和人工检查的位置。
+- 讨论中断、超时、重试、重复交付、放弃任务和回滚时，哪些状态需要保留或清理。
+
+## 重新分配客户端与服务端的职责
+
+- 汇总前面的操作：保存内容、创建版本、查询历史、计算 diff、合并、验证和检出。
+- 在客户端始终在线、仓库巨大、任务频繁且只访问局部内容的条件下，重新讨论这些操作的位置。
+- 对照 Google 公开的 Piper/CitC 架构、Meta 的 Mononoke/EdenFS，以及 Anthropic 的 Scion，分别研究版本存储、服务端查询、工作区与缓存。
+- 追踪一次局部检出、一次历史查询和一次提交，画出各系统中客户端、缓存与权威存储之间的数据路径。
+- 对照 SVN、Perforce 与这些大型仓库架构，分析共同的需求与不同的实现，避免把服务端设计简单归结为集中式或分布式。
+- 对内部系统依据公开论文和工程文章讨论，标明资料年代与证据范围，不将架构案例视为可直接安装的产品。
+- 分析集中服务带来的权限、可用性、故障恢复和运维成本，区分系统架构与用户操作体验。
+
+## 回到项目：这些设计分别解决了什么
+
+- 用一张表连接问题、机制、成本与适用条件，区分操作体验、文件管理和并发协作。
+- 对照小型开发项目、数据密集项目与大量 Agent 任务，说明哪些约束变化会影响设计选择。
+- 整理实验中验证的结论与尚未覆盖的边界，补齐各机制对应的官方资料和引用。
+
+## 资料入口
+
+以下作为后续展开与实验的起点，正文中的具体结论仍需逐项核对；工具操作记录实际版本，历史架构资料注明年代。
+
+- [Pro Git：Git Internals](https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain)。
+- [Version Control with Subversion](https://svnbook.red-bean.com/)；选取与实验版本匹配的章节。
+- [Mercurial：changeset evolution](https://www.mercurial-scm.org/help/topics/evolution)。
+- [Perforce：workspaces and changelists](https://help.perforce.com/helix-core/server-apps/cmdref/current/Content/P4Guide/overview.files.workspaces-and-changelists.html) 与 [exclusive checkout](https://help.perforce.com/helix-core/server-apps/cmdref/current/Content/P4Guide/resolve.lock.exclusive.html)。
+- [Darcs：patch theory](https://darcs.net/Theory) 与 [Pijul：theory](https://pijul.org/manual/theory.html)。
+- [jj：与 Git 的模型对照](https://docs.jj-vcs.dev/latest/git-comparison/) 与 [Sapling 文档](https://sapling-scm.com/docs/introduction/)。
+- [GitButler：parallel branches](https://docs.gitbutler.com/features/branch-management/virtual-branches) 与 [Graphite：stack 工作流](https://graphite.com/docs/cli-quick-start)。
+- [Fossil 与 Git 的对照](https://fossil-scm.org/home/doc/trunk/www/fossil-v-git.wiki)；其中的评价需结合双方文档与实验判断。
+- [DVC：缓存结构](https://doc.dvc.org/user-guide/project-structure/internal-files)、[Xet：存储后端](https://huggingface.co/docs/hub/xet/index)、[git-annex：副本管理](https://git-annex.branchable.com/copies/)、[Oxen](https://github.com/Oxen-AI/Oxen) 与 [lakeFS：数据版本](https://docs.lakefs.io/guides/version-data/)。
+- [Google：Why Google Stores Billions of Lines of Code in a Single Repository（2016）](https://research.google/pubs/why-google-stores-billions-of-lines-of-code-in-a-single-repository/)、[Mononoke 架构](https://github.com/facebook/sapling/blob/main/eden/mononoke/docs/1.3-architecture-overview.md) 与 [Anthropic：Redesigning source control（2026）](https://www.anthropic.com/engineering/redesigning-source-control)。
