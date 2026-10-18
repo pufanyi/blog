@@ -6,6 +6,7 @@ import remarkMdx from 'remark-mdx';
 import remarkPresetLintConsistent from 'remark-preset-lint-consistent';
 import remarkPresetLintRecommended from 'remark-preset-lint-recommended';
 import type { Preset } from 'unified';
+import { remarkLintGitHubCode } from './scripts/lib/github-code.mts';
 
 export default {
   plugins: [
@@ -18,5 +19,6 @@ export default {
     // Pandoc citations (`[@key]`) and rehype-citation's `[^ref]` placeholder
     // intentionally look like unresolved Markdown references at this stage.
     [remarkLintNoUndefinedReferences, false],
+    remarkLintGitHubCode,
   ],
 } satisfies Preset;

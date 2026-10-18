@@ -37,6 +37,7 @@ export default defineConfig({
       name: 'webkit',
       testMatch: [
         'code-blocks.spec.ts',
+        'github-code.spec.ts',
         'rendering.spec.ts',
         'math.spec.ts',
         'webkit.spec.ts',

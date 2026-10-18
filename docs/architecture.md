@@ -81,6 +81,19 @@ component imports literal and local. The cache lives in ignored
 The output trees are `src/app/data`, `.generated/agent-content`, and the private
 cache. Do not publish the cache or edit generated data directly.
 
+`github-code.mts` expands standalone bare GitHub permalinks in the MDX syntax tree,
+before HTML and Markdown export. It accepts full commit SHAs with explicit line
+ranges, fetches only public raw GitHub files with bounded size/time, and caches
+whole files by immutable URL in `.generated/github-code-cache`. Cache entries have
+checksums and atomic writes; concurrent quotations share a request, while failures
+can be retried. This separate cache is not a published output or a content watcher
+input. Missing/corrupt entries are fetched again when an article is rendered.
+The ordinary content cache still handles no-op builds. To force a refetch, remove
+both caches. The code renderer preserves external annotation-like comments and
+adds original line numbers as presentation attributes, leaving copied code intact.
+The reader reuses its shared code-copy lifecycle; no GitHub fetch runs in the browser.
+See the [authoring syntax](writing/markdown.md#github-code-quotations).
+
 - Site settings live in `configs/{site,blog,comments,redirects}.yaml`. The data
   generator validates them before emitting typed modules under `src/app/data`.
   The development watcher regenerates YAML changes automatically.

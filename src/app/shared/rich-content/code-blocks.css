@@ -167,3 +167,37 @@
     padding: 0.85rem 0.8rem;
   }
 }
+
+/* GitHub quotations reuse the ordinary code block and copy lifecycle. */
+.post-body .github-code {
+  margin-inline: 0;
+}
+
+.post-body .github-code-source {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.post-body .github-code-source a {
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+
+.post-body .github-code-source .code-copy {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.post-body .github-code .line[data-line-number]::before {
+  content: attr(data-line-number);
+  display: inline-block;
+  width: 5ch;
+  padding-right: 2ch;
+  color: var(--text-secondary);
+  text-align: right;
+  user-select: none;
+}
