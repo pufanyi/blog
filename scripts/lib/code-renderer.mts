@@ -42,11 +42,21 @@ export function replaceInlineSyntaxColors(html: string): string {
 export function createCodeRenderer(highlighter: Highlighter) {
   return function code({ text, lang }: { text: string; lang: string }): string {
     const language = highlighter.getLoadedLanguages().find((loaded) => loaded === lang) ?? 'text';
+    const terminalLine = text.endsWith('\n') ? text.split('\n').length : -1;
     const html = replaceInlineSyntaxColors(
       highlighter.codeToHtml(text, {
         lang: language,
         themes: { light: 'catppuccin-latte', dark: 'catppuccin-mocha' },
-        transformers: [transformerNotationDiff(), transformerNotationHighlight()],
+        transformers: [
+          transformerNotationDiff(),
+          transformerNotationHighlight(),
+          {
+            name: 'terminal-newline',
+            line(node, line) {
+              if (line === terminalLine) this.addClassToHast(node, 'terminal-newline');
+            },
+          },
+        ],
       }),
     );
     const langLabel = language !== 'text' ? language : 'code';

@@ -172,9 +172,12 @@ Keep the `app-post` host block-level: an inline host spanning block content can
 intercept disclosure clicks in mobile Chromium after scrolling within the flex
 shell. The code-disclosure browser regression covers that interaction.
 
-Code blocks use equal top and bottom padding. Hide only the final empty Shiki
-line produced by a terminal newline, preserving interior blank lines and the DOM
-text used by Copy and Markdown exports.
+Code blocks use equal top and bottom padding. The shared code renderer marks the
+last line with `terminal-newline` when the source ends with a newline. Hide that
+terminal placeholder without removing its DOM text; Shiki may nest empty token
+spans inside it, so CSS `:empty` alone is insufficient. Preserve interior and
+intentional trailing blank lines, and the source whitespace used by Copy and
+Markdown exports. Browser regressions cover article and handbook code blocks.
 
 Article `styles.css` is embedded in that article's rendered HTML under
 `style[data-post-style]`. Prefix selectors, preserve semantic theme variables,

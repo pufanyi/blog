@@ -120,8 +120,8 @@
   white-space: pre;
 }
 
-/* A final newline creates an empty Shiki line; retain its source without extra height. */
-.post-body .code-block pre.shiki code > .line:last-child:empty {
+/* The renderer marks the terminal newline even when Shiki nests empty token spans. */
+.post-body .code-block pre.shiki code > .line:last-child:is(.terminal-newline, :empty) {
   display: none;
 }
 
