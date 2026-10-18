@@ -60,8 +60,12 @@ their named articles.
   the terms needed to follow the explanation; do not assume ML background for a
   non-ML subject. Let the intended audience and learning goals guide the choice
   of examples and depth without restating the writing brief in the article.
-  Open with the subject or a concrete problem; avoid preambles about how the
-  reader should learn or why the article was written for them.
+  Default to lecture-note prose. Open directly with the subject, definitions,
+  model, or technical problem; readers already intend to learn it. Avoid literary
+  openings, invented stories, suspense, rhetorical question chains, and extended
+  motivation or familiar-workflow recaps. Organize sections by conceptual
+  dependencies, using descriptive headings. Explain mechanisms and reasoning in
+  connected prose; concise writing must not become an unexplained glossary.
 - Use courses and papers to develop a coherent explanation for students.
   Organize the prose around the reader's questions, mechanisms, and worked
   examples; explain the subject directly instead of narrating how different
@@ -83,10 +87,10 @@ their named articles.
   that. Naming the operation or citing an identity is not a substitute for this
   connection. Let the goal and constraints lead to the equation before presenting
   it as a result; integrate the motivation into the derivation instead of appending
-  a separate explanation after an unexplained formula. Prefer a guided design over
-  a recipe: let each step solve a need or failure revealed by the previous step,
-  contrast it with the simplest plausible alternative, and assemble the final
-  algorithm only after its parts are motivated. When a first-principles derivation
+  a separate explanation after an unexplained formula. Explain each step's purpose
+  and dependencies directly; compare a simple alternative when it clarifies a
+  design choice. Do not force every concept into a discovery story or delay a
+  useful definition to manufacture curiosity. When a first-principles derivation
   would overwhelm the main explanation, give enough operational or geometric
   intuition for readers to understand why every essential operation is present
   and what would change without it. Do not add a heading for every reasoning step.

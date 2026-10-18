@@ -4,6 +4,7 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Active work
 
+- [Version Control lecture-note outline — 2026-10-18](plans/2026-10-18-version-control-outline.md): revised concept order, complete system coverage, and migration of existing prose and figures.
 - [Compression modernization research — 2026-09-24](audits/2026-09-24-compression-modernization.md): live compression/cache headers, asset inventory, and prioritized optimization candidates.
 - [Long article rendering review — 2026-09-20](audits/2026-09-20-long-article-rendering.md): current production measurements, body delivery/hydration findings, and rendering recommendations.
 - [Long article reading experience](maintenance/long-article-reading.md): reader-journey findings, the interface proposal, and its ordered implementation tasks.

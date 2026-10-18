@@ -9,6 +9,16 @@ For Jekyll, Hexo, or Typst imports, also read
 
 ## Prose, structure, and assets
 
+- Default to lecture-note style for technical writing. Start with the topic and
+  its definitions or model, then explain relationships, operations, and tradeoffs
+  in prerequisite order. Assume readers already intend to study the subject;
+  omit story-driven introductions, staged curiosity, rhetorical question chains,
+  and recaps of familiar workflows that add no conceptual information. Examples
+  should clarify a specific mechanism with little unrelated context. Use diagrams
+  for structure and transformations, not to restate prose in boxes. Keep necessary
+  reasoning and approachable explanations; lecture notes are not a glossary or
+  command cheat sheet. Follow the detailed editorial principles for derivations.
+
 - Treat existing prose as author-owned. Preserve its wording, tone, and
   structure unless the user asks for a rewrite; make the smallest correction
   needed for genuine factual or rendering errors.

@@ -86,11 +86,17 @@ instead of accumulating unrelated rules here.
 
 - Write for students learning or reviewing the subject. Assume relevant general
   background, but introduce the prerequisites and terms needed for this topic.
+- Default to lecture-note prose: enter the subject directly, organize by conceptual
+  dependencies, and use definitions, mechanisms, examples, and diagrams to explain
+  it. Avoid literary openings, invented stories, suspense, rhetorical question
+  chains, and repeated explanations of why readers should learn the topic.
+  Concision must preserve reasoning; it does not mean terse lists of unexplained terms.
 - Learn from authoritative courses and original papers, then build a coherent
   explanation in the article's own voice. Explain the subject directly;
   multiple perspectives should help readers understand the same mechanism.
   Avoid narrating how individual lecturers teach or organize their material.
-- Start with the problem and explain why the method or derivation is needed.
+- State the subject or technical problem directly; explain a method's purpose
+  where it clarifies the mechanism, without a mandatory motivational preamble.
   Connect the objective, mathematical quantities, and actual training or
   inference steps. Use a concrete worked example across these connections
   when it makes the reasoning easier to follow.
@@ -99,10 +105,9 @@ instead of accumulating unrelated rules here.
   In tutorial prose, derive the formula from that goal and those constraints
   before presenting it as a result. Integrate the motivation into the derivation;
   avoid announcing an unexplained formula and adding a separate justification later.
-  When possible, guide the reader through designing the method: make the next
-  operation answer a question or limitation exposed by the previous one, compare
-  it with the simplest plausible alternative, and present the assembled algorithm
-  only after its parts have become necessary. If the full derivation is too
+  Explain dependencies and design choices directly, using a simple alternative
+  where it helps establish a tradeoff. Do not force a discovery narrative around
+  every definition or operation. If the full derivation is too
   involved, still give an operational or geometric intuition for every essential
   design choice instead of asking the reader to accept a recipe.
 - Derive essential results once, explain their meaning, and refer back to them
