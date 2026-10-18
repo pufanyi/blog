@@ -12,6 +12,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import type { Highlighter } from 'shiki';
 import { createCodeRenderer } from './code-renderer.mts';
+import { type GitHubCodeLoader, remarkGitHubCode } from './github-code.mts';
 import { getImageDimensions, type ImageDimensions } from './image-dimensions.mts';
 import { postStyles } from './post-assets.mts';
 import { buildTableOfContents } from './toc-renderer.mts';
@@ -348,7 +349,22 @@ function postprocessMdxHtml(
       if (!pre) continue;
       const languageClass = Array.from(code.classList).find((name) => name.startsWith('language-'));
       const lang = languageClass?.slice('language-'.length) || '';
-      replaceWithHtml(document, pre, renderCode({ text: code.textContent ?? '', lang }));
+      const startLine = code.hasAttribute('data-github-start')
+        ? Number(code.getAttribute('data-github-start'))
+        : undefined;
+      replaceWithHtml(document, pre, renderCode({ text: code.textContent ?? '', lang, startLine }));
+    }
+    for (const figure of document.querySelectorAll('figure.github-code')) {
+      const caption = figure.querySelector('figcaption');
+      const block = figure.querySelector('.code-block');
+      const header = block?.querySelector('.code-header');
+      if (!caption || !block || !header) continue;
+      header.querySelector('.code-lang')?.remove();
+      caption.classList.add('code-header');
+      caption.append(...Array.from(header.childNodes));
+      header.remove();
+      figure.classList.add('code-block');
+      block.replaceWith(...Array.from(block.childNodes));
     }
     return { html: document.body.innerHTML, toc, markdownHtml };
   } finally {
@@ -361,6 +377,7 @@ export async function renderMdx(
   slug: string,
   sourcePath: string,
   highlighter: Highlighter,
+  loadGitHubFile?: GitHubCodeLoader,
 ) {
   const components = await loadPostComponents(sourcePath);
   const bibliography = join(dirname(sourcePath), 'references.bib');
@@ -385,7 +402,11 @@ export async function renderMdx(
   const module = await evaluate(mdx, {
     ...jsxRuntime,
     baseUrl: pathToFileURL(sourcePath),
-    remarkPlugins: [remarkGfm, remarkMath],
+    remarkPlugins: [
+      remarkGfm,
+      remarkMath,
+      [remarkGitHubCode, { highlighter, sourcePath, loadFile: loadGitHubFile }],
+    ],
     rehypePlugins,
   });
   const html = renderToStaticMarkup(createElement(module.default, { components }));

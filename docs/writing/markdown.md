@@ -10,6 +10,46 @@ Use full article paths for cross-post links, for example `/blog/oi-icpc/codeforc
 
 Markdown tables and fenced code blocks work normally. Put a language after the opening code fence, such as `typescript`, `python`, or `bash`, for syntax highlighting. Code uses the same semantic Morandi colors in both themes and gains a copy button in the browser.
 
+## GitHub code quotations
+
+Paste a public GitHub file permalink on its own paragraph to embed the selected
+code. Use a full 40-character commit SHA and a line selection (`#L8` or `#L8-L12`):
+
+```md
+The following definition comes from Git:
+
+https://github.com/git/git/blob/c51408889c3b372814bc20b9431c3b74d0d268eb/blob.h#L8-L12
+
+Continue the explanation here.
+```
+
+The generated card shows the repository, file, original line numbers, and short
+commit SHA. Its source link opens the selected lines on GitHub; its copy button
+copies only code. Syntax colors follow the site's light/dark themes. Language is
+inferred from the filename, with plain text for unknown extensions. Header files
+ending in `.h` use C; `.hpp` and `.hh` use C++.
+
+Only standalone bare links expand. Inline links, `[View source](url)`, explicitly
+labeled links whose label is the URL, and links inside code blocks stay as written.
+The Markdown linter permits these standalone quotes; use labeled links for ordinary
+inline references. Branch/tag URLs and URLs without line selections remain ordinary links. Use
+GitHub's **Copy permalink** action to pin a version; editing the permalink is how
+you update a quotation. Markdown files can use `?plain=1` before the line fragment.
+
+Code is fetched during content generation and rendered into static HTML. Markdown
+exports retain a fenced code block and the permanent source link. No browser
+request to GitHub is needed. The first build needs network access; complete source
+files are cached under `.generated/github-code-cache` and reused offline across
+articles and line ranges. Keep that directory when you need offline rebuilds.
+Fresh CI environments also need network access for new quotes. This feature does
+not fetch authenticated/private repositories.
+
+A quote can select up to 500 lines from a UTF-8 text file of at most 2 MiB.
+Generation fails with the article path, line in its MDX body, URL, and cause when
+a matching quote cannot be fetched or its line range is invalid. Invalid ranges
+are never silently truncated. Fix the permalink or use an ordinary labeled link
+when you only want to point readers at the source.
+
 ## Inline and display equations
 
 ```mdx

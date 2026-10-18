@@ -40,7 +40,15 @@ export function replaceInlineSyntaxColors(html: string): string {
 }
 
 export function createCodeRenderer(highlighter: Highlighter) {
-  return function code({ text, lang }: { text: string; lang: string }): string {
+  return function code({
+    text,
+    lang,
+    startLine,
+  }: {
+    text: string;
+    lang: string;
+    startLine?: number;
+  }): string {
     const language = highlighter.getLoadedLanguages().find((loaded) => loaded === lang) ?? 'text';
     const terminalLine = text.endsWith('\n') ? text.split('\n').length : -1;
     const html = replaceInlineSyntaxColors(
@@ -48,12 +56,15 @@ export function createCodeRenderer(highlighter: Highlighter) {
         lang: language,
         themes: { light: 'catppuccin-latte', dark: 'catppuccin-mocha' },
         transformers: [
-          transformerNotationDiff(),
-          transformerNotationHighlight(),
+          ...(startLine === undefined
+            ? [transformerNotationDiff(), transformerNotationHighlight()]
+            : []),
           {
             name: 'terminal-newline',
             line(node, line) {
               if (line === terminalLine) this.addClassToHast(node, 'terminal-newline');
+              if (startLine !== undefined)
+                node.properties['data-line-number'] = startLine + line - 1;
             },
           },
         ],
