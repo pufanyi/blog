@@ -62,3 +62,42 @@
     grid-template-columns: 1fr;
   }
 }
+
+.vcs-object-scroll {
+  overflow-x: auto;
+}
+
+.vcs-object-scroll svg {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  height: auto;
+}
+
+.vcs-object-scroll text {
+  fill: var(--text-color);
+  font: 14px var(--font-body);
+}
+
+.vcs-object-scroll .vcs-heading {
+  font-weight: 650;
+}
+
+.vcs-object-scroll .vcs-filename {
+  font: 13px var(--font-mono);
+}
+
+.vcs-object-edge,
+.vcs-object-parent {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+}
+
+.vcs-object-parent {
+  stroke-dasharray: 5 4;
+}
+
+.vcs-object-arrow {
+  fill: var(--text-secondary);
+}
