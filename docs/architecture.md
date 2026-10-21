@@ -130,7 +130,9 @@ boundary, keeping its header reachable at the page end. An intersection observer
 tracks a one-pixel row marker; no scroll handler or scroll-time geometry reads are
 needed. Reset and dispose the observers on viewport/layout changes and navigation.
 Body text uses the original 15px desktop / 14px
-mobile baseline, with Space Grotesk headings. The toolbar matches that typography
+mobile baseline, with Space Grotesk headings. Prose is left-aligned: justification
+stretched CJK lines beside unbreakable formulas and inline code. Font tokens name
+platform CJK faces after the Latin families, because those lack CJK glyphs. The toolbar matches that typography
 and paper surface. Its background spans the viewport and sits flush with the
 top edge, separated from the page by a subtle bottom rule and shadow. Navigation
 and article controls sit at the left edge; search, print, and theme controls sit
@@ -154,16 +156,22 @@ the article changes. Sidebar and dialog disclosures must use distinct IDs. Rende
 all section links in static HTML and enable folding only after hydration.
 Chapter and whole-outline disclosures animate their grid rows, with closed
 content made inert and hidden from assistive technology immediately. Keep the
-bounded flex/grid chain intact so long lists still scroll independently. Selection
-uses a tinted row and inset marker without changing font weight or text geometry.
-The current section supplies the toolbar context; the outline footer describes
-position in the article rather than claiming reading completion. Never auto-scroll
+bounded flex/grid chain intact so long lists still scroll independently. The
+outline is titled "On this page" in the sidebar and the sheet; "Contents" names the
+blog directory. Chapters use the primary text color and subsections the secondary
+color. Selection uses the link color and an inset marker, without a row tint or a
+font-weight or text-geometry change. On subsections the marker covers the shared
+rail. A chapter containing the current subsection highlights only its number.
+From 1024px the current section supplies the toolbar context. The outline footer
+is one "Position in article" bar and percentage rather than a completion claim. Never auto-scroll
 the outline while its links are hovered or keyboard-focused.
 On narrower screens, a fixed bottom contents dock always shows its label and the
-current section (or chapter count before reading). It replaces the former inline
-entry that scrolled away. The dock and toolbar action open the same native
-bottom-sheet dialog. Reserve its height, including the device bottom safe area,
-at the end of the document and below the back-to-top control. Remove that space
+current section (or section count before reading). It replaces the former inline
+entry that scrolled away. It is the only contents control and section context at
+these widths: the toolbar adds no contents action and hides its context. The dock
+opens a native bottom-sheet dialog and also holds the back-to-top button, so no
+floating control covers body text. Reserve the dock height, including the device
+bottom safe area, at the end of the document. Remove that space
 for other routes and print. Preserve 44px touch targets, Escape dismissal,
 focus restoration, section-link focus and independent scrolling. Resizing into the
 wide layout closes the dialog without focusing its now-hidden trigger.

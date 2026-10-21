@@ -81,7 +81,10 @@ test('full-width toolbar stays flush with the top and clear of page content', as
       'rgba(0, 0, 0, 0)',
     );
     if (width < 1024) {
-      await expect(toolbar.getByRole('button', { name: 'Toggle table of contents' })).toBeVisible();
+      // The reading dock is the only contents control and section context here.
+      await expect(page.getByRole('button', { name: 'Open table of contents' })).toBeVisible();
+      await expect(toolbar.getByRole('button', { name: /table of contents/ })).toHaveCount(0);
+      await expect(toolbar.locator('.toolbar-context')).toBeHidden();
     } else {
       const sidebar = await page.locator('.post-toc-sidebar').boundingBox();
       const header = await toolbar.locator('header').boundingBox();
@@ -94,7 +97,7 @@ test('full-width toolbar stays flush with the top and clear of page content', as
     'aria-current',
     'location',
   );
-  await expect(toolbar.getByRole('button', { name: 'Toggle table of contents' })).toHaveCount(0);
+  await expect(page.locator('.post-reading-dock')).toHaveCount(0);
   await page.setViewportSize({
     width: testInfo.project.name === 'mobile' ? 390 : 1280,
     height: 900,

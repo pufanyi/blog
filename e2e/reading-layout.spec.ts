@@ -13,7 +13,7 @@ test('independent article paper keeps the outline outside and aligned with its t
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
     const drawer = width < 1024;
-    const trigger = page.getByRole('button', { name: 'Toggle table of contents' });
+    const trigger = page.getByRole('button', { name: 'Open table of contents' });
     if (drawer) await trigger.click();
     const container = page.locator(drawer ? '.post-toc-dialog' : '.post-toc-sidebar');
     await expect(container).toBeVisible();
@@ -253,8 +253,13 @@ test('the mobile contents dock stays visible through reading and never covers th
   const dockTop = (await dock.boundingBox())!.y;
   const footer = (await page.locator('.footer').boundingBox())!;
   expect(footer.y + footer.height).toBeLessThanOrEqual(dockTop);
-  const backToTop = (await page.locator('.back-to-top').boundingBox())!;
-  expect(backToTop.y + backToTop.height).toBeLessThan(dockTop);
+  // The floating control would cover body text; the dock provides its own.
+  await expect(page.locator('app-back-to-top.is-wide-only')).toBeHidden();
+  const backToTop = page.locator('.post-reading-dock').getByRole('button', { name: 'Back to top' });
+  await expect(backToTop).toBeInViewport({ ratio: 1 });
+  const backToTopBox = (await backToTop.boundingBox())!;
+  expect(backToTopBox.width).toBeGreaterThanOrEqual(44);
+  expect(backToTopBox.height).toBeGreaterThanOrEqual(44);
   await dock.click();
   const dialog = page.getByRole('dialog', { name: 'Table of contents', exact: true });
   const firstLink = dialog.locator('.toc-link').first();
@@ -269,6 +274,8 @@ test('the mobile contents dock stays visible through reading and never covers th
     path: info.outputPath('contents-dock-reading.png'),
     animations: 'disabled',
   });
+  await backToTop.click();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   await page.emulateMedia({ media: 'print' });
   await expect(dock).not.toBeVisible();
   await page.emulateMedia({ media: 'screen' });

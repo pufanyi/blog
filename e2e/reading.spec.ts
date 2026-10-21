@@ -129,7 +129,7 @@ test('table of contents preserves focus and anchors after deferred formula layou
       ),
     )
     .toBeLessThan(3);
-  const trigger = page.getByRole('button', { name: 'Toggle table of contents' });
+  const trigger = page.getByRole('button', { name: 'Open table of contents' });
   await trigger.click();
   const dialog = page.getByRole('dialog', { name: 'Table of contents', exact: true });
   await expect(dialog.getByRole('button', { name: 'Close table of contents' })).toBeFocused();
@@ -184,7 +184,7 @@ for (const layout of ['sidebar', 'drawer'] as const) {
     await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
     await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
     if (layout === 'drawer') {
-      await page.getByRole('button', { name: 'Toggle table of contents' }).click();
+      await page.getByRole('button', { name: 'Open table of contents' }).click();
     }
     const panel = page.locator(layout === 'sidebar' ? '.post-toc-sidebar' : '.toc-drawer');
     const viewport = panel.locator('.toc-scroll');

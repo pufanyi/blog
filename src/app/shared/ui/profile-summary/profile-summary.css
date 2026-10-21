@@ -144,6 +144,10 @@
   color: var(--text-secondary);
 }
 
+.profile-summary .contact-item {
+  white-space: nowrap;
+}
+
 .profile-summary .abstract {
   margin-bottom: 2.5rem;
 }
@@ -158,7 +162,6 @@
 
 .profile-summary .abstract-content {
   line-height: 1.7;
-  text-align: justify;
 }
 
 .profile-summary .abstract-content p {
@@ -184,8 +187,13 @@
     font-size: 1.6rem;
   }
 
-  .profile-summary .abstract-content {
-    text-align: left;
+  .profile-summary .contact-info {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .profile-summary .separator {
+    display: none;
   }
 
   .profile-summary .links {
@@ -230,6 +238,11 @@
   .profile-summary .contact-info {
     margin-bottom: 0.4rem;
     font-size: 0.85rem;
+  }
+
+  /* The printed CV keeps its justified abstract. */
+  .profile-summary .abstract-content {
+    text-align: justify;
   }
 
   .profile-summary .links {

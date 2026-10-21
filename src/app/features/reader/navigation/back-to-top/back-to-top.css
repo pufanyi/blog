@@ -34,6 +34,58 @@
   border-color: color-mix(in srgb, var(--border-color) 45%, transparent);
 }
 
+:host(.is-dock) {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  padding-left: 0.25rem;
+  border-left: 1px solid var(--border-light);
+}
+
+:host(.is-dock) .back-to-top {
+  position: static;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+:host(.is-dock) .back-to-top:hover {
+  background: var(--accent-bg);
+  color: var(--link-color);
+}
+
+.back-to-top:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: 2px;
+}
+
+:host(.is-dock) .back-to-top:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Keep this breakpoint aligned with the reading dock in post-navigation.css. */
+@media (max-width: 1023px) {
+  :host(.is-wide-only) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host(.is-dock) .back-to-top {
+    transition: none;
+  }
+}
+
 @media (max-width: 600px) {
   .back-to-top {
     right: 0.9rem;

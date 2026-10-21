@@ -229,6 +229,50 @@ content rewrite or saved-continuation feature. Validation artifacts live under
 ignored `tmp/toc-motion/`; motion-enabled browser regressions accompany the
 existing long-article, no-JavaScript, history and real-rendering coverage.
 
+### Reading polish follow-up — 2026-10-21
+
+A site-wide style review used dev-server screenshots of the home page, archive, and
+three articles (Version Control, RL, CodeForces 1045B). It covered 1440/1280/900px
+desktop, 390px mobile, and both themes. Justified prose was the most visible defect.
+CJK lines before an unbreakable formula or inline code were stretched to almost one
+character of spacing per glyph (CodeForces 1045B). The English home abstract showed
+rivers. Prose is now left-aligned; the printed CV keeps its justified abstract.
+
+On narrow screens the toolbar repeated the dock's section name, and offered a second
+contents trigger and a second close control. The floating back-to-top button covered
+the end of body lines. The bottom dock is now the only contents control and section
+context below 1024px, and it contains the back-to-top button. The floating control
+remains for wide layouts and for articles without an outline. This narrows the earlier
+"dock and toolbar action" arrangement; it does not revisit the persistent dock.
+
+The outline drops the selected-row tint. The link color and inset marker remain, and
+on subsections the marker now covers the shared rail instead of sitting beside it.
+Chapters use primary text and subsections secondary text, so a chapter containing the
+current subsection highlights only its number. Desktop rows are tighter; coarse
+pointers keep 44px rows with centered labels. Row disclosures use the same Phosphor
+caret as the header. Both surfaces are titled "On this page", because the blog
+directory already owns "Contents". The footer is a single "Position in article" bar.
+Font tokens name platform CJK faces after the Latin families. Back-matter numbering
+(Further reading, references) is unchanged; it needs an authoring marker first.
+
+Validation on Node 24.21.0 / pnpm 12.6.0:
+
+- `pnpm check` passed.
+- `pnpm test --watch=false` passed: 106 content tests and 241 app tests. This needed
+  `TMPDIR` set to its real path. With macOS's symlinked default,
+  `markdown-deployment.spec.mts` fails identically on unchanged `main`, because its
+  generated worker imports a `/private/…` path.
+- Desktop and mobile Chromium e2e ran fully. They exposed only one change-related
+  failure: `toc-motion.spec.ts` asserted the removed tint, and it now checks the marker
+  (16/16 after the update).
+- The `/` cold resource budget fails identically on unchanged `main` (search bytes
+  2,479,693 > 2,413,582). It is not caused by this change.
+- WebKit could not launch in the agent's sandbox (180s launch timeouts), so the WebKit
+  project and the Cloudflare project after it are unverified here.
+
+Before/after screenshots and the capture script live in ignored
+`tmp/reading-polish-2026-10-21/`.
+
 ## Prototype and verification artifacts
 
 The local `tmp/reading-experience-2026-09-13/reader-preview.html` file is an interactive design preview. It labels its seeded continuation state as an example. Saved positions use a prototype-specific local-storage key. It includes existing rendered article content and demonstrates controls without modifying the application or authored posts.

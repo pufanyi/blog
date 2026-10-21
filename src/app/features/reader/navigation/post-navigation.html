@@ -12,13 +12,15 @@
     />
   </aside>
 
-  <button class="post-contents-dock" type="button" #dock (click)="toggleToc(dock)"
-    aria-label="Open table of contents" aria-controls="post-toc-dialog"
-    [attr.aria-expanded]="tocOpen()">
-    <span class="contents-dock-label"><i class="ph ph-list" aria-hidden="true"></i> Contents</span>
-    <span class="contents-dock-context">{{ currentSection() || items().length + ' chapters' }}</span>
-    <i class="ph ph-caret-up" aria-hidden="true"></i>
-  </button>
+  <div class="post-reading-dock">
+    <button class="post-contents-dock" type="button" #dock (click)="toggleToc(dock)"
+      aria-label="Open table of contents" aria-controls="post-toc-dialog"
+      [attr.aria-expanded]="tocOpen()">
+      <span class="contents-dock-label"><i class="ph ph-list" aria-hidden="true"></i> On this page</span>
+      <span class="contents-dock-context">{{ currentSection() || sectionCount() }}</span>
+    </button>
+    <app-back-to-top placement="dock" />
+  </div>
 
   <dialog
     class="post-toc-dialog"
