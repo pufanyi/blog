@@ -107,9 +107,9 @@ test('full-width toolbar stays flush with the top and clear of page content', as
   await expect(toolbar).not.toBeVisible();
 });
 
-test('toolbar controls stay at the same edges across article and documentation widths', {
-  tag: '@desktop-only',
-}, async ({ page }) => {
+test('toolbar controls stay at the same edges across article and documentation widths @desktop-only', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto('/blog/cs/notes/modern-communication-protocols');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
@@ -354,9 +354,10 @@ test('archive pagination supports keyboard navigation, reload, and history', asy
   await expect(page).toHaveURL('/blog');
 });
 
-test('archive pages contain their own posts and metadata before JavaScript runs', {
-  tag: '@desktop-only',
-}, async ({ request, page }) => {
+test('archive pages contain their own posts and metadata before JavaScript runs @desktop-only', async ({
+  request,
+  page,
+}) => {
   for (const number of new Set([1, Math.min(2, archivePages), archivePages])) {
     const path = number === 1 ? '/blog' : `/blog/page/${number}`;
     const response = await request.get(path);

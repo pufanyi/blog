@@ -82,9 +82,10 @@ test('a slide deck with an outline starts with the sidebar closed', async ({ pag
   await expect(container).not.toHaveClass(/viewsManagerOpen/);
 });
 
-test('the static reader is noindex and rejects non-asset sources', {
-  tag: '@desktop-only',
-}, async ({ page, request }) => {
+test('the static reader is noindex and rejects non-asset sources @desktop-only', async ({
+  page,
+  request,
+}) => {
   const response = await request.get('/pdf-viewer');
   expect(response.status()).toBe(200);
   expect(await response.text()).toMatch(/name="robots" content="noindex, follow"/);

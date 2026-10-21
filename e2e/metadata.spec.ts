@@ -9,9 +9,10 @@ const autoregressive = POSTS.find((post) => post.slug === 'ml/ml-revisit/ar')!;
 
 const diffusion = POSTS.find((post) => post.slug === 'ml/ml-revisit/diffusion')!;
 
-test('prerendered HTML contains article metadata and missing routes return the 404 page', {
-  tag: '@desktop-only',
-}, async ({ request, page }) => {
+test('prerendered HTML contains article metadata and missing routes return the 404 page @desktop-only', async ({
+  request,
+  page,
+}) => {
   for (const post of [diffusion, autoregressive]) {
     const response = await request.get(`/blog/${post.slug}`);
     expect(response.status()).toBe(200);

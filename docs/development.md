@@ -116,8 +116,10 @@ checks are intentionally skipped to avoid claiming Node preview reproduces
 Cloudflare behavior.
 
 A test that fixes its own viewport, or never renders a page, would do the same
-work in both Chromium projects. Tag it `@desktop-only` or `@mobile-only`: each
-project's `grepInvert` excludes the other tag. Specs whose every case is
+work in both Chromium projects. End its title with `@desktop-only` or
+`@mobile-only`: each project's `grepInvert` excludes the other tag. A title tag
+keeps the change to one line, whereas a `{ tag }` argument re-indents the whole
+test and conflicts with concurrent edits. Specs whose every case is
 single-project instead belong in the `mobile` project's `testIgnore`, with a reason.
 Keep breakpoint tests that use the project's own width in both projects.
 
