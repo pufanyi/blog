@@ -110,7 +110,7 @@ test('full-width toolbar stays flush with the top and clear of page content', as
   await expect(toolbar).not.toBeVisible();
 });
 
-test('toolbar controls stay at the same edges across article and documentation widths', async ({
+test('toolbar controls stay at the same edges across article and documentation widths @desktop-only', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1600, height: 900 });
@@ -357,7 +357,7 @@ test('archive pagination supports keyboard navigation, reload, and history', asy
   await expect(page).toHaveURL('/blog');
 });
 
-test('archive pages contain their own posts and metadata before JavaScript runs', async ({
+test('archive pages contain their own posts and metadata before JavaScript runs @desktop-only', async ({
   request,
   page,
 }) => {

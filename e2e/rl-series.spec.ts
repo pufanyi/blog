@@ -8,7 +8,9 @@ const chapters = [
   ['center-the-score-under-the-sampler', 'rl-score-centering'],
 ] as const;
 
-test('legacy RL fragments lead to the corresponding series chapters', async ({ page }) => {
+test('legacy RL fragments lead to the corresponding series chapters @desktop-only', async ({
+  page,
+}) => {
   for (const [fragment, slug] of chapters) {
     await page.goto(`/blog/ml/ml-revisit/rl#${fragment}`);
     await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
@@ -26,7 +28,7 @@ test('legacy RL fragments lead to the corresponding series chapters', async ({ p
   }
 });
 
-test('the earlier policy-gradient article URL redirects to the foundations article', async ({
+test('the earlier policy-gradient article URL redirects to the foundations article @desktop-only', async ({
   page,
 }) => {
   await page.goto('/blog/ml/ml-revisit/rl/policy-gradient');

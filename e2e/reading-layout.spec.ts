@@ -74,7 +74,9 @@ test('independent article paper keeps the outline outside and aligned with its t
   }
 });
 
-test('articles without an outline retain one centered paper on every screen', async ({ page }) => {
+test('articles without an outline retain one centered paper on every screen @desktop-only', async ({
+  page,
+}) => {
   await page.goto('/blog/oi-icpc/other-problems/integer-break');
   await expect(page.locator('.post-body')).toHaveAttribute('data-rendered', 'true');
   await expect(page.locator('.post-reading-layout')).not.toHaveClass(/has-outline/);
@@ -89,7 +91,7 @@ test('articles without an outline retain one centered paper on every screen', as
   }
 });
 
-test('chapters expand independently and subsection navigation retains context and keyboard focus', async ({
+test('chapters expand independently and subsection navigation retains context and keyboard focus @desktop-only', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -129,7 +131,7 @@ test('chapters expand independently and subsection navigation retains context an
   await expect(page.locator('.toolbar-context')).toHaveText(text);
 });
 
-test('persistent contents opens the mobile sheet and restores its trigger after Escape or resize', async ({
+test('persistent contents opens the mobile sheet and restores its trigger after Escape or resize @mobile-only', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -165,7 +167,7 @@ test('persistent contents opens the mobile sheet and restores its trigger after 
   await page.keyboard.press('Escape');
 });
 
-test('the wide outline remains reachable at the page end and can collapse without moving the text', async ({
+test('the wide outline remains reachable at the page end and can collapse without moving the text @desktop-only', async ({
   page,
 }, info) => {
   await page.setViewportSize({ width: 1100, height: 900 });
@@ -228,7 +230,7 @@ test('the wide outline remains reachable at the page end and can collapse withou
   await page.screenshot({ path: info.outputPath('outline-page-end.png'), animations: 'disabled' });
 });
 
-test('the mobile contents dock stays visible through reading and never covers the last content', async ({
+test('the mobile contents dock stays visible through reading and never covers the last content @mobile-only', async ({
   page,
 }, info) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -284,7 +286,7 @@ test('the mobile contents dock stays visible through reading and never covers th
   await expect(page.locator('body')).toHaveCSS('padding-bottom', '0px');
 });
 
-test('without JavaScript the wide outline retains every chapter and subsection link', async ({
+test('without JavaScript the wide outline retains every chapter and subsection link @desktop-only', async ({
   browser,
   baseURL,
 }) => {

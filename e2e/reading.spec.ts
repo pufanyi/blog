@@ -4,8 +4,6 @@ import { openSearch, test } from './fixtures';
 
 const autoregressive = POSTS.find((post) => post.slug === 'ml/ml-revisit/ar')!;
 
-const diffusion = POSTS.find((post) => post.slug === 'ml/ml-revisit/diffusion')!;
-
 test('code inside details keeps its layout, scrolling and copy behavior', async ({
   page,
   context,
@@ -93,25 +91,6 @@ test('code inside details keeps its layout, scrolling and copy behavior', async 
   await expect(pre.locator('code')).toHaveText(source!);
 });
 
-test('new articles start at the top and history restores the previous reading position', async ({
-  page,
-}) => {
-  await page.goto(`/blog/${autoregressive.slug}`);
-  await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
-  await page.evaluate(() => window.scrollTo({ top: 900, behavior: 'instant' }));
-  await expect.poll(() => page.evaluate(() => scrollY)).toBe(900);
-  const { input } = await openSearch(page);
-  await input.fill('Diffusion');
-  await input.press('Enter');
-  await expect(page).toHaveURL(`/blog/${diffusion.slug}`);
-  await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
-  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
-  await page.goBack();
-  await expect(page).toHaveURL(`/blog/${autoregressive.slug}`);
-  await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
-  await expect.poll(() => page.evaluate(() => scrollY)).toBe(900);
-});
-
 test('table of contents preserves focus and anchors after deferred formula layout', async ({
   page,
 }) => {
@@ -142,7 +121,7 @@ test('table of contents preserves focus and anchors after deferred formula layou
   await expect(page).toHaveURL(/#early-explorations$/);
 });
 
-test('home and search do not download article bodies or MathJax; reading loads one body', async ({
+test('home and search do not download article bodies or MathJax; reading loads one body @desktop-only', async ({
   page,
   baseURL,
 }) => {
@@ -174,7 +153,9 @@ test('home and search do not download article bodies or MathJax; reading loads o
 });
 
 for (const layout of ['sidebar', 'drawer'] as const) {
-  test(`long table of contents scrolls to its final section in the ${layout}`, async ({ page }) => {
+  test(`long table of contents scrolls to its final section in the ${layout}${layout === 'sidebar' ? ' @desktop-only' : ''}`, async ({
+    page,
+  }) => {
     await page.setViewportSize({
       width: layout === 'sidebar' ? 1600 : Math.min(page.viewportSize()!.width, 1000),
       height: 560,

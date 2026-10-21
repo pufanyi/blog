@@ -88,7 +88,9 @@ test('search opens and stays interactive while its index downloads', async ({ pa
   expect(engineRequests).toBe(1);
 });
 
-test('Enter during the first download opens the latest query after loading', async ({ page }) => {
+test('Enter during the first download opens the latest query after loading @desktop-only', async ({
+  page,
+}) => {
   const release = deferred();
   await interceptSearchEngine(page, async () => {
     await release.promise;
@@ -105,7 +107,9 @@ test('Enter during the first download opens the latest query after loading', asy
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
-test('search offers a page reload after an index download fails', async ({ page }) => {
+test('search offers a page reload after an index download fails @desktop-only', async ({
+  page,
+}) => {
   const fail = deferred();
   let engineRequests = 0;
   await interceptSearchEngine(page, async () => {

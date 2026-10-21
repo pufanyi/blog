@@ -115,6 +115,14 @@ exercises actual Worker/static-asset routing. Its two corresponding Chromium
 checks are intentionally skipped to avoid claiming Node preview reproduces
 Cloudflare behavior.
 
+A test that fixes its own viewport, or never renders a page, would do the same
+work in both Chromium projects. End its title with `@desktop-only` or
+`@mobile-only`: each project's `grepInvert` excludes the other tag. A title tag
+keeps the change to one line, whereas a `{ tag }` argument re-indents the whole
+test and conflicts with concurrent edits. Specs whose every case is
+single-project instead belong in the `mobile` project's `testIgnore`, with a reason.
+Keep breakpoint tests that use the project's own width in both projects.
+
 - Check search with real, bubbling keyboard events and both Chinese and
   English queries. Verify one-step arrow navigation, focus containment,
   dismissal, and focus restoration on the served page.
