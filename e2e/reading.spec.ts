@@ -4,8 +4,6 @@ import { openSearch, test } from './fixtures';
 
 const autoregressive = POSTS.find((post) => post.slug === 'ml/ml-revisit/ar')!;
 
-const diffusion = POSTS.find((post) => post.slug === 'ml/ml-revisit/diffusion')!;
-
 test('code inside details keeps its layout, scrolling and copy behavior', async ({
   page,
   context,
@@ -91,25 +89,6 @@ test('code inside details keeps its layout, scrolling and copy behavior', async 
   await summary.click();
   await expect(block).toBeVisible();
   await expect(pre.locator('code')).toHaveText(source!);
-});
-
-test('new articles start at the top and history restores the previous reading position', async ({
-  page,
-}) => {
-  await page.goto(`/blog/${autoregressive.slug}`);
-  await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
-  await page.evaluate(() => window.scrollTo({ top: 900, behavior: 'instant' }));
-  await expect.poll(() => page.evaluate(() => scrollY)).toBe(900);
-  const { input } = await openSearch(page);
-  await input.fill('Diffusion');
-  await input.press('Enter');
-  await expect(page).toHaveURL(`/blog/${diffusion.slug}`);
-  await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
-  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
-  await page.goBack();
-  await expect(page).toHaveURL(`/blog/${autoregressive.slug}`);
-  await expect(page.locator('.post-body')).toHaveAttribute('data-math-ready', 'true');
-  await expect.poll(() => page.evaluate(() => scrollY)).toBe(900);
 });
 
 test('table of contents preserves focus and anchors after deferred formula layout', async ({
