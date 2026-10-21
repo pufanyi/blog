@@ -142,10 +142,9 @@ test('table of contents preserves focus and anchors after deferred formula layou
   await expect(page).toHaveURL(/#early-explorations$/);
 });
 
-test('home and search do not download article bodies or MathJax; reading loads one body', async ({
-  page,
-  baseURL,
-}) => {
+test('home and search do not download article bodies or MathJax; reading loads one body', {
+  tag: '@desktop-only',
+}, async ({ page, baseURL }) => {
   const scripts: Promise<string>[] = [];
   let mathRequests = 0;
   page.on('request', (request) => {
@@ -174,7 +173,11 @@ test('home and search do not download article bodies or MathJax; reading loads o
 });
 
 for (const layout of ['sidebar', 'drawer'] as const) {
-  test(`long table of contents scrolls to its final section in the ${layout}`, async ({ page }) => {
+  // The sidebar case fixes its viewport; the drawer case follows each project's width.
+  const tag = layout === 'sidebar' ? ['@desktop-only'] : [];
+  test(`long table of contents scrolls to its final section in the ${layout}`, { tag }, async ({
+    page,
+  }) => {
     await page.setViewportSize({
       width: layout === 'sidebar' ? 1600 : Math.min(page.viewportSize()!.width, 1000),
       height: 560,

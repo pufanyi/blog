@@ -23,14 +23,27 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
+    // Tests that fix their own viewport, or never render a page, would repeat the
+    // same work in both Chromium projects; tags keep each in the project it targets.
     {
       name: 'desktop',
       testIgnore: 'webkit.spec.ts',
+      grepInvert: /@mobile-only/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
     },
     {
       name: 'mobile',
-      testIgnore: ['performance.spec.ts', 'webkit.spec.ts'],
+      testIgnore: [
+        'performance.spec.ts',
+        'webkit.spec.ts',
+        // HTTP-only checks against the same Node preview.
+        'agent-content.spec.ts',
+        // Every case fixes its viewport; WebKit covers the 390px sheet.
+        'toc-motion.spec.ts',
+        // Chromium CPU diagnostic, measured once in the desktop project.
+        'long-article.spec.ts',
+      ],
+      grepInvert: /@desktop-only/,
       use: { ...devices['Pixel 7'], defaultBrowserType: 'chromium' },
     },
     {

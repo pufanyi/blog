@@ -14,7 +14,6 @@ declare global {
 
 for (const slug of ['rl', 'diffusion', 'ssl']) {
   test(`long article runtime and growth: ${slug}`, async ({ page, context }, info) => {
-    test.skip(info.project.name !== 'desktop', 'Chromium CPU diagnostic');
     test.setTimeout(90_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.addInitScript(() => {
