@@ -1,5 +1,6 @@
 .post-body {
-  text-align: justify;
+  /* Justification stretches CJK lines next to unbreakable formulas and code. */
+  text-align: start;
   line-height: 1.7;
   hyphens: auto;
 }

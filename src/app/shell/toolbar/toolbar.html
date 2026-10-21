@@ -23,7 +23,7 @@
         }
       </button>
     }
-    <span class="toolbar-context">{{ chrome.title() }}</span>
+    <span class="toolbar-context" [class.is-docked]="chrome.readingDock()">{{ chrome.title() }}</span>
     <div class="toolbar-group toolbar-actions">
       <button class="toolbar-button toolbar-search" type="button" #searchTrigger (click)="search.open(searchTrigger)"
         aria-label="Search" title="Search posts (Ctrl+K / ⌘K)">

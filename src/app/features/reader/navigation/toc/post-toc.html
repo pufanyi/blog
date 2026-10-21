@@ -4,13 +4,11 @@
       <button class="toc-heading-toggle" type="button" (click)="collapsed.set(!collapsed())"
         [attr.aria-label]="collapsed() ? 'Expand table of contents' : 'Collapse table of contents'"
         [attr.aria-expanded]="!collapsed()" [attr.aria-controls]="idPrefix() + '-links'">
-        <span class="toc-title">Contents</span>
-        <span class="toc-count">{{ items().length }} chapters</span>
+        <span class="toc-title">On this page</span>
         <i class="ph ph-caret-down toc-heading-caret" aria-hidden="true"></i>
       </button>
     } @else {
       <span class="toc-title">On this page</span>
-      <span class="toc-count">{{ items().length }} chapters</span>
     }
   </header>
 
@@ -19,7 +17,7 @@
       @if (currentSection(); as section) {
         <span [appPostTocLabel]="section"></span>
       } @else {
-        Choose a chapter
+        Choose a section
       }
     </p>
   }
@@ -50,7 +48,7 @@
                     [attr.aria-label]="(isExpanded(item) ? 'Collapse' : 'Expand') + ' subsections: ' + item.text"
                     [attr.aria-expanded]="isExpanded(item)"
                     [attr.aria-controls]="idPrefix() + '-section-' + i">
-                    <span class="toc-disclosure-icon" aria-hidden="true"></span>
+                    <i class="ph ph-caret-down toc-disclosure-icon" aria-hidden="true"></i>
                   </button>
                 }
               </div>
@@ -84,14 +82,11 @@
         </ol>
       </div>
       <footer class="toc-position">
-        <div class="toc-position-label">
-          <span>Position in article</span>
-          <span class="toc-percentage" aria-hidden="true">{{ progressPercent() }}%</span>
-        </div>
-        <div class="toc-progress" role="progressbar" aria-label="Article reading progress"
+        <div class="toc-progress" role="progressbar" aria-label="Position in article"
           aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progressPercent()">
           <span class="toc-progress-value" [style.transform]="'scaleX(' + normalizedProgress() + ')'"></span>
         </div>
+        <span class="toc-percentage" aria-hidden="true">{{ progressPercent() }}%</span>
       </footer>
     </div>
   </div>

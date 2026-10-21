@@ -39,7 +39,10 @@ test('a nearby chapter jump keeps its selection throughout motion and focuses on
   expect(traveling.every((sample) => sample.focused !== id)).toBe(true);
   expect(new Set(samples.map((sample) => sample.y)).size).toBeGreaterThan(2);
   await expect(link).toHaveAttribute('aria-current', 'location');
-  await expect(link).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  // Selection is the inset marker; the row itself is not tinted.
+  await expect
+    .poll(() => link.evaluate((element) => getComputedStyle(element, '::before').opacity))
+    .toBe('1');
   await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe(id);
   expect(
     await page.evaluate((id) => {

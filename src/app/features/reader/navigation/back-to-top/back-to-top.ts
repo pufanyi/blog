@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, OnDestroy, signal } from '@angular/core';
 import { SmoothScrollHandle, smoothScrollTo } from '../../../../shared/scroll/smooth-scroll';
 
 @Component({
@@ -18,8 +18,16 @@ import { SmoothScrollHandle, smoothScrollTo } from '../../../../shared/scroll/sm
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './back-to-top.css',
+  host: {
+    '[class.is-dock]': "placement() === 'dock'",
+    '[class.is-wide-only]': 'wideOnly()',
+  },
 })
 export class BackToTopComponent implements OnDestroy {
+  /** A floating control, or an always-visible button inside the reading dock. */
+  readonly placement = input<'floating' | 'dock'>('floating');
+  /** Hide the floating control where the reading dock provides its own. */
+  readonly wideOnly = input(false);
   readonly visible = signal(false);
   private scrollHandle: SmoothScrollHandle | null = null;
   private readonly handleScroll = (): void => {

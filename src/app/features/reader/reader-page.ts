@@ -75,21 +75,8 @@ export class ReaderPageComponent {
       const hasOutline = !!this.post()?.toc.length;
       chrome.update({
         title: this.post() ? navigation?.currentSection() || 'Reading' : '',
+        // Below the sidebar breakpoint the bottom dock is the only contents control.
         readingDock: hasOutline,
-        actions: hasOutline
-          ? [
-              {
-                icon: 'ph-list',
-                toggleIcon: 'ph-x',
-                ariaLabel: 'Toggle table of contents',
-                title: 'Table of Contents',
-                action: (trigger) => navigation?.toggleToc(trigger),
-                isToggled: () => navigation?.tocOpen() ?? false,
-                ariaControls: 'post-toc-dialog',
-                isExpanded: () => navigation?.tocOpen() ?? false,
-              },
-            ]
-          : [],
       });
     });
   }
