@@ -1,7 +1,7 @@
 # Angular disk cache
 
 Disk caching remains enabled with `@angular/build`, `@angular/cli`, and
-`@angular/ssr` 22.2.0. The original repair upgraded these packages from 22.1.3
+`@angular/ssr` 22.2.4. The original repair upgraded these packages from 22.1.3
 to 22.1.8. The 22.2.0 dependency refresh also passed strict peer validation.
 
 The original disablement had a reproducible cause on this host. With caching
