@@ -1,0 +1,82 @@
+.cf575i-figure {
+  max-width: 660px;
+  margin: 1.75rem auto;
+}
+
+.cf575i-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.cf575i-strip {
+  fill: var(--accent-blue);
+  fill-opacity: 0.13;
+}
+
+.cf575i-target {
+  fill: var(--accent-teal);
+  fill-opacity: 0.3;
+  stroke: var(--accent-teal);
+  stroke-width: 2.3;
+  stroke-linejoin: round;
+}
+
+.cf575i-excluded {
+  fill: var(--accent-rose);
+  fill-opacity: 0.32;
+}
+
+.cf575i-boundary {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+}
+
+.cf575i-axis {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.25;
+}
+
+.cf575i-arrowhead {
+  fill: var(--text-secondary);
+}
+
+.cf575i-point {
+  fill: var(--text-color);
+}
+
+.cf575i-label,
+.cf575i-line-label,
+.cf575i-axis-label,
+.cf575i-subtract-label {
+  font-family: Charter, Georgia, serif;
+  font-size: 15px;
+  fill: var(--text-color);
+}
+
+.cf575i-line-label {
+  font-size: 13px;
+  fill: var(--text-secondary);
+}
+
+.cf575i-axis-label {
+  font-style: italic;
+  fill: var(--text-secondary);
+}
+
+.cf575i-subtract-label {
+  font-size: 18px;
+  fill: var(--accent-rose);
+}
+
+.cf575i-figure figcaption {
+  margin-top: 0.3rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.8;
+}
