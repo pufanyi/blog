@@ -75,6 +75,7 @@ function Board({
   placement,
   arrows = [],
   marks = [],
+  children,
 }: {
   id: string;
   title: string;
@@ -83,6 +84,7 @@ function Board({
   placement: Placement;
   arrows?: readonly Arrow[];
   marks?: readonly Mark[];
+  children?: ReactNode;
 }) {
   const squares: ReactNode[] = [];
   for (let rank = 8; rank >= 1; rank -= 1) {
@@ -191,6 +193,7 @@ function Board({
           <ArrowLine key={`${arrow.role}-${arrow.from}-${arrow.to}`} id={id} arrow={arrow} />
         ))}
       </svg>
+      {children}
       <figcaption>{caption}</figcaption>
     </figure>
   );
@@ -292,7 +295,24 @@ function PawnGap() {
   );
 }
 
+/** Stroke paths for the playback buttons, drawn on a 24-unit grid. */
+const ICONS = {
+  first: 'M7 6v12M17 6l-6 6 6 6',
+  previous: 'M15 6l-6 6 6 6',
+  next: 'M9 6l6 6-6 6',
+  last: 'M7 6l6 6-6 6M17 6v12',
+};
+
+function NavIcon({ path }: { path: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d={path} />
+    </svg>
+  );
+}
+
 function MainLine() {
+  const rounds = Array.from({ length: Math.ceil(line.length / 2) }, (_, round) => round * 2);
   return (
     <section
       className="anti-player"
@@ -306,31 +326,46 @@ function MainLine() {
         description="逐步查看黑方如何引导清扫，并以 c7 兵无棋可走获胜。"
         placement={placementAfter(line, 0)}
         caption="1.e4 b5 主线：从初始局面逐步查看双方走法。"
-      />
-      <div data-anti-controls="" hidden data-agent-omit="">
-        <div className="anti-controls">
-          <button type="button" data-step="0">
-            重置
-          </button>
-          <button type="button" data-action="previous">
-            上一步
-          </button>
-          <button type="button" data-action="next">
-            下一步
-          </button>
-          <button type="button" data-step={line.length}>
-            终局
-          </button>
-        </div>
-        <p data-anti-status="" role="status" />
-        <div className="anti-moves" aria-label="点击走法查看局面">
-          {line.map((move, index) => (
-            <button type="button" key={index} data-step={index + 1}>
-              {moveText(line, index, index + 1)}
+      >
+        <div className="anti-panel" data-anti-controls="" hidden data-agent-omit="">
+          <div className="anti-controls">
+            <button type="button" data-step="0" aria-label="重置" title="重置">
+              <NavIcon path={ICONS.first} />
             </button>
-          ))}
+            <button type="button" data-action="previous" aria-label="上一步" title="上一步">
+              <NavIcon path={ICONS.previous} />
+            </button>
+            <button type="button" data-action="next" aria-label="下一步" title="下一步">
+              <NavIcon path={ICONS.next} />
+            </button>
+            <button type="button" data-step={line.length} aria-label="终局" title="终局">
+              <NavIcon path={ICONS.last} />
+            </button>
+          </div>
+          <p className="anti-status" data-anti-status="" role="status" />
+          <ol className="anti-moves" aria-label="棋谱，点击走法查看局面">
+            {rounds.map((ply) => (
+              <li key={ply}>
+                <span className="anti-move-number" aria-hidden="true">
+                  {ply / 2 + 1}.
+                </span>
+                {[ply, ply + 1]
+                  .filter((index) => index < line.length)
+                  .map((index) => (
+                    <button
+                      type="button"
+                      key={index}
+                      data-step={index + 1}
+                      aria-label={moveText(line, index, index + 1)}
+                    >
+                      {line[index].san}
+                    </button>
+                  ))}
+              </li>
+            ))}
+          </ol>
         </div>
-      </div>
+      </Board>
     </section>
   );
 }

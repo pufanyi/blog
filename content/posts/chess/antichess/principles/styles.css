@@ -1,31 +1,32 @@
+/* Board figures share one column so the board, controls, and caption line up. */
 .anti-figure {
-  margin: 1.75rem 0;
+  max-width: 400px;
+  margin: 1.75rem auto;
+
+  /* Muted wood squares; the piece artwork is fixed black/white, so both themes keep mid-tones. */
+  --anti-square-light: color-mix(in srgb, var(--accent-ochre) 22%, var(--paper-bg));
+  --anti-square-dark: color-mix(in srgb, var(--accent-ochre) 52%, var(--surface-soft));
+  --anti-last-move: color-mix(in srgb, var(--accent-sage) 50%, transparent);
+}
+
+[data-theme="dark"] .anti-figure {
+  --anti-square-light: color-mix(in srgb, var(--accent-ochre) 62%, var(--surface-strong));
+  --anti-square-dark: color-mix(in srgb, var(--accent-ochre) 38%, var(--surface));
+}
+
+.anti-figure figcaption {
+  margin-top: 0.6rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.8;
 }
 
 .anti-board {
   display: block;
   width: 100%;
-  max-width: 360px;
   height: auto;
-  margin-inline: auto;
   font-family: var(--font-body);
-
-  --anti-square-light: var(--surface-soft);
-  --anti-square-dark: var(--surface-strong);
-  --anti-piece-white: var(--paper-bg);
-  --anti-piece-white-edge: var(--text-color);
-  --anti-piece-black: var(--text-color);
-  --anti-piece-black-edge: var(--text-color);
-}
-
-/* Dark-theme surfaces get darker as they get "softer", so swap the square roles. */
-[data-theme="dark"] .anti-board {
-  --anti-square-light: var(--surface-strong);
-  --anti-square-dark: var(--surface);
-  --anti-piece-white: var(--text-color);
-  --anti-piece-white-edge: var(--background-deep);
-  --anti-piece-black: var(--background-deep);
-  --anti-piece-black-edge: var(--overlay-strong);
 }
 
 .anti-square-light {
@@ -40,27 +41,6 @@
   fill: var(--text-secondary);
   font-size: 10px;
   text-anchor: middle;
-}
-
-.anti-piece {
-  font-family: "Apple Symbols", "Segoe UI Symbol", "DejaVu Sans", "Noto Sans Symbols 2", serif;
-  font-size: 32px;
-  text-anchor: middle;
-  dominant-baseline: central;
-  paint-order: stroke;
-  stroke-linejoin: round;
-}
-
-.anti-piece-white {
-  fill: var(--anti-piece-white);
-  stroke: var(--anti-piece-white-edge);
-  stroke-width: 1.6px;
-}
-
-.anti-piece-black {
-  fill: var(--anti-piece-black);
-  stroke: var(--anti-piece-black-edge);
-  stroke-width: 0.8px;
 }
 
 .anti-mark-target {
@@ -100,10 +80,12 @@
 /* Chessground layout; scoped to this article and its local SVG pieces. */
 .anti-ground {
   position: relative;
-  width: calc(100% - 32px);
-  max-width: 400px;
+  width: 100%;
   aspect-ratio: 1;
-  margin: 24px auto 32px;
+  border-radius: 4px;
+  box-shadow:
+    0 1px 3px var(--shadow-color),
+    0 8px 22px var(--shadow-color);
 }
 .anti-ground[hidden],
 .anti-board[hidden],
@@ -119,12 +101,14 @@
   height: 100%;
 }
 .anti-ground cg-board {
+  overflow: hidden;
+  border-radius: inherit;
   background:
     conic-gradient(
-      var(--surface-strong) 25%,
-      var(--surface-soft) 0 50%,
-      var(--surface-strong) 0 75%,
-      var(--surface-soft) 0
+      var(--anti-square-dark) 25%,
+      var(--anti-square-light) 0 50%,
+      var(--anti-square-dark) 0 75%,
+      var(--anti-square-light) 0
     )
     0 0 / 25% 25%;
 }
@@ -148,7 +132,7 @@
   opacity: 0.5;
 }
 .anti-ground square.last-move {
-  background: color-mix(in srgb, var(--accent-ochre) 35%, transparent);
+  background: var(--anti-last-move);
 }
 .anti-ground square.anti-target {
   box-shadow: inset 0 0 0 3px var(--accent-red);
@@ -168,58 +152,137 @@
   pointer-events: none;
   z-index: 4;
 }
+
+/* Coordinates sit inside the edge squares, tinted with the opposite square color. */
 .anti-ground coords {
   position: absolute;
+  z-index: 1;
   display: flex;
-  font-size: 11px;
-  color: var(--text-secondary);
+  font-size: clamp(8px, 2.6vw, 11px);
+  font-weight: 600;
+  line-height: 1;
   pointer-events: none;
+  user-select: none;
 }
 .anti-ground coords coord {
   flex: 1;
+  display: flex;
+}
+.anti-ground coord.coord-light {
+  color: var(--anti-square-dark);
+}
+.anti-ground coord.coord-dark {
+  color: var(--anti-square-light);
 }
 .anti-ground coords.ranks {
-  left: -18px;
   top: 0;
+  left: 0;
+  width: 12.5%;
   height: 100%;
   flex-direction: column-reverse;
 }
 .anti-ground coords.ranks coord {
-  display: flex;
-  align-items: center;
+  padding: 3px 0 0 3px;
 }
 .anti-ground coords.files {
-  bottom: -22px;
+  bottom: 0;
+  left: 0;
   width: 100%;
-  text-align: center;
+  height: 12.5%;
 }
-.anti-controls,
-.anti-moves {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.anti-ground coords.files coord {
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0 3px 3px 0;
+}
+
+/* Playback panel under the board. */
+.anti-panel {
+  margin-top: 14px;
 }
 .anti-player button {
   color: var(--text-color);
-  background: var(--surface-soft);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 8px 12px;
-  min-height: 44px;
-  cursor: pointer;
+  background: none;
+  border: 0;
   font: inherit;
+  cursor: pointer;
 }
 .anti-player button:disabled {
-  opacity: 0.45;
+  opacity: 0.35;
   cursor: default;
 }
 .anti-player button:focus-visible {
   outline: 2px solid var(--accent-blue);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
-.anti-player button[aria-current="step"] {
-  background: var(--surface-strong);
-  box-shadow: inset 0 -3px var(--accent-clay);
+.anti-controls {
+  display: flex;
+  overflow: hidden;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+}
+.anti-controls button {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+}
+.anti-controls button + button {
+  border-left: 1px solid color-mix(in srgb, var(--border-color) 45%, transparent);
+}
+.anti-controls button:not(:disabled):hover {
+  background: var(--surface);
+}
+.anti-controls svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.anti-status {
+  margin: 8px 0;
+  min-height: 1.6em;
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.anti-panel .anti-moves {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.anti-moves li {
+  display: flex;
+  align-items: baseline;
+}
+.anti-move-number {
+  padding-left: 4px;
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}
+.anti-moves button {
+  padding: 3px 5px;
+  border-radius: 4px;
+  line-height: 1.4;
+}
+.anti-moves button:hover {
+  background: var(--surface-soft);
+}
+.anti-moves button[aria-current="step"] {
+  color: var(--on-accent);
+  background: var(--accent-clay);
 }
 @media print {
   .anti-ground,
