@@ -32,4 +32,8 @@ export const BLOG_REDIRECTS = [
   },
   { path: 'ml/ml-revisit/ssl/jepa', redirectTo: '/blog/ml/ml-revisit/ssl#jepa' },
   { path: 'ml/ml-revisit/ssl/lejepa', redirectTo: '/blog/ml/ml-revisit/ssl#lejepa' },
+  {
+    path: 'chess/antichess/rules-and-principles',
+    redirectTo: '/blog/chess/antichess/principles',
+  },
 ] as const;
