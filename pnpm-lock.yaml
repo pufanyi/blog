@@ -200,6 +200,9 @@ importers:
       '@formkit/auto-animate':
         specifier: ^0.10.0
         version: 0.10.0
+      '@lichess-org/chessground':
+        specifier: 10.5.0
+        version: 10.5.0
       '@phosphor-icons/web':
         specifier: ^2.1.2
         version: 2.1.2
@@ -1448,6 +1451,10 @@ packages:
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
+
+  '@lichess-org/chessground@10.5.0':
+    resolution: {integrity: sha512-LmTNnzCQ67RQsryzouWY0jYoN24LlpubtPyYko1gmdpTj5HSfz0VgUGB4Gpo6oifg0MyeT9YeV2TdZEbOP6byA==}
+    engines: {node: '>=24', pnpm: '>=12'}
 
   '@listr2/prompt-adapter-inquirer@4.2.7':
     resolution: {integrity: sha512-k180vxSv2KqmnDxoato6pCqEJsov4U5C0EVmldZkAdNeVBxY48A/LM6TCNPGIzDK/iZSfsZP0Mw+gbWc5hXLyA==}
@@ -5638,6 +5645,8 @@ snapshots:
       keyv: 5.6.0
 
   '@keyv/serialize@1.1.1': {}
+
+  '@lichess-org/chessground@10.5.0': {}
 
   '@listr2/prompt-adapter-inquirer@4.2.7(@inquirer/prompts@8.7.2(@types/node@24.19.2))(@types/node@24.19.2)(listr2@11.1.0)':
     dependencies:

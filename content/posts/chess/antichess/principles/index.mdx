@@ -5,6 +5,7 @@ description: "Antichess 的高层原则：以清扫为核心的获胜机制、�
 authors:
   - "Fanyi Pu"
   - "Claude Opus 5.5"
+  - "GPT-6 Astra"
 ---
 
 本文整理 Antichess 的高层原则：不依赖具体变化时，怎样判断局面、怎样挑选候选着法。文中假设读者熟悉 Lichess 的 Antichess 规则 [@lichessantichess]，其中最关键的是两条：有吃必吃，多种吃法时由走棋方任选；失去全部棋子或被逼和都算获胜。全文从获胜的机制出发，依次讨论战术原则、中局战略、开局和残局。
@@ -120,7 +121,12 @@ tempo 计数在残局中最清楚。最小的例子只有两个兵：
 
 ## 综合例子：1.e4 b5
 
-下面的变化来自 Chess.com 上的一篇 Antichess 开局文章 [@botsplayingchessantichess]。它是一次典型的象的清扫：黑方把白方的 f1 象引进自己的阵地，让它吃掉几乎全部黑子。本文用 python-chess 的 Antichess 规则逐步检查了每一步的合法性和可选着法。从第 2 步到第 16 步，白方的 15 步中有 12 步是唯一合法着法。下面的 PGN 可以粘贴到 Lichess 的[导入页面](https://lichess.org/paste)逐步查看：
+下面的变化来自 Chess.com 上的一篇 Antichess 开局文章 [@botsplayingchessantichess]。它是一次典型的象的清扫：黑方把白方的 f1 象引进自己的阵地，让它吃掉几乎全部黑子。本文用 python-chess 的 Antichess 规则逐步检查了每一步的合法性和可选着法。从第 2 步到第 16 步，白方的 15 步中有 12 步是唯一合法着法。下面的棋盘可以逐步回放这条主线；点击棋谱中的走法可以直接查看对应局面。
+
+<MainLine />
+
+<details>
+<summary>PGN 棋谱</summary>
 
 ```text
 [Variant "Antichess"]
@@ -130,6 +136,8 @@ tempo 计数在残局中最清楚。最小的例子只有两个兵：
 7. Kxd2 Rg8 8. Bxg8 e5 9. Bxh7 g6 10. Bxg6 e4 11. Bxe4 Be6 12. Bxa8 Bxa2
 13. Rxa2 a5 14. Rxa5 Nc6 15. Bxc6 Bc5 16. Rxc5 0-1
 ```
+
+</details>
 
 ### 引入清扫者
 
