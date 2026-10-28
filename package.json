@@ -50,6 +50,7 @@
     "@angular/router": "^22.2.3",
     "@angular/ssr": "^22.2.4",
     "@formkit/auto-animate": "^0.10.0",
+    "@lichess-org/chessground": "10.5.0",
     "@phosphor-icons/web": "^2.1.2",
     "@shikijs/transformers": "^4.5.0",
     "charter-webfont": "^4.1.0",

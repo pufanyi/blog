@@ -15,15 +15,13 @@ const CELL = 40;
 const MARGIN = 18;
 const VIEW = MARGIN + CELL * 8 + 4;
 
-// Filled glyphs for both colors; CSS supplies fill and outline per side.
-// U+FE0E requests text presentation so the pawn is not drawn as an emoji.
-const GLYPHS: Record<string, string> = {
-  k: '♚︎',
-  q: '♛︎',
-  r: '♜︎',
-  b: '♝︎',
-  n: '♞︎',
-  p: '♟︎',
+const PIECES: Record<string, string> = {
+  k: 'king',
+  q: 'queen',
+  r: 'rook',
+  b: 'bishop',
+  n: 'knight',
+  p: 'pawn',
 };
 
 type ArrowRole = 'path' | 'option';
@@ -105,7 +103,15 @@ function Board({
     }
   }
   return (
-    <figure className="anti-figure">
+    <figure
+      className="anti-figure"
+      data-post-enhancement="boards"
+      data-anti-board=""
+      data-fen={placementFen(placement)}
+      data-arrows={JSON.stringify(arrows)}
+      data-marks={JSON.stringify(marks)}
+    >
+      <div className="anti-ground" hidden role="img" aria-label={description} />
       <svg
         className="anti-board"
         viewBox={`0 0 ${VIEW} ${VIEW}`}
@@ -170,14 +176,14 @@ function Board({
             const [x, y] = center(square);
             const white = piece === piece.toUpperCase();
             return (
-              <text
+              <image
                 key={`piece-${square}`}
-                x={x}
-                y={y}
-                className={`anti-piece ${white ? 'anti-piece-white' : 'anti-piece-black'}`}
-              >
-                {GLYPHS[piece.toLowerCase()]}
-              </text>
+                x={x - CELL / 2}
+                y={y - CELL / 2}
+                width={CELL}
+                height={CELL}
+                href={`/posts/chess/antichess/principles/pieces/${white ? 'white' : 'black'}-${PIECES[piece.toLowerCase()]}.svg`}
+              />
             );
           })}
         </g>
@@ -286,7 +292,51 @@ function PawnGap() {
   );
 }
 
+function MainLine() {
+  return (
+    <section
+      className="anti-player"
+      data-anti-player=""
+      data-post-enhancement="boards"
+      aria-label="1.e4 b5 主线回放"
+    >
+      <Board
+        id="anti-main"
+        title="1.e4 b5 主线"
+        description="逐步查看黑方如何引导清扫，并以 c7 兵无棋可走获胜。"
+        placement={placementAfter(line, 0)}
+        caption="1.e4 b5 主线：从初始局面逐步查看双方走法。"
+      />
+      <div data-anti-controls="" hidden data-agent-omit="">
+        <div className="anti-controls">
+          <button type="button" data-step="0">
+            重置
+          </button>
+          <button type="button" data-action="previous">
+            上一步
+          </button>
+          <button type="button" data-action="next">
+            下一步
+          </button>
+          <button type="button" data-step={line.length}>
+            终局
+          </button>
+        </div>
+        <p data-anti-status="" role="status" />
+        <div className="anti-moves" aria-label="点击走法查看局面">
+          {line.map((move, index) => (
+            <button type="button" key={index} data-step={index + 1}>
+              {moveText(line, index, index + 1)}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export const POST_COMPONENTS = {
+  MainLine,
   E4Threat,
   BishopRun,
   ForcedRecapture,

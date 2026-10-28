@@ -47,3 +47,13 @@ command supplies a fixed repository glob and does not enable watch mode or
 accept visitor patterns. It is not shipped in the browser or Worker. Keep the
 finding visible in `pnpm audit` and revisit when upstream publishes a fix; do
 not force a newer Chokidar major into the old CLI, which relies on glob support.
+
+## Article chessboards
+
+The Antichess article uses `@lichess-org/chessground` 10.5.0, licensed under
+GPL-3.0-or-later. Its browser module loads through the article enhancement
+boundary. The local Cburnett SVG pieces are extracted from that version's
+`chessground.cburnett.css`. Preserve the [third-party notice](../public/licenses/chessground.txt)
+when updating the package or pieces. The original project files retain their
+MIT notice; the combined browser distribution includes GPL-covered code and
+must be distributed under GPL-compatible terms with corresponding source.

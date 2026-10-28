@@ -96,3 +96,173 @@
 .anti-head-option {
   fill: var(--accent-blue);
 }
+
+/* Chessground layout; scoped to this article and its local SVG pieces. */
+.anti-ground {
+  position: relative;
+  width: calc(100% - 32px);
+  max-width: 400px;
+  aspect-ratio: 1;
+  margin: 24px auto 32px;
+}
+.anti-ground[hidden],
+.anti-board[hidden],
+[data-anti-controls][hidden] {
+  display: none;
+}
+.anti-ground cg-container,
+.anti-ground cg-board {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.anti-ground cg-board {
+  background:
+    conic-gradient(
+      var(--surface-strong) 25%,
+      var(--surface-soft) 0 50%,
+      var(--surface-strong) 0 75%,
+      var(--surface-soft) 0
+    )
+    0 0 / 25% 25%;
+}
+.anti-ground piece,
+.anti-ground square {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12.5%;
+  height: 12.5%;
+  background-size: cover;
+  pointer-events: none;
+}
+.anti-ground piece {
+  z-index: 2;
+}
+.anti-ground piece.anim {
+  z-index: 3;
+}
+.anti-ground piece.fading {
+  opacity: 0.5;
+}
+.anti-ground square.last-move {
+  background: color-mix(in srgb, var(--accent-ochre) 35%, transparent);
+}
+.anti-ground square.anti-target {
+  box-shadow: inset 0 0 0 3px var(--accent-red);
+}
+.anti-ground square.anti-area {
+  background: color-mix(in srgb, var(--accent-ochre) 32%, transparent);
+}
+.anti-ground .cg-shapes,
+.anti-ground .cg-shapes-below,
+.anti-ground .cg-custom-svgs,
+.anti-ground .cg-custom-below,
+.anti-ground cg-auto-pieces {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+}
+.anti-ground coords {
+  position: absolute;
+  display: flex;
+  font-size: 11px;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+.anti-ground coords coord {
+  flex: 1;
+}
+.anti-ground coords.ranks {
+  left: -18px;
+  top: 0;
+  height: 100%;
+  flex-direction: column-reverse;
+}
+.anti-ground coords.ranks coord {
+  display: flex;
+  align-items: center;
+}
+.anti-ground coords.files {
+  bottom: -22px;
+  width: 100%;
+  text-align: center;
+}
+.anti-controls,
+.anti-moves {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.anti-player button {
+  color: var(--text-color);
+  background: var(--surface-soft);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 8px 12px;
+  min-height: 44px;
+  cursor: pointer;
+  font: inherit;
+}
+.anti-player button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.anti-player button:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+.anti-player button[aria-current="step"] {
+  background: var(--surface-strong);
+  box-shadow: inset 0 -3px var(--accent-clay);
+}
+@media print {
+  .anti-ground,
+  [data-anti-controls] {
+    display: none;
+  }
+  .anti-board[hidden] {
+    display: block;
+  }
+}
+.anti-ground piece.pawn.white {
+  background-image: url("/posts/chess/antichess/principles/pieces/white-pawn.svg");
+}
+.anti-ground piece.bishop.white {
+  background-image: url("/posts/chess/antichess/principles/pieces/white-bishop.svg");
+}
+.anti-ground piece.knight.white {
+  background-image: url("/posts/chess/antichess/principles/pieces/white-knight.svg");
+}
+.anti-ground piece.rook.white {
+  background-image: url("/posts/chess/antichess/principles/pieces/white-rook.svg");
+}
+.anti-ground piece.queen.white {
+  background-image: url("/posts/chess/antichess/principles/pieces/white-queen.svg");
+}
+.anti-ground piece.king.white {
+  background-image: url("/posts/chess/antichess/principles/pieces/white-king.svg");
+}
+.anti-ground piece.pawn.black {
+  background-image: url("/posts/chess/antichess/principles/pieces/black-pawn.svg");
+}
+.anti-ground piece.bishop.black {
+  background-image: url("/posts/chess/antichess/principles/pieces/black-bishop.svg");
+}
+.anti-ground piece.knight.black {
+  background-image: url("/posts/chess/antichess/principles/pieces/black-knight.svg");
+}
+.anti-ground piece.rook.black {
+  background-image: url("/posts/chess/antichess/principles/pieces/black-rook.svg");
+}
+.anti-ground piece.queen.black {
+  background-image: url("/posts/chess/antichess/principles/pieces/black-queen.svg");
+}
+.anti-ground piece.king.black {
+  background-image: url("/posts/chess/antichess/principles/pieces/black-king.svg");
+}
