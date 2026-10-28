@@ -472,7 +472,8 @@ The lazy `/docs` route uses generated summaries for page routes and navigation. 
 
 The Antichess article keeps static SVG boards and its PGN in the generated
 body. Its `boards.post-client.ts` enhancement loads Chessground near the article's
-boards, replaces their visual presentation, and provides a main-line stepper.
+boards, replaces their visual presentation, and provides a main-line stepper
+whose controls also respond to the arrow, Home, and End keys.
 Both renderers share the authored move list and local SVG pieces. Navigation
 calls Chessground's destroy method and restores the static figures. The player
 replays a fixed line; it is not a free-play Antichess rules engine.

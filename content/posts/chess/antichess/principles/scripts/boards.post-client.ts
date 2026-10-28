@@ -21,6 +21,8 @@ export function enhancePost(container: HTMLElement): () => void {
       fen: figure.dataset['fen'],
       viewOnly: true,
       autoCastle: false,
+      // Chessground colors each label for its edge; ranks are styled on the a-file.
+      ranksPosition: 'left',
       animation: {
         enabled: !matchMedia('(prefers-reduced-motion: reduce)').matches,
         duration: 200,
@@ -64,22 +66,44 @@ export function enhancePost(container: HTMLElement): () => void {
         player.querySelector<HTMLButtonElement>('[data-action="previous"]')!.disabled = ply === 0;
         player.querySelector<HTMLButtonElement>('[data-action="next"]')!.disabled =
           ply === E4_REFUTATION.length;
-        for (const button of player.querySelectorAll<HTMLButtonElement>('[data-step]')) {
+        for (const button of player.querySelectorAll<HTMLButtonElement>(
+          '.anti-moves [data-step]',
+        )) {
           if (Number(button.dataset['step']) === ply) button.setAttribute('aria-current', 'step');
           else button.removeAttribute('aria-current');
         }
+      };
+      const go = (target: number) => {
+        ply = Math.max(0, Math.min(E4_REFUTATION.length, target));
+        render();
       };
       controls.addEventListener(
         'click',
         (event) => {
           const button = (event.target as Element).closest<HTMLButtonElement>('button');
           if (!button) return;
-          ply =
+          go(
             button.dataset['step'] !== undefined
               ? Number(button.dataset['step'])
-              : ply + (button.dataset['action'] === 'next' ? 1 : -1);
-          ply = Math.max(0, Math.min(E4_REFUTATION.length, ply));
-          render();
+              : ply + (button.dataset['action'] === 'next' ? 1 : -1),
+          );
+        },
+        { signal: abort.signal },
+      );
+      // Arrow keys step through the line while focus is inside the controls.
+      const keys: Record<string, () => number> = {
+        ArrowLeft: () => ply - 1,
+        ArrowRight: () => ply + 1,
+        Home: () => 0,
+        End: () => E4_REFUTATION.length,
+      };
+      controls.addEventListener(
+        'keydown',
+        (event) => {
+          const target = keys[event.key];
+          if (!target || event.altKey || event.ctrlKey || event.metaKey) return;
+          event.preventDefault();
+          go(target());
         },
         { signal: abort.signal },
       );

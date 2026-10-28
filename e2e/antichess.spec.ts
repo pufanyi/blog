@@ -15,6 +15,10 @@ test('Antichess main line replays locally and resets', async ({ page }) => {
   await expect(player.getByRole('status')).toContainText('轮到黑方');
   await player.locator('.anti-moves [data-step="3"]').click();
   await expect(player.locator('cg-board piece')).toHaveCount(31);
+  await player.locator('.anti-moves [data-step="3"]').press('ArrowRight');
+  await expect(player).toHaveAttribute('data-ply', '4');
+  await player.locator('.anti-moves [data-step="3"]').press('Home');
+  await expect(player).toHaveAttribute('data-ply', '0');
   await player.getByRole('button', { name: '终局', exact: true }).click();
   await expect(player.getByRole('status')).toContainText('黑方获胜');
   await expect(player.locator('cg-board piece.black')).toHaveCount(1);
