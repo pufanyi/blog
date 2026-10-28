@@ -13,7 +13,7 @@ function GeometryDiagram({ variant }: { variant: DiagramVariant }) {
   const { plot, corner, right, upper } = geometry;
   // In SVG coordinates y increases downwards. Both x' + y' boundaries
   // therefore have slope +1; the target triangle is between them.
-  const strip = `M ${plot.left} ${plot.top} H 236 L 502 ${plot.bottom} H 356 Z`;
+  const strip = `M 76 ${plot.top} H 236 L 502 ${plot.bottom} H 342 Z`;
   const triangle = `M ${corner.x} ${corner.y} H ${right.x} L ${upper.x} ${upper.y} Z`;
 
   return (
@@ -49,7 +49,7 @@ function GeometryDiagram({ variant }: { variant: DiagramVariant }) {
           </g>
         )}
         <path d={triangle} className="cf575i-target" />
-        <path d={`M ${plot.left} ${plot.top} L 356 ${plot.bottom}`} className="cf575i-boundary" />
+        <path d={`M 76 ${plot.top} L 342 ${plot.bottom}`} className="cf575i-boundary" />
         <path d={`M 236 ${plot.top} L 502 ${plot.bottom}`} className="cf575i-boundary" />
         <path d={`M ${plot.left - 14} ${plot.bottom} H ${plot.right + 20}`}
           className="cf575i-axis" markerEnd={`url(#${prefix}-arrow)`} />
@@ -63,7 +63,7 @@ function GeometryDiagram({ variant }: { variant: DiagramVariant }) {
         <text x={corner.x + 10} y={corner.y + 23} className="cf575i-label">(x, y)</text>
         <text x={right.x + 9} y={right.y + 5} className="cf575i-label">(x+l, y)</text>
         <text x={upper.x + 9} y={upper.y - 11} className="cf575i-label">(x, y+l)</text>
-        <text x="138" y="103" className="cf575i-line-label" transform="rotate(45 138 103)">
+        <text x="115" y="103" className="cf575i-line-label" transform="rotate(45 115 103)">
           x′+y′=x+y
         </text>
         <text x="354" y="149" className="cf575i-line-label" transform="rotate(45 354 149)">
