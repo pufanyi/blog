@@ -1,76 +1,70 @@
 .cf575i-figure {
-  max-width: 660px;
+  max-width: 520px;
   margin: 1.75rem auto;
 }
 
+.cf575i-scroll {
+  overflow-x: auto;
+}
+
+/* Keep MathJax foreign objects at 1:1 SVG scale, including in WebKit. */
 .cf575i-diagram {
   display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
+  width: 520px;
+  height: 480px;
+  max-width: none;
 }
 
 .cf575i-strip {
-  fill: var(--accent-blue);
-  fill-opacity: 0.13;
+  fill: var(--text-secondary);
+  fill-opacity: 0.07;
 }
 
 .cf575i-target {
-  fill: var(--accent-teal);
-  fill-opacity: 0.3;
-  stroke: var(--accent-teal);
-  stroke-width: 2.3;
+  fill: var(--accent-blue);
+  fill-opacity: 0.17;
+  stroke: var(--accent-blue);
+  stroke-width: 2;
   stroke-linejoin: round;
 }
 
 .cf575i-excluded {
-  fill: var(--accent-rose);
-  fill-opacity: 0.32;
+  fill: var(--accent-clay);
+  fill-opacity: 0.2;
 }
 
 .cf575i-boundary {
   fill: none;
-  stroke: var(--accent-blue);
-  stroke-width: 1.5;
+  stroke: var(--text-secondary);
+  stroke-width: 1.2;
   stroke-dasharray: 5 5;
 }
 
 .cf575i-axis {
   fill: none;
   stroke: var(--text-secondary);
-  stroke-width: 1.25;
-}
-
-.cf575i-arrowhead {
-  fill: var(--text-secondary);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .cf575i-point {
-  fill: var(--text-color);
+  fill: var(--accent-blue);
 }
 
-.cf575i-label,
-.cf575i-line-label,
-.cf575i-axis-label,
-.cf575i-subtract-label {
-  font-family: Charter, Georgia, serif;
-  font-size: 15px;
-  fill: var(--text-color);
+.cf575i-label {
+  color: var(--text-color);
+  font-size: 17px;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 
-.cf575i-line-label {
-  font-size: 13px;
-  fill: var(--text-secondary);
-}
-
-.cf575i-axis-label {
-  font-style: italic;
-  fill: var(--text-secondary);
+.cf575i-label mjx-container {
+  margin: 0;
 }
 
 .cf575i-subtract-label {
-  font-size: 18px;
-  fill: var(--accent-rose);
+  color: var(--accent-clay);
 }
 
 .cf575i-figure figcaption {

@@ -1,123 +1,148 @@
+interface Point {
+  x: number;
+  y: number;
+}
 type DiagramVariant = 'strip' | 'excluded';
 
-const geometry = {
-  plot: { left: 90, top: 76, right: 586, bottom: 342 },
-  corner: { x: 270, y: 270 },
-  right: { x: 430, y: 270 },
-  upper: { x: 270, y: 110 },
-};
+const corner = { x: 4, y: 4 };
+const length = 4;
+const lowerSum = corner.x + corner.y;
+const upperSum = lowerSum + length;
+const right = { x: corner.x + length, y: corner.y };
+const upper = { x: corner.x, y: corner.y + length };
+const origin = { x: 50, y: 450 };
+const scale = 32;
+const project = ({ x, y }: Point): Point => ({
+  x: origin.x + scale * x,
+  y: origin.y - scale * y,
+});
+const points = (vertices: Point[]) =>
+  vertices
+    .map(project)
+    .map(({ x, y }) => `${x},${y}`)
+    .join(' ');
+
+function MathLabel({
+  x,
+  y,
+  tex,
+  width = 110,
+  muted = false,
+}: {
+  x: number;
+  y: number;
+  tex: string;
+  width?: number;
+  muted?: boolean;
+}) {
+  return (
+    <foreignObject x={x} y={y} width={width} height="36">
+      <div className={`cf575i-label${muted ? ' cf575i-subtract-label' : ''}`}>{`\\(${tex}\\)`}</div>
+    </foreignObject>
+  );
+}
 
 function GeometryDiagram({ variant }: { variant: DiagramVariant }) {
   const excluded = variant === 'excluded';
   const prefix = `cf575i-${variant}`;
-  const { plot, corner, right, upper } = geometry;
-  // In SVG coordinates y increases downwards. Both x' + y' boundaries
-  // therefore have slope +1; the target triangle is between them.
-  const strip = `M 76 ${plot.top} H 236 L 502 ${plot.bottom} H 342 Z`;
-  const triangle = `M ${corner.x} ${corner.y} H ${right.x} L ${upper.x} ${upper.y} Z`;
+  const a = project(corner);
+  const b = project(right);
+  const c = project(upper);
 
   return (
     <figure className="cf575i-figure">
-      <svg
-        viewBox="0 0 660 386"
-        className="cf575i-diagram"
-        role="img"
-        aria-labelledby={`${prefix}-title ${prefix}-desc`}
-      >
-        <title id={`${prefix}-title`}>
-          {excluded ? '从斜向带状区域中扣除三角形之外的部分' : '包含目标三角形的斜向带状区域'}
-        </title>
-        <desc id={`${prefix}-desc`}>
-          {excluded
-            ? "青绿色三角形为实际需要覆盖的部分。浅红色区域满足 x' < x 或 y' < y，必须从带状区域减去。"
-            : "两条斜线分别为 x' + y' = x + y 与 x' + y' = x + y + l；目标三角形位于两条线之间。"}
-        </desc>
-        <defs>
-          <clipPath id={`${prefix}-clip`}>
-            <path d={strip} />
-          </clipPath>
-          <marker
-            id={`${prefix}-arrow`}
-            viewBox="0 0 8 8"
-            refX="7"
-            refY="4"
-            markerWidth="8"
-            markerHeight="8"
-            markerUnits="userSpaceOnUse"
-            orient="auto"
-          >
-            <path d="M 0 0 L 8 4 L 0 8 L 2 4 Z" className="cf575i-arrowhead" />
-          </marker>
-        </defs>
-        <path d={strip} className="cf575i-strip" />
-        {excluded && (
-          <g clipPath={`url(#${prefix}-clip)`} className="cf575i-excluded">
-            <rect
-              x={plot.left}
-              y={plot.top}
-              width={corner.x - plot.left}
-              height={plot.bottom - plot.top}
+      <div className="cf575i-scroll">
+        <svg
+          viewBox="0 0 520 480"
+          width="520"
+          height="480"
+          className="cf575i-diagram"
+          role="img"
+          aria-labelledby={`${prefix}-title ${prefix}-desc`}
+        >
+          <title id={`${prefix}-title`}>
+            {excluded ? '减去斜带两端，留下目标三角形' : '先覆盖包含目标三角形的斜带'}
+          </title>
+          <desc id={`${prefix}-desc`}>
+            {excluded
+              ? "蓝色三角形为保留区域；两块浅棕色区域分别满足 x' < x 与 y' < y，需要扣除。三角形边界保留。"
+              : "斜带满足 x+y ≤ x'+y' ≤ x+y+l。下界经过直角顶点 (x,y)，上界与三角形斜边重合。"}
+          </desc>
+          <defs>
+            <marker
+              id={`${prefix}-arrow`}
+              viewBox="0 0 8 8"
+              refX="7"
+              refY="4"
+              markerWidth="8"
+              markerHeight="8"
+              markerUnits="userSpaceOnUse"
+              orient="auto"
+            >
+              <path d="M 1 1 L 7 4 L 1 7" className="cf575i-axis" />
+            </marker>
+          </defs>
+          <polygon
+            className="cf575i-strip"
+            points={points([
+              { x: 0, y: lowerSum },
+              { x: 0, y: upperSum },
+              { x: upperSum, y: 0 },
+              { x: lowerSum, y: 0 },
+            ])}
+          />
+          {excluded && (
+            <g className="cf575i-excluded">
+              <polygon
+                points={points([{ x: 0, y: lowerSum }, { x: 0, y: upperSum }, upper, corner])}
+              />
+              <polygon
+                points={points([corner, right, { x: upperSum, y: 0 }, { x: lowerSum, y: 0 }])}
+              />
+            </g>
+          )}
+          {[lowerSum, upperSum].map((sum) => (
+            <polyline
+              key={sum}
+              points={points([
+                { x: 0, y: sum },
+                { x: sum, y: 0 },
+              ])}
+              className="cf575i-boundary"
             />
-            <rect
-              x={plot.left}
-              y={corner.y}
-              width={plot.right - plot.left}
-              height={plot.bottom - corner.y}
-            />
-          </g>
-        )}
-        <path d={triangle} className="cf575i-target" />
-        <path d={`M 76 ${plot.top} L 342 ${plot.bottom}`} className="cf575i-boundary" />
-        <path d={`M 236 ${plot.top} L 502 ${plot.bottom}`} className="cf575i-boundary" />
-        <path
-          d={`M ${plot.left - 14} ${plot.bottom} H ${plot.right + 20}`}
-          className="cf575i-axis"
-          markerEnd={`url(#${prefix}-arrow)`}
-        />
-        <path
-          d={`M ${plot.left} ${plot.bottom + 12} V ${plot.top - 18}`}
-          className="cf575i-axis"
-          markerEnd={`url(#${prefix}-arrow)`}
-        />
-        <text x="615" y="350" className="cf575i-axis-label">
-          x′
-        </text>
-        <text x="73" y="50" className="cf575i-axis-label">
-          y′
-        </text>
-        <circle cx={corner.x} cy={corner.y} r="3.5" className="cf575i-point" />
-        <circle cx={right.x} cy={right.y} r="3.5" className="cf575i-point" />
-        <circle cx={upper.x} cy={upper.y} r="3.5" className="cf575i-point" />
-        <text x={corner.x + 10} y={corner.y + 23} className="cf575i-label">
-          (x, y)
-        </text>
-        <text x={right.x + 9} y={right.y + 5} className="cf575i-label">
-          (x+l, y)
-        </text>
-        <text x={upper.x + 9} y={upper.y - 11} className="cf575i-label">
-          (x, y+l)
-        </text>
-        <text x="115" y="103" className="cf575i-line-label" transform="rotate(45 115 103)">
-          x′+y′=x+y
-        </text>
-        <text x="354" y="149" className="cf575i-line-label" transform="rotate(45 354 149)">
-          x′+y′=x+y+l
-        </text>
-        {excluded && (
-          <>
-            <text x="187" y="212" className="cf575i-subtract-label">
-              x′ &lt; x
-            </text>
-            <text x="435" y="320" className="cf575i-subtract-label">
-              y′ &lt; y
-            </text>
-          </>
-        )}
-      </svg>
+          ))}
+          <polygon points={points([corner, right, upper])} className="cf575i-target" />
+          <path d={`M ${origin.x} 40 V ${origin.y} H 470`} className="cf575i-axis" />
+          <path
+            d={`M ${origin.x} 60 V 40`}
+            className="cf575i-axis"
+            markerEnd={`url(#${prefix}-arrow)`}
+          />
+          <path
+            d={`M 450 ${origin.y} H 470`}
+            className="cf575i-axis"
+            markerEnd={`url(#${prefix}-arrow)`}
+          />
+          {[a, b, c].map(({ x, y }) => (
+            <circle key={`${x},${y}`} cx={x} cy={y} r="2.8" className="cf575i-point" />
+          ))}
+          <MathLabel x={478} y={435} tex="x'" width={30} />
+          <MathLabel x={20} y={19} tex="y'" width={30} />
+          <MathLabel x={a.x - 77} y={a.y + 16} tex="(x,y)" width={75} />
+          <MathLabel x={b.x + 10} y={b.y - 27} tex="(x+l,y)" />
+          <MathLabel x={c.x + 10} y={c.y - 35} tex="(x,y+l)" />
+          {excluded && (
+            <>
+              <MathLabel x={66} y={174} tex="x'<x" width={90} muted />
+              <MathLabel x={278} y={382} tex="y'<y" width={90} muted />
+            </>
+          )}
+        </svg>
+      </div>
       <figcaption>
         {excluded
-          ? '带状区域减去 x′ < x 与 y′ < y 的两块区域，剩下目标三角形。'
-          : '先用 x′+y′ ∈ [x+y, x+y+l] 覆盖整个斜向带状区域。'}
+          ? String.raw`减去 \(x'<x\) 与 \(y'<y\) 的两块区域，保留蓝色三角形（含边界）。`
+          : String.raw`先覆盖斜带：\(x+y\le x'+y'\le x+y+l\)。`}
       </figcaption>
     </figure>
   );
