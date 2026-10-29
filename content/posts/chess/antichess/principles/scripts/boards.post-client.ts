@@ -11,6 +11,7 @@ export function enhancePost(container: HTMLElement): () => void {
       from: Key;
       to: Key;
       role: string;
+      label?: string;
     }[];
     const marks = JSON.parse(figure.dataset['marks'] ?? '[]') as {
       square: Key;
@@ -34,10 +35,16 @@ export function enhancePost(container: HTMLElement): () => void {
           red: { key: 'r', color: 'var(--accent-red)', opacity: 0.85, lineWidth: 8 },
           blue: { key: 'b', color: 'var(--accent-blue)', opacity: 0.85, lineWidth: 5 },
           yellow: { key: 'y', color: 'var(--accent-ochre)', opacity: 0.85, lineWidth: 8 },
-          path: { key: 'path', color: 'var(--accent-clay)', opacity: 0.85, lineWidth: 8 },
-          option: { key: 'option', color: 'var(--accent-blue)', opacity: 0.85, lineWidth: 5 },
+          // Article styles recolor these by key; widths follow Lichess's arrows.
+          path: { key: 'path', color: 'var(--accent-sage)', opacity: 0.8, lineWidth: 10 },
+          option: { key: 'option', color: 'var(--accent-blue)', opacity: 0.8, lineWidth: 8 },
         },
-        autoShapes: arrows.map((a) => ({ orig: a.from, dest: a.to, brush: a.role })),
+        autoShapes: arrows.map((a) => ({
+          orig: a.from,
+          dest: a.to,
+          brush: a.role,
+          ...(a.label && { label: { text: a.label } }),
+        })),
       },
       highlight: { custom: new Map(marks.map((m) => [m.square, `anti-${m.role}`])) },
     });
@@ -48,6 +55,7 @@ export function enhancePost(container: HTMLElement): () => void {
       let ply = 0;
       const controls = player.querySelector<HTMLElement>('[data-anti-controls]')!;
       const status = player.querySelector<HTMLElement>('[data-anti-status]')!;
+      const list = player.querySelector<HTMLElement>('.anti-moves')!;
       const render = () => {
         const move = E4_REFUTATION[ply - 1];
         const label =
@@ -66,12 +74,18 @@ export function enhancePost(container: HTMLElement): () => void {
         player.querySelector<HTMLButtonElement>('[data-action="previous"]')!.disabled = ply === 0;
         player.querySelector<HTMLButtonElement>('[data-action="next"]')!.disabled =
           ply === E4_REFUTATION.length;
-        for (const button of player.querySelectorAll<HTMLButtonElement>(
-          '.anti-moves [data-step]',
-        )) {
+        for (const button of list.querySelectorAll<HTMLButtonElement>('[data-step]')) {
           if (Number(button.dataset['step']) === ply) button.setAttribute('aria-current', 'step');
           else button.removeAttribute('aria-current');
         }
+        // Keep the current move centered when the move table scrolls, as Lichess does.
+        const row = list.querySelector('[aria-current]')?.parentElement;
+        list.scrollTop =
+          ply === E4_REFUTATION.length
+            ? list.scrollHeight
+            : row
+              ? row.offsetTop - (list.clientHeight - row.offsetHeight) / 2
+              : 0;
       };
       const go = (target: number) => {
         ply = Math.max(0, Math.min(E4_REFUTATION.length, target));

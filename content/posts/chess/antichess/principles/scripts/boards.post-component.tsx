@@ -29,6 +29,8 @@ interface Arrow {
   readonly from: Square;
   readonly to: Square;
   readonly role: ArrowRole;
+  /** Move number shown on the arrow when a diagram combines several moves. */
+  readonly label?: string;
 }
 type MarkRole = 'target' | 'area';
 interface Mark {
@@ -55,15 +57,26 @@ function ArrowLine({ id, arrow }: { id: string; arrow: Arrow }) {
   const trim = Math.min(15, length / 3);
   const ex = x2 - ((x2 - x1) / length) * trim;
   const ey = y2 - ((y2 - y1) / length) * trim;
+  // Like Chessground, place the label where the shaft meets the head.
+  const lx = x2 - ((x2 - x1) / length) * (trim + 6);
+  const ly = y2 - ((y2 - y1) / length) * (trim + 6);
   return (
-    <line
-      x1={x1}
-      y1={y1}
-      x2={ex}
-      y2={ey}
-      className={`anti-arrow anti-arrow-${arrow.role}`}
-      markerEnd={`url(#${id}-head-${arrow.role})`}
-    />
+    <>
+      <line
+        x1={x1}
+        y1={y1}
+        x2={ex}
+        y2={ey}
+        className={`anti-arrow anti-arrow-${arrow.role}`}
+        markerEnd={`url(#${id}-head-${arrow.role})`}
+      />
+      {arrow.label && (
+        <g className="anti-arrow-label" transform={`translate(${lx} ${ly})`}>
+          <circle r="7" />
+          <text dy="0.35em">{arrow.label}</text>
+        </g>
+      )}
+    </>
   );
 }
 
@@ -200,9 +213,17 @@ function Board({
 }
 
 const line = E4_REFUTATION;
-/** Arrows for the given half-moves of the line, so diagrams cannot drift from it. */
+/**
+ * Arrows for the given half-moves of the line, so diagrams cannot drift from it.
+ * Several arrows are numbered with their move numbers to show their order.
+ */
 const pathArrows = (plies: readonly number[]): Arrow[] =>
-  plies.map((ply) => ({ from: line[ply].from, to: line[ply].to, role: 'path' }));
+  plies.map((ply) => ({
+    from: line[ply].from,
+    to: line[ply].to,
+    role: 'path',
+    ...(plies.length > 1 && { label: String(Math.floor(ply / 2) + 1) }),
+  }));
 
 function E4Threat() {
   return (
@@ -328,6 +349,34 @@ function MainLine() {
         caption="1.e4 b5 主线：从初始局面逐步查看双方走法。"
       >
         <div className="anti-panel" data-anti-controls="" hidden data-agent-omit="">
+          <ol className="anti-moves" aria-label="棋谱，点击走法查看局面">
+            {rounds.map((ply) => (
+              <li key={ply}>
+                <span className="anti-move-number" aria-hidden="true">
+                  {ply / 2 + 1}
+                </span>
+                {[ply, ply + 1].map((index) =>
+                  index < line.length ? (
+                    <button
+                      type="button"
+                      key={index}
+                      data-step={index + 1}
+                      aria-label={moveText(line, index, index + 1)}
+                    >
+                      {line[index].san}
+                    </button>
+                  ) : (
+                    <span key={index} aria-hidden="true" />
+                  ),
+                )}
+              </li>
+            ))}
+            <li className="anti-result">
+              <strong>0-1</strong>
+              <span>黑方无棋可走，获胜</span>
+            </li>
+          </ol>
+          <p className="anti-status" data-anti-status="" role="status" />
           <div className="anti-controls">
             <button type="button" data-step="0" aria-label="重置" title="重置">
               <NavIcon path={ICONS.first} />
@@ -342,28 +391,6 @@ function MainLine() {
               <NavIcon path={ICONS.last} />
             </button>
           </div>
-          <p className="anti-status" data-anti-status="" role="status" />
-          <ol className="anti-moves" aria-label="棋谱，点击走法查看局面">
-            {rounds.map((ply) => (
-              <li key={ply}>
-                <span className="anti-move-number" aria-hidden="true">
-                  {ply / 2 + 1}.
-                </span>
-                {[ply, ply + 1]
-                  .filter((index) => index < line.length)
-                  .map((index) => (
-                    <button
-                      type="button"
-                      key={index}
-                      data-step={index + 1}
-                      aria-label={moveText(line, index, index + 1)}
-                    >
-                      {line[index].san}
-                    </button>
-                  ))}
-              </li>
-            ))}
-          </ol>
         </div>
       </Board>
     </section>
