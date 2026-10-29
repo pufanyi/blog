@@ -26,7 +26,7 @@ import { publishGeneratedFiles } from './lib/generated-files.mts';
 import { validateIconSubset } from './lib/icon-subset.mts';
 import { normalizePostImageHref, renderMdx } from './lib/mdx-renderer.mts';
 import { buildPersonData } from './lib/person-data.mts';
-import { postEnhancementModule } from './lib/post-assets.mts';
+import { postEnhancementModule, postKits } from './lib/post-assets.mts';
 import { buildPostExcerpt } from './lib/post-excerpt.mts';
 import { discoverPostSources } from './lib/post-sources.mts';
 import { loadSiteConfiguration } from './lib/site-config.mts';
@@ -143,7 +143,11 @@ export async function generateData(
   const keys = new Map(
     sources.map(({ slug, sourcePath }) => [
       slug,
-      inputs.files(treeFiles(dirname(sourcePath)), true),
+      // Kit styles and clients are not imported, so hash the kit directories too.
+      inputs.files(
+        [dirname(sourcePath), ...postKits(sourcePath)].flatMap((directory) => treeFiles(directory)),
+        true,
+      ),
     ]),
   );
   const fingerprint = digest(

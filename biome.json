@@ -9,6 +9,7 @@
       "src/**/*.{ts,css}",
       "content/posts/**/scripts/**/*.{ts,mts,tsx}",
       "content/posts/**/*.css",
+      "content/shared/**/*.{ts,tsx,css}",
       "!!src/app/data/**"
     ]
   },

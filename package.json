@@ -81,6 +81,7 @@
     "@types/react-dom": "^19.3.0",
     "angular-eslint": "22.6.0",
     "bibtex-tidy": "^1.15.1",
+    "chessops": "0.15.1",
     "eslint": "^10.13.0",
     "image-size": "^2.0.4",
     "jiti": "^2.7.0",
