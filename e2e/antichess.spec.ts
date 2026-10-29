@@ -29,6 +29,31 @@ test('Antichess main line replays locally and resets', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test('Antichess move table sits right of the board except on phones', async ({ page }) => {
+  await page.goto(article);
+  const player = page.locator('[data-anti-player]');
+  await player.scrollIntoViewIfNeeded();
+  await expect(player).toHaveAttribute('data-ply', '0');
+  const board = (await player.locator('.anti-ground').boundingBox())!;
+  const panel = (await player.locator('.anti-panel').boundingBox())!;
+  if ((page.viewportSize()?.width ?? 0) >= 1000) {
+    // Lichess-style: the panel matches the board height and its move list scrolls.
+    expect(panel.x).toBeGreaterThan(board.x + board.width);
+    expect(Math.abs(panel.height - board.height)).toBeLessThan(2);
+    await player.locator('.anti-moves [data-step="31"]').click();
+    await expect(player.locator('.anti-result')).toBeInViewport();
+    // Narrower laptop columns shrink the board instead of stacking the table under it.
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await expect(async () => {
+      const narrowBoard = (await player.locator('.anti-ground').boundingBox())!;
+      const narrowPanel = (await player.locator('.anti-panel').boundingBox())!;
+      expect(narrowPanel.x).toBeGreaterThan(narrowBoard.x + narrowBoard.width);
+    }).toPass();
+  } else {
+    expect(panel.y).toBeGreaterThan(board.y + board.height);
+  }
+});
+
 test('Antichess remains readable without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();

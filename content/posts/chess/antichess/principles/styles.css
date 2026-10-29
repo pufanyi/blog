@@ -7,6 +7,9 @@
   --anti-square-light: color-mix(in srgb, var(--accent-ochre) 22%, var(--paper-bg));
   --anti-square-dark: color-mix(in srgb, var(--accent-ochre) 52%, var(--surface-soft));
   --anti-last-move: color-mix(in srgb, var(--accent-sage) 50%, transparent);
+  --anti-arrow-path: var(--accent-sage);
+  --anti-arrow-option: var(--accent-blue);
+  --anti-shadow: 0 1px 3px var(--shadow-color), 0 8px 22px var(--shadow-color);
 }
 
 [data-theme="dark"] .anti-figure {
@@ -54,27 +57,38 @@
 }
 
 .anti-arrow {
-  stroke-width: 5;
+  stroke-width: 6.25;
   stroke-linecap: round;
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
 .anti-arrow-path {
-  stroke: var(--accent-clay);
+  stroke: var(--anti-arrow-path);
 }
 
 .anti-arrow-option {
-  stroke: var(--accent-blue);
-  stroke-dasharray: 7 5;
+  stroke: var(--anti-arrow-option);
+  stroke-dasharray: 8 5;
   stroke-linecap: butt;
 }
 
 .anti-head-path {
-  fill: var(--accent-clay);
+  fill: var(--anti-arrow-path);
 }
 
 .anti-head-option {
-  fill: var(--accent-blue);
+  fill: var(--anti-arrow-option);
+}
+
+.anti-arrow-label circle {
+  fill: var(--anti-arrow-path);
+}
+
+.anti-arrow-label text {
+  fill: var(--on-accent);
+  font-size: 9px;
+  font-weight: 700;
+  text-anchor: middle;
 }
 
 /* Chessground layout; scoped to this article and its local SVG pieces. */
@@ -83,9 +97,7 @@
   width: 100%;
   aspect-ratio: 1;
   border-radius: 4px;
-  box-shadow:
-    0 1px 3px var(--shadow-color),
-    0 8px 22px var(--shadow-color);
+  box-shadow: var(--anti-shadow);
 }
 .anti-ground[hidden],
 .anti-board[hidden],
@@ -153,6 +165,32 @@
   z-index: 4;
 }
 
+/* Chessground writes brush colors as attributes; recolor by brush key so both themes apply. */
+.anti-ground line[marker-end="url(#arrowhead-path)"] {
+  stroke: var(--anti-arrow-path);
+}
+.anti-ground line[marker-end="url(#arrowhead-option)"] {
+  stroke: var(--anti-arrow-option);
+  stroke-dasharray: 0.2 0.12;
+  stroke-linecap: butt;
+}
+.anti-ground marker#arrowhead-path path {
+  fill: var(--anti-arrow-path);
+}
+.anti-ground marker#arrowhead-option path {
+  fill: var(--anti-arrow-option);
+}
+.anti-ground .cg-custom-svgs circle {
+  fill: var(--anti-arrow-path);
+  fill-opacity: 1;
+  stroke: var(--on-accent);
+}
+.anti-ground .cg-custom-svgs text {
+  fill: var(--on-accent);
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+
 /* Coordinates sit inside the edge squares, tinted with the opposite square color. */
 .anti-ground coords {
   position: absolute;
@@ -196,9 +234,25 @@
   padding: 0 3px 3px 0;
 }
 
-/* Playback panel under the board. */
+/*
+ * Main-line player, modeled on the Lichess analysis board: a move table and
+ * control bar to the right of the board, which shrinks to make room; only
+ * phone-width columns stack them.
+ */
+.anti-player {
+  container-type: inline-size;
+}
+.anti-player .anti-figure {
+  max-width: 440px;
+}
 .anti-panel {
-  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface-soft) 40%, var(--paper-bg));
+  border-radius: 4px;
+  box-shadow: var(--anti-shadow);
 }
 .anti-player button {
   color: var(--text-color);
@@ -217,10 +271,9 @@
 }
 .anti-controls {
   display: flex;
-  overflow: hidden;
+  order: -1;
   background: var(--surface-soft);
-  border: 1px solid var(--border-light);
-  border-radius: 6px;
+  border-bottom: 1px solid var(--border-light);
 }
 .anti-controls button {
   flex: 1;
@@ -228,61 +281,137 @@
   place-items: center;
   min-height: 44px;
 }
-.anti-controls button + button {
-  border-left: 1px solid color-mix(in srgb, var(--border-color) 45%, transparent);
-}
 .anti-controls button:not(:disabled):hover {
-  background: var(--surface);
+  color: var(--on-accent);
+  background: var(--accent-sage);
 }
 .anti-controls svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   fill: none;
   stroke: currentcolor;
-  stroke-width: 2;
+  stroke-width: 2.25;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* The move table and result show progress; the status line is for screen readers. */
 .anti-status {
-  margin: 8px 0;
-  min-height: 1.6em;
-  color: var(--text-secondary);
-  text-align: center;
-  font-size: 0.85rem;
-  line-height: 1.6;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
+
+/* Narrow layout: moves wrap inline, as in Lichess's mobile move list. */
 .anti-panel .anti-moves {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
-  gap: 2px 6px;
+  align-items: baseline;
   margin: 0;
-  padding: 8px;
+  padding: 6px;
   list-style: none;
-  border: 1px solid var(--border-light);
-  border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-variant-numeric: tabular-nums;
 }
-.anti-moves li {
+/* Outrank the article's list-item spacing. */
+.anti-panel .anti-moves li {
   display: flex;
   align-items: baseline;
+  margin: 0;
 }
 .anti-move-number {
-  padding-left: 4px;
+  padding: 0 1px 0 6px;
   color: var(--text-secondary);
   font-size: 0.85em;
 }
+.anti-move-number::after {
+  content: ".";
+}
 .anti-moves button {
-  padding: 3px 5px;
-  border-radius: 4px;
-  line-height: 1.4;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-weight: 500;
+  text-align: left;
 }
 .anti-moves button:hover {
-  background: var(--surface-soft);
+  background: color-mix(in srgb, var(--accent-sage) 18%, transparent);
 }
 .anti-moves button[aria-current="step"] {
-  color: var(--on-accent);
-  background: var(--accent-clay);
+  background: color-mix(in srgb, var(--accent-sage) 35%, transparent);
+  font-weight: 700;
+}
+.anti-panel .anti-moves .anti-result {
+  flex-basis: 100%;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 0 4px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+.anti-result strong {
+  color: var(--text-color);
+}
+
+@container (min-width: 480px) {
+  .anti-player .anti-figure[data-ready] {
+    display: grid;
+    grid-template-columns: minmax(0, 440px) minmax(10rem, 14rem);
+    justify-content: center;
+    column-gap: 12px;
+    max-width: none;
+  }
+  .anti-player .anti-figure figcaption {
+    grid-column: 1 / -1;
+  }
+  /* Size containment lets the board alone set the row height; the moves then scroll. */
+  .anti-player .anti-panel {
+    contain: size;
+    margin-top: 0;
+  }
+  .anti-controls {
+    order: 0;
+    border-top: 1px solid var(--border-light);
+    border-bottom: 0;
+  }
+  .anti-panel .anti-moves {
+    display: block;
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    overscroll-behavior: contain;
+  }
+  .anti-panel .anti-moves li {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr 1fr;
+    align-items: stretch;
+  }
+  .anti-move-number {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
+    border-right: 1px solid var(--border-light);
+  }
+  .anti-move-number::after {
+    content: none;
+  }
+  .anti-moves button {
+    padding: 0 10px;
+    border-radius: 0;
+    line-height: 2.1;
+  }
+  .anti-panel .anti-moves .anti-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border-light);
+  }
 }
 @media print {
   .anti-ground,
