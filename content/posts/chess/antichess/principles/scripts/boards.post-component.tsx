@@ -10,6 +10,7 @@ import {
   placementFen,
   type Square,
 } from './e4-line';
+import { TACTICS } from './tactics';
 
 const CELL = 40;
 const MARGIN = 18;
@@ -316,6 +317,56 @@ function PawnGap() {
   );
 }
 
+function CaptureOrder() {
+  return (
+    <Board
+      id="anti-capture-order"
+      title="吃子次序：白先，两种吃法导向不同终点"
+      description="白方：c1 车、a3 象；黑方：a1 车、c4 马、a4 兵。白车只能吃 c4 马或 a1 车。"
+      placement={parsePlacement(TACTICS.order.fen.split(' ')[0])}
+      arrows={[
+        { from: 'c1', to: 'c4', role: 'path' },
+        { from: 'c1', to: 'a1', role: 'option' },
+      ]}
+      caption="白先。先吃 c4 马，可以让黑车清扫；先吃 a1 车，最终反而把黑兵堵住，让黑方获胜。"
+    />
+  );
+}
+
+function RelayTactic() {
+  return (
+    <Board
+      id="anti-relay"
+      title="接力：白先，利用黑马的吃子义务调动车"
+      description="白方：e5 车、h1 车、c2 王；黑方：a8 车、f2 马。白车经 b5 到 b8，让黑车接替黑马完成清扫。"
+      placement={parsePlacement(TACTICS.relay.fen.split(' ')[0])}
+      arrows={[
+        { from: 'e5', to: 'b5', role: 'path', label: '1' },
+        { from: 'b5', to: 'b8', role: 'path', label: '2' },
+        { from: 'f2', to: 'h1', role: 'option' },
+      ]}
+      caption="白先。1.Rb5 Nxh1 2.Rb8 Rxb8 3.Kb3 Rxb3：黑方每一步都只有一种合法着法，白方送光获胜。"
+    />
+  );
+}
+
+function IntermediateTactic() {
+  return (
+    <Board
+      id="anti-intermediate"
+      title="中间着：白先，在 h7 准备替代吃法"
+      description="白方：b8 车、f4 王、e3 兵、f1 马；黑方：c4 马、h7 兵。e3 受白王和白马保护，1.Rh8 预先准备 Rxh7，避免在黑方 Nxe3 后立即回吃。"
+      placement={parsePlacement(TACTICS.intermediate.fen.split(' ')[0])}
+      arrows={[
+        { from: 'b8', to: 'h8', role: 'path' },
+        { from: 'c4', to: 'e3', role: 'option' },
+      ]}
+      marks={[{ square: 'h7', role: 'target' }]}
+      caption="白先。先走 Rh8 准备另一处吃子；Nxe3 后选择 Rxh7，保留黑马继续清扫。"
+    />
+  );
+}
+
 /** Stroke paths for the playback buttons, drawn on a 24-unit grid. */
 const ICONS = {
   first: 'M7 6v12M17 6l-6 6 6 6',
@@ -398,6 +449,9 @@ function MainLine() {
 }
 
 export const POST_COMPONENTS = {
+  CaptureOrder,
+  RelayTactic,
+  IntermediateTactic,
   MainLine,
   E4Threat,
   BishopRun,

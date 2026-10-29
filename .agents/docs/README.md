@@ -12,6 +12,8 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Historical evidence
 
+- [Antichess principles and basic tactics — 2026-10-29](maintenance/2026-10-29-antichess-principles.md): integrated lesson, verified tactical positions, rule qualifications, and production reading checks.
+
 - [Dependency refresh — 2026-10-23](maintenance/2026-10-23-dependency-refresh.md): patched Node trust, current compatible dependencies, security exceptions, baseline resource comparison, and browser host limits.
 
 - [GitHub code quotations — 2026-10-18](maintenance/2026-10-18-github-code-quotes.md): authoring syntax, immutable source caching, export preservation, and browser verification.
