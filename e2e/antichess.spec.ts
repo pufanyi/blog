@@ -2,6 +2,24 @@ import { expect, test } from '@playwright/test';
 
 const article = '/blog/chess/antichess/principles';
 
+const tacticalBoards = [
+  { id: 'anti-capture-order', pieces: 5, fen: '8/8/8/8/p1n5/B7/8/r1R5 w - - 0 1' },
+  { id: 'anti-relay', pieces: 5, fen: 'r7/8/8/4R3/8/8/2K2n2/7R w - - 0 1' },
+  { id: 'anti-intermediate', pieces: 6, fen: '1R6/7p/8/8/2n2K2/4P3/8/5N2 w - - 0 1' },
+];
+
+test('Antichess tactical diagrams use the shared chess kit', async ({ page }) => {
+  await page.goto(article);
+  for (const { id, pieces, fen } of tacticalBoards) {
+    const figure = page.locator(`#${id}-title`).locator('xpath=ancestor::figure');
+    await figure.scrollIntoViewIfNeeded();
+    await expect(figure).toHaveAttribute('data-ready', 'true');
+    await expect(figure.locator('cg-board piece')).toHaveCount(pieces);
+    await expect(figure.locator('desc')).toContainText(fen);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 test('Antichess main line replays locally and resets', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(article);
@@ -110,5 +128,10 @@ test('Antichess remains readable without JavaScript', async ({ browser }) => {
   await expect(game.locator('[data-chess-controls]')).toBeHidden();
   await expect(game.locator('.chess-move[data-ply]')).toHaveCount(31);
   await expect(game.locator('.chess-pgn > summary')).toBeVisible();
+  for (const { id, pieces } of tacticalBoards) {
+    const figure = page.locator(`#${id}-title`).locator('xpath=ancestor::figure');
+    await expect(figure.locator('.chess-board')).toBeVisible();
+    await expect(figure.locator('image')).toHaveCount(pieces);
+  }
   await context.close();
 });
