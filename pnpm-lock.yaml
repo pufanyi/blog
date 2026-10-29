@@ -288,6 +288,9 @@ importers:
       bibtex-tidy:
         specifier: ^1.15.1
         version: 1.15.1
+      chessops:
+        specifier: 0.15.1
+        version: 0.15.1
       eslint:
         specifier: ^10.13.0
         version: 10.13.0(jiti@2.7.0)(supports-color@10.2.2)
@@ -677,6 +680,10 @@ packages:
   '@babel/types@8.0.6':
     resolution: {integrity: sha512-c+xgSWboV2pdwXP67BUWDVRHi2BO5Q3KwxyFVs7taVTY+fsK47/L51ZXQoV9rozHJDNHvJ4v4WEsI/IlxV2l2A==}
     engines: {node: ^22.18.0 || >=24.11.0}
+
+  '@badrap/result@0.3.1':
+    resolution: {integrity: sha512-ECvpsyZYknoRD0peG1K+UkX5llld3TyK1Ot9Cq2epSoWK19nyzpGKVl98sadSmohu5wHNuiDl+Ex9SVdcIjiFg==}
+    engines: {node: '>= 22'}
 
   '@biomejs/biome@2.6.2':
     resolution: {integrity: sha512-JLTFAFF9vfJcWwLhwuL4ZHflLg+XfTEC4IUnAlJRX1cMRt57++Xd1Ysb9Fdmlh9YUrvyCXfPEHjjEIqKJGdPKw==}
@@ -2504,6 +2511,9 @@ packages:
 
   charter-webfont@4.1.0:
     resolution: {integrity: sha512-nYu9iCmmhHTHm3UxQagborgPJZ6VjlFD6BKP6AqkqRrVC5YbRkFv8up2Ccg3exsaRA0jbIt18+ge4BkYMRugzA==}
+
+  chessops@0.15.1:
+    resolution: {integrity: sha512-hQDwv90AFkrPEsRJBebh3ZE+xDga25TCCv4lavNT2plZmd33UKNFYaZsE+7rafMbnBRrDEWUVsSYFqY3qCIGZw==}
 
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
@@ -5085,6 +5095,8 @@ snapshots:
       '@babel/helper-string-parser': 8.0.6
       '@babel/helper-validator-identifier': 8.0.6
 
+  '@badrap/result@0.3.1': {}
+
   '@biomejs/biome@2.6.2':
     optionalDependencies:
       '@biomejs/cli-android-arm64': 2.6.2
@@ -6506,6 +6518,10 @@ snapshots:
   chardet@2.2.0: {}
 
   charter-webfont@4.1.0: {}
+
+  chessops@0.15.1:
+    dependencies:
+      '@badrap/result': 0.3.1
 
   chokidar@3.6.0:
     dependencies:

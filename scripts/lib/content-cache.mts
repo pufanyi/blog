@@ -25,6 +25,58 @@ export function treeFiles(directory: string): string[] {
     .sort();
 }
 
+/** Resolved literal relative imports of an MDX or script source; other files have none. */
+export function localImports(path: string): string[] {
+  if (!path.endsWith('.mdx') && !/\.[cm]?[jt]sx?$/.test(path)) return [];
+  let source = readFileSync(path, 'utf8');
+  if (path.endsWith('.mdx')) {
+    const tree = createProcessor({
+      remarkPlugins: [remarkFrontmatter, remarkGfm, remarkMath],
+    }).parse(source);
+    source = tree.children
+      .flatMap((node) => (node.type === 'mdxjsEsm' ? [node.value] : []))
+      .join('\n');
+  } else if (!/\.[cm]?[jt]sx?$/.test(path)) return [];
+  const specifiers: string[] = [];
+  const syntax = ts.createSourceFile(
+    path,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    path.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  );
+  const visit = (node: ts.Node) => {
+    if (
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    )
+      specifiers.push(node.moduleSpecifier.text);
+    if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword &&
+      node.arguments[0] &&
+      ts.isStringLiteral(node.arguments[0])
+    )
+      specifiers.push(node.arguments[0].text);
+    ts.forEachChild(node, visit);
+  };
+  visit(syntax);
+  return specifiers
+    .filter((specifier) => specifier.startsWith('.'))
+    .map((specifier) => {
+      const target = resolve(dirname(path), specifier);
+      const candidates = [
+        target,
+        ...['.ts', '.mts', '.tsx', '.js', '.mjs', '.json'].map((extension) => target + extension),
+        ...['index.ts', 'index.tsx', 'index.mts'].map((file) => join(target, file)),
+      ];
+      const resolved = candidates.find((file) => existsSync(file) && statSync(file).isFile());
+      if (!resolved) throw new Error(`${path}: cannot resolve local import ${specifier}`);
+      return resolved;
+    });
+}
+
 /** Hash bytes, not timestamps; also follow literal local imports across article boundaries. */
 export class InputDigests {
   private readonly hashes = new Map<string, string>();
@@ -33,54 +85,7 @@ export class InputDigests {
   private dependencies(path: string): string[] {
     const cached = this.imports.get(path);
     if (cached) return cached;
-    if (!path.endsWith('.mdx') && !/\.[cm]?[jt]sx?$/.test(path)) return [];
-    let source = readFileSync(path, 'utf8');
-    if (path.endsWith('.mdx')) {
-      const tree = createProcessor({
-        remarkPlugins: [remarkFrontmatter, remarkGfm, remarkMath],
-      }).parse(source);
-      source = tree.children
-        .flatMap((node) => (node.type === 'mdxjsEsm' ? [node.value] : []))
-        .join('\n');
-    } else if (!/\.[cm]?[jt]sx?$/.test(path)) return [];
-    const specifiers: string[] = [];
-    const syntax = ts.createSourceFile(
-      path,
-      source,
-      ts.ScriptTarget.Latest,
-      true,
-      path.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-    );
-    const visit = (node: ts.Node) => {
-      if (
-        (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
-        node.moduleSpecifier &&
-        ts.isStringLiteral(node.moduleSpecifier)
-      )
-        specifiers.push(node.moduleSpecifier.text);
-      if (
-        ts.isCallExpression(node) &&
-        node.expression.kind === ts.SyntaxKind.ImportKeyword &&
-        node.arguments[0] &&
-        ts.isStringLiteral(node.arguments[0])
-      )
-        specifiers.push(node.arguments[0].text);
-      ts.forEachChild(node, visit);
-    };
-    visit(syntax);
-    const imports = specifiers
-      .filter((specifier) => specifier.startsWith('.'))
-      .map((specifier) => {
-        const target = resolve(dirname(path), specifier);
-        const candidates = [
-          target,
-          ...['.ts', '.mts', '.tsx', '.js', '.mjs', '.json'].map((extension) => target + extension),
-          ...['index.ts', 'index.tsx', 'index.mts'].map((file) => join(target, file)),
-        ];
-        const resolved = candidates.find((file) => existsSync(file) && statSync(file).isFile());
-        if (!resolved) throw new Error(`${path}: cannot resolve local import ${specifier}`);
-        return resolved;
-      });
+    const imports = localImports(path);
     this.imports.set(path, imports);
     return imports;
   }

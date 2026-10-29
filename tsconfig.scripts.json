@@ -15,6 +15,7 @@
     "eslint.config.mts",
     "remark.config.mts",
     "scripts/**/*.mts",
+    "content/shared/**/*.ts",
     "content/shared/**/*.tsx",
     "content/posts/**/scripts/**/*.tsx",
     "scripts/lib/fixtures/**/scripts/*.post-component.tsx",

@@ -61,7 +61,8 @@ instead of accumulating unrelated rules here.
 - Authored sources live in `content` and `configs`. `src/app/data` and
   `.generated` are ignored outputs; change sources, never generated files.
 - Keep articles, styles, and browser examples together: article `styles.css`
-  and `scripts/*.post-client.ts` are discovered automatically. Application
+  and `scripts/*.post-client.ts` are discovered automatically, as are the
+  styles and clients of `content/shared/<kit>/` kits an article imports. Application
   components own shared presentation and generic attachment/cleanup only.
 - Keep article bodies and the full-text corpus out of eager summaries/shell.
   Open the small search dialog before dynamically loading its engine/index.

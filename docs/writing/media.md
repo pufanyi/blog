@@ -67,12 +67,12 @@ focused/interacted with. Use the filename without `.post-client.ts`; multiple
 controllers use space-separated names. Without a matching marker, attachment
 remains immediate. Static content must stay useful before the controller loads.
 
-Render useful initial HTML in the build-time component. Keep playback opt-in, pause it when hidden or offscreen, and respect reduced motion. Mark transient controls with `data-agent-omit`, with a static explanation or transcript outside the omitted region. Follow the [architecture contracts](../architecture.md) when implementing controllers and readiness signals.
+A shared component kit under `content/shared/<kit>/` carries its own `styles.css` and controller into every article that imports it; the [chess kit](chess.md) is the reference example. Render useful initial HTML in the build-time component. Keep playback opt-in, pause it when hidden or offscreen, and respect reduced motion. Mark transient controls with `data-agent-omit`, with a static explanation or transcript outside the omitted region. Follow the [architecture contracts](../architecture.md) when implementing controllers and readiness signals.
 
 ## PDFs and external embeds
 
 Use an iframe with a descriptive `title`, explicit height, `width="100%"`, and `loading="lazy"`; always include a direct source link. Local PDF iframes under `/posts/` or `/assets/` are rewritten to the site's PDF viewer. Keep each embedded reader in its own iframe because the viewer library uses global IDs.
 
-For Lichess, the `/black` suffix chooses viewpoint and the fragment selects the initial ply. Use a Study chapter when authored arrows and variations must persist. The embed's `bg=system` follows the OS, independently of the site's theme toggle.
+For Lichess, the `/black` suffix chooses viewpoint and the fragment selects the initial ply. Use a Study chapter when authored arrows and variations must persist. For a fixed line that the article explains move by move, prefer the site's own [chess games and diagrams](chess.md). The embed's `bg=system` follows the OS, independently of the site's theme toggle.
 
 After changing diagrams or embeds, inspect the served article in both themes and at desktop and narrow widths. Check labels, scrolling, legends, actual PDF canvases, and the Markdown alternative, then run the relevant checks from [testing](../testing.md).

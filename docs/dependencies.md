@@ -50,10 +50,20 @@ not force a newer Chokidar major into the old CLI, which relies on glob support.
 
 ## Article chessboards
 
-The Antichess article uses `@lichess-org/chessground` 10.5.0, licensed under
-GPL-3.0-or-later. Its browser module loads through the article enhancement
-boundary. The local Cburnett SVG pieces are extracted from that version's
-`chessground.cburnett.css`. Preserve the [third-party notice](../public/licenses/chessground.txt)
-when updating the package or pieces. The original project files retain their
-MIT notice; the combined browser distribution includes GPL-covered code and
-must be distributed under GPL-compatible terms with corresponding source.
+The shared chess kit in `content/shared/chess` uses two Lichess packages, both
+licensed under GPL-3.0-or-later:
+
+- **`@lichess-org/chessground` 10.5.0.** It draws the interactive boards, and
+  its browser module loads only through the kit's lazy article enhancement.
+  The local Cburnett SVG pieces in `public/assets/chess/pieces` are extracted
+  from that version's `chessground.cburnett.css`. Preserve the
+  [third-party notice](../public/licenses/chessground.txt) when updating the
+  package or the pieces.
+- **`chessops` 0.15.1.** It is a development dependency and runs only during
+  generation. It parses PGN and replays moves under each variant's rules. The
+  browser never imports it: build-time modules pass plain FENs and moves to
+  the client through `model.ts`, which must stay free of chessops imports.
+
+The original project files retain their MIT notice; the combined browser
+distribution includes GPL-covered code and must be distributed under
+GPL-compatible terms with corresponding source.

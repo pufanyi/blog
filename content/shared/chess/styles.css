@@ -1,0 +1,665 @@
+/*
+ * Shared chess kit: static and Chessground boards for `ChessDiagram`, plus the
+ * Lichess-style board, move list, and PGN panel of `ChessGame`. The generator
+ * embeds this file only in articles that import the kit.
+ */
+.chess-diagram,
+.chess-game {
+  margin: 1.75rem auto;
+
+  /* Muted wood squares; the piece artwork is fixed black/white, so both themes keep mid-tones. */
+  --chess-square-light: color-mix(in srgb, var(--accent-ochre) 22%, var(--paper-bg));
+  --chess-square-dark: color-mix(in srgb, var(--accent-ochre) 52%, var(--surface-soft));
+  --chess-last-move: color-mix(in srgb, var(--accent-sage) 50%, transparent);
+  --chess-arrow-path: var(--accent-sage);
+  --chess-arrow-option: var(--accent-blue);
+  --chess-arrow-threat: var(--accent-red);
+  --chess-arrow-idea: var(--accent-ochre);
+  --chess-shadow: 0 1px 3px var(--shadow-color), 0 8px 22px var(--shadow-color);
+  --chess-current: color-mix(in srgb, var(--accent-sage) 35%, transparent);
+  --chess-hover: color-mix(in srgb, var(--accent-sage) 18%, transparent);
+  --chess-line: var(--border-light);
+}
+
+[data-theme="dark"] :is(.chess-diagram, .chess-game) {
+  --chess-square-light: color-mix(in srgb, var(--accent-ochre) 62%, var(--surface-strong));
+  --chess-square-dark: color-mix(in srgb, var(--accent-ochre) 38%, var(--surface));
+}
+
+.chess-diagram {
+  max-width: 400px;
+}
+
+:is(.chess-diagram, .chess-game) figcaption {
+  margin-top: 0.6rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.8;
+}
+
+/* Static SVG board: no-JavaScript, print, and pre-hydration rendering. */
+.chess-board {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--font-body);
+}
+.chess-board[hidden] {
+  display: none;
+}
+.chess-square-light {
+  fill: var(--chess-square-light);
+}
+.chess-square-dark {
+  fill: var(--chess-square-dark);
+}
+.chess-coord {
+  fill: var(--text-secondary);
+  font-size: 10px;
+  text-anchor: middle;
+}
+.chess-mark-target {
+  fill: none;
+  stroke: var(--accent-red);
+  stroke-width: 3;
+}
+.chess-mark-area {
+  fill: color-mix(in srgb, var(--accent-ochre) 32%, transparent);
+}
+
+/* Arrow roles differ by pattern or weight as well as hue. */
+.chess-arrow {
+  stroke-width: 6.25;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+.chess-arrow-path {
+  stroke: var(--chess-arrow-path);
+}
+.chess-arrow-option {
+  stroke: var(--chess-arrow-option);
+  stroke-dasharray: 8 5;
+  stroke-linecap: butt;
+}
+.chess-arrow-threat {
+  stroke: var(--chess-arrow-threat);
+  stroke-width: 4;
+}
+.chess-arrow-idea {
+  stroke: var(--chess-arrow-idea);
+  stroke-dasharray: 0.1 7;
+}
+.chess-head-path {
+  fill: var(--chess-arrow-path);
+}
+.chess-head-option {
+  fill: var(--chess-arrow-option);
+}
+.chess-head-threat {
+  fill: var(--chess-arrow-threat);
+}
+.chess-head-idea {
+  fill: var(--chess-arrow-idea);
+}
+.chess-arrow-label circle {
+  fill: var(--chess-arrow-path);
+}
+.chess-arrow-label text {
+  fill: var(--on-accent);
+  font-size: 9px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+/* Chessground layout, using the kit's square colors and local Cburnett pieces. */
+.chess-ground {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  box-shadow: var(--chess-shadow);
+}
+.chess-ground[hidden] {
+  display: none;
+}
+.chess-ground:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+.chess-ground cg-container,
+.chess-ground cg-board {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.chess-ground cg-board {
+  overflow: hidden;
+  border-radius: inherit;
+  background:
+    conic-gradient(
+      var(--chess-square-dark) 25%,
+      var(--chess-square-light) 0 50%,
+      var(--chess-square-dark) 0 75%,
+      var(--chess-square-light) 0
+    )
+    0 0 / 25% 25%;
+}
+.chess-ground piece,
+.chess-ground square {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12.5%;
+  height: 12.5%;
+  background-size: cover;
+  pointer-events: none;
+}
+.chess-ground piece {
+  z-index: 2;
+}
+.chess-ground piece.anim {
+  z-index: 3;
+}
+.chess-ground piece.fading {
+  opacity: 0.5;
+}
+.chess-ground square.last-move {
+  background: var(--chess-last-move);
+}
+.chess-ground square.check {
+  background: radial-gradient(
+    color-mix(in srgb, var(--accent-red) 85%, transparent) 0%,
+    color-mix(in srgb, var(--accent-red) 30%, transparent) 50%,
+    transparent 80%
+  );
+}
+.chess-ground square.chess-mark-target {
+  box-shadow: inset 0 0 0 3px var(--accent-red);
+}
+.chess-ground square.chess-mark-area {
+  background: color-mix(in srgb, var(--accent-ochre) 32%, transparent);
+}
+.chess-ground .cg-shapes,
+.chess-ground .cg-shapes-below,
+.chess-ground .cg-custom-svgs,
+.chess-ground .cg-custom-below,
+.chess-ground cg-auto-pieces {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Chessground writes brush colors as attributes; recolor by brush key so both themes apply. */
+.chess-ground line[marker-end="url(#arrowhead-path)"] {
+  stroke: var(--chess-arrow-path);
+}
+.chess-ground line[marker-end="url(#arrowhead-option)"] {
+  stroke: var(--chess-arrow-option);
+  stroke-dasharray: 0.2 0.12;
+  stroke-linecap: butt;
+}
+.chess-ground line[marker-end="url(#arrowhead-threat)"] {
+  stroke: var(--chess-arrow-threat);
+}
+.chess-ground line[marker-end="url(#arrowhead-idea)"] {
+  stroke: var(--chess-arrow-idea);
+  stroke-dasharray: 0.01 0.24;
+}
+.chess-ground marker#arrowhead-path path {
+  fill: var(--chess-arrow-path);
+}
+.chess-ground marker#arrowhead-option path {
+  fill: var(--chess-arrow-option);
+}
+.chess-ground marker#arrowhead-threat path {
+  fill: var(--chess-arrow-threat);
+}
+.chess-ground marker#arrowhead-idea path {
+  fill: var(--chess-arrow-idea);
+}
+.chess-ground .cg-custom-svgs circle {
+  fill: var(--chess-arrow-path);
+  fill-opacity: 1;
+  stroke: var(--on-accent);
+}
+.chess-ground .cg-custom-svgs text {
+  fill: var(--on-accent);
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+
+/* Coordinates sit inside the edge squares, tinted with the opposite square color. */
+.chess-ground coords {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  font-size: clamp(8px, 2.6vw, 11px);
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+.chess-ground coords coord {
+  flex: 1;
+  display: flex;
+}
+.chess-ground coord.coord-light {
+  color: var(--chess-square-dark);
+}
+.chess-ground coord.coord-dark {
+  color: var(--chess-square-light);
+}
+.chess-ground coords.ranks {
+  top: 0;
+  left: 0;
+  width: 12.5%;
+  height: 100%;
+  flex-direction: column-reverse;
+}
+.chess-ground coords.ranks.black {
+  flex-direction: column;
+}
+.chess-ground coords.ranks coord {
+  padding: 3px 0 0 3px;
+}
+.chess-ground coords.files {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 12.5%;
+}
+.chess-ground coords.files.black {
+  flex-direction: row-reverse;
+}
+.chess-ground coords.files coord {
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0 3px 3px 0;
+}
+
+/*
+ * Game viewer, modeled on the Lichess analysis board. The figure is the size
+ * container: the move panel sits right of the board whenever the column is at
+ * least 480px wide, and below it on phones. The layout is the same before and
+ * after the controller attaches, so enhancing it shifts nothing.
+ */
+.chess-game {
+  container-type: inline-size;
+}
+.chess-game__board {
+  max-width: 440px;
+  margin: 0 auto;
+}
+.chess-game__panel {
+  display: flex;
+  flex-direction: column;
+  margin: 10px auto 0;
+  max-width: 440px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface-soft) 40%, var(--paper-bg));
+  border-radius: 4px;
+  box-shadow: var(--chess-shadow);
+}
+.chess-game button {
+  color: var(--text-color);
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.chess-game button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+:is(.chess-game button, .chess-move):focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+/* Control bar: first, previous, next, last, then the PGN toggle. */
+.chess-controls {
+  display: flex;
+  order: -1;
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--chess-line);
+}
+.chess-controls[hidden] {
+  display: none;
+}
+.chess-controls button {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+}
+.chess-controls button:not(:disabled):hover {
+  color: var(--on-accent);
+  background: var(--accent-sage);
+}
+.chess-controls svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.chess-controls .chess-controls__pgn {
+  flex: 0 0 auto;
+  padding: 0 14px;
+  border-left: 1px solid var(--chess-line);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.chess-controls .chess-controls__pgn[aria-pressed="true"] {
+  color: var(--on-accent);
+  background: var(--accent-sage);
+}
+
+/*
+ * Move pane. Only this element scrolls: the controller centers the current
+ * move inside it and never scrolls the page. Fades mark hidden moves.
+ */
+.chess-game__moves {
+  --fade: 1.75rem;
+  --fade-start: 0px;
+  --fade-end: 0px;
+  position: relative;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  mask-image: linear-gradient(
+    var(--fade-direction, to right),
+    transparent,
+    #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)),
+    transparent
+  );
+}
+.chess-game__moves[data-fade-start] {
+  --fade-start: var(--fade);
+}
+.chess-game__moves[data-fade-end] {
+  --fade-end: var(--fade);
+}
+
+/* Phones: a single line of moves that scrolls sideways, as in Lichess mobile. */
+.chess-game .chess-moves {
+  display: flex;
+  align-items: baseline;
+  width: max-content;
+  margin: 0;
+  padding: 6px 8px;
+  list-style: none;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.chess-game .chess-moves li {
+  margin: 0;
+}
+.chess-moves__row {
+  display: contents;
+}
+.chess-moves__number {
+  padding: 0 1px 0 6px;
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}
+.chess-moves__number::after {
+  content: ".";
+}
+.chess-move {
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+.chess-move--empty:empty {
+  display: none;
+}
+.chess-move[role="button"] {
+  cursor: pointer;
+}
+.chess-move[role="button"]:hover {
+  background: var(--chess-hover);
+}
+.chess-move[aria-current] {
+  background: var(--chess-current);
+  font-weight: 700;
+}
+.chess-game .chess-moves__comment {
+  display: none;
+}
+.chess-game .chess-moves__result {
+  display: flex;
+  gap: 6px;
+  padding: 0 6px 0 12px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+.chess-moves__result strong {
+  color: var(--text-color);
+}
+
+/* On phones the current move's comment shows under the strip. */
+.chess-game__comment {
+  margin: 0;
+  padding: 8px 12px;
+  border-top: 1px solid var(--chess-line);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.chess-game__comment[hidden] {
+  display: none;
+}
+
+/* The status line repeats the board state for screen readers only. */
+.chess-game__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* PGN: a disclosure without JavaScript; with it, a view toggled from the control bar. */
+.chess-game .chess-pgn {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--chess-line);
+  border-radius: 0;
+  background: none;
+}
+.chess-game .chess-pgn > summary {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+}
+.chess-game[data-ready] .chess-pgn > summary {
+  display: none;
+}
+.chess-game[data-ready] .chess-pgn:not([open]) {
+  display: none;
+}
+.chess-game .chess-pgn > .details-content {
+  padding: 0;
+  border: 0;
+}
+/* The site's code block supplies the Copy button; flatten it into the panel. */
+.chess-game .chess-pgn .code-block {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.chess-game .chess-pgn .code-header {
+  justify-content: flex-end;
+  padding: 0.4rem 0.6rem 0;
+  background: none;
+  border: 0;
+}
+.chess-game .chess-pgn .code-lang {
+  display: none;
+}
+.chess-game .chess-pgn .code-block pre.shiki {
+  padding: 0.4rem 0.75rem 0.75rem;
+  background: none !important;
+  overflow-x: visible;
+}
+.chess-game .chess-pgn .code-block pre.shiki code {
+  min-width: 0;
+  font-size: 0.8rem;
+}
+.chess-game .chess-pgn .shiki span {
+  background-color: transparent !important;
+}
+.chess-game .chess-pgn .code-block pre.shiki .line {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@container (min-width: 480px) {
+  .chess-game__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 440px) minmax(10rem, 14rem);
+    justify-content: center;
+    column-gap: 12px;
+  }
+  .chess-game__board {
+    margin: 0;
+  }
+  /* Size containment lets the board alone set the row height; the pane then scrolls. */
+  .chess-game__panel {
+    contain: size;
+    margin: 0;
+    max-width: none;
+  }
+  .chess-controls {
+    order: 1;
+    border-top: 1px solid var(--chess-line);
+    border-bottom: 0;
+  }
+  .chess-game__moves {
+    --fade-direction: to bottom;
+    flex: 1;
+  }
+  /* The open PGN takes the move pane's place instead of growing the panel. */
+  .chess-game__panel:has(.chess-pgn[open]) .chess-game__moves {
+    display: none;
+  }
+  .chess-game .chess-pgn[open] {
+    flex: 1;
+    overflow-y: auto;
+    border-top: 0;
+  }
+  .chess-game .chess-moves {
+    display: block;
+    width: auto;
+    padding: 0;
+    white-space: normal;
+  }
+  .chess-moves__row {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr 1fr;
+  }
+  .chess-moves__number {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
+    border-right: 1px solid var(--chess-line);
+  }
+  .chess-moves__number::after {
+    content: none;
+  }
+  .chess-move {
+    padding: 0 10px;
+    border-radius: 0;
+    line-height: 2.1;
+  }
+  .chess-move--empty:empty {
+    display: block;
+  }
+  .chess-move--empty {
+    color: var(--text-secondary);
+  }
+  /* Comments run across both move columns, as Lichess shows them. */
+  .chess-game .chess-moves__comment {
+    display: block;
+    padding: 6px 10px 8px;
+    border-block: 1px solid var(--chess-line);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  .chess-game__comment:not([hidden]) {
+    display: none;
+  }
+  .chess-game .chess-moves__result {
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 6px;
+    border-top: 1px solid var(--chess-line);
+    text-align: center;
+  }
+}
+
+@media print {
+  .chess-ground,
+  .chess-controls,
+  .chess-game__comment {
+    display: none;
+  }
+  .chess-board[hidden] {
+    display: block;
+  }
+}
+
+.chess-ground piece.pawn.white {
+  background-image: url("/assets/chess/pieces/white-pawn.svg");
+}
+.chess-ground piece.bishop.white {
+  background-image: url("/assets/chess/pieces/white-bishop.svg");
+}
+.chess-ground piece.knight.white {
+  background-image: url("/assets/chess/pieces/white-knight.svg");
+}
+.chess-ground piece.rook.white {
+  background-image: url("/assets/chess/pieces/white-rook.svg");
+}
+.chess-ground piece.queen.white {
+  background-image: url("/assets/chess/pieces/white-queen.svg");
+}
+.chess-ground piece.king.white {
+  background-image: url("/assets/chess/pieces/white-king.svg");
+}
+.chess-ground piece.pawn.black {
+  background-image: url("/assets/chess/pieces/black-pawn.svg");
+}
+.chess-ground piece.bishop.black {
+  background-image: url("/assets/chess/pieces/black-bishop.svg");
+}
+.chess-ground piece.knight.black {
+  background-image: url("/assets/chess/pieces/black-knight.svg");
+}
+.chess-ground piece.rook.black {
+  background-image: url("/assets/chess/pieces/black-rook.svg");
+}
+.chess-ground piece.queen.black {
+  background-image: url("/assets/chess/pieces/black-queen.svg");
+}
+.chess-ground piece.king.black {
+  background-image: url("/assets/chess/pieces/black-king.svg");
+}
