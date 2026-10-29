@@ -207,8 +207,19 @@ and leave with the article DOM. Shared presentation remains in `ReaderPageCompon
 Build-only styles and scripts are excluded by Angular's article asset rules.
 Reusable build-time visual primitives live in `content/shared`; post components
 import them directly, and the content cache follows those imports so a shared
-change regenerates only its consumers. Their prefixed presentation styles are
-global because the same generated markup appears in more than one article.
+change regenerates only its consumers. A single shared file, such as
+`vision-example.tsx`, keeps its prefixed presentation styles global because the
+same generated markup appears in more than one article.
+
+A directory `content/shared/<kit>/` is a **shared component kit**. When any
+local module of an article imports a file inside the kit, directly or through
+other local modules, the generator embeds the kit's `styles.css` ahead of the
+article's own `styles.css` and registers the kit's `*.post-client.ts` modules as
+lazy enhancements for that article only. Articles therefore need no shim files,
+and pages that do not use a kit download none of its CSS or JavaScript. The
+article cache key hashes every file in each imported kit, because styles and
+clients are not reached through imports. `postKits` in
+`scripts/lib/post-assets.mts` owns this discovery.
 
 The generator discovers `scripts/*.post-client.ts` and generates per-slug lazy
 loaders. Each module exports `enhancePost(container): () => void`.
@@ -470,11 +481,17 @@ The handbook is authored once in `docs/`. Its navigation manifest groups pages f
 
 The lazy `/docs` route uses generated summaries for page routes and navigation. Server routes use the same summaries for prerendering. Each page resolves only its own body; documentation is excluded from blog summaries, feeds, and full-text search. Shared typography/code/table styles preserve the blog theme, while the documentation component owns its navigation and content enhancement lifecycle. Page metadata advertises the one-to-one Markdown alternative, allowing the existing postbuild sitemap and Worker route discovery to include docs without a second URL list. See [documentation maintenance](documentation.md) for the source format, link validation boundaries, and synchronization workflow.
 
-The Antichess article keeps static SVG boards and its PGN in the generated
-body. Its `boards.post-client.ts` enhancement loads Chessground near the article's
-boards, replaces their visual presentation, and provides a main-line stepper
-with a Lichess-style move table, whose controls also respond to the arrow, Home,
-and End keys.
-Both renderers share the authored move list and local SVG pieces. Navigation
-calls Chessground's destroy method and restores the static figures. The player
-replays a fixed line; it is not a free-play Antichess rules engine.
+Chess articles use the `content/shared/chess` kit; see
+[chess games and diagrams](writing/chess.md) for authoring. At build time,
+`parseGame` replays a PGN with chessops under its declared variant and fails
+generation on an illegal move or a result that contradicts the final position.
+The resulting model feeds the static SVG boards, the move list, and a canonical
+PGN that the reader's shared code block displays and copies. The browser
+receives only a JSON payload of moves and FENs, plus Chessground; chessops never
+ships to readers. `ChessGame` renders the same layout before and after the
+controller attaches, and Markdown exports keep the board description and the PGN
+while omitting the duplicate move list. The controller keeps one ply as state.
+Stepping scrolls only the move pane and never the page, and the board and the
+move list are each a single tab stop. Navigation calls Chessground's destroy
+method and restores the static figures. The viewer replays a fixed main line;
+it is not a free-play rules engine.

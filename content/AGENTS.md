@@ -103,6 +103,11 @@ For Jekyll, Hexo, or Typst imports, also read
   literals should use `String.raw` or escaped backslashes; code blocks are not
   MathJax containers.
 
+- Draw chess positions and replayable games with the shared chess kit
+  (`content/shared/chess`): write each game once as PGN with `parseGame`, and
+  derive `ChessGame` viewers and `ChessDiagram` positions from it. See the
+  [chess guide](../docs/writing/chess.md). Do not hand-write move coordinates
+  or a second copy of the PGN.
 - Embed Lichess games with native MDX iframes using a descriptive `title`,
   `loading="lazy"`, `width="100%"`, and an explicit height. The `/black` URL
   suffix sets the viewpoint; the hash selects the initial ply (for example,
@@ -295,6 +300,9 @@ For Jekyll, Hexo, or Typst imports, also read
   For tiling, keep the full sequence, current block, and accumulated coverage visible
   together; avoid repeating an already-explained scalar merge derivation.
 
+Shared component kits (`content/shared/<kit>/`) carry their own `styles.css`
+and `*.post-client.ts` into the articles that import them; keep reusable
+interactive widgets there instead of copying them between articles.
 Controllers live in `scripts/*.post-client.ts` and export
 `enhancePost(container): () => void`. The generator discovers them automatically;
 keep article styles in `styles.css`. See

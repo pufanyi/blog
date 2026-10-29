@@ -54,3 +54,17 @@ Temporary rule-verification scripts and input JSON are under
 `tmp/antichess-principles/` in the main workspace. Screenshots and the browser
 inspection script are under `tmp/antichess-review/` in the validation worktree.
 No publication or push was performed.
+
+## PR #27 conflict reconciliation
+
+Merged main `cdd2bd2` after the shared chess kit landed in PR #26. Resolved the
+board-component conflict by retaining the shared `ChessGame`/`ChessDiagram`
+implementation and porting all three new tactical figures to `ChessDiagram` with
+full FENs. Preserved the main branch's removal of the duplicate authored PGN block;
+the shared viewer supplies that PGN. The article explanations, tactical positions,
+and exercises are unchanged. Reviewed `docs/writing/chess.md`; this is a consumer
+migration and does not change the shared authoring contract.
+
+Added browser assertions for the tactical positions and piece counts, including
+no-JavaScript rendering, so the merge cannot silently drop the new diagrams.
+The earlier validation above remains a historical record of the pre-kit version.

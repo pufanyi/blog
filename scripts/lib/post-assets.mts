@@ -1,22 +1,54 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, join, relative, sep } from 'node:path';
+import { localImports, treeFiles } from './content-cache.mts';
 
-export function postStyles(sourcePath: string): string {
-  const path = join(dirname(sourcePath), 'styles.css');
-  if (!existsSync(path)) return '';
-  const css = readFileSync(path, 'utf8');
-  if (/<\/style/i.test(css))
-    throw new Error(`${path}: CSS must not contain a closing HTML style tag`);
-  return `<style data-post-style>${css}</style>`;
+/**
+ * Shared component kits (`content/shared/<kit>/`) that an article imports,
+ * directly or through other local modules. A kit's `styles.css` and
+ * `*.post-client.ts` follow it into exactly those articles.
+ */
+export function postKits(sourcePath: string): string[] {
+  const kits = new Set<string>();
+  const visited = new Set<string>();
+  const visit = (path: string) => {
+    if (visited.has(path)) return;
+    visited.add(path);
+    const kit = /^(.*[/\\]content[/\\]shared[/\\][^/\\]+)[/\\]/.exec(path)?.[1];
+    if (kit) kits.add(kit);
+    for (const dependency of localImports(path)) visit(dependency);
+  };
+  for (const path of treeFiles(dirname(sourcePath))) visit(path);
+  return [...kits].sort();
 }
 
-export function postClientModules(sourcePath: string): string[] {
-  const directory = join(dirname(sourcePath), 'scripts');
+/** Kit styles come first so the article's own stylesheet can refine them. */
+export function postStyles(sourcePath: string): string {
+  const paths = [...postKits(sourcePath), dirname(sourcePath)]
+    .map((directory) => join(directory, 'styles.css'))
+    .filter((path) => existsSync(path));
+  if (!paths.length) return '';
+  const css = paths.map((path) => {
+    const source = readFileSync(path, 'utf8');
+    if (/<\/style/i.test(source))
+      throw new Error(`${path}: CSS must not contain a closing HTML style tag`);
+    return source;
+  });
+  return `<style data-post-style>${css.join('\n')}</style>`;
+}
+
+function clientModules(directory: string): string[] {
   if (!existsSync(directory)) return [];
   return readdirSync(directory, { withFileTypes: true })
     .filter((entry) => entry.isFile() && entry.name.endsWith('.post-client.ts'))
     .map((entry) => join(directory, entry.name))
     .sort();
+}
+
+export function postClientModules(sourcePath: string): string[] {
+  return [
+    ...postKits(sourcePath).flatMap(clientModules),
+    ...clientModules(join(dirname(sourcePath), 'scripts')),
+  ];
 }
 
 export function postEnhancementModule(
