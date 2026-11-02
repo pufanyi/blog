@@ -1,4 +1,4 @@
-import { readFileSync, statSync, writeFileSync } from 'node:fs';
+import { readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseHeadElements } from './html-head.mts';
@@ -40,8 +40,9 @@ export function prepareMarkdownWorker(browserDirectory: string, siteUrl: string)
   const outputDirectory = dirname(browserDirectory);
   const serialized = JSON.stringify(routes satisfies MarkdownRoutes, null, 2);
   writeFileSync(join(outputDirectory, 'markdown-routes.json'), `${serialized}\n`, 'utf8');
+  // Node resolves the emitted Worker from its real path (e.g. macOS /var -> /private/var).
   const implementation = relative(
-    outputDirectory,
+    realpathSync(outputDirectory),
     fileURLToPath(new URL('./markdown-negotiation.mts', import.meta.url)),
   )
     .split(sep)
