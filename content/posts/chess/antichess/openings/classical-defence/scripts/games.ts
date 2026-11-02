@@ -68,8 +68,8 @@ export const CLASSIC_E6_MINEAR = parseGame(`
 [Result "*"]
 
 1. e3 b5 2. Bxb5 e6 3. Bxd7 Bxd7 4. b4 Bxb4 5. a4 Bxd2 6. Bxd2 Bxa4 7. Rxa4 Qxd2
-8. Rxa7 Rxa7 9. Kxd2 c5 10. Qg4 Td7 *
-`.replace('Td7', 'Rd7'));
+8. Rxa7 Rxa7 9. Kxd2 c5 10. Qg4 Rd7 *
+`);
 
 /**
  * Refutation of 2...e6 3.Bxd7 Nxd7? (Classical Knight Defence) via Sjaak's 6.Nxd2!
