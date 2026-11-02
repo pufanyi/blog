@@ -1,9 +1,4 @@
-import {
-  ChessDiagram,
-  ChessGame,
-  moveArrows,
-  moveText,
-} from '../../../../../../shared/chess';
+import { ChessDiagram, ChessGame, moveArrows, moveText } from '../../../../../../shared/chess';
 import {
   BISHOP_BA6_MAIN,
   CLASSIC_E6_BELTMAN,
