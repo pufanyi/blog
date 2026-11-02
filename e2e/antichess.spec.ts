@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const article = '/blog/chess/antichess/principles';
+const classicalDefenceArticle = '/blog/chess/antichess/openings/classical-defence';
 
 const tacticalBoards = [
   { id: 'anti-capture-order', pieces: 5, fen: '8/8/8/8/p1n5/B7/8/r1R5 w - - 0 1' },
@@ -134,4 +135,26 @@ test('Antichess remains readable without JavaScript', async ({ browser }) => {
     await expect(figure.locator('image')).toHaveCount(pieces);
   }
   await context.close();
+});
+
+test('Classical Defence opening article renders interactive games and tabiya diagrams', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(classicalDefenceArticle);
+  await expect(page.locator('.chess-game')).toHaveCount(3);
+  const suicideGame = page.locator('#cd-suicide-main-title').locator('xpath=ancestor::figure');
+  await suicideGame.scrollIntoViewIfNeeded();
+  await expect(suicideGame).toHaveAttribute('data-ready', 'true');
+  await suicideGame.getByRole('button', { name: '9...Nxf8' }).click();
+  await expect(suicideGame).toHaveAttribute('data-ply', '18');
+  await expect(suicideGame.locator('cg-board piece')).toHaveCount(19);
+
+  const battery = page.locator('#cd-suicide-move10-title').locator('xpath=ancestor::figure');
+  await battery.scrollIntoViewIfNeeded();
+  await expect(battery).toHaveAttribute('data-ready', 'true');
+  await expect(battery.locator('desc')).toContainText(
+    'r4nr1/p1p1p1pp/8/8/8/4P3/PPPB1P1P/RN2K1N1 w - - 0 10',
+  );
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

@@ -6,6 +6,13 @@ import test from 'node:test';
 import { JSDOM } from 'jsdom';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import {
+  BISHOP_BA6_MAIN,
+  CLASSIC_E6_BELTMAN,
+  CLASSIC_E6_MINEAR,
+  SUICIDE_MAIN,
+  SUICIDE_NA3_BLUNDER,
+} from '../../content/posts/chess/antichess/openings/classical-defence/scripts/games';
 import { E4_B5 } from '../../content/posts/chess/antichess/principles/scripts/games';
 import { ChessGame, moveArrows, moveText, parseGame } from '../../content/shared/chess';
 import { postClientModules, postKits, postStyles } from './post-assets.mts';
@@ -21,6 +28,16 @@ test('the antichess main line replays under antichess rules', () => {
   assert.match(E4_B5.pgn, / 16\. Rxc5 0-1\n$/);
   // Seven Tag Roster placeholders are dropped from the canonical PGN.
   assert.doesNotMatch(E4_B5.pgn, /\[Event|\?/);
+});
+
+test('the classical defence opening lines replay to their documented tabiyas', () => {
+  assert.equal(SUICIDE_MAIN.plies.length, 40);
+  assert.equal(SUICIDE_MAIN.result, '1-0');
+  assert.equal(SUICIDE_MAIN.plies[17]?.fen, 'r4nr1/p1p1p1pp/8/8/8/4P3/PPPB1P1P/RN2K1N1 w - - 0 10');
+  assert.equal(SUICIDE_NA3_BLUNDER.result, '0-1');
+  assert.equal(CLASSIC_E6_BELTMAN.plies.length, 21);
+  assert.equal(moveText(CLASSIC_E6_MINEAR, 14, 16), '8.Rxa7 Rxa7');
+  assert.equal(BISHOP_BA6_MAIN.plies.length, 27);
 });
 
 test('invalid games fail the build with the offending move', () => {
