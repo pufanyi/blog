@@ -12,9 +12,11 @@ import {
   CLASSIC_E6_MINEAR,
   SUICIDE_MAIN,
   SUICIDE_NA3_BLUNDER,
+  SUICIDE_RECAPTURES,
 } from '../../content/posts/chess/antichess/openings/classical-defence/scripts/games';
 import { E4_B5 } from '../../content/posts/chess/antichess/principles/scripts/games';
 import { ChessGame, moveArrows, moveText, parseGame } from '../../content/shared/chess';
+import { childrenOf, depthOf, fenAt, moveName, parentOf } from '../../content/shared/chess/model';
 import { postClientModules, postKits, postStyles } from './post-assets.mts';
 
 test('the antichess main line replays under antichess rules', () => {
@@ -38,6 +40,58 @@ test('the classical defence opening lines replay to their documented tabiyas', (
   assert.equal(CLASSIC_E6_BELTMAN.plies.length, 21);
   assert.equal(moveText(CLASSIC_E6_MINEAR, 14, 16), '8.Rxa7 Rxa7');
   assert.equal(BISHOP_BA6_MAIN.plies.length, 27);
+  // The move-6 study reaches the same tabiya, with every recapture as a variation.
+  assert.equal(fenAt(SUICIDE_RECAPTURES, 18), SUICIDE_MAIN.plies[17]?.fen);
+  const options = (node: number) =>
+    childrenOf(SUICIDE_RECAPTURES, node).map((child) => moveName(SUICIDE_RECAPTURES, child));
+  assert.deepEqual(options(10), ['6.Bxd2!', '6.Bxg8??', '6.Qxd2??', '6.Nxd2', '6.Kxd2']);
+  assert.deepEqual(options(11), ['6...Bf3', '6...Bd5??', '6...Be4??']);
+});
+
+test('variations form a tree whose lines continue before their alternatives', () => {
+  const source = '1. e4 e5 (1... c5 2. Nf3 (2. c3) 2... d6) (1... e6) 2. Nf3 *';
+  const game = parseGame(source);
+  assert.deepEqual(
+    game.plies.map(({ san }) => san),
+    ['e4', 'e5', 'Nf3'],
+  );
+  // Main-line nodes keep their ply numbers; variation moves follow, line by line.
+  assert.deepEqual(
+    game.variations?.map(({ san, parent }) => [san, parent]),
+    [
+      ['c5', 1],
+      ['Nf3', 4],
+      ['d6', 5],
+      ['c3', 4],
+      ['e6', 1],
+    ],
+  );
+  assert.deepEqual(childrenOf(game, 1), [2, 4, 8]);
+  assert.deepEqual(childrenOf(game, 4), [5, 7]);
+  assert.deepEqual(childrenOf(game, 3), []);
+  assert.equal(parentOf(game, 7), 4);
+  assert.equal(depthOf(game, 6), 4);
+  assert.equal(moveName(game, 6), '2...d6');
+  assert.equal(moveName(game, 7), '2.c3');
+  assert.equal(fenAt(game, 8), 'rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2');
+  // The exported PGN keeps every variation and parses back to the same tree.
+  assert.match(
+    game.pgn,
+    /\n\n1\. e4 e5 \(1\.\.\. c5 2\. Nf3 \(2\. c3\) 2\.\.\. d6\) \(1\.\.\. e6\) 2\. Nf3 \*\n$/,
+  );
+  assert.deepEqual(parseGame(game.pgn), game);
+  // Games without variations keep the compact payload.
+  assert.equal('variations' in parseGame('1. e4 e5 *'), false);
+});
+
+test('move annotations become glyphs in the move list and the PGN', () => {
+  const game = parseGame('1. e4! e5?? 2. Nf3 $14 *');
+  assert.equal(game.plies[0]?.glyph, '!');
+  assert.equal(game.plies[0]?.san, 'e4');
+  // Position assessments such as $14 are not move glyphs.
+  assert.equal(game.plies[2]?.glyph, undefined);
+  assert.equal(moveText(game, 0, 2), '1.e4! e5??');
+  assert.match(game.pgn, /\n\n1\. e4! e5\?\? 2\. Nf3 \*\n$/);
 });
 
 test('invalid games fail the build with the offending move', () => {
@@ -53,7 +107,10 @@ test('invalid games fail the build with the offending move', () => {
     () => parseGame('[Result "1-0"]\n\n1. f3 e5 2. g4 Qh4# 1-0'),
     /contradicts the final position \(0-1\)/,
   );
-  assert.throws(() => parseGame('1. e4 (1. d4) e5 *'), /variations are not supported/);
+  assert.throws(
+    () => parseGame('1. e4 (1. d4 Ke7) e5 *'),
+    /Illegal or unsupported move 1\.\.\.Ke7 in chess/,
+  );
   assert.throws(() => parseGame('1. e4 *\n\n1. d4 *'), /Expected one PGN game, found 2/);
 });
 
@@ -130,9 +187,50 @@ test('the static viewer is a complete reading of the game', () => {
     'plies',
     'startPly',
   ]);
+  assert.equal('variations' in payload, false);
   // Interactive controls stay hidden until the controller attaches.
   assert.equal(document.querySelector('[data-chess-controls]')?.hasAttribute('hidden'), true);
   assert.equal(document.querySelector('.chess-ground')?.hasAttribute('hidden'), true);
+});
+
+test('the static viewer prints variations under the move they replace', () => {
+  const game = parseGame('1. e4 e5 (1... c5 { Sicilian. } 2. Nf3 (2. c3)) 2. Nf3 *');
+  const html = renderToStaticMarkup(
+    createElement(ChessGame, {
+      id: 'tree',
+      game,
+      title: 'Tree',
+      description: 'A game with variations.',
+      caption: 'Caption',
+    }),
+  );
+  const { document } = new JSDOM(html).window;
+  const rows = [...document.querySelectorAll('.chess-moves > li')].map((row) => row.className);
+  assert.deepEqual(rows, [
+    'chess-moves__row',
+    'chess-moves__variations',
+    'chess-moves__row',
+    'chess-moves__result',
+  ]);
+  const line = document.querySelector('.chess-moves__variations > .chess-line')!;
+  // Numbers resume after a comment, and the nested alternative is its own line.
+  assert.deepEqual(
+    [...line.children].map((child) => `${child.className}:${child.textContent?.trim()}`),
+    [
+      'chess-line__number:1...',
+      'chess-move:c5',
+      'chess-line__comment:Sicilian.',
+      'chess-line__number:2.',
+      'chess-move:Nf3',
+      'chess-line__variations:2.c3',
+    ],
+  );
+  // Moves are separated by spaces so long lines wrap between them.
+  assert.equal(line.textContent?.trim(), '1...c5 Sicilian. 2.Nf3 2.c3');
+  assert.equal(document.querySelector('[data-ply="4"]')?.getAttribute('aria-label'), '变化 1...c5');
+  assert.equal(document.querySelector('[data-ply="3"]')?.getAttribute('aria-label'), '2.Nf3');
+  const payload = JSON.parse(document.querySelector('figure')!.dataset['chessGame']!);
+  assert.deepEqual(payload.variations, game.variations);
 });
 
 test('shared kits follow imports into exactly the articles that use them', (t) => {

@@ -32,13 +32,28 @@ export interface Ply {
   /** Full FEN after the move. */
   readonly fen: string;
   readonly check?: true;
+  /** Move annotation from a PGN NAG $1-$6, such as `!` or `??`. */
+  readonly glyph?: string;
   /** PGN comment after the move, without its `[%...]` commands. */
   readonly comment?: string;
   readonly arrows?: readonly Arrow[];
   readonly marks?: readonly Mark[];
 }
 
-/** Everything the browser needs to replay a game; serialized into the figure. */
+/** A move off the main line, following node `parent`. */
+export interface Branch extends Ply {
+  readonly parent: number;
+}
+
+/**
+ * Everything the browser needs to replay a game; serialized into the figure.
+ *
+ * Positions form a tree of numbered nodes. Node 0 is the starting position,
+ * nodes 1..plies.length follow the main line (so a main-line node is its ply),
+ * and variation moves continue the numbering in `variations` order. Within
+ * each line the continuation comes before its alternatives, so the first child
+ * of a node is always its main continuation.
+ */
 export interface GamePayload {
   /** Full FEN of the starting position. */
   readonly fen: string;
@@ -47,13 +62,50 @@ export interface GamePayload {
   readonly orientation: Color;
   readonly locale: Locale;
   readonly plies: readonly Ply[];
+  /** Variation moves, numbered after the main line; absent when there are none. */
+  readonly variations?: readonly Branch[];
 }
+
+type Tree = Pick<GamePayload, 'plies' | 'variations'>;
 
 export const FILES = 'abcdefgh';
 
-/** Full FEN of the position after the first `ply` half-moves of `plies`. */
-export function fenAt(game: Pick<GamePayload, 'fen' | 'plies'>, ply: number): string {
-  return ply === 0 ? game.fen : game.plies[ply - 1].fen;
+/** The move that leads to `node`; undefined for the starting position. */
+export function plyAt(game: Tree, node: number): Ply | undefined {
+  const { plies } = game;
+  return node <= plies.length ? plies[node - 1] : game.variations?.[node - plies.length - 1];
+}
+
+/** The node a move follows: the previous ply on the main line, or a branch's parent. */
+export function parentOf(game: Tree, node: number): number {
+  const { plies } = game;
+  return node > plies.length ? game.variations![node - plies.length - 1].parent : node - 1;
+}
+
+/** Moves that may follow `node`: its continuation first, then the alternatives. */
+export function childrenOf(game: Tree, node: number): number[] {
+  const { plies } = game;
+  const children = node < plies.length ? [node + 1] : [];
+  game.variations?.forEach((branch, index) => {
+    if (branch.parent === node) children.push(plies.length + 1 + index);
+  });
+  return children;
+}
+
+/** Half-moves from the starting position to `node`. */
+export function depthOf(game: Tree, node: number): number {
+  let steps = 0;
+  let current = node;
+  for (; current > game.plies.length; steps++) current = parentOf(game, current);
+  return current + steps;
+}
+
+/** Full FEN at `node`; on the main line, after the first `node` half-moves. */
+export function fenAt(
+  game: Pick<GamePayload, 'fen' | 'plies' | 'variations'>,
+  node: number,
+): string {
+  return node === 0 ? game.fen : plyAt(game, node)!.fen;
 }
 
 /** Side to move in a full FEN. */
@@ -66,8 +118,20 @@ export function moveNumber(game: Pick<GamePayload, 'startPly'>, ply: number): nu
   return Math.floor((game.startPly + ply - 1) / 2) + 1;
 }
 
+/** SAN with its annotation glyph, e.g. `Bxg8??`. */
+export function sanText(ply: Pick<Ply, 'san' | 'glyph'>): string {
+  return ply.san + (ply.glyph ?? '');
+}
+
+/** Numbered SAN of the move that leads to `node`, e.g. "6...Rxg8". */
+export function moveName(game: Pick<GamePayload, 'startPly'> & Tree, node: number): string {
+  const ply = depthOf(game, node);
+  const white = (game.startPly + ply) % 2 === 1;
+  return `${moveNumber(game, ply)}${white ? '.' : '...'}${sanText(plyAt(game, node)!)}`;
+}
+
 /**
- * Numbered SAN for the half-moves between positions `from` and `to`,
+ * Numbered SAN for the main-line half-moves between positions `from` and `to`,
  * e.g. "7.Kxd2 Rg8 8.Bxg8", or "6...Qxd2" when it starts with Black.
  */
 export function moveText(
@@ -77,9 +141,10 @@ export function moveText(
 ): string {
   return game.plies
     .slice(from, to)
-    .map(({ san }, offset) => {
+    .map((move, offset) => {
       const ply = from + offset + 1;
       const number = moveNumber(game, ply);
+      const san = sanText(move);
       if ((game.startPly + ply) % 2 === 1) return `${number}.${san}`;
       return offset === 0 ? `${number}...${san}` : san;
     })
@@ -97,6 +162,7 @@ export const LABELS = {
     last: '终局',
     pgn: 'PGN',
     start: '初始局面',
+    variation: (move: string) => `变化 ${move}`,
     step: (ply: number, total: number) => `第 ${ply} / ${total} 步`,
     turn: (color: Color) => `轮到${color === 'white' ? '白' : '黑'}方走棋`,
     describe: (position: string, step: string, state: string) => `${position}，${step}。${state}`,
@@ -110,6 +176,7 @@ export const LABELS = {
     last: 'End',
     pgn: 'PGN',
     start: 'Starting position',
+    variation: (move: string) => `Variation ${move}`,
     step: (ply: number, total: number) => `move ${ply} of ${total}`,
     turn: (color: Color) => `${color === 'white' ? 'White' : 'Black'} to move`,
     describe: (position: string, step: string, state: string) => `${position}, ${step}. ${state}`,
