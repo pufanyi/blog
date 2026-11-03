@@ -4,7 +4,7 @@ The shared chess kit in `content/shared/chess` turns a PGN into a replayable
 game viewer and into captioned position diagrams. One parsed game feeds every
 figure, so the moves, positions, arrows, and exported PGN cannot drift apart.
 Use a [Lichess embed](media.md#pdfs-and-external-embeds) instead when readers
-need variations, engine analysis, or a Study's own annotations.
+need engine analysis or a Study's own chapters.
 
 ## Write the game once
 
@@ -34,8 +34,13 @@ Supported PGN input:
 - **Comments.** Comment text appears in the move list.
 - **Shapes.** Lichess `[%cal]` arrows and `[%csl]` squares are drawn on the
   board while that move is shown.
-- **Not yet supported.** Variations fail the build. NAGs are ignored, and so
-  are variants that need pockets, such as crazyhouse.
+- **Variations.** Parenthesized alternatives may nest to any depth, and every
+  move in them is replayed and validated like the main line.
+- **Move annotations.** `!`, `?`, `!!`, `??`, `!?`, and `?!` (NAGs `$1`–`$6`)
+  are shown after the move and kept in the PGN. Other NAGs, such as position
+  assessments, are ignored.
+- **Not supported.** Comments before a variation's first move are ignored, and
+  so are variants that need pockets, such as crazyhouse.
 
 `parseGame(pgn, { orientation: 'black', locale: 'en' })` flips the board and
 switches the interface labels from Chinese to English.
@@ -64,9 +69,32 @@ const MainLine = () => (
 export const POST_COMPONENTS = { MainLine };
 ```
 
-`result` explains the final result next to its token. `ply` chooses the first
-position shown; the default is the starting position. The article no longer
+`result` explains the main line's result next to its token. `ply` chooses the
+first main-line position shown; the default is the starting position. The article no longer
 needs its own PGN block, because the viewer includes one.
+
+### Show alternatives as variations
+
+When a section compares several continuations from one position, write them
+as variations of one game instead of listing move sequences in the prose. Put
+each alternative right after the main-line move it replaces, and open the
+viewer on the branch point with `ply`:
+
+```ts
+export const RECAPTURES = parseGame(`
+[Variant "Antichess"]
+
+1. e3 b5 2. Bxb5 Bb7 3. Bxd7 Bxg2 4. Bxe8 Bxh1 5. Bxf7 Qxd2
+6. Bxd2! (6. Bxg8?? Rxg8 7. Kxd2 h5!) (6. Kxd2 Bd5! 7. Bxg8 Bxa2
+  8. Rxa2! (8. Bxh7?? Rxh7) 8... Rxg8)
+6... Bf3 (6... Bd5?? 7. Bxg8 Rxg8 8. Qh5!) 7. Bxg8 *
+`);
+```
+
+`<ChessGame game={RECAPTURES} ply={10} … />` then opens on 5...Qxd2. The
+main line still numbers its positions by ply, so `ply`, `ChessDiagram`,
+`moveText`, and `moveArrows` refer only to the main line. A comment at the
+end of a variation is a good place for its verdict.
 
 ### What readers get
 
@@ -74,11 +102,12 @@ needs its own PGN block, because the viewer includes one.
 | --- | --- |
 | Column at least 480px wide | The board is on the left. The panel on the right matches the board's height: a scrolling move table with comments across both columns, the result row, and a control bar along the bottom. |
 | Phones | The board comes first, then the control bar, then a single line of moves that scrolls sideways. The current move's comment appears below that line. |
-| Stepping | The current move stays centered inside the move pane, which fades at its scrolled edges. The page itself never scrolls. |
-| Keyboard | Clicking the board focuses it. ←/→ step one move, ↑/↓ a full move, and Home/End jump to the ends, from anywhere in the viewer. The move list is a single tab stop. |
+| Variations | Wide panels list each move's alternatives below it, with nested variations indented further and comments inline. On phones they appear inline in parentheses in the move strip. Screen readers announce variation moves as such. |
+| Stepping | The current move stays centered inside the move pane, which fades at its scrolled edges. The page itself never scrolls. Clicking a move in a variation enters that line. |
+| Keyboard | Clicking the board focuses it. ←/→ step one move, ↑/↓ a full move, and Home/End jump to the start and to the end of the line being viewed, from anywhere in the viewer. → follows the current line; ← steps back into the line a variation branched from. The move list is a single tab stop. |
 | PGN | The PGN button swaps the move pane for the PGN, which uses the site's code block and its Copy button. |
 | No JavaScript, print | The static board, the full move list, and a PGN disclosure. |
-| Markdown export | The board description with its FEN, then the PGN as a fenced `pgn` block. |
+| Markdown export | The board description with its FEN, then the PGN, variations included, as a fenced `pgn` block. |
 
 ## Draw positions from the same game
 

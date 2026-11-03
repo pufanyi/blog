@@ -483,15 +483,19 @@ The lazy `/docs` route uses generated summaries for page routes and navigation. 
 
 Chess articles use the `content/shared/chess` kit; see
 [chess games and diagrams](writing/chess.md) for authoring. At build time,
-`parseGame` replays a PGN with chessops under its declared variant and fails
-generation on an illegal move or a result that contradicts the final position.
+`parseGame` replays a PGN with chessops under its declared variant, including
+every variation, and fails generation on an illegal move or a result that
+contradicts the final position.
 The resulting model feeds the static SVG boards, the move list, and a canonical
 PGN that the reader's shared code block displays and copies. The browser
 receives only a JSON payload of moves and FENs, plus Chessground; chessops never
 ships to readers. `ChessGame` renders the same layout before and after the
 controller attaches, and Markdown exports keep the board description and the PGN
-while omitting the duplicate move list. The controller keeps one ply as state.
+while omitting the duplicate move list. Positions form a numbered tree: main-line
+nodes keep their ply numbers, and variation moves follow with a parent each, so
+games without variations keep their original payload. The controller keeps one
+node as state.
 Stepping scrolls only the move pane and never the page, and the board and the
 move list are each a single tab stop. Navigation calls Chessground's destroy
-method and restores the static figures. The viewer replays a fixed main line;
-it is not a free-play rules engine.
+method and restores the static figures. The viewer replays the authored main
+line and variations; it is not a free-play rules engine.

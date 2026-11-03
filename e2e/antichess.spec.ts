@@ -142,7 +142,7 @@ test('Classical Defence opening article renders interactive games and tabiya dia
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(classicalDefenceArticle);
-  await expect(page.locator('.chess-game')).toHaveCount(3);
+  await expect(page.locator('.chess-game')).toHaveCount(4);
   const suicideGame = page.locator('#cd-suicide-main-title').locator('xpath=ancestor::figure');
   await suicideGame.scrollIntoViewIfNeeded();
   await expect(suicideGame).toHaveAttribute('data-ready', 'true');
@@ -157,4 +157,49 @@ test('Classical Defence opening article renders interactive games and tabiya dia
     'r4nr1/p1p1p1pp/8/8/8/4P3/PPPB1P1P/RN2K1N1 w - - 0 10',
   );
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('Classical Defence recaptures step through nested variations', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(classicalDefenceArticle);
+  const study = page.locator('#cd-suicide-move6-title').locator('xpath=ancestor::figure');
+  await study.scrollIntoViewIfNeeded();
+  await expect(study).toHaveAttribute('data-ready', 'true');
+  // The study opens on 5...Qxd2, with the five recaptures drawn on the board.
+  await expect(study).toHaveAttribute('data-ply', '10');
+  await expect(study.locator('svg.cg-shapes line')).toHaveCount(5);
+  const status = study.getByRole('status');
+
+  // A sub-variation is one click away, and → then follows that line.
+  const bishop = study.getByRole('button', { name: '变化 8.Bxh7??' });
+  await bishop.click();
+  await expect(status).toContainText('变化 8.Bxh7??');
+  await bishop.press('ArrowRight');
+  await expect(study.getByRole('button', { name: '变化 8...Rxh7' })).toBeFocused();
+  await page.keyboard.press('End');
+  await expect(status).toContainText('变化 11...Rxd2');
+  await expect(study.getByRole('button', { name: '下一步' })).toBeDisabled();
+  // ← climbs back through the branch point into the line it came from.
+  for (let step = 0; step < 8; step++) await page.keyboard.press('ArrowLeft');
+  await expect(status).toContainText('变化 7...Bxa2');
+  await page.keyboard.press('ArrowRight');
+  await expect(status).toContainText('变化 8.Rxa2!');
+
+  // Home and End return to the main line and its result.
+  await page.keyboard.press('Home');
+  await expect(study).toHaveAttribute('data-ply', '0');
+  await page.keyboard.press('End');
+  await expect(study).toHaveAttribute('data-ply', '18');
+  await expect(status).toContainText('进入第 10 步关键局面');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('Classical Defence variations remain readable without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto(classicalDefenceArticle);
+  const study = page.locator('#cd-suicide-move6-title').locator('xpath=ancestor::figure');
+  await expect(study.locator('.chess-moves__variations > .chess-line')).toHaveCount(6);
+  await expect(study.locator('.chess-moves__variations').first()).toContainText('8.Bxh7??');
+  await context.close();
 });

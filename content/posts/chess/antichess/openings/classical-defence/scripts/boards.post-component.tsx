@@ -5,6 +5,7 @@ import {
   CLASSIC_E6_MINEAR,
   E3_BA6_TRAP,
   SUICIDE_MAIN,
+  SUICIDE_RECAPTURES,
 } from './games';
 
 function Ba6Threat() {
@@ -41,24 +42,14 @@ function SuicideMain() {
 
 function SuicideRecapture() {
   return (
-    <ChessDiagram
+    <ChessGame
       id="cd-suicide-move6"
-      game={SUICIDE_MAIN}
+      game={SUICIDE_RECAPTURES}
       ply={10}
-      title="5...Qxd2 之后白方的五种合法吃法"
+      title="5...Qxd2 之后白方的五种吃法"
       description="黑后在 d2，白方 f7 象同时攻击 g8 马。6.Bxd2 锁定唯一主线；6.Kxd2 与 6.Nxd2 可行但增加分支；6.Qxd2 与 6.Bxg8 直接输棋。"
-      arrows={[
-        ...moveArrows(SUICIDE_MAIN, [11], 'path'),
-        { from: 'e1', to: 'd2', role: 'option' },
-        { from: 'b1', to: 'd2', role: 'option' },
-        { from: 'd1', to: 'd2', role: 'threat' },
-        { from: 'f7', to: 'g8', role: 'threat' },
-      ]}
-      marks={[
-        { square: 'd2', role: 'target' },
-        { square: 'g8', role: 'area' },
-      ]}
-      caption={`${moveText(SUICIDE_MAIN, 0, 10)} 之后：五种吃法中，6.Bxd2 令双方接下来四步全部唯一；6.Qxd2 与 6.Bxg8 则立刻落入黑方清扫。`}
+      caption={`${moveText(SUICIDE_RECAPTURES, 0, 10)} 之后：五种吃法中，6.Bxd2 令双方接下来四步全部唯一；6.Qxd2 与 6.Bxg8 则立刻落入黑方清扫。点击棋谱中的任一变化即可逐步查看。`}
+      result="进入第 10 步关键局面"
     />
   );
 }

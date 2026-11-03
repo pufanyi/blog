@@ -449,6 +449,39 @@
   color: var(--text-color);
 }
 
+/* Variations: inline in parentheses on the phone strip, as Lichess mobile shows them. */
+.chess-game .chess-moves__variations,
+.chess-line,
+.chess-line__variations {
+  display: contents;
+}
+.chess-line::before,
+.chess-line::after {
+  padding: 0 1px;
+  color: var(--text-secondary);
+}
+.chess-line::before {
+  content: "(";
+}
+.chess-line::after {
+  content: ")";
+}
+.chess-line .chess-move {
+  padding: 2px 3px;
+  font-weight: 400;
+}
+.chess-line .chess-move[aria-current] {
+  font-weight: 700;
+}
+.chess-line__number {
+  padding-left: 3px;
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}
+.chess-line__comment {
+  display: none;
+}
+
 /* On phones the current move's comment shows under the strip. */
 .chess-game__comment {
   margin: 0;
@@ -605,6 +638,41 @@
   }
   .chess-game__comment:not([hidden]) {
     display: none;
+  }
+  /* Variations sit under the move they replace; sub-variations indent further. */
+  .chess-game .chess-moves__variations {
+    display: block;
+    padding: 4px 8px 6px;
+    border-block: 1px solid var(--chess-line);
+    background: color-mix(in srgb, var(--surface-soft) 35%, transparent);
+    font-size: 0.85rem;
+    line-height: 1.75;
+  }
+  .chess-game .chess-moves__comment + .chess-moves__variations {
+    border-top: 0;
+  }
+  .chess-line {
+    display: block;
+  }
+  .chess-line::before,
+  .chess-line::after {
+    content: none;
+  }
+  .chess-line__variations {
+    display: block;
+    margin: 2px 0 2px 4px;
+    padding-left: 8px;
+    border-left: 2px solid var(--chess-line);
+  }
+  .chess-line .chess-move {
+    padding: 1px 3px;
+    border-radius: 3px;
+    line-height: inherit;
+  }
+  .chess-line__comment {
+    display: inline;
+    margin: 0 4px;
+    color: var(--text-secondary);
   }
   .chess-game .chess-moves__result {
     flex-direction: column;

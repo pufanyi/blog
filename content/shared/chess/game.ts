@@ -1,5 +1,6 @@
 // Build-time PGN parsing. Every move is replayed under the declared variant, so
 // an illegal or ambiguous move fails generation instead of reaching readers.
+import type { Position } from 'chessops/chess';
 import { makeFen } from 'chessops/fen';
 import {
   type CommentShape,
@@ -15,6 +16,7 @@ import { makeSquare } from 'chessops/util';
 import {
   type Arrow,
   type ArrowRole,
+  type Branch,
   type Color,
   type GamePayload,
   type Locale,
@@ -22,6 +24,7 @@ import {
   moveNumber,
   type Ply,
   type Square,
+  sanText,
 } from './model';
 
 export interface ChessGameModel extends GamePayload {
@@ -75,8 +78,79 @@ function annotations(comments: readonly string[] | undefined) {
   };
 }
 
-function hasVariations(node: Node<PgnNodeData>): boolean {
-  return node.children.length > 1 || node.children.some(hasVariations);
+/** Move glyphs for the PGN NAGs $1-$6; other NAGs are ignored. */
+const GLYPHS: Record<number, string> = { 1: '!', 2: '?', 3: '!!', 4: '??', 5: '!?', 6: '?!' };
+
+/** A validated move with the moves that may follow it, continuation first. */
+interface Built {
+  readonly ply: Ply;
+  /** Half-moves from the starting position, as `moveNumber` counts them. */
+  readonly depth: number;
+  /** Comment for the exported PGN, including Lichess shapes. */
+  readonly pgn: string | undefined;
+  readonly position: Position;
+  readonly children: readonly Built[];
+}
+
+/** Replays every move below `parent`, so a variation's illegal move fails too. */
+function build(
+  parent: Node<PgnNodeData>,
+  position: Position,
+  depth: number,
+  context: { startPly: number },
+): Built[] {
+  return parent.children.map((node) => {
+    const { data } = node;
+    const next = position.clone();
+    const number = moveNumber(context, depth + 1);
+    const name = `${number}${next.turn === 'white' ? '.' : '...'}${data.san}`;
+    const move = parseSan(next, data.san);
+    if (!move || !('from' in move))
+      throw new Error(`Illegal or unsupported move ${name} in ${next.rules}`);
+    let san = makeSanAndPlay(next, move);
+    // Antichess has no check; chessops still marks a won game with "#".
+    if (next.rules === 'antichess') san = san.replace(/[+#]$/, '');
+    const glyph = data.nags?.map((nag) => GLYPHS[nag]).find(Boolean);
+    const notes = annotations(data.comments);
+    return {
+      ply: {
+        san,
+        from: makeSquare(move.from) as Square,
+        to: makeSquare(move.to) as Square,
+        fen: makeFen(next.toSetup()),
+        ...(next.isCheck() && next.rules !== 'antichess' && { check: true as const }),
+        ...(glyph && { glyph }),
+        ...notes.ply,
+      },
+      depth: depth + 1,
+      pgn: notes.pgn,
+      position: next,
+      children: build(node, next, depth + 1, context),
+    };
+  });
+}
+
+/**
+ * PGN movetext for the line that starts with `choices[0]`. Alternatives follow
+ * the move they replace in parentheses, and a move number resumes after them.
+ */
+function movetext(choices: readonly Built[], startPly: number): string[] {
+  const tokens: string[] = [];
+  let resume = true;
+  for (let options = choices; options.length > 0; options = options[0].children) {
+    const [main, ...alternatives] = options;
+    const white = (startPly + main.depth) % 2 === 1;
+    const number = moveNumber({ startPly }, main.depth);
+    const prefix = white ? `${number}.` : resume ? `${number}...` : '';
+    const san = sanText(main.ply);
+    tokens.push(prefix ? `${prefix} ${san}` : san, ...(main.pgn ? [`{ ${main.pgn} }`] : []));
+    resume = main.pgn !== undefined;
+    for (const alternative of alternatives) {
+      tokens.push(`(${movetext([alternative], startPly).join(' ')})`);
+      resume = true;
+    }
+  }
+  return tokens;
 }
 
 /** Parses exactly one PGN game. Throws with the move number of the first illegal move. */
@@ -84,45 +158,36 @@ export function parseGame(source: string, options: GameOptions = {}): ChessGameM
   const games = parsePgn(source);
   if (games.length !== 1) throw new Error(`Expected one PGN game, found ${games.length}`);
   const [game] = games;
-  if (hasVariations(game.moves))
-    throw new Error('PGN variations are not supported yet; keep only the main line');
   const setup = startingPosition(game.headers);
   if (setup.isErr) throw new Error(`Invalid PGN starting position: ${setup.error.message}`);
-  const position = setup.value;
-  const fen = makeFen(position.toSetup());
-  const startPly = (position.fullmoves - 1) * 2 + (position.turn === 'black' ? 1 : 0);
-  const context = { startPly };
+  const start = setup.value;
+  const fen = makeFen(start.toSetup());
+  const startPly = (start.fullmoves - 1) * 2 + (start.turn === 'black' ? 1 : 0);
+  const roots = build(game.moves, start, 0, { startPly });
 
-  const plies: Ply[] = [];
-  const movetext: string[] = [];
-  let resume = true;
-  for (const node of game.moves.mainline()) {
-    const ply = plies.length + 1;
-    const number = moveNumber(context, ply);
-    const white = position.turn === 'white';
-    const prefix = white ? `${number}.` : resume ? `${number}...` : '';
-    const move = parseSan(position, node.san);
-    if (!move || !('from' in move))
-      throw new Error(`Illegal or unsupported move ${prefix}${node.san} in ${position.rules}`);
-    let san = makeSanAndPlay(position, move);
-    // Antichess has no check; chessops still marks a won game with "#".
-    if (position.rules === 'antichess') san = san.replace(/[+#]$/, '');
-    const notes = annotations(node.comments);
-    plies.push({
-      san,
-      from: makeSquare(move.from) as Square,
-      to: makeSquare(move.to) as Square,
-      fen: makeFen(position.toSetup()),
-      ...(position.isCheck() && position.rules !== 'antichess' && { check: true as const }),
-      ...notes.ply,
-    });
-    movetext.push(prefix ? `${prefix} ${san}` : san, ...(notes.pgn ? [`{ ${notes.pgn} }`] : []));
-    resume = notes.pgn !== undefined;
-  }
+  const mainline: Built[] = [];
+  for (let options: readonly Built[] = roots; options.length > 0; options = options[0].children)
+    mainline.push(options[0]);
+  // Number each line before its alternatives, so a node's first child continues its line.
+  const variations: Branch[] = [];
+  const addLine = (first: Built, parent: number) => {
+    const line: [number, Built][] = [];
+    let previous = parent;
+    for (let node: Built | undefined = first; node; node = node.children[0]) {
+      variations.push({ ...node.ply, parent: previous });
+      previous = mainline.length + variations.length;
+      line.push([previous, node]);
+    }
+    for (const [id, node] of line) for (const branch of node.children.slice(1)) addLine(branch, id);
+  };
+  for (const branch of roots.slice(1)) addLine(branch, 0);
+  mainline.forEach((node, index) => {
+    for (const branch of node.children.slice(1)) addLine(branch, index + 1);
+  });
 
   const declared = game.headers.get('Result') ?? '*';
   if (!RESULTS.includes(declared)) throw new Error(`Invalid PGN result ${declared}`);
-  const outcome = position.outcome();
+  const outcome = (mainline.at(-1)?.position ?? start).outcome();
   const reached =
     outcome && (outcome.winner === 'white' ? '1-0' : outcome.winner ? '0-1' : '1/2-1/2');
   if (reached && declared !== '*' && declared !== reached)
@@ -133,15 +198,16 @@ export function parseGame(source: string, options: GameOptions = {}): ChessGameM
     .filter(([name, value]) => name !== 'Result' && !EMPTY_TAGS.has(value))
     .map(([name, value]) => `[${name} "${value.replace(/[\\"]/g, '\\$&')}"]`);
   return {
-    variant: position.rules,
+    variant: start.rules,
     result,
     fen,
     startPly,
     orientation: options.orientation ?? 'white',
     locale: options.locale ?? 'zh',
-    plies,
+    plies: mainline.map(({ ply }) => ply),
+    ...(variations.length > 0 && { variations }),
     // One movetext line, as Lichess exports it; readers' panels wrap it softly.
-    pgn: `${[...headers, `[Result "${result}"]`].join('\n')}\n\n${[...movetext, result].join(' ')}\n`,
+    pgn: `${[...headers, `[Result "${result}"]`].join('\n')}\n\n${[...movetext(roots, startPly), result].join(' ')}\n`,
   };
 }
 

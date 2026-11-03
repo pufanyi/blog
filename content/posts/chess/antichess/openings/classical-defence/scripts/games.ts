@@ -32,6 +32,28 @@ export const SUICIDE_MAIN = parseGame(`
 `);
 
 /**
+ * White's five recaptures after 5...Qxd2, following Liardet: 6.Bxd2! leaves
+ * Black only 6...Bf3, while the other captures lose or open extra branches.
+ */
+export const SUICIDE_RECAPTURES = parseGame(`
+[Variant "Antichess"]
+[Result "*"]
+
+1. e3 b5 2. Bxb5 Bb7 3. Bxd7 Bxg2 4. Bxe8 Bxh1 5. Bxf7 Qxd2
+{ [%cal Gc1d2,Be1d2,Bb1d2,Rd1d2,Rf7g8] [%csl Rd2,Yg8] }
+6. Bxd2! { 后留在 d1 支援 h5，黑方只剩 6...Bf3 一条活路。 }
+(6. Bxg8?? Rxg8 7. Kxd2 h5! 8. Qxh5 Bd5 { 白后与白象被黑方接力清扫。 })
+(6. Qxd2?? Bd5! (6... Bf3 7. Nxf3 e5 8. Nxe5 Nc6 9. Nxc6 Re8!) 7. Qxd5 Nf6
+  { 黑方围绕白后组织强制清扫。 })
+(6. Nxd2 Be4 { 复杂乱战：黑方不足以清扫到底，但白方要额外计算大量分支。 })
+(6. Kxd2 Bd5! 7. Bxg8 Bxa2 8. Rxa2!
+  (8. Bxh7?? Rxh7 9. Rxa2 Rxh2 10. Rxa7 Rxf2 11. Rxc7 Rxd2 { 黑车沿第二横排反向清扫，黑方翻盘。 })
+  8... Rxg8 9. Rxa7 Rxa7 10. Ne2 { 白方保持优势。 })
+6... Bf3 (6... Bd5?? 7. Bxg8 Rxg8 8. Qh5!) (6... Be4?? 7. Bxg8 Bxc2 8. Qxc2)
+7. Bxg8 Rxg8 8. Qxf3 Nd7 9. Qxf8 Nxf8 *
+`);
+
+/**
  * What goes wrong if White develops routinely at move 10 without guarding the
  * d2-h6 battery: 10.Na3?? Ne6! rips away the e3 shield with ...Nf4 and ...g5.
  */
