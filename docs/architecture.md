@@ -142,11 +142,11 @@ at the right. Responsive 12–32px gutters respect device safe areas. The toolba
 does not inherit the paper's width limit, so controls stay in place when moving
 between different paper widths. Article/documentation layouts set
 `--paper-max-width` on their own paper elements. Desktop navigation combines
-the author avatar / Blog icon and text at the 15px body size with 24px icons
-and 48px controls; mobile keeps the avatar and compact 44px icon controls. Every
+the author avatar / Blog icon and text near the body size with 22px icons and
+44px controls; mobile keeps the avatar and compact 44px icon controls. Every
 toolbar control uses the same 6px radius. The current location uses a subtle
 full-button tint, without a tab underline. The shortcut hint uses the search
-dialog's outlined key style. The toolbar is 64px tall on desktop and 52px on
+dialog's outlined key style. The toolbar is 60px tall on desktop and 52px on
 mobile, plus the device safe area inside the header surface; reduced-motion settings
 must not change its dimensions. Theme tokens live in
 `src/styles/morandi.css`. Shadows use its elevation tokens instead of
