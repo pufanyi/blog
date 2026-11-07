@@ -41,9 +41,19 @@
   --border-light: color-mix(in srgb, var(--border-color) 15%, transparent);
   --accent-bg: color-mix(in srgb, var(--link-color) 8%, transparent);
   --selection-bg: color-mix(in srgb, var(--accent-blue) 26%, transparent);
-  --paper-shadow:
-    0 1px 3px color-mix(in srgb, var(--overlay-color) 13%, transparent),
-    0 12px 30px var(--shadow-color);
+  /*
+   * Elevation: every surface shares the paper's tight contact layer and adds a
+   * softer ambient layer that grows with its height above the page. Themes tune
+   * only the two layer colors, so all levels stay consistent with the paper.
+   */
+  --shadow-contact: color-mix(in srgb, var(--overlay-color) 13%, transparent);
+  --shadow-ambient: var(--shadow-color);
+  --shadow-raised: 0 1px 3px var(--shadow-contact), 0 2px 6px var(--shadow-ambient);
+  --shadow-float: 0 1px 3px var(--shadow-contact), 0 4px 14px var(--shadow-ambient);
+  --shadow-float-up: 0 -1px 3px var(--shadow-contact), 0 -4px 14px var(--shadow-ambient);
+  --shadow-card: 0 1px 3px var(--shadow-contact), 0 8px 22px var(--shadow-ambient);
+  --paper-shadow: 0 1px 3px var(--shadow-contact), 0 12px 30px var(--shadow-ambient);
+  --shadow-overlay: 0 1px 3px var(--shadow-contact), 0 16px 48px var(--shadow-color-strong);
   --code-header-bg: color-mix(in srgb, var(--border-color) 6%, var(--paper-bg));
 
   /* Shiki emits Catppuccin source colors which are remapped to these tokens. */
@@ -113,9 +123,9 @@
   --backdrop-bg: color-mix(in srgb, var(--background-deep) 64%, transparent);
   --backdrop-bg-strong: color-mix(in srgb, var(--background-deep) 76%, transparent);
   --selection-bg: color-mix(in srgb, var(--accent-blue) 30%, transparent);
-  --paper-shadow:
-    0 1px 4px color-mix(in srgb, var(--background-deep) 48%, transparent),
-    0 14px 34px var(--shadow-color-strong);
+  --shadow-contact: color-mix(in srgb, var(--background-deep) 48%, transparent);
+  --shadow-ambient: var(--shadow-color-strong);
+  --paper-shadow: 0 1px 4px var(--shadow-contact), 0 14px 34px var(--shadow-ambient);
 }
 
 @media print {
@@ -154,6 +164,7 @@
     --on-accent: #fff;
     --shadow-color: transparent;
     --shadow-color-strong: transparent;
+    --shadow-contact: transparent;
     --paper-shadow: none;
   }
 }

@@ -8,7 +8,7 @@
   border: 1px solid color-mix(in srgb, var(--border-color) 42%, transparent);
   border-radius: 10px;
   background: var(--paper-bg);
-  box-shadow: 0 14px 36px var(--shadow-color-strong);
+  box-shadow: var(--shadow-overlay);
   color: var(--text-color);
 }
 

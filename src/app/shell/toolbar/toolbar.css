@@ -6,9 +6,9 @@
   width: 100%;
   height: calc(var(--toolbar-safe-area-top) + var(--toolbar-height));
   padding-top: var(--toolbar-safe-area-top);
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 40%, transparent);
+  border-bottom: 1px solid var(--border-light);
   background: var(--paper-bg);
-  box-shadow: 0 1px 3px var(--shadow-color);
+  box-shadow: var(--shadow-float);
   font-family: var(--font-heading);
 }
 
@@ -38,15 +38,15 @@
   justify-content: center;
   gap: 0.55rem;
   box-sizing: border-box;
-  min-width: 44px;
-  height: 44px;
-  padding-inline: 0.75rem;
+  min-width: 48px;
+  height: 48px;
+  padding-inline: 0.85rem;
   border: 0;
-  border-radius: 3px;
+  border-radius: 6px;
   background: transparent;
   color: var(--text-secondary);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
@@ -58,7 +58,7 @@
 }
 
 .toolbar-button i {
-  font-size: 20px;
+  font-size: 24px;
 }
 
 .toolbar-button:hover,
@@ -78,10 +78,6 @@
   background: var(--accent-bg);
 }
 
-.toolbar-nav .toolbar-button {
-  border-radius: 6px;
-}
-
 .toolbar-brand {
   font-weight: 600;
   color: var(--text-color);
@@ -91,8 +87,8 @@
 .toolbar-avatar {
   display: block;
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -103,7 +99,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   padding-left: 0.5rem;
 }
 
@@ -116,10 +112,15 @@
   margin-right: 0.4rem;
 }
 
+/* Matches the shortcut hint inside the search dialog. */
 .toolbar-search kbd {
-  margin-left: 1.25rem;
+  margin-left: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--border-color) 8%, transparent);
   color: var(--text-secondary);
-  font: 0.65rem var(--font-mono);
+  font: 0.7rem var(--font-mono);
 }
 
 @media (min-width: 1024px) {
@@ -146,7 +147,14 @@
 
   .toolbar-button {
     width: 44px;
+    min-width: 44px;
+    height: 44px;
     padding: 0;
+  }
+
+  .toolbar-avatar {
+    width: 32px;
+    height: 32px;
   }
 
   .toolbar-brand,
@@ -165,7 +173,7 @@
 
   .toolbar-context {
     padding-inline: 0.4rem;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 }
 

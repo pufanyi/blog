@@ -13,7 +13,7 @@
 }
 
 html {
-  --toolbar-height: 56px;
+  --toolbar-height: 64px;
   --toolbar-safe-area-top: env(safe-area-inset-top, 0px);
   --toolbar-clearance: calc(var(--toolbar-safe-area-top) + var(--toolbar-height) + 1rem);
   font-size: 15px;

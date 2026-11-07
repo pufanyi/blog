@@ -15,7 +15,7 @@
   --chess-arrow-option: var(--accent-blue);
   --chess-arrow-threat: var(--accent-red);
   --chess-arrow-idea: var(--accent-ochre);
-  --chess-shadow: 0 1px 3px var(--shadow-color), 0 8px 22px var(--shadow-color);
+  --chess-shadow: var(--shadow-card);
   --chess-current: color-mix(in srgb, var(--accent-sage) 35%, transparent);
   --chess-hover: color-mix(in srgb, var(--accent-sage) 18%, transparent);
   --chess-line: var(--border-light);

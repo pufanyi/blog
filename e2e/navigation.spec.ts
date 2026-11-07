@@ -66,7 +66,7 @@ test('full-width toolbar stays flush with the top and clear of page content', as
     });
     for (const reducedMotion of ['reduce', 'no-preference'] as const) {
       await page.emulateMedia({ reducedMotion });
-      expect((await toolbar.locator('header').boundingBox())!.height).toBe(width <= 768 ? 52 : 56);
+      expect((await toolbar.locator('header').boundingBox())!.height).toBe(width <= 768 ? 52 : 64);
     }
     if (width > 768) {
       await expect(toolbar.locator('.toolbar-nav .toolbar-avatar')).toBeVisible();
@@ -139,7 +139,7 @@ test('toolbar covers the top safe area and keeps anchor targets below its contro
   const header = page.locator('.toolbar');
   const bounds = (await header.boundingBox())!;
   expect(bounds.y).toBe(0);
-  expect(bounds.height).toBe((page.viewportSize()!.width <= 768 ? 52 : 56) + 24);
+  expect(bounds.height).toBe((page.viewportSize()!.width <= 768 ? 52 : 64) + 24);
   const controls = await header.locator('a, button').evaluateAll((elements) =>
     elements
       .filter((element) => element.getBoundingClientRect().width > 0)

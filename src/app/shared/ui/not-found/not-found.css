@@ -165,7 +165,7 @@
   border-radius: 6px;
   background: var(--paper-bg);
   color: var(--text-color);
-  box-shadow: 0 18px 50px var(--shadow-color-strong);
+  box-shadow: var(--shadow-overlay);
   text-align: left;
 }
 

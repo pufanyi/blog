@@ -9,7 +9,7 @@
   border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
   border-radius: 12px;
   background: var(--paper-bg);
-  box-shadow: 0 8px 22px var(--shadow-color);
+  box-shadow: var(--shadow-card);
 }
 
 .post-citation-heading {

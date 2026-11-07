@@ -5,7 +5,7 @@
   border-radius: 12px;
   overflow: hidden;
   background: var(--paper-bg);
-  box-shadow: 0 8px 22px var(--shadow-color);
+  box-shadow: var(--shadow-card);
 }
 
 .post-body .code-header {

@@ -20,7 +20,8 @@ instead of accumulating unrelated rules here.
   Preserve author-owned prose unless the task requests rewriting it.
 - Restrict prose searches to `*.mdx` (and `*.bib` when needed); SVGs may embed
   large base64 images.
-- Use the semantic Morandi colors in `src/styles/morandi.css`.
+- Use the semantic Morandi colors and elevation (`--shadow-*`, `--paper-shadow`)
+  tokens in `src/styles/morandi.css`; do not hand-write shadows.
 
 ## Commands
 

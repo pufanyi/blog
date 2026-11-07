@@ -33,7 +33,7 @@
   background: var(--paper-bg);
   border: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
   border-radius: 14px;
-  box-shadow: 0 16px 48px var(--shadow-color-strong);
+  box-shadow: var(--shadow-overlay);
   overflow: hidden;
   animation: dialog-in 0.2s ease;
 }

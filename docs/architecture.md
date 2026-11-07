@@ -134,18 +134,27 @@ mobile baseline, with Space Grotesk headings. Prose is left-aligned: justificati
 stretched CJK lines beside unbreakable formulas and inline code. Font tokens name
 platform CJK faces after the Latin families, because those lack CJK glyphs. The toolbar matches that typography
 and paper surface. Its background spans the viewport and sits flush with the
-top edge, separated from the page by a subtle bottom rule and shadow. Navigation
+top edge, separated from the page by the `--border-light` rule and the
+`--shadow-float` elevation; the mobile reading dock mirrors that edge with
+`--shadow-float-up`. Navigation
 and article controls sit at the left edge; search, print, and theme controls sit
 at the right. Responsive 12–32px gutters respect device safe areas. The toolbar
 does not inherit the paper's width limit, so controls stay in place when moving
 between different paper widths. Article/documentation layouts set
 `--paper-max-width` on their own paper elements. Desktop navigation combines
-the author avatar / Blog icon and text; mobile keeps
-the avatar and compact icons. The current location uses a subtle full-button tint with a small
-corner radius, without a tab underline. It is 56px tall on desktop and 52px on
+the author avatar / Blog icon and text at the 15px body size with 24px icons
+and 48px controls; mobile keeps the avatar and compact 44px icon controls. Every
+toolbar control uses the same 6px radius. The current location uses a subtle
+full-button tint, without a tab underline. The shortcut hint uses the search
+dialog's outlined key style. The toolbar is 64px tall on desktop and 52px on
 mobile, plus the device safe area inside the header surface; reduced-motion settings
 must not change its dimensions. Theme tokens live in
-`src/styles/morandi.css`. Preserve visible keyboard focus and readable colors in
+`src/styles/morandi.css`. Shadows use its elevation tokens instead of
+hand-written values: `--shadow-raised` (content images), `--shadow-float` and
+`--shadow-float-up` (fixed bars, floating controls and tooltips), `--shadow-card`
+(code blocks, citation cards and chess boards), `--paper-shadow`, and
+`--shadow-overlay` (dialogs and popovers). Each level shares the paper's contact
+layer; themes tune only `--shadow-contact` and `--shadow-ambient`. Preserve visible keyboard focus and readable colors in
 both themes. The borderless article outline shows numbered chapters with separate
 subsection disclosure buttons. Its labeled header can collapse the whole outline
 while retaining the current section and reopen control. Keep the text column and

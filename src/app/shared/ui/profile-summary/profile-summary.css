@@ -99,7 +99,7 @@
   border-radius: 4px;
   color: var(--paper-bg);
   background: var(--text-color);
-  box-shadow: 0 4px 12px var(--shadow-color);
+  box-shadow: var(--shadow-float);
   content: attr(data-tooltip);
   font-family: var(--font-heading);
   font-size: 0.7rem;
