@@ -142,7 +142,7 @@ test('Classical Defence opening article renders interactive games and tabiya dia
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(classicalDefenceArticle);
-  await expect(page.locator('.chess-game')).toHaveCount(4);
+  await expect(page.locator('.chess-game')).toHaveCount(5);
   const suicideGame = page.locator('#cd-suicide-main-title').locator('xpath=ancestor::figure');
   await suicideGame.scrollIntoViewIfNeeded();
   await expect(suicideGame).toHaveAttribute('data-ready', 'true');
@@ -156,6 +156,18 @@ test('Classical Defence opening article renders interactive games and tabiya dia
   await expect(battery.locator('desc')).toContainText(
     'r4nr1/p1p1p1pp/8/8/8/4P3/PPPB1P1P/RN2K1N1 w - - 0 10',
   );
+
+  // The 6...Bd5 study opens on Black's move and plays every line to its sweep.
+  const bd5 = page.locator('#cd-suicide-bd5-title').locator('xpath=ancestor::figure');
+  await bd5.scrollIntoViewIfNeeded();
+  await expect(bd5).toHaveAttribute('data-ready', 'true');
+  await expect(bd5).toHaveAttribute('data-ply', '12');
+  await bd5.getByRole('button', { name: '变化 7.Bxd5?' }).click();
+  await page.keyboard.press('End');
+  await expect(bd5.getByRole('status')).toContainText('变化 17.Qxh5');
+  await page.keyboard.press('Home');
+  await page.keyboard.press('End');
+  await expect(bd5).toHaveAttribute('data-ply', '38');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
