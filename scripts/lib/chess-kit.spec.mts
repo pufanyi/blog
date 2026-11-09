@@ -10,6 +10,7 @@ import {
   BISHOP_BA6_MAIN,
   CLASSIC_E6_BELTMAN,
   CLASSIC_E6_MINEAR,
+  SUICIDE_BD5,
   SUICIDE_MAIN,
   SUICIDE_NA3_BLUNDER,
   SUICIDE_RECAPTURES,
@@ -46,6 +47,14 @@ test('the classical defence opening lines replay to their documented tabiyas', (
     childrenOf(SUICIDE_RECAPTURES, node).map((child) => moveName(SUICIDE_RECAPTURES, child));
   assert.deepEqual(options(10), ['6.Bxd2!', '6.Bxg8??', '6.Qxd2??', '6.Nxd2', '6.Kxd2']);
   assert.deepEqual(options(11), ['6...Bf3', '6...Bd5??', '6...Be4??']);
+  // 6...Bd5?? loses to 7.Bxg8!, whatever Black recaptures with; 7.Bxd5? loses instead.
+  assert.equal(SUICIDE_BD5.plies.length, 38);
+  assert.equal(SUICIDE_BD5.result, '1-0');
+  assert.equal(moveText(SUICIDE_BD5, 10, 12), '6.Bxd2 Bd5');
+  const bd5 = (node: number) =>
+    childrenOf(SUICIDE_BD5, node).map((child) => moveName(SUICIDE_BD5, child));
+  assert.deepEqual(bd5(12), ['7.Bxg8!', '7.Bxd5?']);
+  assert.deepEqual(bd5(13), ['7...Rxg8', '7...Bxg8', '7...Bxa2']);
 });
 
 test('variations form a tree whose lines continue before their alternatives', () => {

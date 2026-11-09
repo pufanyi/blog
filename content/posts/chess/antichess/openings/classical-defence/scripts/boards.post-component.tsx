@@ -4,6 +4,7 @@ import {
   CLASSIC_E6_BELTMAN,
   CLASSIC_E6_MINEAR,
   E3_BA6_TRAP,
+  SUICIDE_BD5,
   SUICIDE_MAIN,
   SUICIDE_RECAPTURES,
 } from './games';
@@ -50,6 +51,20 @@ function SuicideRecapture() {
       description="黑后在 d2，白方 f7 象同时攻击 g8 马。6.Bxd2 锁定唯一主线；6.Kxd2 与 6.Nxd2 可行但增加分支；6.Qxd2 与 6.Bxg8 直接输棋。"
       caption={`${moveText(SUICIDE_RECAPTURES, 0, 10)} 之后：五种吃法中，6.Bxd2 令双方接下来四步全部唯一；6.Qxd2 与 6.Bxg8 则立刻落入黑方清扫。点击棋谱中的任一变化即可逐步查看。`}
       result="进入第 10 步关键局面"
+    />
+  );
+}
+
+function SuicideBd5() {
+  return (
+    <ChessGame
+      id="cd-suicide-bd5"
+      game={SUICIDE_BD5}
+      ply={12}
+      title="6.Bxd2 Bd5 之后的强制变化"
+      description="d5 黑象保护 g8 马并瞄准 a2。7.Bxd5 会被 7...Nh6 反杀；7.Bxg8 之后，黑方无论用车、象吃回还是先吃 a2，都会被拖入强制清扫。"
+      caption={`${moveText(SUICIDE_BD5, 10, 12)} 之后：白方只能走 7.Bxg8 获胜；主线与两条变化中，黑方从白方第 8 步起每一步都只有一个合法着法。`}
+      result="白方子力送光，获胜"
     />
   );
 }
@@ -129,6 +144,7 @@ export const POST_COMPONENTS = {
   Ba6Threat,
   SuicideMain,
   SuicideRecapture,
+  SuicideBd5,
   SuicideBattery,
   ClassicBeltman,
   MinearOrder,

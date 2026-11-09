@@ -49,8 +49,41 @@ export const SUICIDE_RECAPTURES = parseGame(`
 (6. Kxd2 Bd5! 7. Bxg8 Bxa2 8. Rxa2!
   (8. Bxh7?? Rxh7 9. Rxa2 Rxh2 10. Rxa7 Rxf2 11. Rxc7 Rxd2 { 黑车沿第二横排反向清扫，黑方翻盘。 })
   8... Rxg8 9. Rxa7 Rxa7 10. Ne2 { 白方保持优势。 })
-6... Bf3 (6... Bd5?? 7. Bxg8 Rxg8 8. Qh5!) (6... Be4?? 7. Bxg8 Bxc2 8. Qxc2)
+6... Bf3 (6... Bd5?? 7. Bxg8! Rxg8 (7... Bxg8 8. c4!) (7... Bxa2 8. Rxa2 Rxg8 9. Rxa7 Rxa7 10. Ba5!)
+  8. Qh5! { 三种吃回都会被拖入强制清扫，完整变化见下一张棋盘。 })
+(6... Be4?? 7. Bxg8 Bxc2 8. Qxc2)
 7. Bxg8 Rxg8 8. Qxf3 Nd7 9. Qxf8 Nxf8 *
+`);
+
+/**
+ * Refutation of 6.Bxd2 Bd5?? in the Suicide Defence. Every line was checked
+ * with a proof-number search: 7.Bxd5? loses to 7...Nh6!, while after 7.Bxg8!
+ * each of Black's three recaptures ends in a sweep in which Black has exactly
+ * one legal move from White's eighth move onward.
+ */
+export const SUICIDE_BD5 = parseGame(`
+[Variant "Antichess"]
+[Result "1-0"]
+
+1. e3 b5 2. Bxb5 Bb7 3. Bxd7 Bxg2 4. Bxe8 Bxh1 5. Bxf7 Qxd2 6. Bxd2 Bd5
+{ d5 象同时保护 g8 马并瞄准 a2 兵；白方只能在 Bxd5 与 Bxg8 中选一。 [%cal Gd5g8,Gd5a2,Bf7d5,Bf7g8] }
+7. Bxg8!
+(7. Bxd5? Nh6! { b7 已空，d5 白象正对 a8 车。此后白方每步只有一个合法着法。 [%cal Rd5a8] }
+  8. Bxa8 Nc6 9. Bxc6 a5 10. Bxa5 Ng8 11. Bxc7 e5 12. Bxe5 Be7 13. Bxg7 Bg5
+  14. Bxh8 Bxe3 15. fxe3 Nf6 16. Bxf6 h5 17. Qxh5 { 黑方子力全部送光，黑方获胜。 })
+7... Rxg8
+(7... Bxg8 8. c4! { 把兵送到 g8 象的 a2–g8 斜线上，黑方此后再无选择。 [%cal Rg8c4] }
+  8... Bxc4 9. Ba5 Bxa2 10. Bxc7 Bxb1 11. Rxa7 Rxa7 12. Qxb1 Rxc7 13. Qxh7 Rxh7
+  14. Nh3 Rxh3 15. e4 Rxh2 16. Kd2 Rxf2 17. Ke3 Rxb2 18. Ke2 Rxe2 19. e5 Rxe5
+  { h8 车接力扫光白方剩余子力，白方获胜。 })
+(7... Bxa2 8. Rxa2 Rxg8 9. Rxa7 Rxa7 10. Ba5! { 先把 a7 车引到 a5，再用后把它拉到 h 线。 [%cal Ra7a5,Gd1h5] }
+  10... Rxa5 11. Qh5! Rxh5 12. Nh3 Rxh3 13. e4 Rxh2 14. Kd2 Rxf2 15. Ke3 Rxc2
+  16. Kd4 Rxb2 17. Kd5 Rxb1 18. Kc6 Nxc6 19. e5 Nxe5 { 黑车与黑马吃光白方，白方获胜。 })
+8. Qh5! { 白后瞄准 h7；黑方唯一的吃法是 8...Bxa2，此后每步都只有一个合法着法。 [%cal Gd1h5,Gh5h7] }
+8... Bxa2 9. Qxh7 Bxb1 10. Qxg8 Bxc2 11. Rxa7 Rxa7 12. Qxg7 Bxg7
+{ 白后吃掉 h7、g8、g7 后，把 f8 黑格象引上 a1–h8 长对角线。 [%cal Rg7b2] }
+13. Nh3 Bxb2 14. Bc3 Bxc3 15. Ng5 Bxe1 16. Nf7 Bxf2 17. Nh6 Bxe3 18. Nf5 Bxf5
+19. h3 Bxh3 { 黑格象与白格象依次吃光白方剩余子力，白方获胜。 } 1-0
 `);
 
 /**

@@ -14,6 +14,8 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Historical evidence
 
+- [Suicide Defence 6...Bd5 refutation — 2026-11-09](maintenance/2026-11-09-suicide-defence-bd5.md): solver-verified 7.Bxg8 recapture lines, unresolved alternatives, and validation.
+
 - [Antichess principles and basic tactics — 2026-10-29](maintenance/2026-10-29-antichess-principles.md): integrated lesson, verified tactical positions, rule qualifications, and production reading checks.
 
 - [Dependency refresh — 2026-10-23](maintenance/2026-10-23-dependency-refresh.md): patched Node trust, current compatible dependencies, security exceptions, baseline resource comparison, and browser host limits.
