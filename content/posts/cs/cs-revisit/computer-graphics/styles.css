@@ -141,14 +141,25 @@
   min-width: 0;
   padding: 1rem;
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--paper-bg);
 }
 
 .cg-homogeneous-panel-title {
-  margin: 0 0 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+  font-family: system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.cg-homogeneous-kicker {
+  color: var(--accent-blue);
+  font-family: system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .cg-homogeneous-scroll {
@@ -164,7 +175,9 @@
   width: 100%;
   max-height: 250px;
   height: auto;
-  font: 17px sans-serif;
+  font:
+    16px system-ui,
+    sans-serif;
   fill: var(--text-color);
 }
 
@@ -201,7 +214,8 @@
 .cg-homogeneous-after {
   fill: none;
   stroke: var(--accent-blue);
-  stroke-width: 2;
+  stroke-width: 2.5;
+  stroke-linecap: round;
 }
 
 .cg-homogeneous-before {
@@ -351,16 +365,28 @@
   stroke-width: 1;
 }
 
-.cg-homogeneous-sphere {
-  fill: url(#cg-homogeneous-point-light);
-  stroke: var(--accent-blue);
-  stroke-width: 0.8;
+.cg-homogeneous-node {
+  fill: var(--accent-blue);
+  stroke: var(--paper-bg);
+  stroke-width: 2;
 }
 
-.cg-homogeneous-point-highlight {
-  stop-color: var(--paper-bg);
+.cg-homogeneous-triangle-large {
+  fill: color-mix(in srgb, var(--accent-blue) 7%, var(--paper-bg));
 }
 
-.cg-homogeneous-point-shade {
-  stop-color: var(--accent-blue);
+.cg-homogeneous-triangle-small {
+  fill: color-mix(in srgb, var(--accent-blue) 19%, var(--paper-bg));
+}
+
+.cg-homogeneous-slice {
+  fill: none;
+  stroke: var(--accent-sage);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+}
+
+.cg-homogeneous-displacement {
+  fill: var(--accent-blue);
+  font-weight: 600;
 }

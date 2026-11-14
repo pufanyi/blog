@@ -36,8 +36,8 @@ const representatives = [
   { point: [2, 2, 2] as Point3, label: 'P', dx: 10, dy: -8 },
 ];
 const section = (a: number, c: number, sheared = false) => [
-  90 + 90 * (a + (sheared ? c : 0)),
-  320 - 105 * c,
+  100 + 90 * (a + (sheared ? c : 0)),
+  310 - 90 * c,
 ];
 
 function HomogeneousCoordinatesFigure() {
@@ -45,6 +45,7 @@ function HomogeneousCoordinatesFigure() {
     <figure className="cg-homogeneous">
       <div className="cg-homogeneous-panels">
         <div className="cg-homogeneous-panel">
+          <div className="cg-homogeneous-kicker">01 / Normalize</div>
           <div className="cg-homogeneous-panel-title">One point, many representatives</div>
           <div
             className="cg-homogeneous-scroll"
@@ -86,10 +87,6 @@ function HomogeneousCoordinatesFigure() {
                   <stop offset="0" className="cg-homogeneous-plane-far" />
                   <stop offset="1" className="cg-homogeneous-plane-near" />
                 </linearGradient>
-                <radialGradient id="cg-homogeneous-point-light" cx="30%" cy="25%" r="80%">
-                  <stop offset="0" className="cg-homogeneous-point-highlight" />
-                  <stop offset="1" className="cg-homogeneous-point-shade" />
-                </radialGradient>
               </defs>
               {(
                 [
@@ -159,7 +156,7 @@ function HomogeneousCoordinatesFigure() {
                 const [x, y] = project(point);
                 return (
                   <g key={label}>
-                    <circle cx={x} cy={y} r="5" className="cg-homogeneous-sphere" />
+                    <circle cx={x} cy={y} r="5" className="cg-homogeneous-node" />
                     <text x={x + dx} y={y + dy}>
                       {label}
                     </text>
@@ -175,6 +172,7 @@ function HomogeneousCoordinatesFigure() {
           <p>{String.raw`\((2,2,2)\sim(1,1,1)\mapsto(1,1).\)`}</p>
         </div>
         <div className="cg-homogeneous-panel">
+          <div className="cg-homogeneous-kicker">02 / Transform</div>
           <div className="cg-homogeneous-panel-title">Translation as a shear</div>
           <div
             className="cg-homogeneous-scroll"
@@ -193,83 +191,102 @@ function HomogeneousCoordinatesFigure() {
               <desc id="cg-homogeneous-shear-desc">
                 In the b = 0 cross-section, the shear maps (a, c) to (a + c, c). The c = 0 axis
                 stays fixed. At c = 1 every point shifts by one, while at c = 2 every point shifts
-                by two. Dividing by c gives the same two-dimensional translation x to x + 1.
+                by two. The triangles OQQ′ and OPP′ are similar: doubling c doubles every side,
+                including the horizontal displacement. Dividing by c gives the same two-dimensional
+                translation x to x + 1.
               </desc>
-              <rect x="68" y="201" width="428" height="28" className="cg-homogeneous-plane" />
-              <text x="470" y="192" className="cg-homogeneous-label">
+              <polygon
+                points={[section(0, 0), section(2, 2), section(2, 2, true)]
+                  .map((p) => p.join(','))
+                  .join(' ')}
+                className="cg-homogeneous-triangle-large"
+              />
+              <polygon
+                points={[section(0, 0), section(1, 1), section(1, 1, true)]
+                  .map((p) => p.join(','))
+                  .join(' ')}
+                className="cg-homogeneous-triangle-small"
+              />
+              <path d="M78 220H512" className="cg-homogeneous-slice" />
+              <text x="480" y="243" className="cg-homogeneous-label">
                 c = 1
               </text>
-              {[0, 1, 2].map((i) => (
-                <g key={i}>
-                  <path d={line(section(i, 0), section(i, 2))} className="cg-homogeneous-before" />
-                  <path d={line(section(0, i), section(2, i))} className="cg-homogeneous-before" />
-                  <path
-                    d={line(section(i, 0, true), section(i, 2, true))}
-                    className="cg-homogeneous-after"
-                  />
-                  <path
-                    d={line(section(0, i, true), section(2, i, true))}
-                    className="cg-homogeneous-after"
-                  />
-                </g>
-              ))}
               <path
-                d="M68 320H510M90 337V55"
+                d="M80 310H518"
                 className="cg-homogeneous-axis"
                 markerEnd="url(#cg-homogeneous-arrow)"
               />
-              <text x="520" y="325">
+              <path
+                d="M100 325V65"
+                className="cg-homogeneous-axis"
+                markerEnd="url(#cg-homogeneous-arrow)"
+              />
+              <text x="524" y="316">
                 a
               </text>
-              <text x="83" y="42">
+              <text x="94" y="53">
                 c
               </text>
+              <path d={line(section(0, 0), section(2.2, 2.2))} className="cg-homogeneous-before" />
+              <path
+                d={line(section(0, 0), section(2.2, 2.2, true))}
+                className="cg-homogeneous-after"
+              />
               {[1, 2].map((c) => {
                 const [x, y] = section(c, c);
                 const [next] = section(c, c, true);
                 return (
                   <g key={c}>
                     <path
-                      d={`M${x + 6} ${y}H${next - 7}`}
+                      d={`M${x + 7} ${y}H${next - 8}`}
                       className="cg-homogeneous-shift"
                       markerEnd="url(#cg-homogeneous-arrow)"
                     />
                     <circle cx={x} cy={y} r="5" className="cg-homogeneous-original-dot" />
-                    <circle cx={next} cy={y} r="5" className="cg-homogeneous-dot" />
-                    <text x={(x + next) / 2} y={y - 12} textAnchor="middle">
+                    <circle cx={next} cy={y} r="5" className="cg-homogeneous-node" />
+                    <text x={x - 10} y={y - 15} textAnchor="end">
+                      {c === 1 ? 'Q' : 'P'}
+                    </text>
+                    <text x={next + 10} y={y - 15}>
+                      {c === 1 ? 'Q′' : 'P′'}
+                    </text>
+                    <text
+                      x={(x + next) / 2}
+                      y={y - 12}
+                      textAnchor="middle"
+                      className="cg-homogeneous-displacement"
+                    >
                       +{c}
                     </text>
-                    <text x="68" y={y + 5}>
+                    <text x="80" y={y + 5} textAnchor="end" className="cg-homogeneous-label">
                       {c}
                     </text>
                   </g>
                 );
               })}
-              <text x="75" y="343">
-                0
+              <circle cx="100" cy="310" r="4" className="cg-homogeneous-origin" />
+              <text x="84" y="337">
+                O
               </text>
-              <text x="330" y="346" className="cg-homogeneous-label">
-                c = 0 stays fixed
-              </text>
-              <path d="M315 48H347" className="cg-homogeneous-before" />
-              <text x="355" y="53" className="cg-homogeneous-label">
+              <path d="M200 55H227" className="cg-homogeneous-before" />
+              <text x="236" y="60" className="cg-homogeneous-label">
                 Before
               </text>
-              <path d="M420 48H452" className="cg-homogeneous-after" />
-              <text x="460" y="53" className="cg-homogeneous-label">
+              <path d="M348 55H375" className="cg-homogeneous-after" />
+              <text x="384" y="60" className="cg-homogeneous-label">
                 After
               </text>
             </svg>
           </div>
-          <p>{String.raw`\((a,b,c)\mapsto(a+c,b,c).\)`}</p>
+          <p>{String.raw`\(\triangle OQQ^{\prime}\sim\triangle OPP^{\prime},\qquad \Delta a/c=1.\)`}</p>
         </div>
       </div>
       <div className="cg-homogeneous-equation">
         {String.raw`\[\begin{pmatrix}1&0&t_x\\0&1&t_y\\0&0&1\end{pmatrix}\begin{pmatrix}a\\b\\c\end{pmatrix}=\begin{pmatrix}a+t_xc\\b+t_yc\\c\end{pmatrix}\quad\longmapsto\quad\begin{pmatrix}x+t_x\\y+t_y\end{pmatrix}.\]`}
       </div>
       <figcaption>
-        Normalize by c ≠ 0. Shear shown in the b = 0 cross-section, with translation (1, 0). Dashed:
-        before; solid: after.
+        Normalize by c ≠ 0. Right: b = 0, translation (1, 0); dashed ray = before, solid ray =
+        after.
       </figcaption>
     </figure>
   );
