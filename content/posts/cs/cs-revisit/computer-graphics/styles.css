@@ -302,10 +302,6 @@
   stroke: var(--accent-sage);
 }
 
-.cg-scene-side {
-  stroke-width: 1;
-}
-
 .cg-scene-edge {
   fill: none;
   stroke: var(--text-secondary);
@@ -389,4 +385,45 @@
 .cg-homogeneous-displacement {
   fill: var(--accent-blue);
   font-weight: 600;
+}
+
+.cg-scene-solid {
+  --cg-solid-color: var(--surface-strong);
+  --cg-solid-edge: var(--text-secondary);
+  stroke: var(--cg-solid-edge);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+}
+
+.cg-scene-solid-body {
+  --cg-solid-color: var(--accent-blue);
+  --cg-solid-edge: var(--accent-blue);
+}
+
+.cg-scene-solid-upper {
+  --cg-solid-color: var(--accent-ochre);
+  --cg-solid-edge: var(--accent-ochre);
+}
+
+.cg-scene-solid-lower {
+  --cg-solid-color: var(--accent-sage);
+  --cg-solid-edge: var(--accent-sage);
+}
+
+.cg-scene-face-front {
+  fill: color-mix(in srgb, var(--cg-solid-color) 20%, var(--paper-bg));
+}
+
+.cg-scene-face-top {
+  fill: color-mix(in srgb, var(--cg-solid-color) 8%, var(--paper-bg));
+}
+
+.cg-scene-face-side {
+  fill: color-mix(in srgb, var(--cg-solid-color) 40%, var(--paper-bg));
+}
+
+.cg-scene-joint {
+  fill: var(--paper-bg);
+  stroke: var(--text-secondary);
+  stroke-width: 1;
 }

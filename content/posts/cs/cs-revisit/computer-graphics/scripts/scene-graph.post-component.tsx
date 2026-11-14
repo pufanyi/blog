@@ -1,56 +1,71 @@
+type Vec3 = readonly [number, number, number];
+
 interface Part {
   id: string;
   parent?: string;
   label: readonly string[];
   tree: readonly [number, number];
-  joint: readonly [number, number];
-  size: readonly [number, number];
+  joint: Vec3;
+  size: Vec3;
+  offset?: Vec3;
   angle?: number;
   accent?: 'body' | 'upper' | 'lower';
 }
 const parts: readonly Part[] = [
-  { id: 'body', label: ['Body'], tree: [230, 46], joint: [0, 0], size: [60, 70], accent: 'body' },
+  {
+    id: 'body',
+    label: ['Body'],
+    tree: [230, 46],
+    joint: [0, 0, 0],
+    size: [56, 68, 30],
+    accent: 'body',
+  },
   {
     id: 'left-arm',
     parent: 'body',
     label: ['Left', 'arm'],
     tree: [50, 140],
-    joint: [67, 12],
-    size: [74, 24],
+    joint: [31, 14, 0],
+    size: [65, 21, 24],
+    offset: [34, -10.5, 0],
+    angle: 8,
   },
   {
     id: 'right-arm',
     parent: 'body',
     label: ['Right', 'arm'],
     tree: [140, 140],
-    joint: [-67, 12],
-    size: [74, 24],
+    joint: [-31, 14, 0],
+    size: [65, 21, 24],
+    offset: [-34, -10.5, 0],
+    angle: -8,
   },
   {
     id: 'head',
     parent: 'body',
     label: ['Head'],
     tree: [230, 140],
-    joint: [0, -51],
-    size: [34, 44],
+    joint: [0, -5, 0],
+    size: [32, 39, 28],
+    offset: [0, -39, 0],
   },
   {
     id: 'right-upper',
     parent: 'body',
     label: ['Right', 'upper leg'],
     tree: [320, 140],
-    joint: [-19, 70],
-    size: [25, 61],
-    angle: 18,
+    joint: [-16, 71, 0],
+    size: [23, 55, 26],
+    angle: 13,
   },
   {
     id: 'left-upper',
     parent: 'body',
     label: ['Left', 'upper leg'],
     tree: [410, 140],
-    joint: [19, 70],
-    size: [25, 61],
-    angle: -12,
+    joint: [16, 71, 0],
+    size: [23, 55, 26],
+    angle: -10,
     accent: 'upper',
   },
   {
@@ -58,40 +73,116 @@ const parts: readonly Part[] = [
     parent: 'right-upper',
     label: ['Right', 'lower leg'],
     tree: [320, 248],
-    joint: [0, 61],
-    size: [25, 61],
-    angle: -32,
+    joint: [0, 59, 0],
+    size: [22, 55, 24],
+    angle: -22,
   },
   {
     id: 'left-lower',
     parent: 'left-upper',
     label: ['Left', 'lower leg'],
     tree: [410, 248],
-    joint: [0, 61],
-    size: [25, 61],
-    angle: 12,
+    joint: [0, 59, 0],
+    size: [22, 55, 24],
+    angle: 10,
     accent: 'lower',
   },
 ];
 const byId = new Map(parts.map((part) => [part.id, part]));
 const tone = (part: Part) => `cg-scene-part${part.accent ? ` cg-scene-${part.accent}` : ''}`;
 
-function BodyPart({ part }: { part: Part }) {
-  const [w, h] = part.size;
-  const x = -w / 2;
+const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const rotate = ([x, y, z]: Vec3, angle: number): Vec3 => [
+  x * Math.cos(angle) - y * Math.sin(angle),
+  x * Math.sin(angle) + y * Math.cos(angle),
+  z,
+];
+const dot = (a: Vec3, b: Vec3) => a.reduce((sum, v, i) => sum + v * b[i], 0);
+const yaw = (-25 * Math.PI) / 180;
+const elevation = (18 * Math.PI) / 180;
+const horizontal: Vec3 = [Math.cos(yaw), 0, Math.sin(yaw)];
+const vertical: Vec3 = [
+  -Math.sin(yaw) * Math.sin(elevation),
+  Math.cos(elevation),
+  Math.cos(yaw) * Math.sin(elevation),
+];
+const towardCamera: Vec3 = [
+  -Math.sin(yaw) * Math.cos(elevation),
+  -Math.sin(elevation),
+  Math.cos(yaw) * Math.cos(elevation),
+];
+const project = (p: Vec3) => [630 + dot(p, horizontal), 94 + dot(p, vertical)];
+interface Pose {
+  position: Vec3;
+  angle: number;
+}
+const poses = new Map<string, Pose>();
+function place(part: Part, parent: Pose = { position: [0, 0, 0], angle: 0 }) {
+  const pose = {
+    position: add(parent.position, rotate(part.joint, parent.angle)),
+    angle: parent.angle + ((part.angle ?? 0) * Math.PI) / 180,
+  };
+  poses.set(part.id, pose);
+  parts.filter((child) => child.parent === part.id).forEach((child) => place(child, pose));
+}
+place(parts[0]);
+const faces = [
+  { indices: [0, 1, 2, 3], normal: [0, 0, -1] as Vec3, shade: 'side' },
+  { indices: [4, 5, 6, 7], normal: [0, 0, 1] as Vec3, shade: 'front' },
+  { indices: [0, 1, 5, 4], normal: [0, -1, 0] as Vec3, shade: 'top' },
+  { indices: [3, 2, 6, 7], normal: [0, 1, 0] as Vec3, shade: 'side' },
+  { indices: [0, 3, 7, 4], normal: [-1, 0, 0] as Vec3, shade: 'side' },
+  { indices: [1, 2, 6, 5], normal: [1, 0, 0] as Vec3, shade: 'side' },
+];
+// Resolve the actual hierarchy in 3D, then project and depth-sort visible cuboid faces.
+const surfaces = parts
+  .flatMap((part) => {
+    const pose = poses.get(part.id)!;
+    const [w, h, d] = part.size;
+    const corners: Vec3[] = [
+      [-w / 2, 0, -d / 2],
+      [w / 2, 0, -d / 2],
+      [w / 2, h, -d / 2],
+      [-w / 2, h, -d / 2],
+      [-w / 2, 0, d / 2],
+      [w / 2, 0, d / 2],
+      [w / 2, h, d / 2],
+      [-w / 2, h, d / 2],
+    ];
+    const vertices = corners.map((p) =>
+      add(pose.position, rotate(add(p, part.offset ?? [0, 0, 0]), pose.angle)),
+    );
+    return faces
+      .filter((face) => dot(rotate(face.normal, pose.angle), towardCamera) > 0)
+      .map((face) => ({
+        key: `${part.id}-${face.indices.join('-')}`,
+        part,
+        shade: face.shade,
+        points: face.indices.map((i) => project(vertices[i]).join(',')).join(' '),
+        depth: face.indices.reduce((sum, i) => sum + dot(vertices[i], towardCamera), 0) / 4,
+      }));
+  })
+  .sort((a, b) => a.depth - b.depth);
+
+function AssembledFigure() {
   return (
-    <g transform={`translate(${part.joint.join(' ')}) rotate(${part.angle ?? 0})`}>
-      <title>{part.label.join(' ')}</title>
-      <path
-        d={`M${x} 0l9 -7h${w}l-9 7Z M${x + w} 0l9 -7v${h}l-9 7Z`}
-        className={`${tone(part)} cg-scene-side`}
-      />
-      <rect x={x} width={w} height={h} className={tone(part)} />
+    <g>
+      {surfaces.map((face) => (
+        <polygon
+          key={face.key}
+          points={face.points}
+          className={`cg-scene-solid cg-scene-face-${face.shade}${face.part.accent ? ` cg-scene-solid-${face.part.accent}` : ''}`}
+        >
+          <title>{face.part.label.join(' ')}</title>
+        </polygon>
+      ))}
       {parts
-        .filter((child) => child.parent === part.id)
-        .map((child) => (
-          <BodyPart key={child.id} part={child} />
-        ))}
+        .filter((part) => part.parent)
+        .map((part) => {
+          const pose = poses.get(part.id)!;
+          const [x, y] = project(add(pose.position, [0, -1.5, part.size[2] / 2 + 1]));
+          return <circle key={part.id} cx={x} cy={y} r="2.2" className="cg-scene-joint" />;
+        })}
     </g>
   );
 }
@@ -167,9 +258,7 @@ function SceneGraphFigure() {
             </g>
           ))}
           <path d="M480 24V284" className="cg-scene-divider" />
-          <g transform="translate(626 95)">
-            <BodyPart part={parts[0]} />
-          </g>
+          <AssembledFigure />
           <text x="230" y="307" textAnchor="middle" className="cg-scene-label">
             Parent → child
           </text>
