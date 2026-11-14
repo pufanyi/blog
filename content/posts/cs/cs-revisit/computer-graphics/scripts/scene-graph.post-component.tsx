@@ -196,78 +196,107 @@ function SceneGraphFigure() {
         role="region"
         aria-label="Scene graph and matching block figure; scroll horizontally"
       >
-        <svg
-          viewBox="0 0 780 320"
-          width="780"
-          height="320"
-          role="img"
-          aria-labelledby="cg-scene-title cg-scene-desc"
-        >
-          <title id="cg-scene-title">A scene graph and its articulated block figure</title>
-          <desc id="cg-scene-desc">
-            The body is the parent of the head, both arms and both upper legs. Each upper leg is the
-            parent of its lower leg. Matching colors highlight the body, left upper leg and left
-            lower leg in the tree and the block figure. Moving a parent carries its descendants.
-          </desc>
-          <defs>
-            <marker
-              id="cg-scene-arrow"
-              viewBox="0 0 10 10"
-              refX="9"
-              refY="5"
-              markerWidth="5"
-              markerHeight="5"
-              orient="auto"
-            >
-              <path d="M0 0L10 5L0 10Z" className="cg-scene-arrow" />
-            </marker>
-          </defs>
-          {parts
-            .filter((part) => part.parent)
-            .map((part) => {
-              const parent = byId.get(part.parent!)!;
-              return (
-                <path
-                  key={part.id}
-                  d={`M${parent.tree[0]} ${parent.tree[1] + 23}L${part.tree[0]} ${part.tree[1] - 26}`}
-                  className={part.accent ? 'cg-scene-edge cg-scene-chain' : 'cg-scene-edge'}
-                  markerEnd="url(#cg-scene-arrow)"
+        <div className="cg-scene-canvas">
+          <svg
+            viewBox="0 0 780 320"
+            width="780"
+            height="320"
+            role="img"
+            aria-labelledby="cg-scene-title cg-scene-desc"
+          >
+            <title id="cg-scene-title">A scene graph and its articulated block figure</title>
+            <desc id="cg-scene-desc">
+              The body is the parent of the head, both arms and both upper legs. Each upper leg is
+              the parent of its lower leg. Matching colors highlight the body, left upper leg and
+              left lower leg in the tree and the block figure. Highlighted arrows map local
+              coordinates to the parent: A2 from left lower leg to left upper leg, A1 from left
+              upper leg to body, and A0 from body to world. Moving a parent carries its descendants.
+            </desc>
+            <defs>
+              <marker
+                id="cg-scene-arrow"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="5"
+                markerHeight="5"
+                orient="auto"
+              >
+                <path d="M0 0L10 5L0 10Z" className="cg-scene-arrow" />
+              </marker>
+            </defs>
+            {parts
+              .filter((part) => part.parent)
+              .map((part) => {
+                const parent = byId.get(part.parent!)!;
+                return (
+                  <path
+                    key={part.id}
+                    d={
+                      part.accent
+                        ? `M${part.tree[0]} ${part.tree[1] - 26}L${parent.tree[0]} ${parent.tree[1] + 26}`
+                        : `M${parent.tree[0]} ${parent.tree[1] + 23}L${part.tree[0]} ${part.tree[1] - 23}`
+                    }
+                    className={part.accent ? 'cg-scene-edge cg-scene-chain' : 'cg-scene-edge'}
+                    markerEnd={part.accent ? 'url(#cg-scene-arrow)' : undefined}
+                  />
+                );
+              })}
+            {parts.map((part) => (
+              <g key={part.id}>
+                <rect
+                  x={part.tree[0] - 40}
+                  y={part.tree[1] - 23}
+                  width="80"
+                  height="46"
+                  rx="13"
+                  className={tone(part)}
                 />
-              );
-            })}
-          {parts.map((part) => (
-            <g key={part.id}>
-              <rect
-                x={part.tree[0] - 40}
-                y={part.tree[1] - 23}
-                width="80"
-                height="46"
-                rx="13"
-                className={tone(part)}
-              />
-              {part.label.map((label, i) => (
-                <text
-                  key={label}
-                  x={part.tree[0]}
-                  y={part.tree[1] + 5 + (i - (part.label.length - 1) / 2) * 17}
-                  textAnchor="middle"
-                >
-                  {label}
-                </text>
-              ))}
-            </g>
+                {part.label.map((label, i) => (
+                  <text
+                    key={label}
+                    x={part.tree[0]}
+                    y={part.tree[1] + 5 + (i - (part.label.length - 1) / 2) * 17}
+                    textAnchor="middle"
+                  >
+                    {label}
+                  </text>
+                ))}
+              </g>
+            ))}
+            <path
+              d="M273 46H350"
+              className="cg-scene-edge cg-scene-chain"
+              markerEnd="url(#cg-scene-arrow)"
+            />
+            <text x="365" y="51" className="cg-scene-label">
+              World
+            </text>
+            <path d="M480 24V284" className="cg-scene-divider" />
+            <AssembledFigure />
+            <text x="230" y="307" textAnchor="middle" className="cg-scene-label">
+              Local → parent
+            </text>
+            <text x="630" y="307" textAnchor="middle" className="cg-scene-label">
+              Same hierarchy, assembled
+            </text>
+          </svg>
+          {[
+            { tex: String.raw`\(A_0\)`, x: 305, y: 17 },
+            { tex: String.raw`\(A_1\)`, x: 351, y: 71 },
+            { tex: String.raw`\(A_2\)`, x: 431, y: 178 },
+          ].map(({ tex, x, y }) => (
+            <span
+              key={tex}
+              className="cg-scene-transform"
+              style={{ left: `${(x / 780) * 100}%`, top: `${(y / 320) * 100}%` }}
+            >
+              {tex}
+            </span>
           ))}
-          <path d="M480 24V284" className="cg-scene-divider" />
-          <AssembledFigure />
-          <text x="230" y="307" textAnchor="middle" className="cg-scene-label">
-            Parent → child
-          </text>
-          <text x="630" y="307" textAnchor="middle" className="cg-scene-label">
-            Same hierarchy, assembled
-          </text>
-        </svg>
+        </div>
       </div>
-      <figcaption>Body → left upper leg → left lower leg.</figcaption>
+      <figcaption>Local coordinates → world coordinates.</figcaption>
     </figure>
   );
 }

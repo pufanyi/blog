@@ -427,3 +427,15 @@
   stroke: var(--text-secondary);
   stroke-width: 1;
 }
+
+.cg-scene-canvas {
+  position: relative;
+  min-width: 640px;
+}
+
+.cg-scene-transform {
+  position: absolute;
+  color: var(--accent-blue);
+  font-size: 0.85rem;
+  line-height: 1;
+}
