@@ -1,0 +1,104 @@
+.cg-pipeline {
+  margin: 1.5rem 0;
+}
+
+.cg-pipeline-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--paper-bg);
+}
+
+.cg-pipeline-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 3px;
+}
+
+.cg-pipeline svg {
+  display: block;
+  width: 100%;
+  min-width: 560px;
+  height: auto;
+  font-family: inherit;
+  font-size: 16px;
+  fill: var(--text-color);
+}
+
+.cg-pipeline-heading {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.cg-pipeline-label {
+  fill: var(--text-secondary);
+  font-size: 14px;
+}
+
+.cg-pipeline-stage {
+  stroke-width: 1.5;
+}
+
+.cg-pipeline-fixed {
+  fill: color-mix(in srgb, var(--accent-sage) 13%, var(--paper-bg));
+  stroke: var(--accent-sage);
+}
+
+.cg-pipeline-shader {
+  fill: color-mix(in srgb, var(--accent-ochre) 13%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+}
+
+.cg-pipeline-mixed {
+  fill: color-mix(in srgb, var(--accent-ochre) 7%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+  stroke-dasharray: 6 4;
+}
+
+.cg-pipeline-edge {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+}
+
+.cg-pipeline-mesh {
+  fill: color-mix(in srgb, var(--accent-blue) 10%, transparent);
+  stroke: var(--accent-blue);
+  stroke-width: 1.5;
+}
+
+.cg-pipeline-point {
+  fill: var(--text-color);
+}
+
+.cg-pipeline-vertex {
+  font-size: 12px;
+}
+
+.cg-pipeline-grid-bg {
+  fill: var(--paper-bg);
+}
+
+.cg-pipeline-buffer {
+  fill: color-mix(in srgb, var(--accent-blue) 25%, var(--paper-bg));
+}
+
+.cg-pipeline-coverage {
+  fill: var(--text-secondary);
+}
+
+.cg-pipeline-color {
+  fill: var(--accent-red);
+}
+
+.cg-pipeline-cell {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 0.6;
+}
+
+.cg-pipeline figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
