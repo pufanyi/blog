@@ -17,7 +17,7 @@
 .cg-pipeline svg {
   display: block;
   width: 100%;
-  min-width: 560px;
+  min-width: 640px;
   height: auto;
   font-family: inherit;
   font-size: 16px;
@@ -111,11 +111,20 @@
   fill: color-mix(in srgb, var(--accent-sage) 5%, var(--paper-bg));
 }
 
-.cg-pipeline-divider {
-  fill: none;
-  stroke: var(--text-secondary);
-  stroke-width: 2;
-  stroke-dasharray: 8 5;
+.cg-pipeline-card-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cg-pipeline-card-tag {
+  fill: var(--text-secondary);
+  font-size: 11px;
+}
+
+.cg-pipeline-output {
+  fill: var(--paper-bg);
+  stroke: var(--border-color);
+  stroke-width: 1.5;
 }
 
 .cg-homogeneous {

@@ -120,19 +120,20 @@ function GraphicsPipelineFigure() {
         aria-label="Graphics pipeline; scroll horizontally"
       >
         <svg
-          viewBox="0 0 600 1130"
-          width="600"
-          height="1130"
+          viewBox="0 0 760 480"
+          width="760"
+          height="480"
           role="img"
           aria-labelledby="cg-pipeline-title cg-pipeline-desc"
         >
           <title id="cg-pipeline-title">From vertices to a framebuffer</title>
           <desc id="cg-pipeline-desc">
-            Vertices and primitives pass through geometry processing, clipping, perspective division
-            and viewport mapping. Rasterization generates screen-space fragments, which are shaded
-            and blended into framebuffer pixels. Screen-space processing retains depth and
-            interpolated attributes. Tessellation and geometry shaders are optional; tessellation
-            combines programmable and fixed-function stages.
+            Read the top row left to right, then the bottom row right to left. Vertices and
+            primitives pass through geometry processing, clipping, perspective division and viewport
+            mapping. Rasterization generates screen-space fragments, which are shaded and blended
+            into framebuffer pixels. Screen-space processing retains depth and interpolated
+            attributes. Tessellation and geometry shaders are optional; tessellation combines
+            programmable and fixed-function stages.
           </desc>
           <defs>
             <marker
@@ -149,129 +150,104 @@ function GraphicsPipelineFigure() {
           </defs>
           <rect
             x="8"
-            y="48"
-            width="584"
-            height="588"
-            rx="12"
+            y="8"
+            width="744"
+            height="220"
+            rx="10"
             className="cg-pipeline-space-geometry"
           />
           <rect
             x="8"
-            y="652"
-            width="584"
-            height="424"
-            rx="12"
+            y="286"
+            width="744"
+            height="184"
+            rx="10"
             className="cg-pipeline-space-screen"
           />
-          <path d="M20 644H580" className="cg-pipeline-divider" />
-          <text x="24" y="82" className="cg-pipeline-heading">
-            3D scene
+          <text x="22" y="34" className="cg-pipeline-heading">
+            3D geometry
           </text>
-          <text x="24" y="112" className="cg-pipeline-label">
-            Object / world /
+          <text x="190" y="34" className="cg-pipeline-label">
+            Object / world / camera → clip space
           </text>
-          <text x="24" y="134" className="cg-pipeline-label">
-            camera space
+          <text x="22" y="62" className="cg-pipeline-label">
+            Vertex / index buffers ↓
           </text>
-          <text x="24" y="170" className="cg-pipeline-label">
-            ↓ projection
-          </text>
-          <text x="24" y="198" className="cg-pipeline-label">
-            Clip space
-          </text>
-          <text x="24" y="252" className="cg-pipeline-heading">
-            Vertices
-          </text>
-          <path d="M30 266V312" className="cg-pipeline-edge" markerEnd="url(#cg-pipeline-arrow)" />
-          <text x="24" y="340" className="cg-pipeline-heading">
-            Primitives
-          </text>
-          <text x="24" y="688" className="cg-pipeline-heading">
+          <text x="22" y="309" className="cg-pipeline-heading">
             Screen space
           </text>
-          <text x="24" y="716" className="cg-pipeline-label">
-            2D + depth
+          <text x="190" y="309" className="cg-pipeline-label">
+            2D + depth · fragments → pixels
           </text>
-          <text x="24" y="798" className="cg-pipeline-heading">
-            Fragments
-          </text>
-          <path d="M30 814V992" className="cg-pipeline-edge" markerEnd="url(#cg-pipeline-arrow)" />
-          <text x="24" y="1024" className="cg-pipeline-heading">
-            Pixels
-          </text>
-          <g transform="translate(160 0)">
-            <text x="135" y="26" textAnchor="middle" className="cg-pipeline-heading">
-              Vertex / index buffers
-            </text>
-            <text x="338" y="26" textAnchor="middle" className="cg-pipeline-label">
-              Output
-            </text>
-            <path d="M135 38V65" className="cg-pipeline-edge" markerEnd="url(#cg-pipeline-arrow)" />
-            {stages.map(({ name, kind, tag }, i) => {
-              const y = 76 + i * 116 + (i >= 4 ? 140 : 0);
-              return (
-                <g key={name}>
-                  <rect
-                    x="20"
-                    y={y}
-                    width="230"
-                    height="78"
-                    rx="10"
-                    className={`cg-pipeline-stage cg-pipeline-${kind}`}
-                  />
-                  <text x="135" y={y + 31} textAnchor="middle" className="cg-pipeline-heading">
-                    {name}
-                  </text>
-                  <text x="135" y={y + 57} textAnchor="middle" className="cg-pipeline-label">
-                    {tag}
-                  </text>
-                  <path
-                    d={`M135 ${y + 82}V${y + 106}`}
-                    className="cg-pipeline-edge"
-                    markerEnd="url(#cg-pipeline-arrow)"
-                  />
-                  <path
-                    d={`M258 ${y + 39}H277`}
-                    className="cg-pipeline-edge"
-                    markerEnd="url(#cg-pipeline-arrow)"
-                  />
-                  <g transform={`translate(288 ${y - 7})`}>
-                    {i < 4 ? <Geometry stage={i} /> : <Samples stage={i} />}
-                  </g>
+          {stages.map(({ name, kind, tag }, i) => {
+            const top = i < 4;
+            const column = top ? i : 7 - i;
+            const x = 18 + column * 185;
+            const y = top ? 76 : 324;
+            return (
+              <g key={name}>
+                <rect
+                  x={x}
+                  y={y}
+                  width="165"
+                  height="140"
+                  rx="8"
+                  className={`cg-pipeline-stage cg-pipeline-${kind}`}
+                />
+                <text
+                  x={x + 82.5}
+                  y={y + 23}
+                  textAnchor="middle"
+                  className="cg-pipeline-card-title"
+                >
+                  {name}
+                </text>
+                <text x={x + 82.5} y={y + 43} textAnchor="middle" className="cg-pipeline-card-tag">
+                  {tag}
+                </text>
+                <g transform={`translate(${x + 50} ${y + 59}) scale(0.65)`}>
+                  {top ? <Geometry stage={i} /> : <Samples stage={i} />}
                 </g>
-              );
-            })}
-            <path
-              d="M135 530V543"
-              className="cg-pipeline-edge"
-              markerEnd="url(#cg-pipeline-arrow)"
-            />
-            <rect
-              x="20"
-              y="548"
-              width="414"
-              height="74"
-              rx="10"
-              className="cg-pipeline-stage cg-pipeline-fixed"
-            />
-            <text x="36" y="576" className="cg-pipeline-heading">
-              Clipping → Perspective divide
-            </text>
-            <text x="36" y="602" className="cg-pipeline-label">
-              NDC → Viewport mapping
-            </text>
-            <path
-              d="M135 626V670"
-              className="cg-pipeline-edge"
-              markerEnd="url(#cg-pipeline-arrow)"
-            />
-            <text x="135" y="1050" textAnchor="middle" className="cg-pipeline-heading">
-              Framebuffer · 2D image
-            </text>
-          </g>
-          <text x="300" y="1110" textAnchor="middle" className="cg-pipeline-label">
-            Screen space: local work · parallel execution
+                {top && i < 3 && (
+                  <path
+                    d={`M${x + 168} ${y + 76}H${x + 181}`}
+                    className="cg-pipeline-edge"
+                    markerEnd="url(#cg-pipeline-arrow)"
+                  />
+                )}
+                {!top && (
+                  <path
+                    d={`M${x - 3} ${y + 76}H${x - 17}`}
+                    className="cg-pipeline-edge"
+                    markerEnd="url(#cg-pipeline-arrow)"
+                  />
+                )}
+              </g>
+            );
+          })}
+          <path d="M655 219V239" className="cg-pipeline-edge" markerEnd="url(#cg-pipeline-arrow)" />
+          <rect
+            x="18"
+            y="242"
+            width="720"
+            height="36"
+            rx="6"
+            className="cg-pipeline-stage cg-pipeline-fixed"
+          />
+          <text x="378" y="265" textAnchor="middle" className="cg-pipeline-label">
+            Clipping → Perspective divide → NDC → Viewport mapping
           </text>
+          <path d="M655 281V320" className="cg-pipeline-edge" markerEnd="url(#cg-pipeline-arrow)" />
+          <rect x="18" y="324" width="165" height="140" rx="8" className="cg-pipeline-output" />
+          <text x="100.5" y="347" textAnchor="middle" className="cg-pipeline-card-title">
+            Framebuffer
+          </text>
+          <text x="100.5" y="367" textAnchor="middle" className="cg-pipeline-card-tag">
+            2D image
+          </text>
+          <g transform="translate(68 383) scale(0.65)">
+            <Samples stage={6} />
+          </g>
         </svg>
       </div>
       <figcaption>
