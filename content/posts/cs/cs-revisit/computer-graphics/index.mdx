@@ -30,3 +30,7 @@ Shaders are any string of code run on the GPU
 因为讲了很多 transformations 的数学细节，当然都是非常伟大的 ideas，但在 AI 时代可能比较 trivial，这里就不一一赘述了。
 
 想了想说一下 Homogeneous Coordinates。从二维视角来看，对于 $p'=(x, y)$，如果有 $p=(a, b, c)$ 使得 $\left(\frac{a}{c}, \frac{b}{c}\right)=(x, y)$ 是 $p'$ 的 homogeneous coordinates。
+
+这样子的话，比如说平移就变成了 shear。
+
+<HomogeneousCoordinatesFigure />
