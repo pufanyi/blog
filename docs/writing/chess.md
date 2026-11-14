@@ -151,5 +151,5 @@ tint (other colors).
 After changing a game or a diagram, run `pnpm generate:data` to replay the
 PGN. Then inspect the served article in both themes, at desktop width and at
 phone width. Finally, run the checks from [testing](../testing.md); the kit's
-unit tests are in `scripts/lib/chess-kit.spec.mts`, and the article's browser
-tests are in `e2e/antichess.spec.ts`.
+unit tests are in `scripts/lib/chess-kit.spec.mts`. Check board navigation and
+move selection manually in the article.

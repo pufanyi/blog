@@ -1,6 +1,6 @@
 # MathJax worker startup in WebKit
 
-The real rendering regression uses MathJax 4.1.3, its matching New Computer
+The former real rendering regression used MathJax 4.1.3, its matching New Computer
 Modern font package, and its speech worker/rules. During the 2026-09-12 audit,
 Playwright's WebKit 26.5 rendered visible formulas but did not finish
 `MathJax.whenReady()`. The speech worker never loaded its entry script.
@@ -22,19 +22,14 @@ article copy handler uses retained TeX, and right-click keeps the native browser
 behavior; neither path loads the browser engine or starts the worker. The runtime
 `tex-chtml.js` engine remains on demand for Angular-authored views containing raw
 TeX, such as post summaries and the not-found page. Its custom context menu is
-disabled, while generated speech and Braille remain enabled. Keep the worker
-regression on one of these dynamic rendering paths, not the static article DOM.
+disabled, while generated speech and Braille remain enabled. Check worker behavior on one of these dynamic rendering paths, not the static
+article DOM.
 
-Unit tests verify URL lifetime and failure cleanup. Production browser tests
-wait for the existing [MathJax queue](https://docs.mathjax.org/en/latest/web/typeset.html),
-check dynamic rendering and its disabled custom menu, and verify static formula
-errors, font loading, and SVG-label placement in light/dark themes at
-desktop/narrow widths. They use the real pinned engine/font bytes.
-A temporary HTTP server supplies the same worker/rules because WebKit worker
-requests do not consistently pass through Playwright routing. Only asset
-locations are configured by the test; rendering and accessibility are real.
+Unit tests verify URL lifetime and failure cleanup. Browser E2E tests have been
+removed. When changing MathJax, manually verify dynamic rendering, disabled
+custom menus, static formulas, font loading, and SVG-label placement in both
+themes and at desktop/phone widths, using the real engine and fonts.
 
-When upgrading MathJax, update both exact test packages and the runtime CDN URL.
-Remove the adaptor workaround only after the unmodified upstream worker passes
-the real WebKit rendering tests. Screenshots are inspection artifacts, not
-pixel baselines or a claim of coverage on every Safari device.
+When upgrading MathJax, update both exact build-time packages and the runtime CDN
+URL. Remove the adaptor workaround only after checking that the unmodified
+upstream worker starts correctly in a current WebKit browser.

@@ -128,23 +128,15 @@ Subscribe through the footer links or discover the feeds in HTML metadata and
 ```bash
 pnpm check
 pnpm test --watch=false
-pnpm exec playwright install --with-deps chromium webkit
-pnpm test:e2e
 ```
 
 `check` runs source formatting, Angular application/strict-template compilation,
-content/tooling and browser-test typechecks, full-source ESLint, and MDX/BibTeX checks. Unit tests cover content rendering and Angular
-behavior. `test:e2e` builds production output and tests desktop/mobile Chromium:
-search keyboard/focus behavior, Chinese queries, route metadata, scroll/history,
-TOC anchors, prerendered 404 behavior, and deferred network loading.
-The Cloudflare project verifies HTTP discovery and content negotiation against
-the local Worker, including all published Markdown exports and missing routes.
+content/tooling typechecks, full-source ESLint, and MDX/BibTeX checks. Unit tests
+cover content rendering and Angular behavior and continue to run in CI.
 
-Focused reading tests simulate delayed MathJax layout; separate real-engine
-tests use pinned MathJax, fonts, and speech-worker assets in Chromium and WebKit.
-WebKit also checks search focus/navigation. Analytics/comments are stubbed.
-Served-route and cold-search resource budgets include worker requests. CI retains
-resource reports and diagram captures on success, plus full failure diagnostics.
+E2E browser automation has been removed. The author rereads published articles
+and checks interactions manually. For local production review, run `pnpm build`
+and `pnpm preview`; use `pnpm preview:cloudflare` for Worker routing behavior.
 
 See [development](docs/development.md), [architecture](docs/architecture.md),
 [dependency policy](docs/dependencies.md), and [testing](docs/testing.md) for

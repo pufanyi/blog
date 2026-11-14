@@ -11,10 +11,9 @@ Install with `pnpm install --frozen-lockfile`.
 | `pnpm watch` | Watch content and the Angular development build |
 | `pnpm generate:data` | One content generation; unchanged outputs keep their mtimes |
 | `pnpm check:boundaries` | Resolve source imports and enforce feature/shared/build dependency directions |
-| `pnpm check` | Generate, format/lint, Angular/templates, tooling/content and E2E typechecks |
+| `pnpm check` | Generate, format/lint, Angular/templates, tooling/content typechecks |
 | `pnpm test --watch=false` | Generate, Node content tests, then Angular unit tests |
 | `pnpm build` | Generate, production prerender, then deployment manifests/assets |
-| `pnpm test:e2e` | Production build and Chromium/WebKit/Cloudflare browser projects |
 | `pnpm preview` / `pnpm preview:cloudflare` | Serve the existing production build |
 | `pnpm biome:write` | Apply configured source formatting |
 | `pnpm format:bib` | Normalize authored bibliography files |
@@ -70,8 +69,7 @@ article disclosure markers in the production browser build.
 | Application TS | Biome + ESLint + import boundaries | Angular compiler/strict templates + unit tests |
 | Angular HTML | Angular template ESLint | `ngc` strict template compilation |
 | Tooling MTS and article TS/TSX | Biome + ESLint | `tsconfig.scripts.json` + content tests |
-| Browser-test TS | Biome + ESLint | `tsconfig.e2e.json` + served production browser tests |
-| CSS and root JSON | Biome | Production build + relevant browser checks |
+| CSS and root JSON | Biome | Production build + manual browser review |
 | MDX | Remark | Generator + renderer and export regressions |
 | BibTeX | BibTeX checker | Citation renderer and export regressions |
 | Configuration/CV YAML | Runtime schema validation | Generator and schema tests |
@@ -92,60 +90,26 @@ article disclosure markers in the production browser build.
 
 - Run unit tests with `pnpm test`; use `pnpm test --watch=false` for a
   noninteractive run. `pnpm check` includes Angular application/template compilation,
-  content/tooling and E2E typechecks, and lint; it does not run tests or a production build.
+  content/tooling typechecks, and lint; it does not run tests or a production build.
   If Vitest workers exit unexpectedly on a host reporting many CPUs, retry with
   `VITEST_MAX_WORKERS=2 pnpm test --watch=false` to limit local concurrency.
 
 - Angular's unit-test builder does not support `vi.mock` for relative imports.
   Override injectable dependencies through `TestBed` when testing configuration.
 
-- Before focusing an offscreen control in a browser test, scroll it into view.
-  Otherwise global smooth scrolling can overlap the next navigation.
-  For history restoration assertions, capture the outgoing position at the click
-  event: Playwright may scroll again to place its click below a sticky toolbar.
-
 ## Browser coverage
 
-Install browsers with `pnpm exec playwright install --with-deps chromium webkit`.
-Desktop/mobile Chromium cover navigation, search, history, metadata, PDFs and
-content assets;
-WebKit covers documentation navigation/layout, search, reload scroll restoration,
-and real MathJax with SVG labels. The Cloudflare project
-exercises actual Worker/static-asset routing. Its two corresponding Chromium
-checks are intentionally skipped to avoid claiming Node preview reproduces
-Cloudflare behavior.
-
-A test that fixes its own viewport, or never renders a page, would do the same
-work in both Chromium projects. End its title with `@desktop-only` or
-`@mobile-only`: each project's `grepInvert` excludes the other tag. A title tag
-keeps the change to one line, whereas a `{ tag }` argument re-indents the whole
-test and conflicts with concurrent edits. Specs whose every case is
-single-project instead belong in the `mobile` project's `testIgnore`, with a reason.
-Keep breakpoint tests that use the project's own width in both projects.
-
-- Check search with real, bubbling keyboard events and both Chinese and
-  English queries. Verify one-step arrow navigation, focus containment,
-  dismissal, and focus restoration on the served page.
-
-Focused navigation/reading tests use a delayed MathJax stub to control layout
-races. `rendering.spec.ts` separately uses pinned real engine/font/worker bytes;
-keep both kinds of coverage. Resource budgets retain per-request JSON, and real
-rendering retains light/dark diagram captures even on success. Local runs retain
-failure traces/screenshots. Screenshots are review evidence, not pixel snapshots.
-`toc-motion.spec.ts` runs in Chromium and WebKit with motion enabled as well as
-reduced motion. It samples actual scrolling/disclosure frames and exercises
-interruption, repeated/rapid selection, history, mobile reopening and focus;
-keep this separate from layout checks that deliberately disable animation.
-See [performance budgets](maintenance/performance.md),
-[MathJax compatibility](maintenance/mathjax-webkit.md), and
-[local host troubleshooting](browser-troubleshooting.md).
+E2E browser automation has been removed. The author reviews published articles
+by reading them and checking their interactions. Use manual desktop/mobile
+review for layout, navigation, search, formulas, and PDFs when relevant; do not
+install browsers or recreate automated suites for routine changes.
+For a local production preview, run `pnpm build` followed by `pnpm preview`.
+Use `pnpm preview:cloudflare` when checking Worker/static-asset routing.
 
 GitHub CI runs source checks and unit tests in the quality job. The final required
-`check` job requires that job to succeed. Browser tests run locally with
-`pnpm test:e2e` when relevant and are not part of CI. `pnpm check` does not run
-tests or build.
-Use a focused behavior test for a regression; avoid assertions that merely mirror
-implementation details or depend on unrelated authored prose.
+`check` job requires that job to succeed. `pnpm check` does not run tests or build.
+Use a focused unit test for a logic regression; avoid assertions that merely
+mirror implementation details or depend on unrelated authored prose.
 
 ## Documentation workflow
 

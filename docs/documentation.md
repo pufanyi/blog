@@ -26,7 +26,7 @@ An internal refactor with unchanged contracts may need no prose change. Review t
 2. Register its repository-relative path in the appropriate group in [`navigation.json`](navigation.json). The first entry is `index.md`; nested `index.md` filenames are reserved. Every Markdown file must appear exactly once.
 3. Use `##` and `###` sections for generated anchors and the page table of contents. Use relative Markdown links, for example `../development.md#commands`. Keep links usable in the repository as well as the website.
 4. Link the new guide from its related guide or landing page. Keep one topic per page and avoid copying existing explanations.
-5. Run `pnpm generate:data`, inspect `/docs/<path-without-md>`, then run the relevant checks. A route or rendering change also needs a production build and browser tests.
+5. Run `pnpm generate:data`, inspect `/docs/<path-without-md>`, then run the relevant checks. A route or rendering change also needs a production build and manual browser review.
 
 The published handbook contains current guidance for authors and developers. Keep agent audits, implementation plans, handoffs, and validation records in `.agents/docs/`, with an entry in that directory's index and an entry point from `AGENTS.md`. Keep durable agent rules in the relevant `AGENTS.md`. Preserve dates and measurement scope when moving historical records; they do not describe later code unless verified again.
 

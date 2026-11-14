@@ -1,6 +1,6 @@
 # Testing and quality checks
 
-Choose validation around the behavior a change can break. This repository combines strict source checks, content-generation tests, Angular unit tests, and production browser regressions; each catches a different class of failure.
+Choose validation around the behavior a change can break. This repository combines strict source checks, content-generation tests, and Angular unit tests; each catches a different class of failure.
 
 ## Required commands
 
@@ -9,9 +9,9 @@ pnpm check
 pnpm test --watch=false
 ```
 
-Run these sequentially. Their lifecycle hooks write shared generated files. Before every push, run both check and noninteractive unit tests after the final change. If anything changes afterward, run them again. For changes that need browser validation, run `pnpm test:e2e` locally; it builds production output before launching Playwright.
+Run these sequentially. Their lifecycle hooks write shared generated files. Before every push, run both check and noninteractive unit tests after the final change. If anything changes afterward, run them again. Browser behavior is reviewed manually; E2E automation has been removed.
 
-`pnpm check` includes Biome formatting, import-boundary validation, Angular application and strict-template compilation, strict tooling and E2E typechecks, ESLint, and article MDX/BibTeX checks. Documentation structure, internal links, and anchors are validated by its generation hook. It does not execute tests or build production pages.
+`pnpm check` includes Biome formatting, import-boundary validation, Angular application and strict-template compilation, strict tooling typechecks, ESLint, and article MDX/BibTeX checks. Documentation structure, internal links, and anchors are validated by its generation hook. It does not execute tests or build production pages.
 
 `pnpm test --watch=false` runs Node content/tooling tests followed by Angular unit tests. If the host's CPU count causes Vitest worker failures, use `VITEST_MAX_WORKERS=2 pnpm test --watch=false`.
 
@@ -36,36 +36,25 @@ Tooling tests live beside helpers as `scripts/lib/*.spec.mts` and run through `t
 
 Angular tests live beside application code. Override injectable services with `TestBed`; the Angular unit-test builder does not support `vi.mock` for relative imports. Use controlled promises and observable effects for lifecycle tests instead of arbitrary delays. Verify listeners, views, observers, timers, and late imports are released on navigation.
 
-## Browser setup and focused runs
+## Manual browser review
 
-Install the matching browser versions after dependency upgrades:
+The author rereads published articles and checks their interactions. Automated
+E2E tests, Playwright configuration, and browser installation are no longer part
+of this repository. Do not run or recreate browser automation unless explicitly
+requested by the user.
 
-```bash
-pnpm exec playwright install --with-deps chromium webkit
-pnpm build
-pnpm exec playwright test e2e/docs.spec.ts --project=desktop --project=mobile
-```
-
-Calling Playwright directly reuses existing production output, so build after changing source. `BLOG_PREVIEW_PORT` and `BLOG_CLOUDFLARE_PORT` select isolated server ports when defaults are occupied. Playwright owns its servers and does not reuse an existing development server. See [host troubleshooting](browser-troubleshooting.md) for Linux library, font, and workerd issues.
-The Playwright configuration starts the preview and Wrangler Node entrypoints
-directly so their server processes exit when the test run finishes under native
-pnpm.
-
-Shared browser fixtures stub third-party analytics/comments and external webfonts.
-Generated formulas are already static; reading/scroll tests must not load a browser
-math engine. Real-rendering tests verify static output, retained-TeX copying, stable
-right-click geometry, and dynamic TeX views using pinned MathJax and local fonts.
-The dynamic renderer's custom context menu must remain disabled.
-Navigation tests wait for article/font readiness, not unrelated external images'
-`load` event. Do not use stubbed traffic as rendering evidence.
-
-Wait for `.post-body[data-rendered="true"]` before testing attached article controls. This marker does not await lazy article-specific enhancements or MathJax; those have their own readiness conditions. Scroll offscreen controls into view before focusing them to avoid smooth-scroll races with the next navigation.
+For changes needing a local production preview, run `pnpm build` and then
+`pnpm preview`. Review the affected reading journey at desktop and phone widths,
+including navigation, disclosures, formulas, images, and controls. Use
+`pnpm preview:cloudflare` for actual Worker/static-asset routing.
+See [host troubleshooting](browser-troubleshooting.md) for local preview issues.
 
 ## CI and performance evidence
 
-The quality workflow runs source checks and unit tests. The quality job generates once and uses `*:generated` commands afterward; the final required `check` status depends only on that job. Browser tests are not run in GitHub CI; run them locally when relevant. Keep generated and normal commands aligned when adding checks.
+The quality workflow continues to run source checks and unit tests. It generates
+once and uses `*:generated` commands afterward; the final required `check` status
+depends on the quality job. Removing E2E does not change those checks.
 
-Resource budgets cover representative production pages and cold search with worker traffic included. Warm queries must add no resources. Use the per-request reports to explain changes rather than increasing a threshold without investigation. Local browser runs retain reports and visual diagnostics, including successful rendering captures; screenshots are diagnostic artifacts rather than pixel baselines. See [performance records](maintenance/performance.md).
-The long-article Chromium diagnostic applies fourfold CPU throttling and waits
-for article font/layout readiness before sampling; its host timings are
-diagnostic, while engine loading and body growth remain assertions.
+The [performance records](maintenance/performance.md) retain historical browser
+measurements. They are reference data, not active automated resource budgets.
+Use browser developer tools for targeted performance investigations when needed.

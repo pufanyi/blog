@@ -22,7 +22,7 @@ For actual Worker/static-asset behavior after building:
 pnpm preview:cloudflare
 ```
 
-This starts local Wrangler at `http://127.0.0.1:8787/`. Use the Cloudflare Playwright project to check route handling and HTTP behavior. Do not infer successful publication from a local preview: production changes become public only through the repository's configured deployment process.
+This starts local Wrangler at `http://127.0.0.1:8787/`. Check route handling and HTTP behavior against this preview. Do not infer successful publication from a local preview: production changes become public only through the repository's configured deployment process.
 
 Hashed lazy chunks from an older deployment can disappear while a reader keeps
 that version of the application open. The client recognizes the browser's
@@ -87,7 +87,7 @@ Keep `wrangler.jsonc` worker-first coverage and `public/_headers` MIME rules ali
 
 ## Release checks
 
-Run check and noninteractive unit tests after the final change, then build and run the relevant production browser tests. Verify direct URLs, canonicals, internal documentation links, Markdown responses, feeds, and the custom 404. Review the actual source diff before pushing. Credentials and production deployment access belong to the existing repository environment; never add them to public documentation or static assets.
+Run check and noninteractive unit tests after the final change, then build and manually review the affected browser behavior. Verify direct URLs, canonicals, internal documentation links, Markdown responses, feeds, and the custom 404. Review the actual source diff before pushing. Credentials and production deployment access belong to the existing repository environment; never add them to public documentation or static assets.
 
 The production Worker disables its default `workers.dev` hostname. Keep traffic on
 the configured custom domain so path-scoped Cloudflare Access applications cannot

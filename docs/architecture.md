@@ -200,7 +200,7 @@ listener on navigation. Print removes shell spacing,
 shadows and navigation while preserving article and CV content.
 Keep the `app-post` host block-level: an inline host spanning block content can
 intercept disclosure clicks in mobile Chromium after scrolling within the flex
-shell. The code-disclosure browser regression covers that interaction.
+shell. Check this interaction manually when changing disclosure layout.
 
 Code blocks use equal top and bottom padding. The shared code renderer marks the
 last line with `terminal-newline` when the source ends with a newline. Hide that
@@ -265,9 +265,9 @@ near-viewport boundary; navigation disposes pending observers and imports.
   percentage heights do not inherit a sidebar's `max-height` and can leave long
   lists clipped. Verify the final entry is reachable in both sidebar and drawer.
   `PostContentDirective` marks `.post-body` with `data-rendered="true"` after
-  client DOM enhancements attach; browser tests asserting on client elements
-  (such as embedded PDF readers) should wait for this attribute before querying
-  or scrolling iframes to ensure hydration has settled.
+  client DOM enhancements attach; manual inspection of client elements
+  (such as embedded PDF readers) should happen after this attribute appears
+  so hydration has settled.
 
 - Angular-authored content images use `app-image-lightbox`, which wraps
   `NgOptimizedImage` and `medium-zoom`. The toolbar avatar is a decorative
@@ -364,8 +364,6 @@ version. Its worker compatibility adapter and removal criteria are documented in
   Directory pages list immediate children, folders first, with dates equal to
   the latest descendant publication `date`, ignoring `updated`. Keep `/blog`
   as the paginated archive and preserve the contents root even with no posts.
-  Derive browser-test directory counts from generated post paths so adding a
-  post does not require updating unrelated navigation assertions.
   Posts marked `private: true` retain a direct prerendered route for host-level
   access control, but are excluded from public archives, directories, search,
   feeds, sitemaps, Markdown exports, and discovery metadata. This visibility
@@ -406,7 +404,7 @@ version. Its worker compatibility adapter and removal criteria are documented in
 
 - Keep the search listbox explicitly `tabindex="-1"`: Chromium otherwise adds
   an overflowing results container to the Tab order. Its combobox owns arrow-key
-  navigation; cover overflow explicitly in browser tests.
+  navigation; check overflow explicitly during manual review.
 
 - Keep search-result animations local: AutoAnimate's removal animation adjusts
   window scrolling and can overwrite the page's saved reading position.
@@ -432,11 +430,11 @@ version. Its worker compatibility adapter and removal criteria are documented in
   Keep `wrangler.jsonc` worker-first patterns covering these page routes, with
   an `ASSETS` binding for separate HTML/Markdown asset caching. Negotiated
   responses need `Vary: Accept` and must not enter a shared URL-only cache.
-  `pnpm preview` shares the handler; `pnpm preview:cloudflare` and Playwright's
-  Cloudflare project also exercise actual Worker/static-asset routing locally.
+  `pnpm preview` shares the handler; `pnpm preview:cloudflare`
+  exercises actual Worker/static-asset routing locally.
   Cloudflare applies `_headers` to HTML 404 fallbacks using the requested URL;
   keep `/blog/*.md` within worker-first routing so missing exports receive the
-  Worker's MIME correction, and retain its Cloudflare regression test.
+  Worker's MIME correction. Check missing exports in the Cloudflare preview.
   One-to-one article Markdown exports also send an HTTP canonical pointing to
   the HTML article, including direct GET/HEAD and conditional 304 responses.
   Do not canonicalize the full archive or profile exports to partial pages.
@@ -457,7 +455,7 @@ version. Its worker compatibility adapter and removal criteria are documented in
   that sitemap and canonical URLs return 200 directly; asset redirects must not
   add trailing slashes while page metadata declares the slashless URL canonical.
   Hosting uses `assets.html_handling: drop-trailing-slash`; verify this in the
-  Cloudflare Playwright project, since the lightweight Node preview does not
+  Cloudflare preview, since the lightweight Node preview does not
   reproduce every static asset redirect.
 
 - The generator writes summary feeds at `/feed.xml` (RSS) and `/atom.xml`
@@ -478,7 +476,7 @@ version. Its worker compatibility adapter and removal criteria are documented in
   to the base href to avoid doubled slashes. Preview must serve `.mjs` as
   JavaScript and `.wasm` as WebAssembly. Version 30 omits PDF.js's CMYK ICC
   profile; `public/assets/web/iccs` supplies it at the engine's default path.
-  Verify actual canvases and asset requests in desktop/mobile browser tests.
+  Verify actual canvases and asset requests during manual desktop/mobile review.
   Start embedded readers with the sidebar closed: a PDF's authored outline
   preference can otherwise squeeze slide pages into thumbnails on mobile.
   Slide decks can repeat PDF page labels across overlays. The page-number input

@@ -26,7 +26,7 @@ versions. Review them when updating their parent dependency.
 | `minimumReleaseAgeExclude` exact versions | pnpm 12.15 records the explicitly selected Angular tooling 22.2.4, Wrangler 4.152.0, and its Miniflare dependency while they are inside the release-age window. These are limited to the reviewed lockfile versions; remove after the window or on the next refresh. |
 | `vite@8.3.0` → `8.3.5` | Angular build 22.2.4 pins 8.3.0, which has published development-server advisories fixed in 8.3.3. Use the current patched 8.3 release; remove when Angular no longer pins the vulnerable version. |
 | `micromark-extension-math@3.1.0>katex` → `0.18.2` | The upstream `^0.16.0` range excludes the prototype-pollution gadget fix ([advisory](https://github.com/advisories/GHSA-238p-pmpm-9mq7)). Override only this parent; remove when its declared range includes the fix. Article rendering still uses MathJax. |
-| MathJax and NewCM font 4.1.3 exact dev dependencies | Build-time article formulas, published local fonts, and deterministic real-browser assets matching the production CDN URL. Builds require dev dependencies. Update renderer, fonts and runtime/test versions together; retain the [WebKit worker regression](maintenance/mathjax-webkit.md). |
+| MathJax and NewCM font 4.1.3 exact dev dependencies | Build-time article formulas, published local fonts, matching the production CDN URL. Builds require dev dependencies. Update renderer, fonts and runtime versions together; verify [WebKit worker behavior](maintenance/mathjax-webkit.md). |
 
 The older SDK, Hono Node server, and Rollup overrides, `listr2` peer exception,
 and release-age exclusions were removed after the September 2026 refresh resolved

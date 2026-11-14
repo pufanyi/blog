@@ -7,7 +7,7 @@ Content is published with the application build. A local edit changes the develo
 1. Review the diff and preserve unrelated author edits. Check the title, publication date, relative asset paths, and optional update date.
 2. Run `pnpm generate:data` and open the article directly. Check its archive/category entries and the Markdown alternative at `/blog/<slug>.md`.
 3. Inspect narrow and desktop widths in both themes. Check wide formulas and tables, image descriptions, citations, downloads, and embedded content.
-4. Run `pnpm check` and `pnpm test --watch=false` sequentially. Run the relevant production browser tests when changing rendering, diagrams, interaction, or hosting.
+4. Run `pnpm check` and `pnpm test --watch=false` sequentially. Manually review the affected browser behavior when changing rendering, diagrams, interaction, or hosting.
 5. Update the relevant handbook page if the change introduces a new authoring convention, configuration option, workflow, or reusable limitation.
 
 Checks and tests regenerate content automatically. A successful typecheck does not prove browser layout is correct, and `pnpm check` does not run tests. See [testing](../testing.md) for selecting additional validation.
@@ -32,4 +32,4 @@ Generation prunes obsolete generated modules and exports. A full production buil
 
 ## Deployment handoff
 
-Use [deployment and production preview](../deployment.md) to build and inspect the exact output. Before every push, both `pnpm check` and `pnpm test --watch=false` must pass after the final change. Run browser regressions locally when relevant; GitHub CI runs source checks and unit tests. Publishing uses the existing repository deployment workflow; this checklist does not replace its credentials or branch configuration.
+Use [deployment and production preview](../deployment.md) to build and inspect the exact output. Before every push, both `pnpm check` and `pnpm test --watch=false` must pass after the final change. Review browser behavior manually when relevant; GitHub CI runs source checks and unit tests. Publishing uses the existing repository deployment workflow; this checklist does not replace its credentials or branch configuration.

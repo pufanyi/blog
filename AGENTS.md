@@ -32,7 +32,6 @@ instead of accumulating unrelated rules here.
 | Format, lint, Angular/template and strict TS checks | `pnpm check` |
 | Noninteractive content and application tests | `pnpm test --watch=false` |
 | Production build with prerender/deployment output | `pnpm build` |
-| Production browser regressions | `pnpm test:e2e` |
 | Format source / bibliography | `pnpm biome:write` / `pnpm format:bib` |
 
 ## Read the relevant guidance
@@ -42,8 +41,9 @@ instead of accumulating unrelated rules here.
   the filename is retained for compatibility even though the guidance is no longer ML-only.
 - Tooling, watchers, validation, or CI: [development](docs/development.md).
   Keep lifecycle-hooked and `*:generated` commands aligned; the final required
-  CI `check` must require the quality job to succeed. Browser tests run locally
-  when relevant and are not part of GitHub CI.
+  CI `check` must require the quality job to succeed. E2E browser tests are
+  removed; use manual reading and interaction review. Do not run or recreate
+  browser automation unless the user explicitly requests it.
 - Generation, routes, metadata, article lifecycle, Markdown/feeds, PDFs, or
   hosting: [architecture and contracts](docs/architecture.md).
 - Dependency/configuration exceptions: [dependency policy](docs/dependencies.md).
@@ -70,7 +70,8 @@ instead of accumulating unrelated rules here.
 - Preserve static HTML and Markdown meaning when adding interactivity. Dispose
   events, views, observers, and timers on navigation, including late imports.
 - Assess performance on served production routes, including lazy/worker
-  requests. Keep the resource budgets and real MathJax/WebKit regressions.
+  requests when performance work requires it. Browser resource budgets are
+  historical reference measurements, not automated gates.
 - For math-heavy articles, measure real-engine startup and scrolling separately.
   Article formulas are build-rendered; ordinary reading must not load the browser
   engine or duplicate the initial body module. Right-click must preserve the
