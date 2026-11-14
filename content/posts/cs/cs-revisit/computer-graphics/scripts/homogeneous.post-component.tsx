@@ -1,12 +1,36 @@
 type Point3 = readonly [number, number, number];
-const project = ([a, b, c]: Point3) => [210 + 60 * a - 35 * b, 320 - 25 * b - 90 * c];
+const subtract = (a: Point3, b: Point3): Point3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const dot = (a: Point3, b: Point3) => a.reduce((sum, value, i) => sum + value * b[i], 0);
+const cross = (a: Point3, b: Point3): Point3 => [
+  a[1] * b[2] - a[2] * b[1],
+  a[2] * b[0] - a[0] * b[2],
+  a[0] * b[1] - a[1] * b[0],
+];
+const normalize = (v: Point3): Point3 => {
+  const length = Math.sqrt(dot(v, v));
+  return [v[0] / length, v[1] / length, v[2] / length];
+};
+const camera: Point3 = [5, -8, 8];
+const forward = normalize(subtract([0.8, 0.8, 0.9], camera));
+const right = normalize(cross(forward, [0, 0, 1]));
+const up = cross(right, forward);
+// One pinhole camera preserves straight lines and equal world-space units.
+const project = (point: Point3) => {
+  const relative = subtract(point, camera);
+  const depth = dot(relative, forward);
+  return [300 + (760 * dot(relative, right)) / depth, 190 - (760 * dot(relative, up)) / depth];
+};
 const line = (a: number[], b: number[]) => `M${a.join(' ')}L${b.join(' ')}`;
 const plane = [
   [-0.5, -0.5, 1],
-  [3, -0.5, 1],
-  [3, 2, 1],
-  [-0.5, 2, 1],
+  [2.7, -0.5, 1],
+  [2.7, 2.7, 1],
+  [-0.5, 2.7, 1],
 ] as const;
+const planeOutline = plane.map((point) => project(point).join(',')).join(' ');
+const origin = project([0, 0, 0]);
+const normalized = project([1, 1, 1]);
+const planeLabel = project([-0.5, -0.5, 1]);
 const representatives = [
   { point: [1, 1, 1] as Point3, label: 'Q', dx: 10, dy: 17 },
   { point: [2, 2, 2] as Point3, label: 'P', dx: 10, dy: -8 },
@@ -55,12 +79,23 @@ function HomogeneousCoordinatesFigure() {
                 >
                   <path d="M0 0L10 5L0 10Z" className="cg-homogeneous-arrow" />
                 </marker>
+                <clipPath id="cg-homogeneous-plane-clip">
+                  <polygon points={planeOutline} />
+                </clipPath>
+                <linearGradient id="cg-homogeneous-plane-light" x1="0" y1="0" x2="0.4" y2="1">
+                  <stop offset="0" className="cg-homogeneous-plane-far" />
+                  <stop offset="1" className="cg-homogeneous-plane-near" />
+                </linearGradient>
+                <radialGradient id="cg-homogeneous-point-light" cx="30%" cy="25%" r="80%">
+                  <stop offset="0" className="cg-homogeneous-point-highlight" />
+                  <stop offset="1" className="cg-homogeneous-point-shade" />
+                </radialGradient>
               </defs>
               {(
                 [
-                  [3.4, 0, 0],
-                  [0, 2.7, 0],
-                  [0, 0, 2.9],
+                  [3.2, 0, 0],
+                  [0, 5.7, 0],
+                  [0, 0, 2.7],
                 ] as Point3[]
               ).map((end, i) => {
                 const p = project(end);
@@ -77,52 +112,64 @@ function HomogeneousCoordinatesFigure() {
                   </g>
                 );
               })}
-              <polygon
-                points={plane.map((p) => project(p).join(',')).join(' ')}
-                className="cg-homogeneous-plane"
-              />
+              <path d={line(origin, normalized)} className="cg-homogeneous-ray" />
+              <polygon points={planeOutline} className="cg-homogeneous-perspective-plane" />
               {[0, 1, 2].map((i) => (
                 <g key={i}>
                   <path
-                    d={line(project([i, -0.5, 1]), project([i, 2, 1]))}
-                    className="cg-homogeneous-grid"
+                    d={line(project([i, -0.5, 1]), project([i, 2.7, 1]))}
+                    className="cg-homogeneous-perspective-grid"
                   />
                   <path
-                    d={line(project([-0.5, i, 1]), project([3, i, 1]))}
-                    className="cg-homogeneous-grid"
+                    d={line(project([-0.5, i, 1]), project([2.7, i, 1]))}
+                    className="cg-homogeneous-perspective-grid"
                   />
                 </g>
               ))}
-              <text x="405" y="235" className="cg-homogeneous-label">
+              <g clipPath="url(#cg-homogeneous-plane-clip)">
+                <path
+                  d={line(origin, project([0, 5.7, 0]))}
+                  className="cg-homogeneous-axis cg-homogeneous-occluded"
+                />
+                <path
+                  d={line(origin, project([0, 0, 1]))}
+                  className="cg-homogeneous-axis cg-homogeneous-occluded"
+                />
+                <path
+                  d={line(origin, normalized)}
+                  className="cg-homogeneous-ray cg-homogeneous-occluded"
+                />
+              </g>
+              <path
+                d={line(project([0, 0, 1]), project([0, 0, 2.7]))}
+                className="cg-homogeneous-axis"
+                markerEnd="url(#cg-homogeneous-arrow)"
+              />
+              <path d={line(normalized, project([2.7, 2.7, 2.7]))} className="cg-homogeneous-ray" />
+              <circle
+                cx={normalized[0]}
+                cy={normalized[1]}
+                r="9"
+                className="cg-homogeneous-contact"
+              />
+              <text x={planeLabel[0] - 16} y={planeLabel[1] - 12} className="cg-homogeneous-label">
                 c = 1
               </text>
-              <path
-                d={line(project([0, 0, 0]), project([2.5, 2.5, 2.5]))}
-                className="cg-homogeneous-ray"
-              />
               {representatives.map(({ point, label, dx, dy }) => {
                 const [x, y] = project(point);
                 return (
                   <g key={label}>
-                    <circle cx={x} cy={y} r="5" className="cg-homogeneous-dot" />
+                    <circle cx={x} cy={y} r="5" className="cg-homogeneous-sphere" />
                     <text x={x + dx} y={y + dy}>
                       {label}
                     </text>
                   </g>
                 );
               })}
-              <circle cx="210" cy="320" r="4" className="cg-homogeneous-origin" />
-              <text x="192" y="343">
+              <circle cx={origin[0]} cy={origin[1]} r="4" className="cg-homogeneous-origin" />
+              <text x={origin[0] - 17} y={origin[1] + 23}>
                 O
               </text>
-              <text x="315" y="90" className="cg-homogeneous-label">
-                Divide by c
-              </text>
-              <path
-                d="M302 101Q335 153 266 193"
-                className="cg-homogeneous-axis"
-                markerEnd="url(#cg-homogeneous-arrow)"
-              />
             </svg>
           </div>
           <p>{String.raw`\((2,2,2)\sim(1,1,1)\mapsto(1,1).\)`}</p>

@@ -318,3 +318,49 @@
   fill: var(--text-secondary);
   font-size: 0.875rem;
 }
+
+.cg-homogeneous-perspective-plane {
+  fill: url(#cg-homogeneous-plane-light);
+  stroke: var(--accent-sage);
+  stroke-width: 1.5;
+}
+
+.cg-homogeneous-plane-far {
+  stop-color: color-mix(in srgb, var(--accent-sage) 10%, var(--paper-bg));
+}
+
+.cg-homogeneous-plane-near {
+  stop-color: color-mix(in srgb, var(--accent-sage) 25%, var(--paper-bg));
+}
+
+.cg-homogeneous-perspective-grid {
+  fill: none;
+  stroke: var(--accent-sage);
+  stroke-width: 0.7;
+  opacity: 0.5;
+}
+
+.cg-homogeneous-occluded {
+  stroke-dasharray: 4 5;
+  opacity: 0.55;
+}
+
+.cg-homogeneous-contact {
+  fill: var(--paper-bg);
+  stroke: var(--accent-blue);
+  stroke-width: 1;
+}
+
+.cg-homogeneous-sphere {
+  fill: url(#cg-homogeneous-point-light);
+  stroke: var(--accent-blue);
+  stroke-width: 0.8;
+}
+
+.cg-homogeneous-point-highlight {
+  stop-color: var(--paper-bg);
+}
+
+.cg-homogeneous-point-shade {
+  stop-color: var(--accent-blue);
+}
