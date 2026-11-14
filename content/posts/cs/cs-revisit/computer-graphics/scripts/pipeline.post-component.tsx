@@ -15,51 +15,37 @@ const stages = [
   {
     name: 'Input assembler',
     kind: 'fixed',
-    tag: '固定功能',
-    note: '按索引组织顶点',
-    detail: '形成图元连接关系',
+    tag: 'Fixed function',
   },
   {
     name: 'Vertex shader',
     kind: 'shader',
-    tag: '可编程',
-    note: '变换顶点位置',
-    detail: '输出逐顶点属性',
+    tag: 'Programmable',
   },
   {
     name: 'Tessellation',
     kind: 'mixed',
-    tag: '可选 · 混合阶段',
-    note: '细分输入 patch',
-    detail: '生成更密的网格',
+    tag: 'Optional · Mixed',
   },
   {
     name: 'Geometry shader',
     kind: 'shader',
-    tag: '可选 · 可编程',
-    note: '处理整个图元',
-    detail: '可生成新的图元',
+    tag: 'Optional · Programmable',
   },
   {
     name: 'Rasterization',
     kind: 'fixed',
-    tag: '固定功能',
-    note: '确定采样点覆盖',
-    detail: '生成 fragments',
+    tag: 'Fixed function',
   },
   {
     name: 'Fragment shader',
     kind: 'shader',
-    tag: '可编程',
-    note: '计算 fragment 颜色',
-    detail: '例如纹理与光照',
+    tag: 'Programmable',
   },
   {
     name: 'Color blending',
     kind: 'fixed',
-    tag: '固定功能',
-    note: '与已有目标颜色混合',
-    detail: '写入 framebuffer',
+    tag: 'Fixed function',
   },
 ] as const;
 const points = (vertices: readonly Point[]) => vertices.map((p) => p.join(',')).join(' ');
@@ -131,23 +117,22 @@ function GraphicsPipelineFigure() {
         className="cg-pipeline-scroll"
         tabIndex={0}
         role="region"
-        aria-label="Graphics pipeline 示意图，可横向滚动"
+        aria-label="Graphics pipeline; scroll horizontally"
       >
         <svg
-          viewBox="0 0 800 1250"
-          width="800"
-          height="1250"
+          viewBox="0 0 600 1130"
+          width="600"
+          height="1130"
           role="img"
           aria-labelledby="cg-pipeline-title cg-pipeline-desc"
         >
-          <title id="cg-pipeline-title">从顶点到 framebuffer 的图形流水线</title>
+          <title id="cg-pipeline-title">From vertices to a framebuffer</title>
           <desc id="cg-pipeline-desc">
-            输入顶点与索引，经 input assembler 组织连接关系，vertex shader 变换顶点。 可选
-            tessellation 细分网格，geometry shader 可生成新图元。 Rasterization 将图元转换成
-            fragments，fragment shader 计算颜色， color blending 与目标颜色混合后写入
-            framebuffer。几何部分从 object、world、camera space 到 clip space，经过裁剪、 透视除法和
-            viewport 映射进入 screen space；屏幕阶段仍保留深度和插值属性。 左侧标出
-            vertices、primitives、fragments 和 pixels；右侧展示同一组数据的变化。
+            Vertices and primitives pass through geometry processing, clipping, perspective division
+            and viewport mapping. Rasterization generates screen-space fragments, which are shaded
+            and blended into framebuffer pixels. Screen-space processing retains depth and
+            interpolated attributes. Tessellation and geometry shaders are optional; tessellation
+            combines programmable and fixed-function stages.
           </desc>
           <defs>
             <marker
@@ -165,7 +150,7 @@ function GraphicsPipelineFigure() {
           <rect
             x="8"
             y="48"
-            width="784"
+            width="584"
             height="588"
             rx="12"
             className="cg-pipeline-space-geometry"
@@ -173,12 +158,12 @@ function GraphicsPipelineFigure() {
           <rect
             x="8"
             y="652"
-            width="784"
+            width="584"
             height="424"
             rx="12"
             className="cg-pipeline-space-screen"
           />
-          <path d="M20 644H780" className="cg-pipeline-divider" />
+          <path d="M20 644H580" className="cg-pipeline-divider" />
           <text x="24" y="82" className="cg-pipeline-heading">
             3D scene
           </text>
@@ -205,7 +190,7 @@ function GraphicsPipelineFigure() {
             Screen space
           </text>
           <text x="24" y="716" className="cg-pipeline-label">
-            2D 位置 + depth
+            2D + depth
           </text>
           <text x="24" y="798" className="cg-pipeline-heading">
             Fragments
@@ -219,10 +204,10 @@ function GraphicsPipelineFigure() {
               Vertex / index buffers
             </text>
             <text x="338" y="26" textAnchor="middle" className="cg-pipeline-label">
-              数据的变化
+              Output
             </text>
             <path d="M135 38V65" className="cg-pipeline-edge" markerEnd="url(#cg-pipeline-arrow)" />
-            {stages.map(({ name, kind, tag, note, detail }, i) => {
+            {stages.map(({ name, kind, tag }, i) => {
               const y = 76 + i * 116 + (i >= 4 ? 140 : 0);
               return (
                 <g key={name}>
@@ -253,12 +238,6 @@ function GraphicsPipelineFigure() {
                   <g transform={`translate(288 ${y - 7})`}>
                     {i < 4 ? <Geometry stage={i} /> : <Samples stage={i} />}
                   </g>
-                  <text x="416" y={y + 29}>
-                    {note}
-                  </text>
-                  <text x="416" y={y + 55} className="cg-pipeline-label">
-                    {detail}
-                  </text>
                 </g>
               );
             })}
@@ -270,16 +249,16 @@ function GraphicsPipelineFigure() {
             <rect
               x="20"
               y="548"
-              width="594"
+              width="414"
               height="74"
               rx="10"
               className="cg-pipeline-stage cg-pipeline-fixed"
             />
             <text x="36" y="576" className="cg-pipeline-heading">
-              Clipping → Perspective division → Viewport
+              Clipping → Perspective divide
             </text>
             <text x="36" y="602" className="cg-pipeline-label">
-              裁剪图元 · 除以 w 得到 NDC · 映射到屏幕位置与深度范围
+              NDC → Viewport mapping
             </text>
             <path
               d="M135 626V670"
@@ -290,35 +269,18 @@ function GraphicsPipelineFigure() {
               Framebuffer · 2D image
             </text>
           </g>
-          <text x="24" y="1110" className="cg-pipeline-heading">
-            为什么在 screen space 工作？
-          </text>
-          <text x="24" y="1142">
-            规则采样网格：覆盖判断、插值与逐样本测试可由硬件高效执行。
-          </text>
-          <text x="24" y="1174">
-            局部计算易于并行；裁剪与深度剔除可减少后续数据和着色工作。
-          </text>
-          <text x="24" y="1206" className="cg-pipeline-label">
-            精度由采样位置、数值格式等决定；从 3D 到 2D 本身不保证更高精度或更少计算。
+          <text x="300" y="1110" textAnchor="middle" className="cg-pipeline-label">
+            Screen space: local work · parallel execution
           </text>
         </svg>
       </div>
       <figcaption>
-        图形流水线简图：几何图元先变换为 fragments，再计算颜色并写入 framebuffer。 Tessellation
-        包含可编程 shader 和固定功能细分器；虚线框表示混合阶段。
-        上半部处理几何，下半部按屏幕采样位置处理 fragments，但仍携带深度及插值属性。
-        空间名称表示数据变换过程，不与 shader 阶段一一对应；通常 vertex shader 已输出 clip-space
-        位置。 图中省略深度／模板测试，fragment 不一定最终写入像素。
-        最后两幅使用同一组颜色，以半透明混合示意颜色写入已有背景。 流程参考{' '}
+        3D geometry → screen-space fragments → 2D image. Depth/stencil tests omitted. Adapted from
+        the{' '}
         <a href="https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/02_Graphics_pipeline_basics/00_Introduction.html">
           Vulkan Tutorial
         </a>
-        ，空间转换顺序参见{' '}
-        <a href="https://docs.vulkan.org/spec/latest/chapters/vertexpostproc.html">
-          Vulkan 顶点后处理规范
-        </a>
-        。
+        .
       </figcaption>
     </figure>
   );
