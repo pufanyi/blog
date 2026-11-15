@@ -780,3 +780,290 @@
 .cg-instancing-tex-path2 {
   color: var(--accent-ochre);
 }
+
+.cg-quat {
+  margin: 1.5rem 0;
+}
+
+.cg-quat-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.cg-quat-panel {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: var(--paper-bg);
+}
+
+.cg-quat-kicker {
+  color: var(--accent-blue);
+  font-family: system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cg-quat-panel-title {
+  margin: 0.25rem 0 0.75rem;
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.cg-quat-scroll {
+  overflow-x: auto;
+}
+
+.cg-quat-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+}
+
+.cg-quat svg {
+  display: block;
+  width: 100%;
+  min-width: 300px;
+  height: auto;
+  font:
+    14px system-ui,
+    sans-serif;
+  fill: var(--text-color);
+}
+
+.cg-quat-panel p {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.cg-quat figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.cg-quat-ring {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 0.9;
+  stroke-dasharray: 2.5 3.5;
+  opacity: 0.55;
+}
+
+.cg-quat-axis-neg {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 1.1;
+  stroke-dasharray: 3.5 3.5;
+}
+
+.cg-quat-dot-neg {
+  fill: var(--paper-bg);
+  stroke: var(--text-secondary);
+  stroke-width: 1.2;
+}
+
+.cg-quat-origin {
+  fill: var(--text-secondary);
+}
+
+.cg-quat-axis {
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.cg-quat-axis-i,
+.cg-quat-arc-i,
+.cg-quat-step-i {
+  stroke: var(--accent-blue);
+}
+
+.cg-quat-axis-j,
+.cg-quat-arc-j,
+.cg-quat-step-j {
+  stroke: var(--accent-ochre);
+}
+
+.cg-quat-axis-k,
+.cg-quat-arc-k {
+  stroke: var(--accent-sage);
+}
+
+.cg-quat-arc {
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.cg-quat-arc-dashed {
+  stroke-dasharray: 5 3.5;
+  stroke-width: 1.8;
+}
+
+.cg-quat-dot {
+  stroke: var(--paper-bg);
+  stroke-width: 1.5;
+}
+
+.cg-quat-dot-i,
+.cg-quat-head-i,
+.cg-quat-text-i {
+  fill: var(--accent-blue);
+}
+
+.cg-quat-dot-j,
+.cg-quat-head-j,
+.cg-quat-text-j {
+  fill: var(--accent-ochre);
+}
+
+.cg-quat-dot-k,
+.cg-quat-head-k,
+.cg-quat-text-k {
+  fill: var(--accent-sage);
+}
+
+.cg-quat-head-neutral {
+  fill: var(--text-secondary);
+}
+
+.cg-quat-symbol {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.cg-quat-symbol-muted {
+  fill: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.cg-quat-arc-label {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13.5px;
+  font-style: italic;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--paper-bg);
+  stroke-width: 4px;
+}
+
+.cg-quat-row-tag {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.cg-quat-step {
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.cg-quat-step-label {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.cg-quat-pose {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
+
+.cg-quat-legend text {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
+
+.cg-quat-swatch-i {
+  fill: color-mix(in srgb, var(--accent-blue) 32%, var(--paper-bg));
+  stroke: var(--accent-blue);
+  stroke-width: 1;
+}
+
+.cg-quat-swatch-j {
+  fill: color-mix(in srgb, var(--accent-ochre) 32%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+  stroke-width: 1;
+}
+
+.cg-quat-swatch-k {
+  fill: color-mix(in srgb, var(--accent-sage) 32%, var(--paper-bg));
+  stroke: var(--accent-sage);
+  stroke-width: 1;
+}
+
+.cg-quat-divider {
+  stroke: var(--border-color);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.cg-quat-neq-pill {
+  fill: color-mix(in srgb, var(--accent-rose) 12%, var(--paper-bg));
+  stroke: var(--accent-rose);
+  stroke-width: 1.2;
+}
+
+.cg-quat-neq {
+  fill: var(--accent-rose);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.cg-quat-ref-axis {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 0.9;
+  stroke-dasharray: 2 2.5;
+  opacity: 0.7;
+}
+
+.cg-quat-part {
+  --cg-quat-fill: var(--surface-strong);
+  --cg-quat-edge: var(--text-secondary);
+  stroke: var(--cg-quat-edge);
+  stroke-width: 0.95;
+  stroke-linejoin: round;
+}
+
+.cg-quat-part-i {
+  --cg-quat-fill: var(--accent-blue);
+  --cg-quat-edge: var(--accent-blue);
+}
+
+.cg-quat-part-j {
+  --cg-quat-fill: var(--accent-ochre);
+  --cg-quat-edge: var(--accent-ochre);
+}
+
+.cg-quat-part-k {
+  --cg-quat-fill: var(--accent-sage);
+  --cg-quat-edge: var(--accent-sage);
+}
+
+.cg-quat-face-light {
+  fill: color-mix(in srgb, var(--cg-quat-fill) 16%, var(--paper-bg));
+}
+
+.cg-quat-face-mid {
+  fill: color-mix(in srgb, var(--cg-quat-fill) 32%, var(--paper-bg));
+}
+
+.cg-quat-face-dark {
+  fill: color-mix(in srgb, var(--cg-quat-fill) 48%, var(--paper-bg));
+}
+
+@media (max-width: 640px) {
+  .cg-quat-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
