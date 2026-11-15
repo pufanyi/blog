@@ -1067,3 +1067,147 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.cg-pinhole {
+  margin: 1.5rem 0;
+}
+
+.cg-pinhole-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--paper-bg);
+}
+
+.cg-pinhole-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 3px;
+}
+
+.cg-pinhole svg {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  height: auto;
+  font-family: inherit;
+  font-size: 14px;
+  fill: var(--text-color);
+}
+
+.cg-pinhole-cone-near {
+  stop-color: var(--surface-soft);
+  stop-opacity: 0.7;
+}
+
+.cg-pinhole-cone-far {
+  stop-color: var(--paper-bg);
+  stop-opacity: 0;
+}
+
+.cg-pinhole-frustum {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 1.4;
+}
+
+.cg-pinhole-axis {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.25;
+}
+
+.cg-pinhole-arrow {
+  fill: var(--text-secondary);
+}
+
+.cg-pinhole-origin {
+  fill: var(--text-color);
+}
+
+.cg-pinhole-ray {
+  fill: none;
+  stroke-width: 1.4;
+  stroke-dasharray: 5 4;
+}
+
+.cg-pinhole-ray-red {
+  stroke: var(--accent-red);
+}
+
+.cg-pinhole-ray-blue {
+  stroke: var(--accent-blue);
+}
+
+.cg-pinhole-ray-crossing {
+  stroke: var(--text-secondary);
+  stroke-dasharray: 3 4;
+  opacity: 0.75;
+}
+
+.cg-pinhole-bar {
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: butt;
+}
+
+.cg-pinhole-bar-red {
+  stroke: var(--accent-red);
+}
+
+.cg-pinhole-bar-blue {
+  stroke: var(--accent-blue);
+}
+
+.cg-pinhole-pixel {
+  stroke: var(--text-color);
+  stroke-width: 0.9;
+}
+
+.cg-pinhole-pixel-empty {
+  fill: var(--paper-bg);
+}
+
+.cg-pinhole-pixel-red {
+  fill: var(--accent-red);
+}
+
+.cg-pinhole-pixel-blue {
+  fill: var(--accent-blue);
+}
+
+.cg-pinhole-sensor-frame {
+  fill: none;
+  stroke: var(--text-color);
+  stroke-width: 1.4;
+}
+
+.cg-pinhole-axis-label,
+.cg-pinhole-label {
+  fill: var(--text-secondary);
+  font-size: 13px;
+}
+
+.cg-pinhole-title-label {
+  fill: var(--text-color);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.cg-pinhole-coord {
+  fill: var(--text-secondary);
+  font-size: 13px;
+}
+
+.cg-pinhole-symbol {
+  fill: var(--text-color);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14.5px;
+  font-style: italic;
+}
+
+.cg-pinhole figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
