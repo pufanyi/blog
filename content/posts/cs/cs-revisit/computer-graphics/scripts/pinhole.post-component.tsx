@@ -11,8 +11,7 @@ const unit = 172;
 const fmt = (n: number) => n.toFixed(1);
 const toSvg = ([z, x]: Pt): Pt => [ox + z * unit, oy - x * unit];
 const line = (a: Pt, b: Pt) => `M${fmt(a[0])} ${fmt(a[1])}L${fmt(b[0])} ${fmt(b[1])}`;
-const polygonPoints = (pts: readonly Pt[]) =>
-  pts.map((p) => `${fmt(p[0])},${fmt(p[1])}`).join(' ');
+const polygonPoints = (pts: readonly Pt[]) => pts.map((p) => `${fmt(p[0])},${fmt(p[1])}`).join(' ');
 
 const sensorZ = -1;
 const frustumZMax = 2.65;
@@ -146,10 +145,10 @@ function PinholeCameraFigure() {
           </title>
           <desc id="cg-pinhole-desc">
             A pinhole at the origin (0, 0) projects a vertical red bar and a tilted crossing blue
-            bar onto a 14-pixel virtual sensor at z = -1. Rays from (x, z) pass straight through
-            (0, 0) to (-1, -x/z). Where the two bars overlap along a ray, each sensor pixel records
-            only the closer surface, yielding 4 empty, 3 red, 5 blue, and 2 red pixels from top
-            to bottom.
+            bar onto a 14-pixel virtual sensor at z = -1. Rays from (x, z) pass straight through (0,
+            0) to (-1, -x/z). Where the two bars overlap along a ray, each sensor pixel records only
+            the closer surface, yielding 4 empty, 3 red, 5 blue, and 2 red pixels from top to
+            bottom.
           </desc>
           <defs>
             <marker
@@ -251,7 +250,12 @@ function PinholeCameraFigure() {
             <tspan className="cg-pinhole-symbol">z</tspan>-axis
           </text>
 
-          <text x={(sensorTopSvg[0] + ox) / 2} y={oy + 18} textAnchor="middle" className="cg-pinhole-label">
+          <text
+            x={(sensorTopSvg[0] + ox) / 2}
+            y={oy + 18}
+            textAnchor="middle"
+            className="cg-pinhole-label"
+          >
             1
           </text>
 
@@ -300,9 +304,9 @@ function PinholeCameraFigure() {
       <figcaption>
         Pinhole projection in the {String.raw`\((z, x)\)`} slice. Each point{' '}
         {String.raw`\((x, z)\)`} casts a ray through {String.raw`\((0, 0)\)`} onto the sensor at{' '}
-        {String.raw`\(z = -1\)`}, landing at {String.raw`\(-x/z\)`} (inverted; a virtual image
-        plane at {String.raw`\(z = 1\)`} gives {String.raw`\(x/z\)`}). Along overlapping rays, each
-        pixel takes the smaller-{String.raw`\(z\)`} surface.
+        {String.raw`\(z = -1\)`}, landing at {String.raw`\(-x/z\)`} (inverted; a virtual image plane
+        at {String.raw`\(z = 1\)`} gives {String.raw`\(x/z\)`}). Along overlapping rays, each pixel
+        takes the smaller-{String.raw`\(z\)`} surface.
       </figcaption>
     </figure>
   );
