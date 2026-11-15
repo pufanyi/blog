@@ -13,6 +13,12 @@
         @default { Copy BibTeX }
       }
     </button>
+    <span class="visually-hidden" role="status">
+      @switch (copyState()) {
+        @case ('copied') { Copied BibTeX to clipboard }
+        @case ('failed') { Copy failed }
+      }
+    </span>
   </div>
   <pre><code>{{ bibtex() }}</code></pre>
 </section>

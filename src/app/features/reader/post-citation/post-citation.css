@@ -32,6 +32,7 @@ h2 {
 .citation-copy {
   flex: none;
   appearance: none;
+  min-block-size: 24px;
   padding: 0.3rem 0.75rem;
   border: 1px solid color-mix(in srgb, var(--border-color) 24%, transparent);
   border-radius: 999px;
@@ -57,6 +58,16 @@ h2 {
   color: var(--accent-sage);
   border-color: color-mix(in srgb, var(--accent-sage) 45%, transparent);
   background: color-mix(in srgb, var(--accent-sage) 18%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .citation-copy {
+    transition: none;
+  }
+
+  .citation-copy:hover {
+    transform: none;
+  }
 }
 
 pre {

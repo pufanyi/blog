@@ -81,13 +81,13 @@
           }
         </ol>
       </div>
-      <footer class="toc-position">
+      <div class="toc-position">
         <div class="toc-progress" role="progressbar" aria-label="Position in article"
           aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progressPercent()">
           <span class="toc-progress-value" [style.transform]="'scaleX(' + normalizedProgress() + ')'"></span>
         </div>
         <span class="toc-percentage" aria-hidden="true">{{ progressPercent() }}%</span>
-      </footer>
+      </div>
     </div>
   </div>
 </nav>

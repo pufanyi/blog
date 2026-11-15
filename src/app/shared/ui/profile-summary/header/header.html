@@ -17,7 +17,7 @@
   <div class="contact-info">
     @for (item of data().contact; track item.href; let last = $last) {
       <span class="contact-item">
-        <i [class]="'ph ' + item.icon" style="vertical-align: middle; margin-right: 4px; font-size: 18px"></i>
+        <i [class]="'ph ' + item.icon" aria-hidden="true" style="vertical-align: middle; margin-right: 4px; font-size: 18px"></i>
         <a [href]="item.href">{{ item.text }}</a>
       </span>
       @if (!last) {
@@ -35,7 +35,7 @@
           [attr.aria-label]="link.label"
           [attr.data-tooltip]="link.label"
         >
-          <i [class]="'ph ' + link.icon"></i>
+          <i [class]="'ph ' + link.icon" aria-hidden="true"></i>
         </a>
       } @else {
         <a
@@ -46,7 +46,7 @@
           [attr.aria-label]="link.label"
           [attr.data-tooltip]="link.label"
         >
-          <i [class]="'ph ' + link.icon"></i>
+          <i [class]="'ph ' + link.icon" aria-hidden="true"></i>
         </a>
       }
     }

@@ -44,6 +44,7 @@
 
 .post-body .code-copy {
   appearance: none;
+  min-block-size: 24px;
   font-family: var(--font-heading);
   font-size: 0.73rem;
   font-weight: 500;
@@ -60,6 +61,16 @@
     border-color 0.2s,
     background 0.2s,
     transform 0.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-body .code-copy {
+    transition: none;
+  }
+
+  .post-body .code-copy:hover {
+    transform: none;
+  }
 }
 
 .post-body .code-copy:hover {
@@ -85,22 +96,32 @@
   border: none;
   border-radius: 0;
   overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   line-height: 1.65;
   text-align: left;
   font-size: 0.87rem;
 }
 
-.post-body .code-block pre.shiki::-webkit-scrollbar {
-  height: 6px;
+@media (forced-colors: active) {
+  .post-body .code-block pre.shiki {
+    scrollbar-color: auto;
+  }
 }
 
-.post-body .code-block pre.shiki::-webkit-scrollbar-track {
-  background: transparent;
-}
+@supports not (scrollbar-color: auto) {
+  .post-body .code-block pre.shiki::-webkit-scrollbar {
+    height: 6px;
+  }
 
-.post-body .code-block pre.shiki::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--border-color) 25%, transparent);
-  border-radius: 3px;
+  .post-body .code-block pre.shiki::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  .post-body .code-block pre.shiki::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 3px;
+  }
 }
 
 .post-body .code-block pre.shiki code {

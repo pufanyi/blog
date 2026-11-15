@@ -2,19 +2,35 @@
 .post-body .table-wrapper {
   overflow-x: auto;
   margin: 1.5rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
-.post-body .table-wrapper::-webkit-scrollbar {
-  height: 6px;
-}
-
-.post-body .table-wrapper::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.post-body .table-wrapper::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--border-color) 25%, transparent);
+.post-body .table-wrapper:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: 2px;
   border-radius: 3px;
+}
+
+@media (forced-colors: active) {
+  .post-body .table-wrapper {
+    scrollbar-color: auto;
+  }
+}
+
+@supports not (scrollbar-color: auto) {
+  .post-body .table-wrapper::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .post-body .table-wrapper::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  .post-body .table-wrapper::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 3px;
+  }
 }
 
 /* Booktabs-style tables */
@@ -52,4 +68,5 @@
 .post-body th {
   font-family: var(--font-heading);
   font-weight: 600;
+  text-wrap: balance;
 }

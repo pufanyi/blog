@@ -121,6 +121,8 @@
 
 .post-toc-dialog::backdrop {
   background: var(--backdrop-bg);
+  overflow: hidden;
+  overscroll-behavior: contain;
   opacity: 0;
   transition: opacity 180ms ease;
 }

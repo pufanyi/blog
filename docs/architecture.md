@@ -129,8 +129,7 @@ passes the toolbar, pin the outline to the viewport rather than the grid's botto
 boundary, keeping its header reachable at the page end. An intersection observer
 tracks a one-pixel row marker; no scroll handler or scroll-time geometry reads are
 needed. Reset and dispose the observers on viewport/layout changes and navigation.
-Body text uses the original 15px desktop / 14px
-mobile baseline, with Space Grotesk headings. Prose is left-aligned: justification
+Body text inherits the browser's root `1rem` scale (with `<meta name="text-scale" content="scale">` so OS/browser font scaling is respected) and uses `Roboto` with `Space Grotesk` headings. Prose is left-aligned: justification
 stretched CJK lines beside unbreakable formulas and inline code. Font tokens name
 platform CJK faces after the Latin families, because those lack CJK glyphs. The toolbar matches that typography
 and paper surface. Its background spans the viewport and sits flush with the

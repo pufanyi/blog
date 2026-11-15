@@ -58,6 +58,8 @@ app-post {
   margin-top: 3rem;
   padding-top: 2rem;
   border-top: 1px solid var(--border-light);
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 18rem;
 }
 
 @media print {

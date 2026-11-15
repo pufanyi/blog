@@ -26,6 +26,12 @@
   }
 }
 
+@media (forced-colors: active) {
+  .paper {
+    border: 1px solid CanvasText;
+  }
+}
+
 @media print {
   .paper {
     max-width: 100%;

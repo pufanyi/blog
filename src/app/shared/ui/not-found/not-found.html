@@ -35,33 +35,24 @@
   </nav>
 </section>
 
-@if (reviewOpen()) {
-  <div
-    class="review-backdrop"
-    tabindex="-1"
-    (click)="closeReviewFromBackdrop($event)"
-    (keydown.escape)="closeReview()"
-  >
-    <section
-      class="review-dialog"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="review-title"
-      aria-describedby="review-verdict"
-      cdkTrapFocus
-      [cdkTrapFocusAutoCapture]="true"
-    >
-      <div class="review-heading">
-        <p class="review-label">Peer review decision</p>
-        <h2 id="review-title">Reviewer #2</h2>
-      </div>
-      <blockquote id="review-verdict">
-        “The submission lacks novelty.”
-      </blockquote>
-      <p class="verdict">Recommendation: Reject</p>
-      <button class="primary-action" type="button" (click)="closeReview()" cdkFocusInitial>
-        Acknowledge Review
-      </button>
-    </section>
+<dialog
+  #reviewDialog
+  class="review-dialog"
+  closedby="any"
+  aria-labelledby="review-title"
+  aria-describedby="review-verdict"
+  (cancel)="onDialogCancel($event)"
+  (close)="onDialogClose()"
+>
+  <div class="review-heading">
+    <p class="review-label">Peer review decision</p>
+    <h2 id="review-title">Reviewer #2</h2>
   </div>
-}
+  <blockquote id="review-verdict">
+    “The submission lacks novelty.”
+  </blockquote>
+  <p class="verdict">Recommendation: Reject</p>
+  <button class="primary-action" type="button" autofocus (click)="closeReview()">
+    Acknowledge Review
+  </button>
+</dialog>

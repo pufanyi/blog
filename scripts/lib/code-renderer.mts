@@ -71,6 +71,6 @@ export function createCodeRenderer(highlighter: Highlighter) {
       }),
     );
     const langLabel = language !== 'text' ? language : 'code';
-    return `<div class="code-block"><div class="code-header"><span class="code-lang">${langLabel}</span><button class="code-copy" type="button" aria-label="Copy code">Copy</button></div>${html}</div>`;
+    return `<div class="code-block"><div class="code-header"><span class="code-lang">${langLabel}</span><button class="code-copy" type="button">Copy</button></div>${html}</div>`;
   };
 }

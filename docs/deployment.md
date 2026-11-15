@@ -47,7 +47,10 @@ Never hand-edit generated files. The Worker entry and its map stay outside publi
 
 Postbuild appends one-year immutable browser-cache rules to the copied `_headers`
 for Angular's hashed root `main-*.js`, `chunk-*.js`, `styles-*.css`, and `media/*`
-assets. These namespaces are reserved for build output; postbuild rejects
+assets, preserving the global baseline security headers (`Content-Security-Policy`
+`object-src`/`base-uri`/`frame-ancestors`, `X-Content-Type-Options`, `X-Frame-Options`,
+`Referrer-Policy`, `Cross-Origin-Opener-Policy`, `Permissions-Policy`, and HSTS)
+from `public/_headers`. These namespaces are reserved for build output; postbuild rejects
 unversioned files within them. Keep authored downloads under `/posts` or `/assets`.
 HTML, Markdown, and unversioned article images retain their existing cache policy.
 The negotiated page Worker still owns `Vary: Accept` and private revalidation.

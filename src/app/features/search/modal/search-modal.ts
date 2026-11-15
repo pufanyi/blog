@@ -1,4 +1,3 @@
-import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { DOCUMENT } from '@angular/common';
 import {
   afterNextRender,
@@ -19,7 +18,6 @@ import { SearchSession } from '../search-session';
 @Component({
   selector: 'app-search-modal',
   standalone: true,
-  imports: [CdkTrapFocus],
   templateUrl: './search-modal.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './search-modal.css',
@@ -31,20 +29,21 @@ export class SearchModalComponent implements OnDestroy {
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
   private readonly inputEl = viewChild.required<ElementRef<HTMLInputElement>>('searchInput');
   readonly returnFocusTarget = input<HTMLElement | null>(null);
-  private readonly previousBodyOverflow = this.document.body.style.overflow;
-  private readonly previousBodyOverscrollBehavior = this.document.body.style.overscrollBehavior;
   private dismissed = false;
   private restoreFocus = true;
+  private readonly handleDialogClick = (event: MouseEvent) => this.onBackdropClick(event);
 
   readonly closed = output<void>();
   readonly session = new SearchSession(this.searchService, (result) => this.goTo(result));
 
   constructor() {
     afterNextRender(() => {
-      this.dialog().nativeElement.showModal();
+      const dialog = this.dialog().nativeElement;
+      // Fallback for browsers without closedby="any" support; bound imperatively
+      // so template a11y lint does not require key/tabindex handlers on <dialog>.
+      dialog.addEventListener('click', this.handleDialogClick);
+      dialog.showModal();
       this.inputEl().nativeElement.focus();
-      this.document.body.style.overflow = 'hidden';
-      this.document.body.style.overscrollBehavior = 'contain';
       void this.session.update();
     });
   }
@@ -52,9 +51,9 @@ export class SearchModalComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.dismissed = true;
     this.session.dispose();
-    this.dialog().nativeElement.close();
-    this.document.body.style.overflow = this.previousBodyOverflow;
-    this.document.body.style.overscrollBehavior = this.previousBodyOverscrollBehavior;
+    const dialog = this.dialog().nativeElement;
+    dialog.removeEventListener('click', this.handleDialogClick);
+    dialog.close();
     const trigger = this.returnFocusTarget();
     if (this.restoreFocus && trigger?.isConnected) trigger.focus({ preventScroll: true });
   }
@@ -68,8 +67,8 @@ export class SearchModalComponent implements OnDestroy {
   }
 
   onKeydown(event: KeyboardEvent): void {
-    // The native dialog handles Escape; CDK closes the Tab loop. Enter on a result
-    // or the close button must keep that button's native activation behavior.
+    // The native top-layer modal handles Escape and Tab trapping; Enter on a
+    // result or the close button keeps that button's native activation behavior.
     if (event.target !== this.inputEl().nativeElement || event.isComposing) return;
     const length = this.session.results().length;
     if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && length) {

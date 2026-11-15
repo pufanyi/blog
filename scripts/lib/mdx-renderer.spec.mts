@@ -75,7 +75,7 @@ const value = 42;
     document.querySelector('#bib-example2026 .citation-source-link')?.getAttribute('href'),
     'https://example.com/papers/reference',
   );
-  assert.ok(document.querySelector('.table-wrapper > table'));
+  assert.ok(document.querySelector('.table-wrapper[tabindex="0"][role="region"] > table'));
   assert.equal(document.querySelector('.code-lang')?.textContent, 'js');
   assert.equal(
     document.querySelector('.fixture-post-component')?.textContent,

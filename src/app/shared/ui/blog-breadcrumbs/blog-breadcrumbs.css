@@ -39,10 +39,12 @@ a:focus-visible {
   border-radius: 2px;
 }
 
-.separator {
+li + li::before {
+  content: "/" / "";
   color: var(--border-color);
 }
 
 [aria-current] {
   color: var(--text-color);
+  font-weight: 500;
 }

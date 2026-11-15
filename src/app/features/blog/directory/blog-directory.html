@@ -1,4 +1,5 @@
 <div class="paper">
+<main class="directory-page">
 @if (directory(); as directory) {
   <app-blog-breadcrumbs [slug]="directory.slug" />
   <header class="directory-header">
@@ -28,5 +29,6 @@
     }
   </ul>
 }
+</main>
 
 </div>

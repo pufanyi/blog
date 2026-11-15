@@ -10,6 +10,7 @@
   font-size: 1.3rem;
   font-weight: 600;
   letter-spacing: 0;
+  text-wrap: balance;
   margin: 2.5rem 0 1rem;
   padding-bottom: 0.5rem;
   text-align: left;
@@ -31,6 +32,7 @@
   font-size: 1.1rem;
   font-weight: 600;
   letter-spacing: 0;
+  text-wrap: balance;
   margin: 1.75rem 0 0.75rem;
   text-align: left;
   position: relative;
@@ -38,6 +40,7 @@
 
 .post-body p {
   margin-bottom: 1rem;
+  text-wrap: pretty;
 }
 
 .post-body ul,
@@ -47,6 +50,7 @@
 
 .post-body li {
   margin-bottom: 0.35rem;
+  text-wrap: pretty;
 }
 
 .post-body li::marker {
@@ -209,6 +213,20 @@
   border-top: 1px solid color-mix(in srgb, var(--border-color) 25%, transparent);
 }
 
+@supports selector(::details-content) {
+  .post-body details::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 0.25s ease,
+      content-visibility 0.25s ease allow-discrete;
+  }
+
+  .post-body details[open]::details-content {
+    block-size: auto;
+  }
+}
+
 .post-body .details-content > :first-child {
   margin-top: 0;
 }
@@ -221,6 +239,8 @@
   counter-reset: reference;
   margin: 1.25rem 0 1.75rem;
   border-block: 1px solid color-mix(in srgb, var(--border-color) 20%, transparent);
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 24rem;
 }
 
 .post-body .csl-entry {
@@ -325,13 +345,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .post-body .csl-entry {
+  .post-body .csl-entry,
+  .post-body details > summary::before,
+  .post-body details::details-content {
     transition: none;
   }
 }
 
 @media print {
   .post-body .references {
+    content-visibility: visible;
     display: block;
   }
 
