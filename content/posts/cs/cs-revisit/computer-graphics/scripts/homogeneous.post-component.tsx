@@ -10,16 +10,21 @@ const normalize = (v: Point3): Point3 => {
   const length = Math.sqrt(dot(v, v));
   return [v[0] / length, v[1] / length, v[2] / length];
 };
+// Both panels share one viewBox size, so their labels render at the same scale.
+const viewBox = { width: 400, height: 320 };
+
+// One pinhole camera preserves straight lines and equal world-space units.
 const camera: Point3 = [5, -8, 8];
 const forward = normalize(subtract([0.8, 0.8, 0.9], camera));
 const right = normalize(cross(forward, [0, 0, 1]));
 const up = cross(right, forward);
-// One pinhole camera preserves straight lines and equal world-space units.
+const focal = 900;
 const project = (point: Point3) => {
   const relative = subtract(point, camera);
   const depth = dot(relative, forward);
-  return [300 + (760 * dot(relative, right)) / depth, 190 - (760 * dot(relative, up)) / depth];
+  return [(focal * dot(relative, right)) / depth, (-focal * dot(relative, up)) / depth];
 };
+const rayViewBox = `-165 -162 ${viewBox.width} ${viewBox.height}`;
 const line = (a: number[], b: number[]) => `M${a.join(' ')}L${b.join(' ')}`;
 const plane = [
   [-0.5, -0.5, 1],
@@ -30,17 +35,49 @@ const plane = [
 const planeOutline = plane.map((point) => project(point).join(',')).join(' ');
 const origin = project([0, 0, 0]);
 const normalized = project([1, 1, 1]);
-const planeLabel = project([-0.5, -0.5, 1]);
-const representatives = [
-  { point: [1, 1, 1] as Point3, label: 'Q', dx: 10, dy: 17 },
-  { point: [2, 2, 2] as Point3, label: 'P', dx: 10, dy: -8 },
+const planeLabel = project([2.55, -0.3, 1]);
+const axes = [
+  { end: [3.2, 0, 0] as Point3, label: 'a', dx: 10, dy: 0 },
+  { end: [0, 5.7, 0] as Point3, label: 'b', dx: 8, dy: -4 },
+  { end: [0, 0, 2.7] as Point3, label: 'c', dx: 9, dy: 4 },
 ];
-const section = (a: number, c: number, sheared = false) => [
-  100 + 90 * (a + (sheared ? c : 0)),
-  310 - 90 * c,
+// Labels sit below-right of the ray, which rises to the upper right.
+const representatives = [
+  { point: [1, 1, 1] as Point3, label: 'Q', dx: 14, dy: 20 },
+  { point: [2, 2, 2] as Point3, label: 'P', dx: 12, dy: 20 },
 ];
 
+// The b = 0 cross-section uses equal units on both axes.
+const unit = 75;
+const sectionOrigin = [42, 270] as const;
+const section = (a: number, c: number, sheared = false) => [
+  sectionOrigin[0] + unit * (a + (sheared ? c : 0)),
+  sectionOrigin[1] - unit * c,
+];
+const triangle = (c: number) =>
+  [section(0, 0), section(c, c), section(c, c, true)].map((p) => p.join(',')).join(' ');
+// A direction has c = 0, so the shear (a, c) ↦ (a + c, c) leaves it unchanged.
+const direction = 1.6;
+
+function Arrowhead({ id, size = 6 }: { id: string; size?: number }) {
+  return (
+    <marker
+      id={id}
+      viewBox="0 0 10 10"
+      refX="9"
+      refY="5"
+      markerWidth={size}
+      markerHeight={size}
+      orient="auto"
+    >
+      <path d="M0 0L10 5L0 10Z" className="cg-homogeneous-arrow" />
+    </marker>
+  );
+}
+
 function HomogeneousCoordinatesFigure() {
+  const [ox, oy] = sectionOrigin;
+  const [dx] = section(direction, 0);
   return (
     <figure className="cg-homogeneous">
       <div className="cg-homogeneous-panels">
@@ -54,9 +91,9 @@ function HomogeneousCoordinatesFigure() {
             aria-label="Homogeneous coordinates diagram; scroll horizontally"
           >
             <svg
-              viewBox="60 20 480 340"
-              width="480"
-              height="340"
+              viewBox={rayViewBox}
+              width={viewBox.width}
+              height={viewBox.height}
               role="img"
               aria-labelledby="cg-homogeneous-ray-title cg-homogeneous-ray-desc"
             >
@@ -64,22 +101,13 @@ function HomogeneousCoordinatesFigure() {
                 A line through the origin meets the plane c = 1
               </title>
               <desc id="cg-homogeneous-ray-desc">
-                P = (2, 2, 2) and Q = (1, 1, 1) lie on the same line through the origin. Dividing by
-                the last coordinate maps both to the two-dimensional point (1, 1). Only the positive
-                half of the line is shown.
+                P = (2, 2, 2) and Q = (1, 1, 1) lie on the same line through the origin O. The line
+                crosses the plane c = 1 at Q, so dividing by the last coordinate maps both
+                representatives to the two-dimensional point (1, 1). Parts of the axes and line
+                below the plane are dashed. Only the positive half of the line is shown.
               </desc>
               <defs>
-                <marker
-                  id="cg-homogeneous-arrow"
-                  viewBox="0 0 10 10"
-                  refX="9"
-                  refY="5"
-                  markerWidth="6"
-                  markerHeight="6"
-                  orient="auto"
-                >
-                  <path d="M0 0L10 5L0 10Z" className="cg-homogeneous-arrow" />
-                </marker>
+                <Arrowhead id="cg-homogeneous-arrow" />
                 <clipPath id="cg-homogeneous-plane-clip">
                   <polygon points={planeOutline} />
                 </clipPath>
@@ -88,23 +116,17 @@ function HomogeneousCoordinatesFigure() {
                   <stop offset="1" className="cg-homogeneous-plane-near" />
                 </linearGradient>
               </defs>
-              {(
-                [
-                  [3.2, 0, 0],
-                  [0, 5.7, 0],
-                  [0, 0, 2.7],
-                ] as Point3[]
-              ).map((end, i) => {
+              {axes.map(({ end, label, dx: lx, dy: ly }) => {
                 const p = project(end);
                 return (
-                  <g key={i}>
+                  <g key={label}>
                     <path
-                      d={line(project([0, 0, 0]), p)}
+                      d={line(origin, p)}
                       className="cg-homogeneous-axis"
                       markerEnd="url(#cg-homogeneous-arrow)"
                     />
-                    <text x={p[0] + 10} y={p[1] + 5}>
-                      {['a', 'b', 'c'][i]}
+                    <text x={p[0] + lx} y={p[1] + ly} className="cg-homogeneous-symbol">
+                      {label}
                     </text>
                   </g>
                 );
@@ -149,22 +171,27 @@ function HomogeneousCoordinatesFigure() {
                 r="9"
                 className="cg-homogeneous-contact"
               />
-              <text x={planeLabel[0] - 16} y={planeLabel[1] - 12} className="cg-homogeneous-label">
+              <text
+                x={planeLabel[0]}
+                y={planeLabel[1]}
+                textAnchor="end"
+                className="cg-homogeneous-plane-label"
+              >
                 c = 1
               </text>
-              {representatives.map(({ point, label, dx, dy }) => {
+              {representatives.map(({ point, label, dx: lx, dy: ly }) => {
                 const [x, y] = project(point);
                 return (
                   <g key={label}>
                     <circle cx={x} cy={y} r="5" className="cg-homogeneous-node" />
-                    <text x={x + dx} y={y + dy}>
+                    <text x={x + lx} y={y + ly} className="cg-homogeneous-symbol">
                       {label}
                     </text>
                   </g>
                 );
               })}
               <circle cx={origin[0]} cy={origin[1]} r="4" className="cg-homogeneous-origin" />
-              <text x={origin[0] - 17} y={origin[1] + 23}>
+              <text x={origin[0] - 18} y={origin[1] + 22} className="cg-homogeneous-symbol">
                 O
               </text>
             </svg>
@@ -181,57 +208,73 @@ function HomogeneousCoordinatesFigure() {
             aria-label="Translation as shear diagram; scroll horizontally"
           >
             <svg
-              viewBox="60 20 480 340"
-              width="480"
-              height="340"
+              viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
+              width={viewBox.width}
+              height={viewBox.height}
               role="img"
               aria-labelledby="cg-homogeneous-shear-title cg-homogeneous-shear-desc"
             >
               <title id="cg-homogeneous-shear-title">Shear a by c; translate x by one</title>
               <desc id="cg-homogeneous-shear-desc">
-                In the b = 0 cross-section, the shear maps (a, c) to (a + c, c). The c = 0 axis
-                stays fixed. At c = 1 every point shifts by one, while at c = 2 every point shifts
-                by two. The triangles OQQ′ and OPP′ are similar: doubling c doubles every side,
-                including the horizontal displacement. Dividing by c gives the same two-dimensional
-                translation x to x + 1.
+                In the b = 0 cross-section, the shear maps (a, c) to (a + c, c). At c = 1 the point
+                Q moves by one to Q′, while at c = 2 the point P moves by two to P′. The triangles
+                OQQ′ and OPP′ are similar, so dividing by c gives the same two-dimensional
+                translation x to x + 1. On the c = 0 axis the shear moves nothing: a direction
+                vector is not translated.
               </desc>
-              <polygon
-                points={[section(0, 0), section(2, 2), section(2, 2, true)]
-                  .map((p) => p.join(','))
-                  .join(' ')}
-                className="cg-homogeneous-triangle-large"
-              />
-              <polygon
-                points={[section(0, 0), section(1, 1), section(1, 1, true)]
-                  .map((p) => p.join(','))
-                  .join(' ')}
-                className="cg-homogeneous-triangle-small"
-              />
-              <path d="M78 220H512" className="cg-homogeneous-slice" />
-              <text x="480" y="243" className="cg-homogeneous-label">
+              <defs>
+                <Arrowhead id="cg-homogeneous-shear-arrow" />
+                {/* Marker size scales with stroke width; keep the thick vector's head comparable. */}
+                <Arrowhead id="cg-homogeneous-direction-arrow" size={3.4} />
+              </defs>
+              <polygon points={triangle(2)} className="cg-homogeneous-triangle-large" />
+              <polygon points={triangle(1)} className="cg-homogeneous-triangle-small" />
+              <path d={`M${ox} ${oy - unit}H${ox + unit * 4.4}`} className="cg-homogeneous-slice" />
+              <text
+                x={ox + unit * 4.4}
+                y={oy - unit + 22}
+                textAnchor="end"
+                className="cg-homogeneous-label"
+              >
                 c = 1
               </text>
               <path
-                d="M80 310H518"
+                d={`M${ox - 14} ${oy}H${ox + unit * 4.45}`}
                 className="cg-homogeneous-axis"
-                markerEnd="url(#cg-homogeneous-arrow)"
+                markerEnd="url(#cg-homogeneous-shear-arrow)"
               />
               <path
-                d="M100 325V65"
+                d={`M${ox} ${oy + 14}V${oy - unit * 2.6}`}
                 className="cg-homogeneous-axis"
-                markerEnd="url(#cg-homogeneous-arrow)"
+                markerEnd="url(#cg-homogeneous-shear-arrow)"
               />
-              <text x="524" y="316">
+              <text x={ox + unit * 4.45 + 6} y={oy + 5} className="cg-homogeneous-symbol">
                 a
               </text>
-              <text x="94" y="53">
+              <text x={ox - 5} y={oy - unit * 2.6 - 10} className="cg-homogeneous-symbol">
                 c
               </text>
-              <path d={line(section(0, 0), section(2.2, 2.2))} className="cg-homogeneous-before" />
               <path
-                d={line(section(0, 0), section(2.2, 2.2, true))}
+                d={line(section(0, 0), section(2.15, 2.15))}
+                className="cg-homogeneous-before"
+              />
+              <path
+                d={line(section(0, 0), section(2.15, 2.15, true))}
                 className="cg-homogeneous-after"
               />
+              <path
+                d={`M${ox} ${oy}H${dx}`}
+                className="cg-homogeneous-direction"
+                markerEnd="url(#cg-homogeneous-direction-arrow)"
+              />
+              <text
+                x={(ox + dx) / 2 + 6}
+                y={oy + 24}
+                textAnchor="middle"
+                className="cg-homogeneous-label"
+              >
+                c = 0: unchanged
+              </text>
               {[1, 2].map((c) => {
                 const [x, y] = section(c, c);
                 const [next] = section(c, c, true);
@@ -240,42 +283,44 @@ function HomogeneousCoordinatesFigure() {
                     <path
                       d={`M${x + 7} ${y}H${next - 8}`}
                       className="cg-homogeneous-shift"
-                      markerEnd="url(#cg-homogeneous-arrow)"
+                      markerEnd="url(#cg-homogeneous-shear-arrow)"
                     />
                     <circle cx={x} cy={y} r="5" className="cg-homogeneous-original-dot" />
                     <circle cx={next} cy={y} r="5" className="cg-homogeneous-node" />
-                    <text x={x - 10} y={y - 15} textAnchor="end">
+                    <text x={x - 9} y={y - 12} textAnchor="end" className="cg-homogeneous-symbol">
                       {c === 1 ? 'Q' : 'P'}
                     </text>
-                    <text x={next + 10} y={y - 15}>
+                    <text x={next + 9} y={y - 12} className="cg-homogeneous-symbol">
                       {c === 1 ? 'Q′' : 'P′'}
                     </text>
                     <text
                       x={(x + next) / 2}
-                      y={y - 12}
+                      y={y - 10}
                       textAnchor="middle"
                       className="cg-homogeneous-displacement"
                     >
                       +{c}
                     </text>
-                    <text x="80" y={y + 5} textAnchor="end" className="cg-homogeneous-label">
+                    <text x={ox - 12} y={y + 5} textAnchor="end" className="cg-homogeneous-label">
                       {c}
                     </text>
                   </g>
                 );
               })}
-              <circle cx="100" cy="310" r="4" className="cg-homogeneous-origin" />
-              <text x="84" y="337">
+              <circle cx={ox} cy={oy} r="4" className="cg-homogeneous-origin" />
+              <text x={ox - 12} y={oy + 22} textAnchor="end" className="cg-homogeneous-symbol">
                 O
               </text>
-              <path d="M200 55H227" className="cg-homogeneous-before" />
-              <text x="236" y="60" className="cg-homogeneous-label">
-                Before
-              </text>
-              <path d="M348 55H375" className="cg-homogeneous-after" />
-              <text x="384" y="60" className="cg-homogeneous-label">
-                After
-              </text>
+              <g transform="translate(150 28)">
+                <path d="M0 0H26" className="cg-homogeneous-before" />
+                <text x="34" y="5" className="cg-homogeneous-label">
+                  Before
+                </text>
+                <path d="M110 0H136" className="cg-homogeneous-after" />
+                <text x="144" y="5" className="cg-homogeneous-label">
+                  After
+                </text>
+              </g>
             </svg>
           </div>
           <p>{String.raw`\(\triangle OQQ^{\prime}\sim\triangle OPP^{\prime},\qquad \Delta a/c=1.\)`}</p>
@@ -285,8 +330,10 @@ function HomogeneousCoordinatesFigure() {
         {String.raw`\[\begin{pmatrix}1&0&t_x\\0&1&t_y\\0&0&1\end{pmatrix}\begin{pmatrix}a\\b\\c\end{pmatrix}=\begin{pmatrix}a+t_xc\\b+t_yc\\c\end{pmatrix}\quad\longmapsto\quad\begin{pmatrix}x+t_x\\y+t_y\end{pmatrix}.\]`}
       </div>
       <figcaption>
-        Normalize by c ≠ 0. Right: b = 0, translation (1, 0); dashed ray = before, solid ray =
-        after.
+        Left: every point on a line through O except O itself represents the same 2D point; dividing
+        by c ≠ 0 picks the one on c = 1. Right: the b = 0 slice under translation (1, 0). The shift
+        grows with c, so it is exactly one unit after division, and the c = 0 axis, where directions
+        live, does not move.
       </figcaption>
     </figure>
   );
