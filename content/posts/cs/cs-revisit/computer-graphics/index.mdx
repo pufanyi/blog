@@ -4,6 +4,9 @@ date: "2026-11-15"
 description: "CS Revisited：Computer Graphics"
 authors:
   - "Fanyi Pu"
+  - "GPT 6 Astra"
+  - "Claude Opus 5.5"
+  - "Gemini 4 Hydrogen"
 ---
 
 [15362](https://15362.courses.cs.cmu.edu/fall2026/)
@@ -49,3 +52,7 @@ p_{\mathrm{local}}=(A_0A_1A_2)^{-1}p_{\mathrm{world}}.
 $$
 
 因此递归时只需传下 $W_{\mathrm{child}}=W_{\mathrm{parent}}A_{\mathrm{child}}$；逆变换存在时，$\mathrm{world} \to \mathrm{local}$ 为 $A_2^{-1}A_1^{-1}A_0^{-1}$。
+
+Instancing: 不同的地方 point to 一个物体。这样子 Scene Graph 就可以变成 DAG 了。
+
+
