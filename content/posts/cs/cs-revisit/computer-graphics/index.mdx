@@ -59,3 +59,16 @@ $$
 
 <QuaternionRotationFigure />
 
+对于一个三维坐标中的点 $(x, y, z)$，我们可以用 quaternion $0 + xi + yj + zk$ 来表示。也就是说对于三维点 $p$，我们有 $p\in\mathrm{Im}(\mathbb{H})$。
+
+现在的目标是对于 $p=xi+yj+zk$，我们希望其对于 $u=x_ui+y_uj+z_uk$ 旋转 $\theta$。
+
+我们可以构造
+
+$$
+q = \cos\frac{\theta}{2} + \sin\frac{\theta}{2}u, \qquad \Vert q\Vert^2=1
+$$
+
+那么旋转后的结果就是 $qpq^{-1}$。
+
+这里的数学证明可以问 GPT 就不赘述了。从感性上来讲，用 $\frac{\theta}{2}$ 是为了 $q$ 和 $q^{-1}$ 每次转一半，保持实部永远为 $0$。
