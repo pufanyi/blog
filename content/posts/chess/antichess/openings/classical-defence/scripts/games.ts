@@ -20,14 +20,14 @@ export const SUICIDE_MAIN = parseGame(`
 [Variant "Antichess"]
 [Result "1-0"]
 
-1. e3 b5 2. Bxb5 Bb7 { 自杀防御：准备在 3.Bxd7 后吃 g2 和 h1。 [%cal Gb7g2] }
+1. e3 b5 2. Bxb5 Bb7 { Suicide Defence：准备在 3.Bxd7 后吃 g2 和 h1。 [%cal Gb7g2] }
 3. Bxd7 Bxg2 4. Bxe8 Bxh1 5. Bxf7 Qxd2
-6. Bxd2 { 最佳实战选择：保留后在 d1，把后续四步压缩为唯一主线。 [%cal Gd2h6,Gd2a5] }
+6. Bxd2 { 最佳实战选择：保留后在 d1，把后续四步压缩为唯一 mainline。 [%cal Gd2h6,Gd2a5] }
 6... Bf3 7. Bxg8 Rxg8 8. Qxf3 Nd7 9. Qxf8 Nxf8
 10. c4 { 控制 d5 并预备 c5-e4 反击，封死黑方 10...Ne6。 [%cal Gc2c4,Rf8e6] [%csl Rd2,Ye3] }
 10... Ne6 11. c5 Nxc5 12. e4 Nxe4
-13. Bh6 { 利用 e4 马的吃子义务腾空 d2，准备让 g8 车接力。 [%cal Gd2h6,Bg8g1] }
-13... gxh6 14. f4 { 躲开 f2 兵，e4 马无子可吃，g8 车被迫接手清扫。 [%cal Rg8g1,Gg1e1,Ge1a1] }
+13. Bh6 { 利用 e4 马的吃子义务腾空 d2，准备让 g8 车 relay。 [%cal Gd2h6,Bg8g1] }
+13... gxh6 14. f4 { 躲开 f2 兵，e4 马无子可吃，g8 车被迫接手 sweep。 [%cal Rg8g1,Gg1e1,Ge1a1] }
 14... Rxg1 15. f5 Rxe1 16. Na3 Rxa1 17. b3 Rxa2 18. h4 Rxa3 19. h5 Rxb3 20. f6 exf6 1-0
 `);
 
@@ -42,15 +42,15 @@ export const SUICIDE_RECAPTURES = parseGame(`
 1. e3 b5 2. Bxb5 Bb7 3. Bxd7 Bxg2 4. Bxe8 Bxh1 5. Bxf7 Qxd2
 { [%cal Gc1d2,Be1d2,Bb1d2,Rd1d2,Rf7g8] [%csl Rd2,Yg8] }
 6. Bxd2! { 后留在 d1 支援 h5，黑方只剩 6...Bf3 一条活路。 }
-(6. Bxg8?? Rxg8 7. Kxd2 h5! 8. Qxh5 Bd5 { 白后与白象被黑方接力清扫。 })
+(6. Bxg8?? Rxg8 7. Kxd2 h5! 8. Qxh5 Bd5 { 白后与白象被黑方 relay sweep。 })
 (6. Qxd2?? Bd5! (6... Bf3 7. Nxf3 e5 8. Nxe5 Nc6 9. Nxc6 Re8!) 7. Qxd5 Nf6
-  { 黑方围绕白后组织强制清扫。 })
-(6. Nxd2 Be4 { 复杂乱战：黑方不足以清扫到底，但白方要额外计算大量分支。 })
+  { 黑方围绕白后组织 forced sweep。 })
+(6. Nxd2 Be4 { 复杂乱战：黑方不足以 sweep 到底，但白方要额外计算大量分支。 })
 (6. Kxd2 Bd5! 7. Bxg8 Bxa2 8. Rxa2!
-  (8. Bxh7?? Rxh7 9. Rxa2 Rxh2 10. Rxa7 Rxf2 11. Rxc7 Rxd2 { 黑车沿第二横排反向清扫，黑方翻盘。 })
+  (8. Bxh7?? Rxh7 9. Rxa2 Rxh2 10. Rxa7 Rxf2 11. Rxc7 Rxd2 { 黑车沿第二横排反向 sweep，黑方翻盘。 })
   8... Rxg8 9. Rxa7 Rxa7 10. Ne2 { 白方保持优势。 })
 6... Bf3 (6... Bd5?? 7. Bxg8! Rxg8 (7... Bxg8 8. c4!) (7... Bxa2 8. Rxa2 Rxg8 9. Rxa7 Rxa7 10. Ba5!)
-  8. Qh5! { 三种吃回都会被拖入强制清扫，完整变化见下一张棋盘。 })
+  8. Qh5! { 三种 recapture 都会被拖入 forced sweep，完整 variation 见下一张棋盘。 })
 (6... Be4?? 7. Bxg8 Bxc2 8. Qxc2)
 7. Bxg8 Rxg8 8. Qxf3 Nd7 9. Qxf8 Nxf8 *
 `);
@@ -68,18 +68,18 @@ export const SUICIDE_BD5 = parseGame(`
 1. e3 b5 2. Bxb5 Bb7 3. Bxd7 Bxg2 4. Bxe8 Bxh1 5. Bxf7 Qxd2 6. Bxd2 Bd5
 { d5 象同时保护 g8 马并瞄准 a2 兵；白方只能在 Bxd5 与 Bxg8 中选一。 [%cal Gd5g8,Gd5a2,Bf7d5,Bf7g8] }
 7. Bxg8!
-(7. Bxd5? Nh6! { b7 已空，d5 白象正对 a8 车。此后白方每步只有一个合法着法。 [%cal Rd5a8] }
+(7. Bxd5? Nh6! { b7 已空，d5 白象正对 a8 车。此后白方每步只有一个 legal move。 [%cal Rd5a8] }
   8. Bxa8 Nc6 9. Bxc6 a5 10. Bxa5 Ng8 11. Bxc7 e5 12. Bxe5 Be7 13. Bxg7 Bg5
   14. Bxh8 Bxe3 15. fxe3 Nf6 16. Bxf6 h5 17. Qxh5 { 黑方子力全部送光，黑方获胜。 })
 7... Rxg8
 (7... Bxg8 8. c4! { 把兵送到 g8 象的 a2–g8 斜线上，黑方此后再无选择。 [%cal Rg8c4] }
   8... Bxc4 9. Ba5 Bxa2 10. Bxc7 Bxb1 11. Rxa7 Rxa7 12. Qxb1 Rxc7 13. Qxh7 Rxh7
   14. Nh3 Rxh3 15. e4 Rxh2 16. Kd2 Rxf2 17. Ke3 Rxb2 18. Ke2 Rxe2 19. e5 Rxe5
-  { h8 车接力扫光白方剩余子力，白方获胜。 })
+  { h8 车 relay sweep 白方剩余子力，白方获胜。 })
 (7... Bxa2 8. Rxa2 Rxg8 9. Rxa7 Rxa7 10. Ba5! { 先把 a7 车引到 a5，再用后把它拉到 h 线。 [%cal Ra7a5,Gd1h5] }
   10... Rxa5 11. Qh5! Rxh5 12. Nh3 Rxh3 13. e4 Rxh2 14. Kd2 Rxf2 15. Ke3 Rxc2
   16. Kd4 Rxb2 17. Kd5 Rxb1 18. Kc6 Nxc6 19. e5 Nxe5 { 黑车与黑马吃光白方，白方获胜。 })
-8. Qh5! { 白后瞄准 h7；黑方唯一的吃法是 8...Bxa2，此后每步都只有一个合法着法。 [%cal Gd1h5,Gh5h7] }
+8. Qh5! { 白后瞄准 h7；黑方唯一的吃法是 8...Bxa2，此后每步都只有一个 legal move。 [%cal Gd1h5,Gh5h7] }
 8... Bxa2 9. Qxh7 Bxb1 10. Qxg8 Bxc2 11. Rxa7 Rxa7 12. Qxg7 Bxg7
 { 白后吃掉 h7、g8、g7 后，把 f8 黑格象引上 a1–h8 长对角线。 [%cal Rg7b2] }
 13. Nh3 Bxb2 14. Bc3 Bxc3 15. Ng5 Bxe1 16. Nf7 Bxf2 17. Nh6 Bxe3 18. Nf5 Bxf5
@@ -108,8 +108,8 @@ export const CLASSIC_E6_BELTMAN = parseGame(`
 [Variant "Antichess"]
 [Result "*"]
 
-1. e3 b5 2. Bxb5 e6 3. Bxd7 Bxd7 { 唯一不立即败北的吃回方式。 }
-4. Na3 { Beltman 攻击：甘愿叠兵，也要立刻兑掉黑方 f8 象并打开 b 线。 [%cal Gb1a3,Rf8a3] }
+1. e3 b5 2. Bxb5 e6 3. Bxd7 Bxd7 { 唯一不立即败北的 recapture。 }
+4. Na3 { Beltman Attack：甘愿形成 doubled pawns，也要立刻兑掉黑方 f8 象并打开 b 线。 [%cal Gb1a3,Rf8a3] }
 4... Bxa3 5. bxa3 Qh4 { 黑方最复杂的反击：抢先挑起后翼与王翼的对攻。 }
 6. Qg4 Qxf2 7. Kxf2 Bc8 8. Qxg7 a5 9. Qxf7 Kxf7 10. Nh3 Nf6 11. a4 *
 `);
@@ -155,10 +155,10 @@ export const BISHOP_BA6_MAIN = parseGame(`
 [Variant "Antichess"]
 [Result "*"]
 
-1. e3 b5 2. Bxb5 Ba6 { 象防御：试图顺手兑掉难出的 c8 白格象。 }
-3. Bxd7 { 拒绝 3.Bxa6 Nxa6 帮黑方出子，先把 a6 象晾在边线。 [%cal Gb5d7,Ba6d3] }
+1. e3 b5 2. Bxb5 Ba6 { Bishop Defence：试图顺手兑掉难出的 c8 白格象。 }
+3. Bxd7 { 拒绝 3.Bxa6 Nxa6 帮黑方完成 development，先把 a6 象晾在边线。 [%cal Gb5d7,Ba6d3] }
 3... Nxd7 4. d3 { 把 a6 象拉进 d3 吃掉，同时出后瞄准 h7 兵。 [%cal Gd3h7] }
-4... Bxd3 5. Qxd3 Qb8 { 黑方最顽强的防守：反击 b2，准备兑光王翼与后翼长程子。 [%cal Rb8b2,Gd3h7] }
+4... Bxd3 5. Qxd3 Qb8 { 黑方最顽强的防守：反击 b2，准备兑光王翼与后翼 long-range piece。 [%cal Rb8b2,Gd3h7] }
 6. Qxh7 Rxh7 7. Nc3 Qxb2 8. Bxb2 Rxh2 9. Rxh2 a5
 10. Ba3 e5 11. Bxf8 Nxf8 12. Rh6 gxh6 13. f4 exf4 14. exf4 *
 `);
