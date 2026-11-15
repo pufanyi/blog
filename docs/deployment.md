@@ -95,3 +95,11 @@ Run check and noninteractive unit tests after the final change, then build and m
 The production Worker disables its default `workers.dev` hostname. Keep traffic on
 the configured custom domain so path-scoped Cloudflare Access applications cannot
 be bypassed through the otherwise public Worker subdomain.
+
+## Site icons
+
+Keep icon links in `src/index.html` root-relative: the production
+`base-uri 'none'` policy blocks the document base, so relative icon URLs resolve
+under the current page path on nested routes. Serve `public/favicon.ico` as a
+fallback for clients that request the conventional URL. It wraps the existing
+32×32 PNG; update both files together when changing the site icon.

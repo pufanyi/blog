@@ -3,10 +3,14 @@
 
   &:has(> head > meta[name="color-scheme"][content="dark"]) {
     color-scheme: dark;
+    --selection-text: var(--text-color-dark);
+    --selection-bg: var(--selection-bg-dark);
   }
 
   &:has(> head > meta[name="color-scheme"][content="light"]) {
     color-scheme: light;
+    --selection-text: var(--text-color-light);
+    --selection-bg: var(--selection-bg-light);
   }
 
   /* Muted Morandi accents, darkened enough for readable text and syntax. */
@@ -22,11 +26,15 @@
   --accent-teal: light-dark(#526f6b, #91ada7);
   --accent-sky: light-dark(#586f77, #94abb1);
   --accent-slate: light-dark(#566f7a, #92aab2);
-  --accent-blue: light-dark(#536b80, #9aaebc);
+  --accent-blue-light: #536b80;
+  --accent-blue-dark: #9aaebc;
+  --accent-blue: light-dark(var(--accent-blue-light), var(--accent-blue-dark));
   --accent-lavender: light-dark(#69627c, #aba5bc);
 
   /* Warm paper and neutral structure. */
-  --text-color: light-dark(#454a47, #d9d3c9);
+  --text-color-light: #454a47;
+  --text-color-dark: #d9d3c9;
+  --text-color: light-dark(var(--text-color-light), var(--text-color-dark));
   --text-secondary: light-dark(#656b66, #b4aea4);
   --syntax-muted: light-dark(#686d68, #a7a9a2);
   --overlay-color: #858981;
@@ -62,10 +70,11 @@
   );
   --border-light: color-mix(in srgb, var(--border-color) 15%, transparent);
   --accent-bg: color-mix(in srgb, var(--link-color) 8%, transparent);
-  --selection-bg: light-dark(
-    color-mix(in srgb, var(--accent-blue) 26%, transparent),
-    color-mix(in srgb, var(--accent-blue) 30%, transparent)
-  );
+  /* Resolve selection tokens without light-dark() so highlight pseudo-elements stay consistent across engines. */
+  --selection-bg-light: color-mix(in srgb, var(--accent-blue-light) 26%, transparent);
+  --selection-bg-dark: color-mix(in srgb, var(--accent-blue-dark) 30%, transparent);
+  --selection-text: var(--text-color-light);
+  --selection-bg: var(--selection-bg-light);
   /*
    * Elevation: every surface shares the paper's tight contact layer and adds a
    * softer ambient layer that grows with its height above the page. Themes tune
@@ -114,15 +123,23 @@
 
 [data-theme="light"] {
   color-scheme: light;
+  --selection-text: var(--text-color-light);
+  --selection-bg: var(--selection-bg-light);
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
+  --selection-text: var(--text-color-dark);
+  --selection-bg: var(--selection-bg-dark);
   --paper-shadow: 0 1px 4px var(--shadow-contact), 0 14px 34px var(--shadow-ambient);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:where(
+    :not([data-theme="light"]):not(:has(> head > meta[name="color-scheme"][content="light"]))
+  ) {
+    --selection-text: var(--text-color-dark);
+    --selection-bg: var(--selection-bg-dark);
     --paper-shadow: 0 1px 4px var(--shadow-contact), 0 14px 34px var(--shadow-ambient);
   }
 }
@@ -166,5 +183,7 @@
     --shadow-color-strong: transparent;
     --shadow-contact: transparent;
     --paper-shadow: none;
+    --selection-text: var(--text-color);
+    --selection-bg: var(--selection-bg-light);
   }
 }

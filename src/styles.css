@@ -3,8 +3,15 @@
 @import "./styles/vision-examples.css";
 
 ::selection {
-  color: var(--text-color);
-  background: var(--selection-bg);
+  color: var(--selection-text);
+  background-color: var(--selection-bg);
+}
+
+@media (forced-colors: active) {
+  ::selection {
+    color: HighlightText;
+    background-color: Highlight;
+  }
 }
 
 * {
