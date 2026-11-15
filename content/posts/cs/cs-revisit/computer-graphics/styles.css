@@ -1087,33 +1087,43 @@
 .cg-pinhole svg {
   display: block;
   width: 100%;
-  min-width: 640px;
+  min-width: 480px;
   height: auto;
   font-family: inherit;
   font-size: 14px;
   fill: var(--text-color);
 }
 
-.cg-pinhole-cone-near {
-  stop-color: var(--surface-soft);
-  stop-opacity: 0.7;
-}
-
-.cg-pinhole-cone-far {
-  stop-color: var(--paper-bg);
-  stop-opacity: 0;
-}
-
-.cg-pinhole-frustum {
-  fill: none;
-  stroke: var(--border-color);
-  stroke-width: 1.4;
+.cg-pinhole-triangle {
+  fill: color-mix(in srgb, var(--accent-blue) 9%, transparent);
 }
 
 .cg-pinhole-axis {
   fill: none;
   stroke: var(--text-secondary);
   stroke-width: 1.25;
+}
+
+.cg-pinhole-drop {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.1;
+  stroke-dasharray: 3 3;
+  opacity: 0.75;
+}
+
+.cg-pinhole-sensor {
+  fill: none;
+  stroke: var(--text-color);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.cg-pinhole-ray {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 1.8;
+  stroke-dasharray: 6 4;
 }
 
 .cg-pinhole-arrow {
@@ -1124,65 +1134,11 @@
   fill: var(--text-color);
 }
 
-.cg-pinhole-ray {
-  fill: none;
-  stroke-width: 1.4;
-  stroke-dasharray: 5 4;
-}
-
-.cg-pinhole-ray-red {
-  stroke: var(--accent-red);
-}
-
-.cg-pinhole-ray-blue {
-  stroke: var(--accent-blue);
-}
-
-.cg-pinhole-ray-crossing {
-  stroke: var(--text-secondary);
-  stroke-dasharray: 3 4;
-  opacity: 0.75;
-}
-
-.cg-pinhole-bar {
-  fill: none;
-  stroke-width: 7;
-  stroke-linecap: butt;
-}
-
-.cg-pinhole-bar-red {
-  stroke: var(--accent-red);
-}
-
-.cg-pinhole-bar-blue {
-  stroke: var(--accent-blue);
-}
-
-.cg-pinhole-pixel {
-  stroke: var(--text-color);
-  stroke-width: 0.9;
-}
-
-.cg-pinhole-pixel-empty {
-  fill: var(--paper-bg);
-}
-
-.cg-pinhole-pixel-red {
-  fill: var(--accent-red);
-}
-
-.cg-pinhole-pixel-blue {
+.cg-pinhole-point {
   fill: var(--accent-blue);
 }
 
-.cg-pinhole-sensor-frame {
-  fill: none;
-  stroke: var(--text-color);
-  stroke-width: 1.4;
-}
-
-.cg-pinhole-axis-label,
-.cg-pinhole-label {
+.cg-pinhole-axis-label {
   fill: var(--text-secondary);
   font-size: 13px;
 }
@@ -1193,15 +1149,14 @@
   font-weight: 600;
 }
 
-.cg-pinhole-coord {
-  fill: var(--text-secondary);
-  font-size: 13px;
+.cg-pinhole-point-label {
+  fill: var(--text-color);
+  font-size: 13.5px;
 }
 
 .cg-pinhole-symbol {
-  fill: var(--text-color);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 14.5px;
+  font-size: 1.05em;
   font-style: italic;
 }
 
