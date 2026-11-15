@@ -1068,105 +1068,6 @@
   }
 }
 
-.cg-pinhole {
-  margin: 1.5rem 0;
-}
-
-.cg-pinhole-scroll {
-  overflow-x: auto;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  background: var(--paper-bg);
-}
-
-.cg-pinhole-scroll:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: 3px;
-}
-
-.cg-pinhole svg {
-  display: block;
-  width: 100%;
-  min-width: 480px;
-  height: auto;
-  font-family: inherit;
-  font-size: 14px;
-  fill: var(--text-color);
-}
-
-.cg-pinhole-triangle {
-  fill: color-mix(in srgb, var(--accent-blue) 9%, transparent);
-}
-
-.cg-pinhole-axis {
-  fill: none;
-  stroke: var(--text-secondary);
-  stroke-width: 1.25;
-}
-
-.cg-pinhole-drop {
-  fill: none;
-  stroke: var(--text-secondary);
-  stroke-width: 1.1;
-  stroke-dasharray: 3 3;
-  opacity: 0.75;
-}
-
-.cg-pinhole-sensor {
-  fill: none;
-  stroke: var(--text-color);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-}
-
-.cg-pinhole-ray {
-  fill: none;
-  stroke: var(--accent-blue);
-  stroke-width: 1.8;
-  stroke-dasharray: 6 4;
-}
-
-.cg-pinhole-arrow {
-  fill: var(--text-secondary);
-}
-
-.cg-pinhole-origin {
-  fill: var(--text-color);
-}
-
-.cg-pinhole-point {
-  fill: var(--accent-blue);
-}
-
-.cg-pinhole-axis-label {
-  fill: var(--text-secondary);
-  font-size: 13px;
-}
-
-.cg-pinhole-title-label {
-  fill: var(--text-color);
-  font-size: 13.5px;
-  font-weight: 600;
-}
-
-.cg-pinhole-point-label {
-  fill: var(--text-color);
-  font-size: 13.5px;
-}
-
-.cg-pinhole-symbol {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.05em;
-  font-style: italic;
-}
-
-.cg-pinhole figcaption {
-  margin-top: 0.75rem;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  line-height: 1.7;
-}
-
 .cg-frustum {
   margin: 1.5rem 0;
 }
@@ -1199,6 +1100,13 @@
   stroke-width: 1.25;
 }
 
+.cg-frustum-axis-neg {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3.5;
+}
+
 .cg-frustum-axis-inner {
   fill: none;
   stroke: var(--text-secondary);
@@ -1209,6 +1117,11 @@
 
 .cg-frustum-axis-arrow {
   fill: var(--text-secondary);
+}
+
+.cg-frustum-axis-label {
+  fill: var(--text-color);
+  font-size: 14px;
 }
 
 .cg-frustum-ray {
@@ -1231,6 +1144,14 @@
   opacity: 0.7;
 }
 
+.cg-frustum-ray-occluded {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.15;
+  stroke-dasharray: 4 3.5;
+  opacity: 0.65;
+}
+
 .cg-frustum-ray-arrow {
   fill: var(--text-secondary);
 }
@@ -1241,6 +1162,27 @@
 
 .cg-frustum-face-front {
   fill: color-mix(in srgb, var(--accent-blue) 11%, transparent);
+}
+
+.cg-frustum-sensor {
+  fill: color-mix(in srgb, var(--accent-sage) 16%, transparent);
+}
+
+.cg-frustum-sensor-edge {
+  fill: none;
+  stroke: var(--accent-sage);
+  stroke-width: 1.65;
+  stroke-linejoin: round;
+}
+
+.cg-frustum-sensor-dot {
+  fill: var(--accent-sage);
+}
+
+.cg-frustum-sensor-label {
+  fill: var(--accent-sage);
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
 .cg-frustum-plane {
@@ -1262,14 +1204,34 @@
   opacity: 0.75;
 }
 
-.cg-frustum-angle-arc {
+.cg-frustum-sample-ray {
   fill: none;
-  stroke: var(--accent-rose);
-  stroke-width: 1.6;
+  stroke: var(--accent-ochre);
+  stroke-width: 1.8;
+  stroke-dasharray: 5 3.5;
 }
 
-.cg-frustum-angle-label {
-  fill: var(--accent-rose);
+.cg-frustum-sample-drop {
+  fill: none;
+  stroke: var(--accent-ochre);
+  stroke-width: 1.25;
+  stroke-dasharray: 2.5 2.5;
+  opacity: 0.85;
+}
+
+.cg-frustum-sample-angle {
+  fill: none;
+  stroke: var(--accent-ochre);
+  stroke-width: 1.1;
+  opacity: 0.85;
+}
+
+.cg-frustum-sample-dot {
+  fill: var(--accent-ochre);
+}
+
+.cg-frustum-sample-label {
+  fill: var(--accent-ochre);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 14px;
   font-style: italic;

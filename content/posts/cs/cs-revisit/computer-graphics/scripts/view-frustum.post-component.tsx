@@ -1,24 +1,27 @@
 type Vec3 = readonly [number, number, number];
 type Pt = readonly [number, number];
 
-const ox = 128;
-const oy = 138;
+const ox = 220;
+const oy = 144;
 
-// Oblique 3D projection: +z goes right (optical axis), +y goes up, +x goes down-left.
+// Right-handed oblique 3D projection:
+// +x goes down-left (camera right, toward viewer), +y goes up,
+// +z goes left (behind the pinhole), so the camera looks down -z (to the right).
 const xProjX = -0.48;
 const xProjY = 0.32;
 
 const fmt = (n: number) => n.toFixed(1);
-const toSvg = ([x, y, z]: Vec3): Pt => [ox + z + xProjX * x, oy - y + xProjY * x];
+const toSvg = ([x, y, z]: Vec3): Pt => [ox - z + xProjX * x, oy - y + xProjY * x];
 const line = (a: Pt, b: Pt) => `M${fmt(a[0])} ${fmt(a[1])}L${fmt(b[0])} ${fmt(b[1])}`;
 const polygonPoints = (pts: readonly Pt[]) => pts.map((p) => `${fmt(p[0])},${fmt(p[1])}`).join(' ');
 
-// Frustum geometry from the pinhole at (0, 0, 0).
-const zNear = 185;
-const zFar = 355;
-const zRayEnd = 390;
-const tanX = 0.185;
-const tanY = 0.215;
+// Pinhole sensor (+z) and view frustum (-z) geometry centered at (0, 0, 0).
+const dSensor = 115;
+const dNear = 150;
+const dFar = 310;
+const dRayEnd = 345;
+const tanX = 0.21;
+const tanY = 0.23;
 
 interface PlaneCorners {
   readonly frontTop: Pt;
@@ -29,8 +32,9 @@ interface PlaneCorners {
 }
 
 const makePlane = (z: number): PlaneCorners => {
-  const w = z * tanX;
-  const h = z * tanY;
+  const dist = Math.abs(z);
+  const w = dist * tanX;
+  const h = dist * tanY;
   return {
     frontTop: toSvg([w, h, z]),
     backTop: toSvg([-w, h, z]),
@@ -41,35 +45,36 @@ const makePlane = (z: number): PlaneCorners => {
 };
 
 const origin = toSvg([0, 0, 0]);
-const near = makePlane(zNear);
-const far = makePlane(zFar);
-const rayEnd = makePlane(zRayEnd);
+const sensor = makePlane(dSensor);
+const near = makePlane(-dNear);
+const far = makePlane(-dFar);
+const rayEnd = makePlane(-dRayEnd);
 
-// Coordinate axes at the pinhole.
-const xAxisLen = 92;
+// Sample scene point inside the frustum and its inverted projection onto the sensor.
+const dSample = 245;
+const ySample = 28;
+const samplePoint = toSvg([0, ySample, -dSample]);
+const sampleAxis = toSvg([0, 0, -dSample]);
+const sampleHit = toSvg([0, (-ySample * dSensor) / dSample, dSensor]);
+
+// Right-angle bracket at sampleAxis showing perpendicular depth along -z.
+const rightAngleSize = 6;
+const rightAnglePath = `M${fmt(sampleAxis[0] - rightAngleSize)} ${fmt(sampleAxis[1])}L${fmt(
+  sampleAxis[0] - rightAngleSize,
+)} ${fmt(sampleAxis[1] - rightAngleSize)}L${fmt(sampleAxis[0])} ${fmt(
+  sampleAxis[1] - rightAngleSize,
+)}`;
+
+// Right-handed coordinate axes at the pinhole.
+const xAxisLen = 82;
 const xAxisNorm = Math.hypot(xProjX, xProjY);
 const xAxisEnd: Pt = [
   origin[0] + (xAxisLen * xProjX) / xAxisNorm,
   origin[1] + (xAxisLen * xProjY) / xAxisNorm,
 ];
-const yAxisStart: Pt = [ox, 212];
-const yAxisEnd: Pt = [ox, 26];
-const zAxisStart: Pt = [52, oy];
-const zAxisEnd: Pt = [568, oy];
-
-// Half-FOV angle arc between the optical axis and the bottom-front ray.
-const fovRadius = 66;
-const fovAngle = Math.atan2(rayEnd.frontBot[1] - origin[1], rayEnd.frontBot[0] - origin[0]);
-const fovArcStart: Pt = [origin[0] + fovRadius, origin[1]];
-const fovArcEnd: Pt = [
-  origin[0] + fovRadius * Math.cos(fovAngle),
-  origin[1] + fovRadius * Math.sin(fovAngle),
-];
-const fovArcPath = `M${fmt(fovArcStart[0])} ${fmt(fovArcStart[1])}A${fovRadius} ${fovRadius} 0 0 1 ${fmt(fovArcEnd[0])} ${fmt(fovArcEnd[1])}`;
-const fovLabelPos: Pt = [
-  origin[0] + (fovRadius + 13) * Math.cos(fovAngle * 0.52),
-  origin[1] + (fovRadius + 13) * Math.sin(fovAngle * 0.52) + 4,
-];
+const yAxisEnd: Pt = [ox, 24];
+const zAxisEnd: Pt = [46, oy];
+const negZAxisEnd: Pt = [596, oy];
 
 function ViewFrustumFigure() {
   return (
@@ -78,21 +83,25 @@ function ViewFrustumFigure() {
         className="cg-frustum-scroll"
         tabIndex={0}
         role="region"
-        aria-label="View frustum geometry diagram; scroll horizontally"
+        aria-label="Pinhole camera and view frustum geometry diagram; scroll horizontally"
       >
         <svg
-          viewBox="0 0 600 276"
-          width={600}
-          height={276}
+          viewBox="0 0 640 280"
+          width={640}
+          height={280}
           role="img"
           aria-labelledby="cg-frustum-title cg-frustum-desc"
         >
-          <title id="cg-frustum-title">Perspective view frustum from the pinhole origin</title>
+          <title id="cg-frustum-title">
+            Pinhole camera and perspective view frustum in right-handed camera space
+          </title>
           <desc id="cg-frustum-desc">
-            Four corner rays from the pinhole at (0, 0, 0) expand along the positive z-axis and
-            intersect the near and far clipping planes at z_near and z_far. The truncated pyramid
-            between those planes defines the visible region, with half-angle theta from the optical
-            axis.
+            Right-handed coordinate axes at the pinhole origin (0, 0, 0) with +x down-left, +y up,
+            and +z left behind the pinhole so the camera looks down -z. Four corner rays connect the
+            sensor plane on the +z side through the pinhole to the view frustum on the -z side,
+            clipped between the near plane -z_near and far plane -z_far. A ray from scene point P
+            passes through (0, 0, 0) to the inverted point P prime on the sensor, with a
+            perpendicular drop from P to the optical axis showing planar depth.
           </desc>
           <defs>
             <marker
@@ -119,24 +128,36 @@ function ViewFrustumFigure() {
             </marker>
           </defs>
 
-          {/* Coordinate axes at the pinhole */}
+          {/* Sensor plane behind the pinhole (+z) */}
+          <polygon
+            points={polygonPoints([
+              sensor.frontTop,
+              sensor.backTop,
+              sensor.backBot,
+              sensor.frontBot,
+            ])}
+            className="cg-frustum-sensor"
+          />
           <path
-            d={line(yAxisStart, yAxisEnd)}
+            d={`M${polygonPoints([sensor.frontTop, sensor.backTop, sensor.backBot, sensor.frontBot]).replaceAll(' ', 'L')}Z`}
+            className="cg-frustum-sensor-edge"
+          />
+
+          {/* Sensor-to-pinhole corner rays */}
+          <path d={line(sensor.backBot, origin)} className="cg-frustum-ray-occluded" />
+          <path d={line(sensor.backTop, origin)} className="cg-frustum-ray" />
+          <path d={line(sensor.frontTop, origin)} className="cg-frustum-ray" />
+          <path d={line(sensor.frontBot, origin)} className="cg-frustum-ray" />
+
+          {/* Optical axis (+z left, -z right) */}
+          <path d={line(origin, sensor.center)} className="cg-frustum-axis-inner" />
+          <path
+            d={line(sensor.center, zAxisEnd)}
             className="cg-frustum-axis"
             markerEnd="url(#cg-frustum-axis-arrow)"
           />
-          <path d={line(zAxisStart, origin)} className="cg-frustum-axis" />
           <path d={line(origin, far.center)} className="cg-frustum-axis-inner" />
-          <path
-            d={line(far.center, zAxisEnd)}
-            className="cg-frustum-axis"
-            markerEnd="url(#cg-frustum-axis-arrow)"
-          />
-          <path
-            d={line(origin, xAxisEnd)}
-            className="cg-frustum-axis"
-            markerEnd="url(#cg-frustum-axis-arrow)"
-          />
+          <path d={line(far.center, negZAxisEnd)} className="cg-frustum-axis-neg" />
 
           {/* Pre-frustum segments of the four corner rays */}
           <path d={line(origin, near.backTop)} className="cg-frustum-ray" />
@@ -200,43 +221,87 @@ function ViewFrustumFigure() {
             className="cg-frustum-plane-edge"
           />
 
-          {/* Half-FOV angle arc */}
-          <path d={fovArcPath} className="cg-frustum-angle-arc" />
-          <text x={fovLabelPos[0]} y={fovLabelPos[1]} className="cg-frustum-angle-label">
-            θ
-          </text>
+          {/* Pinhole projection ray and planar depth drop */}
+          <path d={line(samplePoint, sampleAxis)} className="cg-frustum-sample-drop" />
+          <path d={rightAnglePath} className="cg-frustum-sample-angle" />
+          <path d={line(sensor.center, sampleHit)} className="cg-frustum-sample-drop" />
+          <path d={line(sampleHit, samplePoint)} className="cg-frustum-sample-ray" />
+
+          {/* Remaining coordinate axes at the pinhole (+y, +x) */}
+          <path
+            d={line(origin, yAxisEnd)}
+            className="cg-frustum-axis"
+            markerEnd="url(#cg-frustum-axis-arrow)"
+          />
+          <path
+            d={line(origin, xAxisEnd)}
+            className="cg-frustum-axis"
+            markerEnd="url(#cg-frustum-axis-arrow)"
+          />
 
           {/* Key points */}
           <circle cx={origin[0]} cy={origin[1]} r="4" className="cg-frustum-origin" />
-          <circle cx={near.center[0]} cy={near.center[1]} r="3" className="cg-frustum-center-dot" />
-          <circle cx={far.center[0]} cy={far.center[1]} r="3" className="cg-frustum-center-dot" />
+          <circle
+            cx={sensor.center[0]}
+            cy={sensor.center[1]}
+            r="2.8"
+            className="cg-frustum-sensor-dot"
+          />
+          <circle
+            cx={near.center[0]}
+            cy={near.center[1]}
+            r="2.8"
+            className="cg-frustum-center-dot"
+          />
+          <circle cx={far.center[0]} cy={far.center[1]} r="2.8" className="cg-frustum-center-dot" />
+          <circle
+            cx={samplePoint[0]}
+            cy={samplePoint[1]}
+            r="3.6"
+            className="cg-frustum-sample-dot"
+          />
+          <circle cx={sampleHit[0]} cy={sampleHit[1]} r="3.6" className="cg-frustum-sample-dot" />
 
-          {/* Axis and point labels */}
+          {/* Axis, plane, and point labels */}
           <text x={yAxisEnd[0] + 10} y={yAxisEnd[1] + 6} className="cg-frustum-symbol">
             y
           </text>
-          <text
-            x={zAxisEnd[0] - 4}
-            y={zAxisEnd[1] - 11}
-            textAnchor="end"
-            className="cg-frustum-symbol"
-          >
+          <text x={zAxisEnd[0] - 6} y={zAxisEnd[1] - 11} className="cg-frustum-symbol">
             z
+          </text>
+          <text x={negZAxisEnd[0] + 6} y={negZAxisEnd[1] + 5} className="cg-frustum-axis-label">
+            −<tspan className="cg-frustum-symbol">z</tspan>
           </text>
           <text x={xAxisEnd[0] - 12} y={xAxisEnd[1] + 10} className="cg-frustum-symbol">
             x
           </text>
-          <text x={origin[0] - 10} y={origin[1] - 14} textAnchor="end" className="cg-frustum-label">
+
+          <text x={sensor.center[0]} y={94} textAnchor="middle" className="cg-frustum-sensor-label">
+            Sensor
+          </text>
+          <text
+            x={origin[0] + 16}
+            y={origin[1] + 34}
+            textAnchor="middle"
+            className="cg-frustum-label"
+          >
             Pinhole (0, 0, 0)
           </text>
 
+          <text x={samplePoint[0] + 8} y={samplePoint[1] - 6} className="cg-frustum-sample-label">
+            P
+          </text>
+          <text x={86} y={sampleHit[1] + 5} textAnchor="end" className="cg-frustum-sample-label">
+            P′
+          </text>
+
           <text
-            x={near.frontBot[0] - 4}
+            x={near.frontBot[0]}
             y={near.frontBot[1] + 22}
             textAnchor="middle"
             className="cg-frustum-plane-label"
           >
-            <tspan className="cg-frustum-symbol">z</tspan>
+            −<tspan className="cg-frustum-symbol">z</tspan>
             <tspan dy="3.5" className="cg-frustum-sub">
               near
             </tspan>
@@ -247,7 +312,7 @@ function ViewFrustumFigure() {
             textAnchor="middle"
             className="cg-frustum-plane-label"
           >
-            <tspan className="cg-frustum-symbol">z</tspan>
+            −<tspan className="cg-frustum-symbol">z</tspan>
             <tspan dy="3.5" className="cg-frustum-sub">
               far
             </tspan>
@@ -255,9 +320,12 @@ function ViewFrustumFigure() {
         </svg>
       </div>
       <figcaption>
-        Perspective view frustum: rays from the pinhole {String.raw`\((0, 0, 0)\)`} with half-angle{' '}
-        {String.raw`\(\theta\)`} clip against the near plane {String.raw`\(z_{\mathrm{near}}\)`} and
-        far plane {String.raw`\(z_{\mathrm{far}}\)`}, bounding the visible volume.
+        Pinhole camera and view frustum in right-handed camera space (looking along{' '}
+        {String.raw`\(-z\)`}): a ray from {String.raw`\(P\)`} passes through the pinhole{' '}
+        {String.raw`\((0, 0, 0)\)`} onto the inverted sensor at {String.raw`\(P'\)`}, with planar
+        depth measured along {String.raw`\(-z\)`}. Corner rays from the sensor bound the visible
+        frustum between {String.raw`\(-z_{\mathrm{near}}\)`} and {String.raw`\(-z_{\mathrm{far}}\)`}
+        .
       </figcaption>
     </figure>
   );
