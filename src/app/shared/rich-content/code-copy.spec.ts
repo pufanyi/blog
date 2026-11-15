@@ -16,12 +16,17 @@ describe('code copy lifecycle', () => {
       '<div class="code-block"><button class="code-copy">Copy</button><code>const value = 1;</code></div>';
     const cleanup = initCodeCopyButtons(container);
     const button = container.querySelector('button')!;
+    const status = container.querySelector('[role="status"]');
+    expect(status).not.toBeNull();
     button.click();
     await vi.advanceTimersByTimeAsync(0);
     expect(button.textContent).toBe('Copy failed');
+    expect(status?.textContent).toBe('Copy failed');
     await vi.advanceTimersByTimeAsync(1800);
     expect(button.textContent).toBe('Copy');
+    expect(status?.textContent).toBe('');
     cleanup();
+    expect(container.querySelector('[role="status"]')).toBeNull();
     button.click();
     expect(writeText).toHaveBeenCalledTimes(1);
   });

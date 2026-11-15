@@ -1,4 +1,3 @@
-import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -19,10 +18,6 @@ describe('NotFoundComponent', () => {
       imports: [NotFoundComponent],
       providers: [provideRouter([])],
     }).compileComponents();
-    // JSDOM has no layout, so CDK cannot measure the visible dialog button.
-    vi.spyOn(TestBed.inject(InteractivityChecker), 'isFocusable').mockImplementation(
-      (element) => element instanceof HTMLButtonElement,
-    );
   });
 
   afterEach(() => {
@@ -58,12 +53,14 @@ describe('NotFoundComponent', () => {
     element.querySelector<HTMLButtonElement>('.submission-actions button')?.click();
     fixture.detectChanges();
 
-    expect(element.querySelector('[role="dialog"]')?.textContent).toContain('Reviewer #2');
+    const dialog = element.querySelector<HTMLDialogElement>('dialog.review-dialog');
+    expect(dialog?.hasAttribute('open')).toBe(true);
+    expect(dialog?.textContent).toContain('Reviewer #2');
     expect(element.querySelector('.verdict')?.textContent).toContain('Reject');
 
-    element.querySelector<HTMLElement>('.review-dialog')?.click();
+    element.querySelector('.verdict')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     fixture.detectChanges();
-    expect(element.querySelector('[role="dialog"]')).not.toBeNull();
+    expect(dialog?.hasAttribute('open')).toBe(true);
   });
 
   it.each(['button', 'backdrop', 'escape'])('dismisses peer review with %s', async (method) => {
@@ -77,19 +74,20 @@ describe('NotFoundComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
+    const dialog = element.querySelector<HTMLDialogElement>('dialog.review-dialog');
     const closeButton = element.querySelector<HTMLButtonElement>('.review-dialog button');
     expect(document.activeElement).toBe(closeButton);
 
     if (method === 'button') {
       closeButton?.click();
     } else if (method === 'backdrop') {
-      element.querySelector<HTMLElement>('.review-backdrop')?.click();
+      dialog?.click();
     } else {
-      closeButton?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      dialog?.dispatchEvent(new Event('cancel', { cancelable: true }));
     }
     fixture.detectChanges();
 
-    expect(element.querySelector('[role="dialog"]')).toBeNull();
+    expect(dialog?.hasAttribute('open')).toBe(false);
     expect(document.activeElement).toBe(submitButton);
   });
 });

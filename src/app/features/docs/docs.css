@@ -22,13 +22,15 @@
 .docs-sidebar,
 .docs-mobile-menu nav {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--overlay-color) 55%, transparent) transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-gutter: stable;
 }
 
-.docs-sidebar:is(:hover, :focus-within),
-.docs-mobile-menu nav:is(:hover, :focus-within) {
-  scrollbar-color: var(--overlay-color) transparent;
+@media (forced-colors: active) {
+  .docs-sidebar,
+  .docs-mobile-menu nav {
+    scrollbar-color: auto;
+  }
 }
 
 .docs-home {
@@ -107,6 +109,26 @@
 .docs-source-links {
   font-size: 0.85rem;
   color: var(--text-secondary);
+}
+
+.docs-breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.docs-breadcrumbs li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.docs-breadcrumbs li + li::before {
+  content: "/" / "";
+  color: var(--border-color);
 }
 
 .docs-header h1 {

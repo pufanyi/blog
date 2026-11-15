@@ -2,12 +2,12 @@
   <div class="toolbar-inner">
     <nav class="toolbar-group toolbar-nav" aria-label="Main navigation">
       <a class="toolbar-button toolbar-brand" routerLink="/" routerLinkActive="is-current"
-        [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page" aria-label="Home" title="Home">
-        <img class="toolbar-avatar" [ngSrc]="authorAvatar" alt="" width="34" height="34" priority>
+        [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page" [attr.aria-label]="authorName + ' — Home'">
+        <img class="toolbar-avatar" [ngSrc]="authorAvatar" alt="" width="34" height="34">
         <span class="toolbar-label">{{ authorName }}</span>
       </a>
       <a class="toolbar-button" routerLink="/blog" routerLinkActive="is-current"
-        ariaCurrentWhenActive="location" aria-label="Blog" title="Blog">
+        ariaCurrentWhenActive="location" aria-label="Blog">
         <i class="ph ph-notebook" aria-hidden="true"></i>
         <span class="toolbar-label">Blog</span>
       </a>
@@ -26,15 +26,16 @@
     <span class="toolbar-context" [class.is-docked]="chrome.readingDock()">{{ chrome.title() }}</span>
     <div class="toolbar-group toolbar-actions">
       <button class="toolbar-button toolbar-search" type="button" #searchTrigger (click)="search.open(searchTrigger)"
-        aria-label="Search" title="Search posts (Ctrl+K / ⌘K)">
+        aria-label="Search" aria-keyshortcuts="Control+K Meta+K">
         <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
         <span class="toolbar-label">Search</span>
         <kbd aria-hidden="true">⌘ / Ctrl K</kbd>
       </button>
-      <button class="toolbar-button" type="button" (click)="print()" aria-label="Print" title="Export as PDF / Print">
+      <button class="toolbar-button" type="button" (click)="print()" aria-label="Print">
         <i class="ph ph-printer" aria-hidden="true"></i>
       </button>
-      <button class="toolbar-button" type="button" (click)="themeService.toggle()" aria-label="Toggle theme" title="Toggle light/dark theme">
+      <button class="toolbar-button" type="button" (click)="themeService.toggle()" aria-label="Dark theme"
+        [attr.aria-pressed]="themeService.theme() === 'dark'">
         @if (themeService.theme() === 'light') {
           <i class="ph ph-moon" aria-hidden="true"></i>
         } @else {

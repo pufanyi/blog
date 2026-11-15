@@ -10,7 +10,7 @@
         [readingProgress]="content()?.readingProgress() ?? 0"
         (sectionSelected)="content()?.activateHeading($event)"
       />
-      <div class="post-reading-paper">
+      <main class="post-reading-paper">
         <app-blog-breadcrumbs [slug]="parentSlug()" [current]="false" />
         <div class="post-reading-content">
           <app-post-header
@@ -35,12 +35,14 @@
             </section>
           }
         </div>
-      </div>
+      </main>
     </div>
     <app-back-to-top [wideOnly]="article.toc.length > 0" />
   }
 } @else {
-  <app-not-found />
+  <main>
+    <app-not-found />
+  </main>
 }
 
 </div>

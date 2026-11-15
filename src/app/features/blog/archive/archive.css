@@ -156,6 +156,11 @@
     color 0.2s ease;
 }
 
+.post-entry:nth-child(n + 7) {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 6rem;
+}
+
 .post-entry::before {
   content: counter(post, decimal-leading-zero);
   position: absolute;
@@ -251,6 +256,11 @@
 .post-entry app-image-lightbox {
   display: block;
   max-width: 100%;
+}
+
+.post-entry:nth-child(n + 7) {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 6rem;
 }
 
 @media (max-width: 600px) {

@@ -1,53 +1,81 @@
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
+
+  &:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+  }
+
+  &:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+  }
 
   /* Muted Morandi accents, darkened enough for readable text and syntax. */
-  --accent-rose: #875f5a;
-  --accent-blush: #8a6069;
-  --accent-pink: #806174;
-  --accent-mauve: #765f70;
-  --accent-red: #8a5656;
-  --accent-maroon: #805562;
-  --accent-clay: #835e52;
-  --accent-ochre: #75613e;
-  --accent-sage: #5d725f;
-  --accent-teal: #526f6b;
-  --accent-sky: #586f77;
-  --accent-slate: #566f7a;
-  --accent-blue: #536b80;
-  --accent-lavender: #69627c;
+  --accent-rose: light-dark(#875f5a, #c4a199);
+  --accent-blush: light-dark(#8a6069, #c49aa3);
+  --accent-pink: light-dark(#806174, #b99aaa);
+  --accent-mauve: light-dark(#765f70, #b7a1af);
+  --accent-red: light-dark(#8a5656, #c18d8d);
+  --accent-maroon: light-dark(#805562, #b98d99);
+  --accent-clay: light-dark(#835e52, #c49b8b);
+  --accent-ochre: light-dark(#75613e, #c0aa7a);
+  --accent-sage: light-dark(#5d725f, #98ad98);
+  --accent-teal: light-dark(#526f6b, #91ada7);
+  --accent-sky: light-dark(#586f77, #94abb1);
+  --accent-slate: light-dark(#566f7a, #92aab2);
+  --accent-blue: light-dark(#536b80, #9aaebc);
+  --accent-lavender: light-dark(#69627c, #aba5bc);
 
   /* Warm paper and neutral structure. */
-  --text-color: #454a47;
-  --text-secondary: #656b66;
-  --syntax-muted: #686d68;
+  --text-color: light-dark(#454a47, #d9d3c9);
+  --text-secondary: light-dark(#656b66, #b4aea4);
+  --syntax-muted: light-dark(#686d68, #a7a9a2);
   --overlay-color: #858981;
-  --overlay-strong: #737870;
-  --surface-strong: #b4aea5;
-  --surface: #c9c3ba;
-  --surface-soft: #ddd8cf;
-  --paper-bg: #f4f1eb;
-  --background: #e7e2d9;
-  --background-deep: #d9d3c9;
+  --overlay-strong: light-dark(#737870, #9b9d94);
+  --surface-strong: light-dark(#b4aea5, #626760);
+  --surface: light-dark(#c9c3ba, #4c524d);
+  --surface-soft: light-dark(#ddd8cf, #3a403c);
+  --paper-bg: light-dark(#f4f1eb, #2c312e);
+  --background: light-dark(#e7e2d9, #202421);
+  --background-deep: light-dark(#d9d3c9, #191d1b);
 
   --link-color: var(--accent-blue);
-  --link-hover-color: var(--accent-mauve);
+  --link-hover-color: light-dark(var(--accent-mauve), var(--accent-lavender));
   --border-color: var(--surface-strong);
-  --on-accent: var(--paper-bg);
-  --shadow-color: color-mix(in srgb, var(--overlay-color) 20%, transparent);
-  --shadow-color-strong: color-mix(in srgb, var(--overlay-strong) 32%, transparent);
-  --backdrop-bg: color-mix(in srgb, var(--text-color) 42%, transparent);
-  --backdrop-bg-strong: color-mix(in srgb, var(--text-color) 52%, transparent);
+  --on-accent: light-dark(var(--paper-bg), var(--background));
+  --scrollbar-thumb: light-dark(#76736b, #8e928a);
+  --scrollbar-track: transparent;
+  --shadow-color: light-dark(
+    color-mix(in srgb, var(--overlay-color) 20%, transparent),
+    color-mix(in srgb, var(--background-deep) 52%, transparent)
+  );
+  --shadow-color-strong: light-dark(
+    color-mix(in srgb, var(--overlay-strong) 32%, transparent),
+    color-mix(in srgb, var(--background-deep) 70%, transparent)
+  );
+  --backdrop-bg: light-dark(
+    color-mix(in srgb, var(--text-color) 42%, transparent),
+    color-mix(in srgb, var(--background-deep) 64%, transparent)
+  );
+  --backdrop-bg-strong: light-dark(
+    color-mix(in srgb, var(--text-color) 52%, transparent),
+    color-mix(in srgb, var(--background-deep) 76%, transparent)
+  );
   --border-light: color-mix(in srgb, var(--border-color) 15%, transparent);
   --accent-bg: color-mix(in srgb, var(--link-color) 8%, transparent);
-  --selection-bg: color-mix(in srgb, var(--accent-blue) 26%, transparent);
+  --selection-bg: light-dark(
+    color-mix(in srgb, var(--accent-blue) 26%, transparent),
+    color-mix(in srgb, var(--accent-blue) 30%, transparent)
+  );
   /*
    * Elevation: every surface shares the paper's tight contact layer and adds a
    * softer ambient layer that grows with its height above the page. Themes tune
    * only the two layer colors, so all levels stay consistent with the paper.
    */
-  --shadow-contact: color-mix(in srgb, var(--overlay-color) 13%, transparent);
-  --shadow-ambient: var(--shadow-color);
+  --shadow-contact: light-dark(
+    color-mix(in srgb, var(--overlay-color) 13%, transparent),
+    color-mix(in srgb, var(--background-deep) 48%, transparent)
+  );
+  --shadow-ambient: light-dark(var(--shadow-color), var(--shadow-color-strong));
   --shadow-raised: 0 1px 3px var(--shadow-contact), 0 2px 6px var(--shadow-ambient);
   --shadow-float: 0 1px 3px var(--shadow-contact), 0 4px 14px var(--shadow-ambient);
   --shadow-float-up: 0 -1px 3px var(--shadow-contact), 0 -4px 14px var(--shadow-ambient);
@@ -84,68 +112,42 @@
   --font-mono: "Google Sans Code", monospace;
 }
 
+[data-theme="light"] {
+  color-scheme: light;
+}
+
 [data-theme="dark"] {
   color-scheme: dark;
-
-  --accent-rose: #c4a199;
-  --accent-blush: #c49aa3;
-  --accent-pink: #b99aaa;
-  --accent-mauve: #b7a1af;
-  --accent-red: #c18d8d;
-  --accent-maroon: #b98d99;
-  --accent-clay: #c49b8b;
-  --accent-ochre: #c0aa7a;
-  --accent-sage: #98ad98;
-  --accent-teal: #91ada7;
-  --accent-sky: #94abb1;
-  --accent-slate: #92aab2;
-  --accent-blue: #9aaebc;
-  --accent-lavender: #aba5bc;
-
-  --text-color: #d9d3c9;
-  --text-secondary: #b4aea4;
-  --syntax-muted: #a7a9a2;
-  --overlay-color: #858981;
-  --overlay-strong: #9b9d94;
-  --surface-strong: #626760;
-  --surface: #4c524d;
-  --surface-soft: #3a403c;
-  --paper-bg: #2c312e;
-  --background: #202421;
-  --background-deep: #191d1b;
-
-  --link-color: var(--accent-blue);
-  --link-hover-color: var(--accent-lavender);
-  --border-color: var(--surface-strong);
-  --on-accent: var(--background);
-  --shadow-color: color-mix(in srgb, var(--background-deep) 52%, transparent);
-  --shadow-color-strong: color-mix(in srgb, var(--background-deep) 70%, transparent);
-  --backdrop-bg: color-mix(in srgb, var(--background-deep) 64%, transparent);
-  --backdrop-bg-strong: color-mix(in srgb, var(--background-deep) 76%, transparent);
-  --selection-bg: color-mix(in srgb, var(--accent-blue) 30%, transparent);
-  --shadow-contact: color-mix(in srgb, var(--background-deep) 48%, transparent);
-  --shadow-ambient: var(--shadow-color-strong);
   --paper-shadow: 0 1px 4px var(--shadow-contact), 0 14px 34px var(--shadow-ambient);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper-shadow: 0 1px 4px var(--shadow-contact), 0 14px 34px var(--shadow-ambient);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --text-secondary: light-dark(#4a504b, #ccc6bc);
+    --border-color: light-dark(#6c7069, #9ea39a);
+    --border-light: color-mix(in srgb, var(--border-color) 40%, transparent);
+    --scrollbar-thumb: var(--text-color);
+  }
+}
+
+@media (forced-colors: active) {
+  :root {
+    --border-color: CanvasText;
+    --border-light: CanvasText;
+    --scrollbar-thumb: ButtonText;
+    --scrollbar-track: Canvas;
+  }
 }
 
 @media print {
   :root {
     color-scheme: light;
-
-    --accent-rose: #875f5a;
-    --accent-blush: #8a6069;
-    --accent-pink: #806174;
-    --accent-mauve: #765f70;
-    --accent-red: #8a5656;
-    --accent-maroon: #805562;
-    --accent-clay: #835e52;
-    --accent-ochre: #75613e;
-    --accent-sage: #5d725f;
-    --accent-teal: #526f6b;
-    --accent-sky: #586f77;
-    --accent-slate: #566f7a;
-    --accent-blue: #536b80;
-    --accent-lavender: #69627c;
 
     --text-color: #303532;
     --text-secondary: #555b56;
@@ -158,8 +160,6 @@
     --paper-bg: #fff;
     --background: #fff;
     --background-deep: #fff;
-    --link-color: var(--accent-blue);
-    --link-hover-color: var(--accent-mauve);
     --border-color: var(--surface-strong);
     --on-accent: #fff;
     --shadow-color: transparent;

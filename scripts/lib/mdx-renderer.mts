@@ -293,6 +293,9 @@ function postprocessMdxHtml(
       if (table.parentElement?.classList.contains('table-wrapper')) continue;
       const wrapper = document.createElement('div');
       wrapper.className = 'table-wrapper';
+      wrapper.tabIndex = 0;
+      wrapper.setAttribute('role', 'region');
+      wrapper.setAttribute('aria-label', 'Scrollable table');
       table.replaceWith(wrapper);
       wrapper.append(table);
     }

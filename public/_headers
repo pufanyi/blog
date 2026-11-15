@@ -1,3 +1,12 @@
+/*
+  Content-Security-Policy: object-src 'none'; base-uri 'none'; frame-ancestors 'self'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Permissions-Policy: camera=(), geolocation=(), microphone=(), focus-without-user-activation=()
+  Strict-Transport-Security: max-age=300; includeSubDomains
+
 /giscus-morandi-*.css
   Access-Control-Allow-Origin: *
 

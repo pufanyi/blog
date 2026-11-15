@@ -3,30 +3,58 @@
 }
 
 .search-backdrop::backdrop {
-  background: transparent;
+  background: var(--backdrop-bg);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.search-backdrop[open]::backdrop {
+  opacity: 1;
 }
 
 .search-backdrop {
-  width: 100%;
-  height: 100dvh;
+  box-sizing: border-box;
+  width: min(620px, calc(100% - 2rem));
   max-width: none;
-  max-height: none;
-  margin: 0;
+  max-height: min(76vh, 680px);
+  margin: 0 auto;
+  padding: 0;
   border: 0;
   color: var(--text-color);
   position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: var(--backdrop-bg);
+  inset: max(1.2rem, 8vh) 0 auto;
+  background: transparent;
+  overflow: visible;
+  overscroll-behavior: contain;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: max(1.2rem, 8vh) 1rem 1rem;
-  animation: fade-in 0.2s ease;
+  flex-direction: column;
+  opacity: 0;
+  transform: scale(0.97) translateY(-8px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.search-backdrop[open] {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+@starting-style {
+  .search-backdrop[open] {
+    opacity: 0;
+    transform: scale(0.97) translateY(-8px);
+  }
+
+  .search-backdrop[open]::backdrop {
+    opacity: 0;
+  }
 }
 
 .search-dialog {
-  width: min(620px, 100%);
+  width: 100%;
   max-height: min(76vh, 680px);
   display: flex;
   flex-direction: column;
@@ -35,7 +63,6 @@
   border-radius: 14px;
   box-shadow: var(--shadow-overlay);
   overflow: hidden;
-  animation: dialog-in 0.2s ease;
 }
 
 .search-input-wrap {
@@ -217,42 +244,35 @@
   }
 }
 
-@keyframes dialog-in {
-  from {
-    opacity: 0;
-    transform: scale(0.97) translateY(-8px);
+@media (max-width: 640px) {
+  .search-backdrop::backdrop {
+    background: var(--backdrop-bg-strong);
   }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
 
-@keyframes sheet-in {
-  from {
-    opacity: 0;
+  .search-backdrop {
+    inset: auto 0 0;
+    width: 100%;
+    height: min(85dvh, 100%);
+    max-height: calc(100dvh - 0.35rem);
     transform: translateY(16px);
   }
-  to {
-    opacity: 1;
+
+  .search-backdrop[open] {
     transform: translateY(0);
   }
-}
 
-@media (max-width: 640px) {
-  .search-backdrop {
-    align-items: flex-end;
-    padding: 0;
-    background: var(--backdrop-bg-strong);
+  @starting-style {
+    .search-backdrop[open] {
+      transform: translateY(16px);
+    }
   }
 
   .search-dialog {
     width: 100%;
-    height: min(85dvh, 100%);
-    max-height: calc(100dvh - 0.35rem);
+    height: 100%;
+    max-height: none;
     border-radius: 18px 18px 0 0;
     border-bottom: none;
-    animation: sheet-in 0.22s ease;
   }
 
   .search-input-wrap {
@@ -297,10 +317,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .search-backdrop,
-  .search-dialog {
-    animation: none;
-  }
-
+  .search-backdrop::backdrop,
   .search-result-item,
   .search-close-btn {
     transition: none;

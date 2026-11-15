@@ -5,21 +5,32 @@
   <title>Fanyi's Blog</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="text-scale" content="scale">
+  <script>
+    (function(){
+      var t = null;
+      try { t = localStorage.getItem('theme'); } catch (_) {}
+      var meta = document.querySelector('meta[name="color-scheme"]');
+      if (t === 'light' || t === 'dark') {
+        if (meta) meta.content = t;
+        document.documentElement.setAttribute('data-theme', t);
+      } else if (matchMedia('(prefers-color-scheme:dark)').matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=dog-svg">
   <link rel="icon" type="image/svg+xml" sizes="any" href="avatar.svg?v=dog-svg">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=dog-svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500;600;700&family=Roboto:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script>
-    (function(){
-      var t = localStorage.getItem('theme');
-      if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme:dark)').matches))
-        document.documentElement.setAttribute('data-theme', 'dark');
-    })();
-  </script>
+</head>
+<body>
+  <app-root></app-root>
   <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6EZJ8H20MY"></script>
+  <script async fetchpriority="low" src="https://www.googletagmanager.com/gtag/js?id=G-6EZJ8H20MY"></script>
   <script>
     if (window.self === window.top) {
       window.dataLayer = window.dataLayer || [];
@@ -28,8 +39,5 @@
       gtag('config', 'G-6EZJ8H20MY');
     }
   </script>
-</head>
-<body>
-  <app-root></app-root>
 </body>
 </html>

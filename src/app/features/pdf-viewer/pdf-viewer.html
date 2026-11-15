@@ -1,3 +1,4 @@
+<main class="pdf-viewer-page">
 @if (ready()) {
   @if (source(); as source) {
     <ngx-extended-pdf-viewer
@@ -29,3 +30,4 @@
 } @else {
   <p class="pdf-message" role="status">正在加载 PDF…</p>
 }
+</main>

@@ -147,19 +147,14 @@
   outline-offset: 2px;
 }
 
-.review-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: grid;
-  padding: 1rem;
-  place-items: center;
-  background: var(--backdrop-bg-strong);
-  animation: backdrop-in 0.18s ease-out;
+.review-dialog:not([open]) {
+  display: none;
 }
 
 .review-dialog {
-  width: min(100%, 28rem);
+  box-sizing: border-box;
+  width: min(calc(100% - 2rem), 28rem);
+  margin: auto;
   padding: clamp(1.35rem, 5vw, 2rem);
   border: 1px solid color-mix(in srgb, var(--border-color) 45%, transparent);
   border-radius: 6px;
@@ -167,6 +162,32 @@
   color: var(--text-color);
   box-shadow: var(--shadow-overlay);
   text-align: left;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transition: opacity 0.18s ease-out;
+}
+
+.review-dialog[open] {
+  opacity: 1;
+}
+
+.review-dialog::backdrop {
+  background: var(--backdrop-bg-strong);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transition: opacity 0.18s ease-out;
+}
+
+.review-dialog[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  .review-dialog[open],
+  .review-dialog[open]::backdrop {
+    opacity: 0;
+  }
 }
 
 .review-dialog h2 {
@@ -195,15 +216,6 @@
   --exercise-accent: var(--accent-red);
 }
 
-@keyframes backdrop-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 @media (max-width: 600px) {
   .exercise-error {
     padding-top: 0;
@@ -222,10 +234,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .review-backdrop {
-    animation: none;
-  }
-
+  .review-dialog,
+  .review-dialog::backdrop,
   .primary-action,
   .secondary-action {
     transition: none;
@@ -234,7 +244,7 @@
 
 @media print {
   .submission-actions,
-  .review-backdrop {
+  .review-dialog {
     display: none;
   }
 }

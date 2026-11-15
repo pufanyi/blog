@@ -28,15 +28,18 @@
       <a class="docs-home" routerLink="/docs">Documentation</a>
       <ng-container [ngTemplateOutlet]="navigation" />
     </aside>
-    <div class="docs-main">
+    <main class="docs-main">
       <details class="docs-mobile-menu">
         <summary>Browse documentation</summary>
         <ng-container [ngTemplateOutlet]="navigation" />
       </details>
       @for (document of [page]; track document.slug) {
         <header class="docs-header">
-          <nav aria-label="Breadcrumb">
-            <a routerLink="/docs">Docs</a><span aria-hidden="true"> / </span><span>{{ document.group }}</span>
+          <nav class="docs-breadcrumbs" aria-label="Breadcrumb">
+            <ol>
+              <li><a routerLink="/docs">Docs</a></li>
+              <li aria-current="page">{{ document.group }}</li>
+            </ol>
           </nav>
           <h1>{{ document.title }}</h1>
           <div class="docs-source-links">
@@ -75,7 +78,7 @@
           }
         </nav>
       }
-    </div>
+    </main>
   </div>
 }
 
