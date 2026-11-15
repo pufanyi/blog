@@ -17,6 +17,8 @@ html {
   --toolbar-height: 60px;
   --toolbar-safe-area-top: env(safe-area-inset-top, 0px);
   --toolbar-clearance: calc(var(--toolbar-safe-area-top) + var(--toolbar-height) + 1rem);
+  /* Preserve the original 15px scale while respecting browser font preferences. */
+  font-size: 93.75%;
   scroll-behavior: smooth;
 }
 
@@ -29,13 +31,13 @@ html {
 @media (max-width: 768px) {
   html {
     --toolbar-height: 52px;
+    font-size: 87.5%;
   }
 }
 
 body {
   font-family: var(--font-body);
   font-size: 1rem;
-  font-size-adjust: from-font;
   line-height: 1.6;
   color: var(--text-color);
   background: var(--background);

@@ -129,7 +129,16 @@ passes the toolbar, pin the outline to the viewport rather than the grid's botto
 boundary, keeping its header reachable at the page end. An intersection observer
 tracks a one-pixel row marker; no scroll handler or scroll-time geometry reads are
 needed. Reset and dispose the observers on viewport/layout changes and navigation.
-Body text inherits the browser's root `1rem` scale (with `<meta name="text-scale" content="scale">` so OS/browser font scaling is respected) and uses `Roboto` with `Space Grotesk` headings. Prose is left-aligned: justification
+Body text uses `1rem`, with the root set to 93.75% of the browser's default font
+size on desktop and 87.5% at widths up to 768px. With a 16px browser default,
+these preserve the original 15px and 14px scales, including rem-based spacing,
+while still following user font preferences. Keep these proportions when
+changing font-scaling support. The `<meta name="text-scale" content="scale">`
+opt-in remains enabled for supporting browsers. Body text uses `Roboto` with
+`Space Grotesk` headings. Do not apply global `font-size-adjust: from-font`:
+the Latin and platform CJK faces retain their natural proportions rather than
+normalizing fallback glyphs to the primary face's x-height.
+Prose is left-aligned: justification
 stretched CJK lines beside unbreakable formulas and inline code. Font tokens name
 platform CJK faces after the Latin families, because those lack CJK glyphs. The toolbar matches that typography
 and paper surface. Its background spans the viewport and sits flush with the
