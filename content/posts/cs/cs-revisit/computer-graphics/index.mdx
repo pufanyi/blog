@@ -30,9 +30,7 @@ Shaders are any string of code run on the GPU
 
 ## Coordinate Spaces & Transformations
 
-因为讲了很多 transformations 的数学细节，当然都是非常伟大的 ideas，但在 AI 时代可能比较 trivial，这里就不一一赘述了。
-
-想了想说一下 Homogeneous Coordinates。从二维视角来看，对于 $p'=(x, y)$，如果有 $p=(a, b, c)$ 使得 $\left(\frac{a}{c}, \frac{b}{c}\right)=(x, y)$ 是 $p'$ 的 homogeneous coordinates。
+**Homogeneous Coordinates**: 从二维视角来看，对于 $p'=(x, y)$，如果有 $p=(a, b, c)$ 使得 $\left(\frac{a}{c}, \frac{b}{c}\right)=(x, y)$ 是 $p'$ 的 homogeneous coordinates。
 
 这样子的话，比如说平移就变成了 shear。
 
@@ -40,7 +38,7 @@ Shaders are any string of code run on the GPU
 
 通常情况下，我们用 $c=1$ 表示点，而 $c=0$ 代表一个方向，我们认为他是向量。
 
-Scene Graph: 每个部件只保存相对父节点的变换，沿树组合就得到世界坐标；移动身体会带动整个人，移动大腿会连带小腿。
+**Scene Graph**: 每个部件只保存相对父节点的变换，沿树组合就得到世界坐标；移动身体会带动整个人，移动大腿会连带小腿。
 
 <SceneGraphFigure />
 
@@ -53,7 +51,7 @@ $$
 
 因此递归时只需传下 $W_{\mathrm{child}}=W_{\mathrm{parent}}A_{\mathrm{child}}$；逆变换存在时，$\mathrm{world} \to \mathrm{local}$ 为 $A_2^{-1}A_1^{-1}A_0^{-1}$。
 
-Instancing: 不同的地方 point to 一个物体。这样子 Scene Graph 就可以变成 DAG 了。
+**Instancing**: 不同的地方 point to 一个物体。这样子 Scene Graph 就可以变成 DAG 了。
 
 <InstancingDagFigure />
 
