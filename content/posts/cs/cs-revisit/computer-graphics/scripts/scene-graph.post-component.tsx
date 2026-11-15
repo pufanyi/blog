@@ -11,12 +11,15 @@ interface Part {
   angle?: number;
   accent?: 'body' | 'upper' | 'lower';
 }
+// The world frame sits beside the figure, so A0 is a real placement, not the identity.
+const worldOrigin: Vec3 = [-96, 168, 0];
+const world = { label: 'World', tree: [370, 46] as const };
 const parts: readonly Part[] = [
   {
     id: 'body',
     label: ['Body'],
     tree: [230, 46],
-    joint: [0, 0, 0],
+    joint: [96, -168, 0],
     size: [56, 68, 30],
     accent: 'body',
   },
@@ -73,7 +76,7 @@ const parts: readonly Part[] = [
     parent: 'right-upper',
     label: ['Right', 'lower leg'],
     tree: [320, 248],
-    joint: [0, 59, 0],
+    joint: [0, 55, 0],
     size: [22, 55, 24],
     angle: -22,
   },
@@ -82,7 +85,7 @@ const parts: readonly Part[] = [
     parent: 'left-upper',
     label: ['Left', 'lower leg'],
     tree: [410, 248],
-    joint: [0, 59, 0],
+    joint: [0, 55, 0],
     size: [22, 55, 24],
     angle: 10,
     accent: 'lower',
@@ -125,7 +128,7 @@ function place(part: Part, parent: Pose = { position: [0, 0, 0], angle: 0 }) {
   poses.set(part.id, pose);
   parts.filter((child) => child.parent === part.id).forEach((child) => place(child, pose));
 }
-place(parts[0]);
+place(parts[0], { position: worldOrigin, angle: 0 });
 const faces = [
   { indices: [0, 1, 2, 3], normal: [0, 0, -1] as Vec3, shade: 'side' },
   { indices: [4, 5, 6, 7], normal: [0, 0, 1] as Vec3, shade: 'front' },
@@ -164,6 +167,61 @@ const surfaces = parts
   })
   .sort((a, b) => a.depth - b.depth);
 
+// Local frames for the highlighted chain: x along the part's width, y down the limb.
+const frameLength = 30;
+const frames = [
+  { id: 'world', accent: 'world', pose: { position: worldOrigin, angle: 0 }, depth: 0 },
+  ...parts
+    .filter((part) => part.accent)
+    .map((part) => ({
+      id: part.id,
+      accent: part.accent!,
+      pose: poses.get(part.id)!,
+      depth: part.size[2] / 2 + 1,
+    })),
+].map(({ id, accent, pose, depth }) => {
+  const at = (v: Vec3) => project(add(add(pose.position, [0, 0, depth]), rotate(v, pose.angle)));
+  return {
+    id,
+    accent,
+    origin: at([0, 0, 0]),
+    x: at([frameLength, 0, 0]),
+    y: at([0, frameLength, 0]),
+  };
+});
+
+function Frames() {
+  return (
+    <g>
+      {frames.map(({ id, accent, origin, x, y }) => (
+        <g key={id} className={`cg-scene-frame cg-scene-frame-${accent}`}>
+          {/* A paper halo separates each axis from the box edge it runs along. */}
+          {[x, y].map((end, i) => (
+            <path
+              key={`halo-${i}`}
+              d={`M${origin.join(' ')}L${end.join(' ')}`}
+              className="cg-scene-frame-halo"
+            />
+          ))}
+          {[x, y].map((end, i) => (
+            <path
+              key={i}
+              d={`M${origin.join(' ')}L${end.join(' ')}`}
+              markerEnd={`url(#cg-scene-frame-arrow-${accent})`}
+            />
+          ))}
+          <circle cx={origin[0]} cy={origin[1]} r="2.4" />
+          {id === 'world' && (
+            <text x={origin[0] - 6} y={origin[1] + 4} textAnchor="end" className="cg-scene-label">
+              World
+            </text>
+          )}
+        </g>
+      ))}
+    </g>
+  );
+}
+
 function AssembledFigure() {
   return (
     <g>
@@ -177,15 +235,53 @@ function AssembledFigure() {
         </polygon>
       ))}
       {parts
-        .filter((part) => part.parent)
+        .filter((part) => part.parent && !part.accent)
         .map((part) => {
           const pose = poses.get(part.id)!;
           const [x, y] = project(add(pose.position, [0, -1.5, part.size[2] / 2 + 1]));
           return <circle key={part.id} cx={x} cy={y} r="2.2" className="cg-scene-joint" />;
         })}
+      <Frames />
     </g>
   );
 }
+
+// The highlighted chain, from the lower leg up to the world: edge i carries A_(2 - i).
+type Pt = readonly [number, number];
+const node = { width: 80, height: 46 };
+const chain: readonly { from: Pt; to: Pt }[] = [
+  ...parts
+    .filter((part) => part.accent && part.parent)
+    .reverse()
+    .map((part) => {
+      const parent = byId.get(part.parent!)!;
+      return {
+        from: [part.tree[0], part.tree[1] - node.height / 2 - 3] as Pt,
+        to: [parent.tree[0], parent.tree[1] + node.height / 2 + 3] as Pt,
+      };
+    }),
+  {
+    from: [parts[0].tree[0] + node.width / 2 + 3, parts[0].tree[1]],
+    to: [world.tree[0] - node.width / 2 - 3, world.tree[1]],
+  },
+];
+// Place each label beside its edge midpoint, on the side facing up and to the right.
+const transformLabels = chain.map(({ from, to }, i) => {
+  const [dx, dy] = [to[0] - from[0], to[1] - from[1]];
+  const length = Math.hypot(dx, dy);
+  const normals: Pt[] = [
+    [dy / length, -dx / length],
+    [-dy / length, dx / length],
+  ];
+  const [nx, ny] = normals.reduce((a, b) => (b[0] - b[1] > a[0] - a[1] ? b : a));
+  return {
+    tex: String.raw`\(A_${chain.length - 1 - i}\)`,
+    x: (from[0] + to[0]) / 2 + nx * 14,
+    y: (from[1] + to[1]) / 2 + ny * 14,
+  };
+});
+const canvas = { width: 780, height: 320 };
+const accents = ['world', 'body', 'upper', 'lower'] as const;
 
 function SceneGraphFigure() {
   return (
@@ -198,9 +294,9 @@ function SceneGraphFigure() {
       >
         <div className="cg-scene-canvas">
           <svg
-            viewBox="0 0 780 320"
-            width="780"
-            height="320"
+            viewBox={`0 0 ${canvas.width} ${canvas.height}`}
+            width={canvas.width}
+            height={canvas.height}
             role="img"
             aria-labelledby="cg-scene-title cg-scene-desc"
           >
@@ -208,49 +304,70 @@ function SceneGraphFigure() {
             <desc id="cg-scene-desc">
               The body is the parent of the head, both arms and both upper legs. Each upper leg is
               the parent of its lower leg. Matching colors highlight the body, left upper leg and
-              left lower leg in the tree and the block figure. Highlighted arrows map local
-              coordinates to the parent: A2 from left lower leg to left upper leg, A1 from left
-              upper leg to body, and A0 from body to world. Moving a parent carries its descendants.
+              left lower leg in the tree and the block figure, where each draws its local x and y
+              axes at its joint; the world frame sits beside the figure. Highlighted arrows map
+              local coordinates to the parent: A2 from left lower leg to left upper leg, A1 from
+              left upper leg to body, and A0 from body to world. Moving a parent carries its
+              descendants and their frames.
             </desc>
             <defs>
               <marker
-                id="cg-scene-arrow"
+                id="cg-scene-chain-arrow"
                 viewBox="0 0 10 10"
                 refX="9"
                 refY="5"
-                markerWidth="5"
-                markerHeight="5"
+                markerWidth="4"
+                markerHeight="4"
                 orient="auto"
               >
-                <path d="M0 0L10 5L0 10Z" className="cg-scene-arrow" />
+                <path d="M0 0L10 5L0 10Z" className="cg-scene-chain-head" />
               </marker>
+              {accents.map((accent) => (
+                <marker
+                  key={accent}
+                  id={`cg-scene-frame-arrow-${accent}`}
+                  viewBox="0 0 10 10"
+                  refX="8"
+                  refY="5"
+                  markerWidth="4"
+                  markerHeight="4"
+                  orient="auto"
+                >
+                  <path d="M0 0L10 5L0 10Z" className={`cg-scene-frame-head-${accent}`} />
+                </marker>
+              ))}
             </defs>
             {parts
-              .filter((part) => part.parent)
+              .filter((part) => part.parent && !part.accent)
               .map((part) => {
                 const parent = byId.get(part.parent!)!;
                 return (
                   <path
                     key={part.id}
-                    d={
-                      part.accent
-                        ? `M${part.tree[0]} ${part.tree[1] - 26}L${parent.tree[0]} ${parent.tree[1] + 26}`
-                        : `M${parent.tree[0]} ${parent.tree[1] + 23}L${part.tree[0]} ${part.tree[1] - 23}`
-                    }
-                    className={part.accent ? 'cg-scene-edge cg-scene-chain' : 'cg-scene-edge'}
-                    markerEnd={part.accent ? 'url(#cg-scene-arrow)' : undefined}
+                    d={`M${parent.tree[0]} ${parent.tree[1] + node.height / 2}L${part.tree[0]} ${part.tree[1] - node.height / 2}`}
+                    className="cg-scene-edge"
                   />
                 );
               })}
-            {parts.map((part) => (
+            {chain.map(({ from, to }, i) => (
+              <path
+                key={i}
+                d={`M${from.join(' ')}L${to.join(' ')}`}
+                className="cg-scene-edge cg-scene-chain"
+                markerEnd="url(#cg-scene-chain-arrow)"
+              />
+            ))}
+            {[...parts, { id: 'world', label: [world.label], tree: world.tree }].map((part) => (
               <g key={part.id}>
                 <rect
-                  x={part.tree[0] - 40}
-                  y={part.tree[1] - 23}
-                  width="80"
-                  height="46"
+                  x={part.tree[0] - node.width / 2}
+                  y={part.tree[1] - node.height / 2}
+                  width={node.width}
+                  height={node.height}
                   rx="13"
-                  className={tone(part)}
+                  className={
+                    part.id === 'world' ? 'cg-scene-part cg-scene-world' : tone(part as Part)
+                  }
                 />
                 {part.label.map((label, i) => (
                   <text
@@ -264,14 +381,6 @@ function SceneGraphFigure() {
                 ))}
               </g>
             ))}
-            <path
-              d="M273 46H350"
-              className="cg-scene-edge cg-scene-chain"
-              markerEnd="url(#cg-scene-arrow)"
-            />
-            <text x="365" y="51" className="cg-scene-label">
-              World
-            </text>
             <path d="M480 24V284" className="cg-scene-divider" />
             <AssembledFigure />
             <text x="230" y="307" textAnchor="middle" className="cg-scene-label">
@@ -281,22 +390,21 @@ function SceneGraphFigure() {
               Same hierarchy, assembled
             </text>
           </svg>
-          {[
-            { tex: String.raw`\(A_0\)`, x: 305, y: 17 },
-            { tex: String.raw`\(A_1\)`, x: 351, y: 71 },
-            { tex: String.raw`\(A_2\)`, x: 431, y: 178 },
-          ].map(({ tex, x, y }) => (
+          {transformLabels.map(({ tex, x, y }) => (
             <span
               key={tex}
               className="cg-scene-transform"
-              style={{ left: `${(x / 780) * 100}%`, top: `${(y / 320) * 100}%` }}
+              style={{ left: `${(x / canvas.width) * 100}%`, top: `${(y / canvas.height) * 100}%` }}
             >
               {tex}
             </span>
           ))}
         </div>
       </div>
-      <figcaption>Local coordinates → world coordinates.</figcaption>
+      <figcaption>
+        Local coordinates → world coordinates. Each colored axis pair is a part's local frame;{' '}
+        {String.raw`\(A_i\)`} maps it into its parent's frame.
+      </figcaption>
     </figure>
   );
 }
