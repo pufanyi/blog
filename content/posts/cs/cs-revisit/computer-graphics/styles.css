@@ -1471,3 +1471,27 @@
     transform: rotate(90deg);
   }
 }
+
+.fm-target {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 2;
+  stroke-dasharray: 4 5;
+}
+.fm .fm-handle-box button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid var(--accent-rose);
+  border-radius: 50%;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.fm .fm-handle-box .fm-dragging {
+  cursor: grabbing;
+}
+.fm-help {
+  margin: 0;
+}

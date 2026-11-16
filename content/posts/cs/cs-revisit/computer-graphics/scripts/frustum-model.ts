@@ -5,11 +5,11 @@ export const xNdc = (x: number, d: number) => (2 * x) / d;
 export const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 export function position(x: number, d: number, progress: number, source = false) {
   if (source) return [160 + 22 * x, 48 + 22 * d];
-  const horizontal = Math.min(progress, 1);
-  const depth = Math.max(0, progress - 1);
+  // Interpolate homogeneous maps, then divide; straight lines stay straight.
+  const w = mix(1, d, progress);
   return [
-    160 + mix(22 * x, 110 * xNdc(x, d), horizontal),
-    mix(48 + 22 * d, 55 + 110 * (depthNdc(d) + 1), depth),
+    160 + mix(22 * x, 160 * x, progress) / w,
+    mix(48 + 22 * d, (89 + 80 * (depthNdc(d) + 1)) * d, progress) / w,
   ];
 }
 export const segment = (a: number[], b: number[]) => `M ${a.join(' ')} L ${b.join(' ')}`;
@@ -23,4 +23,7 @@ export function outline(progress: number, source = false) {
     .map(([x, d]) => position(x, d, progress, source).join(','))
     .join(' ');
 }
-export const stages = ['原始视锥', '按深度缩放横向', '重新分配深度'];
+export function progressFromFarWidth(halfWidth: number) {
+  const width = Math.max(80, Math.min(110, halfWidth));
+  return (110 - width) / (9 * width - 690);
+}
