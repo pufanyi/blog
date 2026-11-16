@@ -1274,3 +1274,117 @@
   font-size: 0.875rem;
   line-height: 1.7;
 }
+
+.fm {
+  margin: 2rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  color: var(--text-color);
+}
+.fm-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: space-between;
+}
+.fm-heading span,
+.fm figcaption {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+.fm-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.fm svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.fm svg text {
+  fill: var(--text-color);
+  font-size: 12px;
+}
+.fm-axis {
+  stroke: var(--border-light);
+  fill: none;
+}
+.fm-volume {
+  fill: var(--paper-bg);
+  stroke: var(--accent-sage);
+  stroke-width: 2;
+}
+.fm-slice {
+  stroke: var(--accent-sage);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+.fm-ray {
+  stroke: var(--accent-ochre);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  fill: none;
+}
+.fm [data-fm-point] circle {
+  fill: var(--accent-ochre);
+}
+.fm-selected {
+  stroke: var(--accent-rose);
+  stroke-width: 3;
+  fill: none;
+}
+.fm-controls:not([hidden]) {
+  display: grid;
+  gap: 0.8rem;
+}
+.fm-controls label {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+}
+.fm-controls input {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--accent-sage);
+}
+.fm-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.fm button {
+  min-height: 44px;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--paper-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  font: inherit;
+}
+.fm button[aria-pressed="true"] {
+  border-color: var(--accent-sage);
+  font-weight: 700;
+}
+.fm :focus-visible {
+  outline: 2px solid var(--accent-ochre);
+  outline-offset: 3px;
+}
+.fm [data-fm-status] {
+  margin: 0;
+  font-weight: 600;
+}
+.fm output {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+}
+.fm figcaption {
+  margin-top: 1rem;
+}
+@media (max-width: 540px) {
+  .fm-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
