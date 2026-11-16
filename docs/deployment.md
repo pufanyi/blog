@@ -98,8 +98,10 @@ be bypassed through the otherwise public Worker subdomain.
 
 ## Site icons
 
-Keep icon links in `src/index.html` root-relative: the production
-`base-uri 'none'` policy blocks the document base, so relative icon URLs resolve
-under the current page path on nested routes. Serve `public/favicon.ico` as a
-fallback for clients that request the conventional URL. It wraps the existing
-32×32 PNG; update both files together when changing the site icon.
+Keep icon links in `src/index.html` root-relative so they never depend on
+the document base on nested routes, while `public/_headers` uses
+`base-uri 'self'` so Angular's same-origin `<base href="/">` continues to
+resolve relative build bundles (`styles-*.css`, `main-*.js`, `chunk-*.js`)
+without permitting cross-origin `<base>` injection. Serve `public/favicon.ico`
+as a fallback for clients that request the conventional URL. It wraps the
+existing 32×32 PNG; update both files together when changing the site icon.
