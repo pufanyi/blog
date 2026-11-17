@@ -19,9 +19,6 @@ export function enhancePost(container: HTMLElement): () => void {
     const view = doc.defaultView;
     if (!view) continue;
 
-    const controls = root.querySelector<HTMLElement>('.cg-tri-controls');
-    if (!controls) continue;
-
     const events = new view.AbortController();
     let activeBx: number = DEFAULT_BLOCK.bx;
     let activeBy: number = DEFAULT_BLOCK.by;
@@ -38,17 +35,15 @@ export function enhancePost(container: HTMLElement): () => void {
       const block = getBlockInfo(activeBx, activeBy);
       const decision = describeBlockDecision(block);
 
-      // 1. Global active block selection frame
+      // 1. Global active block selection frame and button pressed states
       setAttr('[data-tri-active-frame]', 'x', toGlobalSvgX(block.x0) + 1);
       setAttr('[data-tri-active-frame]', 'y', toGlobalSvgY(block.y0 + BLOCK_SIZE) + 1);
-
-      // 2. Preset toggle buttons
-      for (const btn of root.querySelectorAll<HTMLButtonElement>('[data-tri-preset]')) {
-        const isCurrent = btn.dataset['triPreset'] === block.key;
-        btn.setAttribute('aria-pressed', isCurrent ? 'true' : 'false');
+      for (const hitRect of root.querySelectorAll<SVGRectElement>('[data-tri-block]')) {
+        const isCurrent = hitRect.dataset['triBlock'] === block.key;
+        hitRect.setAttribute('aria-pressed', isCurrent ? 'true' : 'false');
       }
 
-      // 3. Zoom panel root role, title, and heading
+      // 2. Zoom panel root role, title, and heading
       setAttr('[data-tri-zoom-root]', 'data-role', block.classification);
       setText(
         '#cg-tri-zoom-title',
@@ -56,7 +51,7 @@ export function enhancePost(container: HTMLElement): () => void {
       );
       setText('[data-tri-zoom-heading]', `区块 (${block.bx}, ${block.by}) · ${decision.badgeText}`);
 
-      // 4. Zoom 4x4 cells and 16 sample dots
+      // 3. Zoom 4x4 cells and 16 sample dots
       for (const sample of block.samples) {
         const cellKey = `${sample.localCol},${sample.localRow}`;
         const covered = sample.inside ? 'true' : 'false';
@@ -64,56 +59,60 @@ export function enhancePost(container: HTMLElement): () => void {
         setAttr(`[data-tri-zpt="${cellKey}"]`, 'data-covered', covered);
       }
 
-      // 5. Clipped triangle inside zoom window
+      // 4. Clipped triangle inside zoom window
       const zoomTriPoints = TRIANGLE_VERTICES.map(
         (v) => `${fmt(toZoomSvgX(v.x, block.x0))},${fmt(toZoomSvgY(v.y, block.y0))}`,
       ).join(' ');
       setAttr('[data-tri-ztriangle-fill]', 'points', zoomTriPoints);
       setAttr('[data-tri-ztriangle-stroke]', 'points', zoomTriPoints);
 
-      // 6. Sample bounding box role
+      // 5. Sample bounding box role
       setAttr('[data-tri-zsample-box]', 'data-role', block.classification);
 
-      // 7. Coordinate ticks
+      // 6. Coordinate ticks
       for (let i = 0; i <= BLOCK_SIZE; i++) {
         setText(`[data-tri-zx-tick="${i}"]`, String(block.x0 + i));
         setText(`[data-tri-zy-tick="${i}"]`, String(block.y0 + i));
       }
 
-      // 8. Live readout
+      // 7. Live readout
       setText('[data-tri-readout-title]', decision.readoutTitle);
       setText('[data-tri-readout-note]', decision.boxDiffNote);
+    };
+
+    const selectBlock = (key: string | undefined) => {
+      const [bxStr, byStr] = (key ?? '2,3').split(',');
+      activeBx = Number(bxStr);
+      activeBy = Number(byStr);
+      render();
     };
 
     const options = { signal: events.signal };
 
     for (const hitRect of root.querySelectorAll<SVGRectElement>('[data-tri-block]')) {
+      hitRect.addEventListener('click', () => selectBlock(hitRect.dataset['triBlock']), options);
       hitRect.addEventListener(
-        'click',
-        () => {
-          const [bxStr, byStr] = (hitRect.dataset['triBlock'] ?? '2,3').split(',');
-          activeBx = Number(bxStr);
-          activeBy = Number(byStr);
-          render();
+        'keydown',
+        (event) => {
+          if (event.key === 'Enter') {
+            selectBlock(hitRect.dataset['triBlock']);
+          } else if (event.key === ' ') {
+            event.preventDefault();
+          }
+        },
+        options,
+      );
+      hitRect.addEventListener(
+        'keyup',
+        (event) => {
+          if (event.key === ' ') {
+            selectBlock(hitRect.dataset['triBlock']);
+          }
         },
         options,
       );
     }
 
-    for (const btn of root.querySelectorAll<HTMLButtonElement>('[data-tri-preset]')) {
-      btn.addEventListener(
-        'click',
-        () => {
-          const [bxStr, byStr] = (btn.dataset['triPreset'] ?? '2,3').split(',');
-          activeBx = Number(bxStr);
-          activeBy = Number(byStr);
-          render();
-        },
-        options,
-      );
-    }
-
-    controls.hidden = false;
     root.dataset['triReady'] = 'true';
     render();
 

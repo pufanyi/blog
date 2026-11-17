@@ -1,7 +1,6 @@
 import {
   ALL_BLOCKS,
   BLOCK_COUNT,
-  BLOCK_PRESETS,
   BLOCK_SIZE,
   DEFAULT_BLOCK,
   describeBlockDecision,
@@ -33,7 +32,7 @@ function GlobalBlocksPanel() {
     <div className="cg-tri-panel">
       <svg
         viewBox={`0 0 ${GLOBAL_PANEL_VIEW.width} ${GLOBAL_PANEL_VIEW.height}`}
-        role="img"
+        role="group"
         aria-labelledby="cg-tri-global-title cg-tri-global-desc"
       >
         <title id="cg-tri-global-title">
@@ -247,17 +246,24 @@ function GlobalBlocksPanel() {
 
         {/* Interactive 4x4 block hit targets */}
         <g className="cg-tri-hit-layer">
-          {ALL_BLOCKS.map((block) => (
-            <rect
-              key={`hit-${block.key}`}
-              data-tri-block={block.key}
-              x={toGlobalSvgX(block.x0)}
-              y={toGlobalSvgY(block.y0 + BLOCK_SIZE)}
-              width={blockSpan}
-              height={blockSpan}
-              className="cg-tri-block-hit"
-            />
-          ))}
+          {ALL_BLOCKS.map((block) => {
+            const isDefault = block.bx === DEFAULT_BLOCK.bx && block.by === DEFAULT_BLOCK.by;
+            return (
+              <rect
+                key={`hit-${block.key}`}
+                data-tri-block={block.key}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isDefault ? 'true' : 'false'}
+                aria-label={`查看区块 (${block.bx}, ${block.by})：${block.classification}`}
+                x={toGlobalSvgX(block.x0)}
+                y={toGlobalSvgY(block.y0 + BLOCK_SIZE)}
+                width={blockSpan}
+                height={blockSpan}
+                className="cg-tri-block-hit"
+              />
+            );
+          })}
         </g>
       </svg>
     </div>
@@ -454,28 +460,6 @@ function BlockCoverageFigure() {
         <span data-tri-readout-note="">{initialDecision.boxDiffNote}</span>
       </div>
 
-      <div
-        className="cg-tri-controls"
-        role="group"
-        aria-label="选择要放大查看的 4×4 像素区块"
-        data-agent-omit=""
-        hidden
-      >
-        {BLOCK_PRESETS.map((preset) => {
-          const isDefault = preset.bx === DEFAULT_BLOCK.bx && preset.by === DEFAULT_BLOCK.by;
-          return (
-            <button
-              key={`${preset.bx},${preset.by}`}
-              type="button"
-              data-tri-preset={`${preset.bx},${preset.by}`}
-              aria-pressed={isDefault ? 'true' : 'false'}
-            >
-              {preset.label}
-            </button>
-          );
-        })}
-      </div>
-
       <figcaption>
         将 16 × 16 像素划分为 4 × 4 区块后，线性边函数{' '}
         <span className="math-inline">{String.raw`\(E_{AB}, E_{BC}, E_{CA}\)`}</span> 在采样框{' '}
@@ -485,7 +469,7 @@ function BlockCoverageFigure() {
         （整块命中）；某边最大值 <span className="math-inline">{String.raw`\(< 0\)`}</span> 时为{' '}
         <strong>early-out</strong>
         （整块剔除）；其余为 <strong>else</strong>，需继续细分。
-        <span data-agent-omit="">点击左图任意区块或上方按钮可切换查看。</span>
+        <span data-agent-omit="">点击左图任意区块可切换查看。</span>
       </figcaption>
     </figure>
   );

@@ -2190,36 +2190,6 @@
   color: var(--text-secondary);
 }
 
-.cg-tri-controls:not([hidden]) {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.45rem 0.55rem;
-  margin-top: 0.65rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border-light);
-}
-
-.cg-tri-controls button {
-  min-block-size: 44px;
-  padding: 0 0.75rem;
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
-  background: var(--paper-bg);
-  color: var(--text-color);
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.82rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.cg-tri-controls button[aria-pressed="true"] {
-  border-color: var(--accent-blue);
-  background: color-mix(in srgb, var(--accent-blue) 14%, var(--paper-bg));
-  color: var(--accent-blue);
-  font-weight: 600;
-}
-
 .cg-tri :focus-visible {
   outline: 2px solid var(--accent-ochre);
   outline-offset: 3px;

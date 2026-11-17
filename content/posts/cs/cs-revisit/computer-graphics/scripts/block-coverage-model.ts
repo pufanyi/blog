@@ -53,12 +53,6 @@ export interface BlockCoverageInfo {
   readonly canonicalLabel?: 'early out' | 'early in' | 'else';
 }
 
-export interface BlockPreset {
-  readonly bx: number;
-  readonly by: number;
-  readonly label: string;
-}
-
 export const GRID_SIZE = 16;
 export const BLOCK_SIZE = 4;
 export const BLOCK_COUNT = GRID_SIZE / BLOCK_SIZE;
@@ -82,12 +76,6 @@ export const CANONICAL_BLOCKS: readonly {
   { bx: 0, by: 3, label: 'early out' },
   { bx: 2, by: 1, label: 'early in' },
   { bx: 2, by: 3, label: 'else' },
-];
-
-export const BLOCK_PRESETS: readonly BlockPreset[] = [
-  { bx: 2, by: 3, label: 'else (2, 3)' },
-  { bx: 2, by: 1, label: 'early-in (2, 1)' },
-  { bx: 0, by: 3, label: 'early-out (0, 3)' },
 ];
 
 export const GLOBAL_PANEL_VIEW = {
