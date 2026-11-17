@@ -15,6 +15,8 @@ import {
 } from './bresenham-model';
 
 const STEP_INPUT_ID = 'cg-bres-step-input';
+const GLOBAL_X_TICKS = [0, 2, 4, 6, 8, 10] as const;
+const GLOBAL_Y_TICKS = [0, 2, 4, 6] as const;
 
 function GlobalGridPanel() {
   const zoom = computeZoomGeometry(DEFAULT_STEP);
@@ -34,23 +36,18 @@ function GlobalGridPanel() {
       >
         <title id="cg-bres-global-title">全局像素网格：沿列中心从左向右逐列扫描直线</title>
         <desc id="cg-bres-global-desc">
-          11 乘 6 像素网格，整数网格线围成单位正方形像素，圆点标出半整数像素中心。理想直线从 (0.5,
-          0.5) 连到 (10.5, 4.5)，斜率为 0.4；绿色方格为选出的 11 个像素，蓝色虚线框标出右侧放大的 2
-          乘 2 局部窗口。
+          11 乘 6 像素网格，理想直线从 (0.5, 0.5) 连到 (10.5, 4.5)，斜率为
+          0.4；绿色方格为已选出的像素，蓝色虚线框标出右侧放大的 2 乘 2 局部窗口。
         </desc>
 
         <text className="cg-bres-panel-title" x="14" y="21">
-          全局扫描：逐列取中心 <tspan className="cg-bres-math">x</tspan>
-          <tspan className="cg-bres-math cg-bres-sub" dy="2.5">
-            i
-          </tspan>
-          <tspan dy="-2.5"> + 0.5</tspan>
+          全局扫描
         </text>
 
         {/* Compact legend in top-right */}
-        <g className="cg-bres-legend" transform="translate(212 16)">
+        <g className="cg-bres-legend" transform="translate(216 17)">
           <line x1="0" y1="0" x2="16" y2="0" className="cg-bres-ideal" />
-          <text x="20" y="4">
+          <text x="20" y="3.5">
             理想直线
           </text>
           <rect
@@ -62,12 +59,12 @@ function GlobalGridPanel() {
             className="cg-bres-cell"
             data-role="scanned"
           />
-          <text x="93" y="4">
+          <text x="93" y="3.5">
             选中像素
           </text>
         </g>
 
-        {/* Pixel grid cells and half-integer center dots */}
+        {/* Pixel grid cells and center dots */}
         {Array.from({ length: GRID_ROWS }, (_, row) =>
           Array.from({ length: GRID_COLS }, (_, col) => {
             const role = getGlobalCellRole(col, row, DEFAULT_STEP);
@@ -88,14 +85,14 @@ function GlobalGridPanel() {
                   className="cg-bres-cell"
                   data-role={role}
                 />
-                <circle cx={cx} cy={cy} r={role === 'empty' ? 1.15 : 2.1} className="cg-bres-dot" />
+                <circle cx={cx} cy={cy} r="1.9" className="cg-bres-dot" />
               </g>
             );
           }),
         )}
 
-        {/* Integer coordinate ticks along x and y */}
-        {Array.from({ length: GRID_COLS + 1 }, (_, gx) => (
+        {/* Sparse integer coordinate ticks */}
+        {GLOBAL_X_TICKS.map((gx) => (
           <text
             key={`gx-${gx}`}
             className="cg-bres-tick"
@@ -106,7 +103,7 @@ function GlobalGridPanel() {
             {gx}
           </text>
         ))}
-        {Array.from({ length: GRID_ROWS + 1 }, (_, gy) => (
+        {GLOBAL_Y_TICKS.map((gy) => (
           <text
             key={`gy-${gy}`}
             className="cg-bres-tick"
@@ -119,7 +116,7 @@ function GlobalGridPanel() {
         ))}
         <text
           className="cg-bres-axis-var"
-          x={toGlobalX(GRID_COLS) + 12}
+          x={toGlobalX(GRID_COLS) + 10}
           y={GLOBAL_VIEW.originY + 4}
         >
           x
@@ -140,7 +137,7 @@ function GlobalGridPanel() {
           y={winSvgY}
           width={winSize}
           height={winSize}
-          rx="4"
+          rx="3"
           className="cg-bres-window"
         />
 
@@ -148,17 +145,20 @@ function GlobalGridPanel() {
         <line
           data-bres-scan=""
           x1={scanX}
-          y1={toGlobalY(GRID_ROWS) - 6}
+          y1={toGlobalY(GRID_ROWS) - 4}
           x2={scanX}
-          y2={GLOBAL_VIEW.originY + 22}
+          y2={GLOBAL_VIEW.originY + 6}
           className="cg-bres-scan"
         />
-        <g data-bres-scan-badge="" transform={`translate(${scanX} ${GLOBAL_VIEW.originY + 36})`}>
-          <rect x="-29" y="-11" width="58" height="17" rx="8.5" className="cg-bres-pill" />
-          <text data-bres-scan-text="" y="1" textAnchor="middle" className="cg-bres-pill-text">
-            {`x = ${fmt(step.sampleX)}`}
-          </text>
-        </g>
+        <text
+          data-bres-scan-text=""
+          x={scanX}
+          y={GLOBAL_VIEW.originY + 28}
+          textAnchor="middle"
+          className="cg-bres-scan-label"
+        >
+          {`x = ${fmt(step.sampleX)}`}
+        </text>
 
         {/* Ideal continuous line and endpoints */}
         <line
@@ -172,17 +172,17 @@ function GlobalGridPanel() {
           className="cg-bres-endpoint"
           cx={toGlobalX(START_POINT.x)}
           cy={toGlobalY(START_POINT.y)}
-          r="3"
+          r="2.8"
         />
         <circle
           className="cg-bres-endpoint"
           cx={toGlobalX(END_POINT.x)}
           cy={toGlobalY(END_POINT.y)}
-          r="3"
+          r="2.8"
         />
 
         {/* Exact line intersection on active scan column */}
-        <circle data-bres-hit="" cx={scanX} cy={hitY} r="3.8" className="cg-bres-hit" />
+        <circle data-bres-hit="" cx={scanX} cy={hitY} r="3.6" className="cg-bres-hit" />
 
         {/* Interactive column hit strips (active after client enhancement) */}
         <g className="cg-bres-hit-layer">
@@ -222,7 +222,7 @@ function ZoomDecisionPanel() {
         <title id="cg-bres-zoom-title">{`局部放大：在 x = ${fmt(step.sampleX)} 处比较上下两个候选像素`}</title>
         <desc id="cg-bres-zoom-desc">
           放大相邻两列、上下两行的 2 乘 2
-          像素窗口。水平红色虚线为上下两候选像素的整数分界线，恰好位于两像素中心的中点；理想直线高度越过该分界时取整上移一行，否则保持同行。
+          像素窗口。水平红色虚线为上下两候选像素的整数分界线，理想直线高度越过该分界时取整上移一行，否则保持同行。
         </desc>
         <defs>
           <clipPath id="cg-bres-zoom-clip">
@@ -242,7 +242,7 @@ function ZoomDecisionPanel() {
         </defs>
 
         <text data-bres-zoom-heading="" className="cg-bres-panel-title" x="14" y="21">
-          {`局部放大：列中心 x = ${fmt(step.sampleX)}`}
+          {`局部放大 · x = ${fmt(step.sampleX)}`}
         </text>
 
         {/* 2x2 magnified cells */}
@@ -268,7 +268,7 @@ function ZoomDecisionPanel() {
                   className="cg-bres-cell"
                   data-role={role}
                 />
-                <circle cx={cx} cy={cy} r="3.2" className="cg-bres-dot" />
+                <circle cx={cx} cy={cy} r="3" className="cg-bres-dot" />
               </g>
             );
           }),
@@ -287,55 +287,11 @@ function ZoomDecisionPanel() {
         <line
           data-bres-zscan=""
           x1={zoom.activeCenterX}
-          y1={gridTop - 6}
+          y1={gridTop - 4}
           x2={zoom.activeCenterX}
-          y2={ZOOM_VIEW.originY + 8}
+          y2={ZOOM_VIEW.originY + 6}
           className="cg-bres-scan"
         />
-
-        {/* Slope +m step from previous column (hidden at step 0) */}
-        <g data-bres-zrise="" visibility={step.index === 0 ? 'hidden' : 'visible'}>
-          <line
-            data-bres-zrise-base=""
-            x1={zoom.prevCenterX}
-            y1={zoom.prevExactSvgY}
-            x2={zoom.riseX}
-            y2={zoom.prevExactSvgY}
-            className="cg-bres-rise-guide"
-          />
-          <line
-            data-bres-zrise-vec=""
-            x1={zoom.riseX}
-            y1={zoom.prevExactSvgY}
-            x2={zoom.riseX}
-            y2={zoom.exactSvgY}
-            className="cg-bres-rise-vec"
-          />
-          <line
-            data-bres-zrise-cap=""
-            x1={zoom.riseX}
-            y1={zoom.exactSvgY}
-            x2={zoom.activeCenterX}
-            y2={zoom.exactSvgY}
-            className="cg-bres-rise-guide"
-          />
-          <circle
-            data-bres-zprev-hit=""
-            cx={zoom.prevCenterX}
-            cy={zoom.prevExactSvgY}
-            r="3"
-            className="cg-bres-prev-hit"
-          />
-          <text
-            data-bres-zrise-label=""
-            x={zoom.riseX - 5}
-            y={(zoom.prevExactSvgY + zoom.exactSvgY) / 2 + 4}
-            textAnchor="end"
-            className="cg-bres-rise-label"
-          >
-            +m
-          </text>
-        </g>
 
         {/* Clipped ideal line segment */}
         <line
@@ -365,7 +321,7 @@ function ZoomDecisionPanel() {
           data-bres-zchosen=""
           cx={zoom.activeCenterX}
           cy={zoom.chosenCenterSvgY}
-          r="5"
+          r="5.5"
           className="cg-bres-chosen-ring"
         />
 
@@ -374,7 +330,7 @@ function ZoomDecisionPanel() {
           data-bres-zhit=""
           cx={zoom.activeCenterX}
           cy={zoom.exactSvgY}
-          r="4.2"
+          r="4"
           className="cg-bres-hit"
         />
         <text
@@ -419,39 +375,11 @@ function ZoomDecisionPanel() {
           y
         </text>
 
-        {/* Bottom integer x-axis ticks and half-integer column centers */}
-        <text
-          data-bres-zx0=""
-          x={gridLeft}
-          y={ZOOM_VIEW.originY + 16}
-          textAnchor="middle"
-          className="cg-bres-tick"
-        >
-          {winX0}
-        </text>
-        <text
-          data-bres-zx1=""
-          x={gridLeft + ZOOM_VIEW.cell}
-          y={ZOOM_VIEW.originY + 16}
-          textAnchor="middle"
-          className="cg-bres-tick"
-        >
-          {winX0 + 1}
-        </text>
-        <text
-          data-bres-zx2=""
-          x={gridLeft + gridSize}
-          y={ZOOM_VIEW.originY + 16}
-          textAnchor="middle"
-          className="cg-bres-tick"
-        >
-          {winX0 + 2}
-        </text>
-
+        {/* Single clean bottom row of half-integer column centers */}
         <text
           data-bres-zc0=""
           x={col0CenterX}
-          y={ZOOM_VIEW.originY + 38}
+          y={ZOOM_VIEW.originY + 20}
           textAnchor="middle"
           className={
             zoom.activeColIndex === 0 ? 'cg-bres-center-tick is-active' : 'cg-bres-center-tick'
@@ -462,7 +390,7 @@ function ZoomDecisionPanel() {
         <text
           data-bres-zc1=""
           x={col1CenterX}
-          y={ZOOM_VIEW.originY + 38}
+          y={ZOOM_VIEW.originY + 20}
           textAnchor="middle"
           className={
             zoom.activeColIndex === 1 ? 'cg-bres-center-tick is-active' : 'cg-bres-center-tick'
@@ -471,41 +399,33 @@ function ZoomDecisionPanel() {
           {zoom.activeColIndex === 1 ? `x = ${fmt(winX0 + 1.5)}` : fmt(winX0 + 1.5)}
         </text>
 
-        {/* Right-side horizontal callouts for upper center, boundary, and lower center */}
-        <g transform={`translate(${gridLeft + gridSize + 10} ${zoom.upperCenterY})`}>
-          <text data-bres-upper-center="" y="-2" className="cg-bres-callout-title">
-            {`中心 ${fmt(winY0 + 1.5)}`}
-          </text>
-          <text
-            data-bres-upper-status=""
-            y="12"
-            className={step.steppedUp ? 'cg-bres-callout-sub is-selected' : 'cg-bres-callout-sub'}
-          >
-            {zoom.upperStatus}
-          </text>
-        </g>
+        {/* Concise single-line right-side callouts */}
+        <text
+          data-bres-upper-status=""
+          x={gridLeft + gridSize + 10}
+          y={zoom.upperCenterY + 4}
+          className={step.steppedUp ? 'cg-bres-callout-sub is-selected' : 'cg-bres-callout-sub'}
+        >
+          {zoom.upperStatus}
+        </text>
 
-        <g transform={`translate(${gridLeft + gridSize + 10} ${zoom.boundarySvgY})`}>
-          <text data-bres-boundary-title="" y="-2" className="cg-bres-callout-boundary">
-            {`分界 y = ${winY0 + 1}`}
-          </text>
-          <text y="12" className="cg-bres-callout-sub">
-            两中心中点
-          </text>
-        </g>
+        <text
+          data-bres-boundary-title=""
+          x={gridLeft + gridSize + 10}
+          y={zoom.boundarySvgY + 4}
+          className="cg-bres-callout-boundary"
+        >
+          {`分界 y = ${winY0 + 1}`}
+        </text>
 
-        <g transform={`translate(${gridLeft + gridSize + 10} ${zoom.lowerCenterY})`}>
-          <text data-bres-lower-center="" y="-2" className="cg-bres-callout-title">
-            {`中心 ${fmt(winY0 + 0.5)}`}
-          </text>
-          <text
-            data-bres-lower-status=""
-            y="12"
-            className={!step.steppedUp ? 'cg-bres-callout-sub is-selected' : 'cg-bres-callout-sub'}
-          >
-            {zoom.lowerStatus}
-          </text>
-        </g>
+        <text
+          data-bres-lower-status=""
+          x={gridLeft + gridSize + 10}
+          y={zoom.lowerCenterY + 4}
+          className={!step.steppedUp ? 'cg-bres-callout-sub is-selected' : 'cg-bres-callout-sub'}
+        >
+          {zoom.lowerStatus}
+        </text>
       </svg>
     </div>
   );
@@ -519,7 +439,7 @@ function BresenhamFigure() {
     <figure className="cg-bres" data-bresenham="" data-post-enhancement="bresenham">
       <div className="cg-bres-heading">
         <strong>Bresenham 直线光栅化</strong>
-        <span>(0.5, 0.5) → (10.5, 4.5) · 斜率 m = 2/5 = 0.4</span>
+        <span>(0.5, 0.5) → (10.5, 4.5) · 斜率 m = 0.4</span>
       </div>
 
       <div className="cg-bres-panels">
@@ -528,10 +448,8 @@ function BresenhamFigure() {
       </div>
 
       <div className="cg-bres-readout" aria-live="polite">
-        <span data-bres-formula-x="">{`采样中心 x = ${fmt(step.sampleX)}（第 ${step.x} 列）`}</span>
-        <span data-bres-formula-y="">
-          {`直线高度 ${fmt(step.exactY)} → ⌊${fmt(step.exactY)}⌋ + 0.5 = ${fmt(step.centerY)}`}
-        </span>
+        <span data-bres-formula-x="">{`采样 x = ${fmt(step.sampleX)}`}</span>
+        <span data-bres-formula-y="">{`高度 y = ${fmt(step.exactY)}`}</span>
         <strong data-bres-formula-decision="">{initialZoom.decisionSummary}</strong>
       </div>
 
@@ -562,18 +480,11 @@ function BresenhamFigure() {
       </div>
 
       <figcaption>
-        整数网格线围成单位正方形像素，圆点标出像素中心{' '}
-        <span className="math-inline">{String.raw`\((x_i + \frac{1}{2},\, y_i + \frac{1}{2})\)`}</span>
-        。左图沿 <span className="math-inline">{String.raw`\(x_i + \frac{1}{2}\)`}</span>{' '}
-        从左向右逐列扫描；右图放大当前列的二选一判定：由于斜率{' '}
-        <span className="math-inline">{String.raw`\(m \in [0, 1]\)`}</span>
-        ，每向右一列理想高度只增加 <span className="math-inline">{String.raw`\(+m\)`}</span>
-        ，只需看交点高度是否越过上下两候选像素的整数分界线{' '}
-        <span className="math-inline">{String.raw`\(y = y_{i-1} + 1\)`}</span>
-        （等价于比较与两像素中心的距离，或直接计算{' '}
-        <span className="math-inline">{String.raw`\(\lfloor y \rfloor + \frac{1}{2}\)`}</span>
-        ），无需在每列重复做除法。
-        <span data-agent-omit="">点击左图任意列或拖动滑块可查看每一步判定。</span>
+        左图沿列中心 <span className="math-inline">{String.raw`\(x_i + \frac{1}{2}\)`}</span>{' '}
+        逐列扫描；右图放大当前 2 × 2 窗口，只需判断交点高度{' '}
+        <span className="math-inline">{String.raw`\(y\)`}</span> 是否越过上下两候选像素的整数分界线{' '}
+        <span className="math-inline">{String.raw`\(y_{i-1} + 1\)`}</span> 即可决定是否上移一行。
+        <span data-agent-omit="">点击左图任意列或拖动滑块可逐步查看。</span>
       </figcaption>
     </figure>
   );

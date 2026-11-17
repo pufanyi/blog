@@ -11,8 +11,6 @@ import {
   toZoomSvgY,
 } from './block-coverage-model';
 
-const MAX_BOX_INTERSECTIONS = 6;
-
 export function enhancePost(container: HTMLElement): () => void {
   const cleanups: (() => void)[] = [];
 
@@ -54,12 +52,9 @@ export function enhancePost(container: HTMLElement): () => void {
       setAttr('[data-tri-zoom-root]', 'data-role', block.classification);
       setText(
         '#cg-tri-zoom-title',
-        `局部放大：区块 (${block.bx}, ${block.by}) 的采样包围盒 [x_l, x_r] × [y_l, y_r] 与 ${decision.badgeText} 判定`,
+        `局部放大：区块 (${block.bx}, ${block.by}) 的采样包围盒与 ${decision.badgeText} 判定`,
       );
-      setText(
-        '[data-tri-zoom-heading]',
-        `局部放大：区块 (${block.bx}, ${block.by}) · ${decision.badgeText}`,
-      );
+      setText('[data-tri-zoom-heading]', `区块 (${block.bx}, ${block.by}) · ${decision.badgeText}`);
 
       // 4. Zoom 4x4 cells and 16 sample dots
       for (const sample of block.samples) {
@@ -76,37 +71,16 @@ export function enhancePost(container: HTMLElement): () => void {
       setAttr('[data-tri-ztriangle-fill]', 'points', zoomTriPoints);
       setAttr('[data-tri-ztriangle-stroke]', 'points', zoomTriPoints);
 
-      // 6. Sample bounding box role & edge-box intersection markers
+      // 6. Sample bounding box role
       setAttr('[data-tri-zsample-box]', 'data-role', block.classification);
-      for (let idx = 0; idx < MAX_BOX_INTERSECTIONS; idx++) {
-        const hit = block.sampleBoxIntersections[idx];
-        const selector = `[data-tri-zhit="${idx}"]`;
-        if (hit) {
-          const hx = toZoomSvgX(hit.x, block.x0);
-          const hy = toZoomSvgY(hit.y, block.y0);
-          setAttr(selector, 'transform', `translate(${fmt(hx)} ${fmt(hy)})`);
-          setAttr(selector, 'visibility', 'visible');
-        } else {
-          setAttr(selector, 'visibility', 'hidden');
-        }
-      }
 
-      // 7. Coordinate ticks and sample box bounds
+      // 7. Coordinate ticks
       for (let i = 0; i <= BLOCK_SIZE; i++) {
         setText(`[data-tri-zx-tick="${i}"]`, String(block.x0 + i));
         setText(`[data-tri-zy-tick="${i}"]`, String(block.y0 + i));
       }
-      setText('[data-tri-zx-min]', `xₗ = ${fmt(block.sampleBox.xMin)}`);
-      setText('[data-tri-zx-max]', `xᵣ = ${fmt(block.sampleBox.xMax)}`);
-      setText('[data-tri-zy-min]', `yₗ = ${fmt(block.sampleBox.yMin)}`);
-      setText('[data-tri-zy-max]', `yᵣ = ${fmt(block.sampleBox.yMax)}`);
 
-      // 8. Decision card and live readout
-      setAttr('[data-tri-card-bg]', 'data-role', block.classification);
-      setText('[data-tri-step1]', decision.step1);
-      setText('[data-tri-step2]', decision.step2);
-      setAttr('[data-tri-verdict]', 'data-role', block.classification);
-      setText('[data-tri-verdict]', decision.verdict);
+      // 8. Live readout
       setText('[data-tri-readout-title]', decision.readoutTitle);
       setText('[data-tri-readout-note]', decision.boxDiffNote);
     };

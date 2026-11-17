@@ -20,22 +20,22 @@ export const END_POINT = { x: 10.5, y: 4.5 } as const;
 export const DELTA_X = END_POINT.x - START_POINT.x;
 export const DELTA_Y = END_POINT.y - START_POINT.y;
 export const SLOPE = DELTA_Y / DELTA_X;
-export const DEFAULT_STEP = 2;
+export const DEFAULT_STEP = 7;
 
 export const GLOBAL_VIEW = {
   width: 384,
-  height: 272,
-  originX: 42,
-  originY: 214,
+  height: 248,
+  originX: 40,
+  originY: 212,
   cell: 28,
 } as const;
 
 export const ZOOM_VIEW = {
   width: 312,
-  height: 272,
-  originX: 46,
+  height: 248,
+  originX: 54,
   originY: 204,
-  cell: 78,
+  cell: 76,
 } as const;
 
 export const fmt = (value: number): string => {
@@ -170,16 +170,15 @@ export function computeZoomGeometry(stepIndex: number): ZoomGeometry {
     ],
   ];
 
-  const upperStatus = step.steppedUp ? '✓ 上移选中' : '候选（上移）';
-  const lowerStatus =
-    step.index === 0 ? '✓ 起点像素' : step.steppedUp ? '候选（同行）' : '✓ 同行选中';
+  const upperStatus = step.steppedUp ? `✓ 中心 ${fmt(winY0 + 1.5)}` : `中心 ${fmt(winY0 + 1.5)}`;
+  const lowerStatus = !step.steppedUp ? `✓ 中心 ${fmt(winY0 + 0.5)}` : `中心 ${fmt(winY0 + 0.5)}`;
 
   const decisionSummary =
     step.index === 0
-      ? `起点落在像素 (0, 0)，中心 (0.5, 0.5)`
+      ? `起点落在像素 (0, 0)`
       : step.steppedUp
-        ? `越过分界：${fmt(step.exactY)} ≥ ${step.boundaryY} → 上移选 (${step.x}, ${step.y})`
-        : `未越分界：${fmt(step.exactY)} < ${step.boundaryY} → 同行选 (${step.x}, ${step.y})`;
+        ? `${fmt(step.exactY)} ≥ ${step.boundaryY} → 上移选 (${step.x}, ${step.y})`
+        : `${fmt(step.exactY)} < ${step.boundaryY} → 同行选 (${step.x}, ${step.y})`;
 
   return {
     step,

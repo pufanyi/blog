@@ -60,24 +60,22 @@ export function enhancePost(container: HTMLElement): () => void {
         group.dataset['role'] = role;
         const rect = group.querySelector<SVGRectElement>('rect');
         if (rect) rect.dataset['role'] = role;
-        const dot = group.querySelector<SVGCircleElement>('circle');
-        if (dot) dot.setAttribute('r', role === 'empty' ? '1.15' : '2.1');
       }
 
-      // 2. Global scan line, window, badge, and intersection
+      // 2. Global scan line, window, label, and intersection
       const scanX = toGlobalX(step.sampleX);
       const hitY = toGlobalY(step.exactY);
       setAttr('[data-bres-window]', 'x', toGlobalX(winX0));
       setAttr('[data-bres-window]', 'y', toGlobalY(winY0 + 2));
       setAttr('[data-bres-scan]', 'x1', scanX);
       setAttr('[data-bres-scan]', 'x2', scanX);
-      setAttr('[data-bres-scan-badge]', 'transform', `translate(${scanX} ${toGlobalY(0) + 36})`);
+      setAttr('[data-bres-scan-text]', 'x', scanX);
       setText('[data-bres-scan-text]', `x = ${fmt(step.sampleX)}`);
       setAttr('[data-bres-hit]', 'cx', scanX);
       setAttr('[data-bres-hit]', 'cy', hitY);
 
       // 3. Zoom panel cells & geometry
-      setText('[data-bres-zoom-heading]', `局部放大：列中心 x = ${fmt(step.sampleX)}`);
+      setText('[data-bres-zoom-heading]', `局部放大 · x = ${fmt(step.sampleX)}`);
       for (const zgroup of root.querySelectorAll<SVGGElement>('[data-bres-zcell]')) {
         const [cOff, rOff] = (zgroup.dataset['bresZcell'] ?? '0,0').split(',').map(Number);
         const role = zoom.cellRoles[cOff]?.[rOff] ?? 'empty';
@@ -88,24 +86,6 @@ export function enhancePost(container: HTMLElement): () => void {
 
       setAttr('[data-bres-zscan]', 'x1', zoom.activeCenterX);
       setAttr('[data-bres-zscan]', 'x2', zoom.activeCenterX);
-      setAttr('[data-bres-zrise]', 'visibility', step.index === 0 ? 'hidden' : 'visible');
-      setAttr('[data-bres-zrise-base]', 'x1', zoom.prevCenterX);
-      setAttr('[data-bres-zrise-base]', 'y1', zoom.prevExactSvgY);
-      setAttr('[data-bres-zrise-base]', 'x2', zoom.riseX);
-      setAttr('[data-bres-zrise-base]', 'y2', zoom.prevExactSvgY);
-      setAttr('[data-bres-zrise-vec]', 'x1', zoom.riseX);
-      setAttr('[data-bres-zrise-vec]', 'y1', zoom.prevExactSvgY);
-      setAttr('[data-bres-zrise-vec]', 'x2', zoom.riseX);
-      setAttr('[data-bres-zrise-vec]', 'y2', zoom.exactSvgY);
-      setAttr('[data-bres-zrise-cap]', 'x1', zoom.riseX);
-      setAttr('[data-bres-zrise-cap]', 'y1', zoom.exactSvgY);
-      setAttr('[data-bres-zrise-cap]', 'x2', zoom.activeCenterX);
-      setAttr('[data-bres-zrise-cap]', 'y2', zoom.exactSvgY);
-      setAttr('[data-bres-zprev-hit]', 'cx', zoom.prevCenterX);
-      setAttr('[data-bres-zprev-hit]', 'cy', zoom.prevExactSvgY);
-      setAttr('[data-bres-zrise-label]', 'x', zoom.riseX - 5);
-      setAttr('[data-bres-zrise-label]', 'y', (zoom.prevExactSvgY + zoom.exactSvgY) / 2 + 4);
-
       setAttr('[data-bres-zline]', 'x1', zoom.idealLine.x1);
       setAttr('[data-bres-zline]', 'y1', zoom.idealLine.y1);
       setAttr('[data-bres-zline]', 'x2', zoom.idealLine.x2);
@@ -135,9 +115,6 @@ export function enhancePost(container: HTMLElement): () => void {
       setText('[data-bres-zy-top]', String(winY0 + 2));
       setText('[data-bres-zy-mid]', String(winY0 + 1));
       setText('[data-bres-zy-bot]', String(winY0));
-      setText('[data-bres-zx0]', String(winX0));
-      setText('[data-bres-zx1]', String(winX0 + 1));
-      setText('[data-bres-zx2]', String(winX0 + 2));
 
       const zc0 = root.querySelector<SVGTextElement>('[data-bres-zc0]');
       const zc1 = root.querySelector<SVGTextElement>('[data-bres-zc1]');
@@ -150,14 +127,12 @@ export function enhancePost(container: HTMLElement): () => void {
         zc1.classList.toggle('is-active', zoom.activeColIndex === 1);
       }
 
-      setText('[data-bres-upper-center]', `中心 ${fmt(winY0 + 1.5)}`);
       const upperStatus = root.querySelector<SVGTextElement>('[data-bres-upper-status]');
       if (upperStatus) {
         upperStatus.textContent = zoom.upperStatus;
         upperStatus.classList.toggle('is-selected', step.steppedUp);
       }
       setText('[data-bres-boundary-title]', `分界 y = ${winY0 + 1}`);
-      setText('[data-bres-lower-center]', `中心 ${fmt(winY0 + 0.5)}`);
       const lowerStatus = root.querySelector<SVGTextElement>('[data-bres-lower-status]');
       if (lowerStatus) {
         lowerStatus.textContent = zoom.lowerStatus;
@@ -165,11 +140,8 @@ export function enhancePost(container: HTMLElement): () => void {
       }
 
       // 5. Formula readout & controls
-      setText('[data-bres-formula-x]', `采样中心 x = ${fmt(step.sampleX)}（第 ${step.x} 列）`);
-      setText(
-        '[data-bres-formula-y]',
-        `直线高度 ${fmt(step.exactY)} → ⌊${fmt(step.exactY)}⌋ + 0.5 = ${fmt(step.centerY)}`,
-      );
+      setText('[data-bres-formula-x]', `采样 x = ${fmt(step.sampleX)}`);
+      setText('[data-bres-formula-y]', `高度 y = ${fmt(step.exactY)}`);
       setText('[data-bres-formula-decision]', zoom.decisionSummary);
 
       slider.value = String(currentStep);

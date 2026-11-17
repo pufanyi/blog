@@ -85,27 +85,25 @@ export const CANONICAL_BLOCKS: readonly {
 ];
 
 export const BLOCK_PRESETS: readonly BlockPreset[] = [
-  { bx: 2, by: 3, label: 'else 顶点块 (2, 3)' },
+  { bx: 2, by: 3, label: 'else (2, 3)' },
   { bx: 2, by: 1, label: 'early-in (2, 1)' },
   { bx: 0, by: 3, label: 'early-out (0, 3)' },
-  { bx: 2, by: 2, label: '采样框省检 early-in (2, 2)' },
-  { bx: 1, by: 3, label: '采样框省检 early-out (1, 3)' },
 ];
 
 export const GLOBAL_PANEL_VIEW = {
   width: 384,
-  height: 400,
-  originX: 42,
-  originY: 364,
-  cell: 19,
+  height: 372,
+  originX: 48,
+  originY: 342,
+  cell: 18,
 } as const;
 
 export const ZOOM_PANEL_VIEW = {
   width: 336,
-  height: 400,
-  originX: 48,
-  originY: 270,
-  cell: 50,
+  height: 372,
+  originX: 56,
+  originY: 310,
+  cell: 56,
 } as const;
 
 export const fmt = (value: number): string => {
@@ -383,16 +381,16 @@ export function describeBlockDecision(block: BlockCoverageInfo): {
   readonly readoutTitle: string;
   readonly boxDiffNote: string;
 } {
+  const rangeText = `[${fmt(block.sampleBox.xMin)}, ${fmt(block.sampleBox.xMax)}] × [${fmt(block.sampleBox.yMin)}, ${fmt(block.sampleBox.yMax)}]`;
+
   if (block.classification === 'early-in') {
     return {
       badgeText: 'early-in',
-      step1: '① 三条边在 [xₗ,xᵣ]×[yₗ,yᵣ] 上 min E ≥ 0',
-      step2: '② 四角采样点 4 / 4 在内，凸性覆盖全块',
-      verdict: '⇒ early-in：O(1) 判定 16 / 16 像素覆盖',
-      readoutTitle: `区块 (${block.bx}, ${block.by}) · early-in（覆盖 16 / 16）`,
-      boxDiffNote: block.sampleBoxSavedTests
-        ? '像素 4×4 外框右上角落在三角形外，若按外框会误入 else；改用紧贴采样中心的 [xₗ, xᵣ]×[yₗ, yᵣ] 包围盒后，三边 min E ≥ 0，直接 early-in 免测其余 12 点。'
-        : '线性函数 E_AB、E_BC、E_CA 在 [xₗ, xᵣ]×[yₗ, yᵣ] 上的最小值均 ≥ 0（等价于四角均在内），O(1) 确认块内 16 个采样点全部命中。',
+      step1: '① 三边 min E ≥ 0',
+      step2: '② 四角 4 / 4 在内',
+      verdict: '⇒ early-in：16 / 16 全覆盖',
+      readoutTitle: `区块 (${block.bx}, ${block.by}) · early-in（16 / 16 命中）`,
+      boxDiffNote: `采样框 ${rangeText} · 三边 min E ≥ 0（4 / 4 角在内），整块直接覆盖`,
     };
   }
 
@@ -400,23 +398,20 @@ export function describeBlockDecision(block: BlockCoverageInfo): {
     const edgeLabel = block.separatingEdge ?? 'CA';
     return {
       badgeText: 'early-out',
-      step1: `① 边 ${edgeLabel} 在 [xₗ,xᵣ]×[yₗ,yᵣ] 上 max E_${edgeLabel} < 0`,
-      step2: '② 整块位于该有向边外侧（与边 0 交点）',
-      verdict: '⇒ early-out：O(1) 跳过 0 / 16 像素',
-      readoutTitle: `区块 (${block.bx}, ${block.by}) · early-out（覆盖 0 / 16）`,
-      boxDiffNote: block.sampleBoxSavedTests
-        ? `三角形边擦过像素 4×4 外框右下角却未触及任何采样中心；在采样包围盒 [xₗ, xᵣ]×[yₗ, yᵣ] 上 max E_${edgeLabel} < 0，O(1) 直接排除整块。`
-        : `线性函数 E_${edgeLabel} 在采样包围盒极值角点处仍 < 0（max E_${edgeLabel} < 0），整块位于有向边外侧，16 个像素一次性跳过。`,
+      step1: `① 边 ${edgeLabel} max E < 0`,
+      step2: '② 整块位于该边外侧',
+      verdict: '⇒ early-out：0 / 16 全剔除',
+      readoutTitle: `区块 (${block.bx}, ${block.by}) · early-out（0 / 16 命中）`,
+      boxDiffNote: `采样框 ${rangeText} · 边 ${edgeLabel} 的 max E < 0，整块直接跳过`,
     };
   }
 
   return {
     badgeText: 'else',
-    step1: `① 存在边 min E < 0（仅 ${block.cornersInside} / 4 角在三角形内）`,
-    step2: `② 但三边 max E ≥ 0，边穿采样框 ${block.sampleBoxIntersections.length} 处`,
-    verdict: `⇒ else：细测 16 个像素中心，命中 ${block.coveredCount} / 16`,
-    readoutTitle: `区块 (${block.bx}, ${block.by}) · else（覆盖 ${block.coveredCount} / 16）`,
-    boxDiffNote:
-      '至少一条边在 [xₗ, xᵣ]×[yₗ, yᵣ] 上变号（min E < 0 且 max E ≥ 0），三角形边界穿过采样包围盒，需逐像素测试或继续细分子块。',
+    step1: `① 仅 ${block.cornersInside} / 4 角在内`,
+    step2: '② 三角形边界穿过采样框',
+    verdict: `⇒ else：细测命中 ${block.coveredCount} / 16`,
+    readoutTitle: `区块 (${block.bx}, ${block.by}) · else（${block.coveredCount} / 16 命中）`,
+    boxDiffNote: `采样框 ${rangeText} · 仅 ${block.cornersInside} / 4 角在内，需细分`,
   };
 }
