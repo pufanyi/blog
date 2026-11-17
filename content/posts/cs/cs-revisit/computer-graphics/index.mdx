@@ -122,6 +122,19 @@ $$
 
 <BresenhamFigure />
 
-对于三角形，我们先考虑一个点是否在三角形内。这个用三个叉积很容易判断。
+对于三角形，我们先考虑一个点是否在三角形内。这个用三个叉积很容易判断。假设三角形 $\triangle ABC$，三个点 $A, B, C$ 逆时针转。对于有向边 $\overrightarrow{AB}$，我们定义 edge function
 
-但判断一个点显然是非常费力的。
+$$
+E_{AB}(x, y) = (x_B-x_A)(y-y_A) - (y_B-y_A)(x-x_A)
+$$
+
+那么 $P=(x, y)$ 要在三角形里，需要
+
+$$
+E_{AB}\ge 0, \qquad E_{BC}\ge 0, \qquad E_{CA}\ge 0.
+$$
+
+但判断一个点显然是非常费力的。对于一个区块 $[x_l, x_r]\times [y_l, y_r]$，我们可以将其分成 early-in，early-out 和 else 三种。我们发现 $E$ 是线性函数，那么对于任意一个区块，很容易 $\mathcal{O}(1)$ 判别这三者。
+
+<BlockCoverageFigure />
+
