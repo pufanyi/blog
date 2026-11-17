@@ -87,11 +87,13 @@ View Frustum 规定了 the region the camera can see。是一个锥形区域。
 
 具体的线性变换可以看 [这里](https://www.songho.ca/opengl/gl_projectionmatrix.html)，不赘述。
 
-需要提及的是，假设原坐标是 $(x_e, y_e, z_e)$（其中 $z_e < 0$），经过投影矩阵与透视除法（除以 $w_c = -z_e$）转成 NDC 后是 $(x_n, y_n, z_n)$，深度满足：
+需要提及的是，假设原坐标是 $(x_e, y_e, z_e)$，经过投影矩阵与透视除法转成 NDC 后是 $(x_n, y_n, z_n)$，深度满足：
 
 $$
-z_n = \frac{-\frac{f+n}{f-n}z_e - \frac{2fn}{f-n}}{-z_e} = \frac{f+n}{f-n} + \frac{2fn}{(f-n)z_e}.
+z_n = \frac{f+n}{f-n} + \frac{2fn}{(f-n)z_e}.
 $$
+
+其中 $f$ 和 $n$ 表示 $z_{\mathrm{near}}$ 和 $z_{\mathrm{far}}$ 的坐标。
 
 <DepthPrecisionFigure />
 
