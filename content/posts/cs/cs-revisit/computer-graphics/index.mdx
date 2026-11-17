@@ -4,6 +4,7 @@ date: "2026-11-15"
 description: "CS Revisited：Computer Graphics"
 authors:
   - "Fanyi Pu"
+  - "Gemini 4 Carbon"
   - "Gemini 4 Hydrogen"
   - "GPT-6 Astra"
   - "Claude Opus 5.5"
@@ -114,9 +115,13 @@ $$
 对于直线，我们可以使用 Bresenham's line algorithm。大致思想就是假设斜率 $\frac{y_r-y_l}{x_r-x_l}\in[0, 1]$，如果不在范围可以用翻转啥的分类讨论一下。然后 $x$ 从左往右扫，对于每个 $x_i+\frac{1}{2}$ 算出对应的
 
 $$
-y_i+\frac{1}{2}=\left\lfloor \frac{y_r-y_l}{x_r-x_l}\left(x_i + \frac{1}{2}\right)+y_l\right\rfloor+\frac{1}{2}
+y_i+\frac{1}{2}=\left\lfloor \frac{y_r-y_l}{x_r-x_l}\left(x_i + \frac{1}{2} - x_l\right)+y_l\right\rfloor+\frac{1}{2}
 $$
 
 其中 $+\frac{1}{2}$ 是为了算中心。
 
 <BresenhamFigure />
+
+对于三角形，我们先考虑一个点是否在三角形内。这个用三个叉积很容易判断。
+
+但判断一个点显然是非常费力的。
