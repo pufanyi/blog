@@ -136,5 +136,6 @@ $$
 
 但判断一个点显然是非常费力的。对于一个区块 $[x_l, x_r]\times [y_l, y_r]$，我们可以将其分成 early-in，early-out 和 else 三种。我们发现 $E$ 是线性函数，那么对于任意一个区块，很容易 $\mathcal{O}(1)$ 判别这三者。
 
-<BlockCoverageFigure />
+这样我们就可以做分治了。
 
+<BlockCoverageFigure />
