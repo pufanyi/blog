@@ -1,10 +1,12 @@
 ---
 title: "Computer Graphics"
 date: "2026-11-15"
+updated: "2026-11-21"
 description: "CS Revisited：Computer Graphics"
 authors:
   - "Fanyi Pu"
   - "Gemini 4 Carbon"
+  - "Gemini 4 Neon"
   - "Gemini 4 Hydrogen"
   - "GPT-6 Astra"
   - "Claude Opus 5.5"
@@ -139,3 +141,20 @@ $$
 这样我们就可以做分治了。
 
 <BlockCoverageFigure />
+
+对于每个 pixel，一个简单的想法是，假设一个红色三角形覆盖了某个 pixel 的 $10\%$，这个区块就应该是 $10\%$ 红色。
+
+但直接按覆盖面积比例混色在一般 3D 渲染中并不成立：
+
+- **丢失像素内位置信息**：只存覆盖率无法区分多个三角形在像素内是相邻还是重叠。比如两个共享边的三角形各占同一像素的 $50\%$，按顺序独立混色会得到 $0.5 + 0.5\times(1-0.5) = 75\%$ 的覆盖率，背景会从接缝透出；若两者重叠在同一侧，直接相加又会重复计数。
+- **depth buffer 失效**：若每像素只存一个深度值，仅覆盖 $10\%$ 的前景三角形更新深度会误剔除其余 $90\%$ 的远景，不更新则会被远景盖掉。若改在像素内做精确几何裁剪求可见面积，开销过高且不适合 GPU 并行。
+- **滤波质量受限**：按方形像素面积平均等价于 box filter，频域截断较差，边缘仍易闪烁或发糊（且线性亮度混合需在线性颜色空间而非 sRGB 数值上完成）。
+
+<CoverageFailureFigure />
+
+因此，图形管线改用离散子采样点同时记录子像素级的覆盖与深度，最后再 resolve（平均或滤波）成最终像素颜色：
+
+- **SSAA**（Supersampling Anti-Aliasing）：在每个像素内放置 $k$ 个子采样点（如 $2\times 2$），每个点独立执行 coverage test、depth test 和 **shading**，等价于高分辨率渲染后再下采样。效果最完整，但着色与显存开销都放大 $k$ 倍。
+- **MSAA**（Multisampling Anti-Aliasing）：同样对 $k$ 个子采样点分别做 coverage test 和 depth test，但对同一个三角形只在像素中心（或质心）执行**一次 shading**，并将结果复制到所有通过测试的子采样点。这样能以接近单像素的着色成本消除几何边缘锯齿（纹理与 shader 内部的高频变化仍需 mipmap 等手段配合）。
+
+<SupersamplingFigure />
