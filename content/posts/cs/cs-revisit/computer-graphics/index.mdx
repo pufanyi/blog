@@ -158,3 +158,5 @@ $$
 - **MSAA**（Multisampling Anti-Aliasing）：同样对 $k$ 个子采样点分别做 coverage test 和 depth test，但对同一个三角形只在像素中心（或质心）执行**一次 shading**，并将结果复制到所有通过测试的子采样点。这样能以接近单像素的着色成本消除几何边缘锯齿（纹理与 shader 内部的高频变化仍需 mipmap 等手段配合）。
 
 <SupersamplingFigure />
+
+## Transparency & Texturing
