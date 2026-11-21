@@ -97,6 +97,13 @@ a:hover {
   background-color: var(--shiki-dark-bg) !important;
 }
 
+/* Prevent MathJax 4's scaled inline container from inheriting surrounding
+   line-height and inflating lines around ordinary-height formulas; inner
+   mjx-math still expands the line box for tall expressions. */
+mjx-container[jax="CHTML"]:not([display]) {
+  line-height: 0;
+}
+
 @media print {
   @page {
     size: A4;
