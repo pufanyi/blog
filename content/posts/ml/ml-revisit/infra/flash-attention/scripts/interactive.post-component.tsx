@@ -11,7 +11,7 @@ import {
   GRID_UNIT as UNIT,
 } from './model';
 
-function Math({ children }: { children: string }) {
+function InlineMath({ children }: { children: string }) {
   return <span className="math-inline">{`\\(${children}\\)`}</span>;
 }
 
@@ -29,10 +29,10 @@ function TilingBoard({ size }: { size: KvTileSize }) {
       <div className="flash-player-map">
         <div className="flash-player-map-head">
           <span>
-            <Math>{'Q'}</Math> ↓
+            <InlineMath>{'Q'}</InlineMath> ↓
           </span>
           <span>
-            <Math>{'K,V'}</Math> sequence · {SEQUENCE_LENGTH} tokens →
+            <InlineMath>{'K,V'}</InlineMath> sequence · {SEQUENCE_LENGTH} tokens →
           </span>
           <span>输出</span>
         </div>
@@ -50,7 +50,7 @@ function TilingBoard({ size }: { size: KvTileSize }) {
                 aria-pressed="false"
                 disabled
               >
-                <Math>{`Q_${tile.index + 1}`}</Math>
+                <InlineMath>{`Q_${tile.index + 1}`}</InlineMath>
                 <small>{tokenRange(tile)}</small>
               </button>
             ))}
@@ -149,7 +149,7 @@ function TilingBoard({ size }: { size: KvTileSize }) {
                 data-output={tile.index}
                 aria-label={`输出块 O ${tile.index + 1}，尚未演示`}
               >
-                <Math>{`O_${tile.index + 1}`}</Math>
+                <InlineMath>{`O_${tile.index + 1}`}</InlineMath>
                 <span aria-hidden="true" data-output-mark="">
                   ·
                 </span>
@@ -165,7 +165,7 @@ function TilingBoard({ size }: { size: KvTileSize }) {
       <div className="flash-player-flow">
         <div className="flash-player-buffer">
           <strong>
-            临时 <Math>{'S,W'}</Math>
+            临时 <InlineMath>{'S,W'}</InlineMath>
           </strong>
           <div
             className="flash-player-mini-tile"
@@ -181,7 +181,7 @@ function TilingBoard({ size }: { size: KvTileSize }) {
             ))}
           </div>
           <div>
-            <Math>{`${QUERY_TILE_SIZE}\\times ${size}`}</Math>
+            <InlineMath>{`${QUERY_TILE_SIZE}\\times ${size}`}</InlineMath>
           </div>
           <span className="flash-player-flow-note" data-field="buffer">
             尚未读取
@@ -192,7 +192,7 @@ function TilingBoard({ size }: { size: KvTileSize }) {
         </div>
         <div className="flash-player-running">
           <strong>
-            <Math>{String.raw`m,\ell,U`}</Math> 跨块保留
+            <InlineMath>{String.raw`m,\ell,U`}</InlineMath> 跨块保留
           </strong>
           <div className="flash-player-coverage" aria-hidden="true">
             {tiles.map((tile) => (
@@ -207,14 +207,14 @@ function TilingBoard({ size }: { size: KvTileSize }) {
           ↓ 全部扫完后
         </div>
         <div className="flash-player-result">
-          <Math>{String.raw`O_i=U/\ell`}</Math>
+          <InlineMath>{String.raw`O_i=U/\ell`}</InlineMath>
           <span className="flash-player-flow-note" data-field="result">
             扫描完才能归一化
           </span>
         </div>
         <p className="flash-player-cost">
           每个 Q 块扫描 <strong>{tiles.length}</strong> 次 KV；每次只算一个{' '}
-          <Math>{`${QUERY_TILE_SIZE}\\times ${size}`}</Math> tile。
+          <InlineMath>{`${QUERY_TILE_SIZE}\\times ${size}`}</InlineMath> tile。
         </p>
       </div>
     </div>
@@ -295,7 +295,7 @@ function FlashForwardInteractive() {
         图中 {SEQUENCE_LENGTH} 个 token，Q 每 {QUERY_TILE_SIZE} 行一块；KV 每{' '}
         {KV_TILE_SIZES.join(' 或 ')} 行一块，分别扫描{' '}
         {KV_TILE_SIZES.map((size) => partition(SEQUENCE_LENGTH, size).length).join(' 或 ')}{' '}
-        次。各段依次合入同一份运行状态，扫完后得到对应的 <Math>{String.raw`O_i`}</Math>
+        次。各段依次合入同一份运行状态，扫完后得到对应的 <InlineMath>{String.raw`O_i`}</InlineMath>
         。大网格只标记计算范围，不保存完整 score 矩阵；本例不加 mask。
       </p>
     </figure>

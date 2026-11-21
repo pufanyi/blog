@@ -13,7 +13,7 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
 
     permissions:
       contents: read
@@ -22,26 +22,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+      - name: Setup Biome CLI
+        uses: biomejs/setup-biome@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Generate derived content
-        run: pnpm generate:data
-
-      - name: Run code quality checks
-        run: pnpm check:generated
-
-      - name: Run unit tests
-        run: pnpm test:generated --watch=false
+      - name: Run Biome lint and format check
+        run: biome ci .
 
   check:
     if: always()

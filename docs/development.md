@@ -15,13 +15,13 @@ Install with `pnpm install --frozen-lockfile`.
 | `pnpm test --watch=false` | Generate, Node content tests, then Angular unit tests |
 | `pnpm build` | Generate, production prerender, then deployment manifests/assets |
 | `pnpm preview` / `pnpm preview:cloudflare` | Serve the existing production build |
-| `pnpm biome:write` | Apply configured source formatting |
+| `pnpm biome:write` | Apply configured Biome formatting and safe lint fixes |
 | `pnpm format:bib` | Normalize authored bibliography files |
 
 The `prebuild`, `pretest`, and `precheck` hooks generate content. The start/watch
 wrapper performs its own initial generation; there is no separate `prestart`.
-The `*:generated` variants deliberately omit generation for CI's already-fresh
-outputs. Keep them aligned with their ordinary counterparts.
+The `*:generated` variants deliberately omit generation when derived outputs are
+already fresh. Keep them aligned with their ordinary counterparts.
 
 The watcher observes MDX, handbook Markdown/navigation, bibliography/assets, YAML, local component dependencies,
 compiler scripts, package/lock, and TypeScript configuration. It serializes and
@@ -106,8 +106,10 @@ install browsers or recreate automated suites for routine changes.
 For a local production preview, run `pnpm build` followed by `pnpm preview`.
 Use `pnpm preview:cloudflare` when checking Worker/static-asset routing.
 
-GitHub CI runs source checks and unit tests in the quality job. The final required
-`check` job requires that job to succeed. `pnpm check` does not run tests or build.
+GitHub CI runs Biome lint and formatting checks (`biome ci .`) in the quality job
+without installing Node dependencies, generating content, or running tests. The
+final required `check` job requires that job to succeed. Full `pnpm check` and
+`pnpm test --watch=false` remain local pre-push checks.
 Use a focused unit test for a logic regression; avoid assertions that merely
 mirror implementation details or depend on unrelated authored prose.
 

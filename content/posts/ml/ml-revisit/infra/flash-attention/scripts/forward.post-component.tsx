@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-function Math({ children }: { children: string }) {
+function InlineMath({ children }: { children: string }) {
   return <span className="math-inline">{`\\(${children}\\)`}</span>;
 }
 
@@ -17,7 +17,7 @@ const FORWARD_LINES: AlgorithmLine[] = [
     depth: 0,
     content: (
       <>
-        <b>parallel for</b> each query tile <Math>{String.raw`Q_i`}</Math> <b>do</b>
+        <b>parallel for</b> each query tile <InlineMath>{String.raw`Q_i`}</InlineMath> <b>do</b>
       </>
     ),
   },
@@ -26,7 +26,7 @@ const FORWARD_LINES: AlgorithmLine[] = [
     depth: 1,
     content: (
       <>
-        <b>load</b> <Math>{String.raw`Q_i`}</Math>
+        <b>load</b> <InlineMath>{String.raw`Q_i`}</InlineMath>
       </>
     ),
   },
@@ -35,9 +35,9 @@ const FORWARD_LINES: AlgorithmLine[] = [
     depth: 1,
     content: (
       <>
-        <Math>{String.raw`m \leftarrow -\infty,`}</Math>
-        <Math>{String.raw`\ell \leftarrow 0,`}</Math>
-        <Math>{String.raw`U \leftarrow 0`}</Math>
+        <InlineMath>{String.raw`m \leftarrow -\infty,`}</InlineMath>
+        <InlineMath>{String.raw`\ell \leftarrow 0,`}</InlineMath>
+        <InlineMath>{String.raw`U \leftarrow 0`}</InlineMath>
       </>
     ),
   },
@@ -46,7 +46,7 @@ const FORWARD_LINES: AlgorithmLine[] = [
     depth: 1,
     content: (
       <>
-        <b>for</b> each KV tile <Math>{String.raw`K_j,V_j`}</Math> <b>do</b>
+        <b>for</b> each KV tile <InlineMath>{String.raw`K_j,V_j`}</InlineMath> <b>do</b>
       </>
     ),
   },
@@ -55,7 +55,7 @@ const FORWARD_LINES: AlgorithmLine[] = [
     depth: 2,
     content: (
       <>
-        <b>load</b> <Math>{String.raw`K_j,V_j`}</Math>
+        <b>load</b> <InlineMath>{String.raw`K_j,V_j`}</InlineMath>
       </>
     ),
   },
@@ -64,8 +64,8 @@ const FORWARD_LINES: AlgorithmLine[] = [
     depth: 2,
     content: (
       <>
-        <Math>{String.raw`S \leftarrow`}</Math>
-        <Math>{String.raw`Q_iK_j^\top / \sqrt d`}</Math>
+        <InlineMath>{String.raw`S \leftarrow`}</InlineMath>
+        <InlineMath>{String.raw`Q_iK_j^\top / \sqrt d`}</InlineMath>
       </>
     ),
   },
@@ -74,7 +74,7 @@ const FORWARD_LINES: AlgorithmLine[] = [
     depth: 2,
     content: (
       <>
-        <b>mask</b> <Math>{String.raw`S`}</Math>
+        <b>mask</b> <InlineMath>{String.raw`S`}</InlineMath>
         <span className="flash-algorithm-note">全被 mask 的行跳过本轮更新</span>
       </>
     ),
@@ -84,8 +84,8 @@ const FORWARD_LINES: AlgorithmLine[] = [
     depth: 2,
     content: (
       <>
-        <Math>{String.raw`m' \leftarrow`}</Math>
-        <Math>{String.raw`\max\!\left(m,\operatorname{rowmax}(S)\right)`}</Math>
+        <InlineMath>{String.raw`m' \leftarrow`}</InlineMath>
+        <InlineMath>{String.raw`\max\!\left(m,\operatorname{rowmax}(S)\right)`}</InlineMath>
       </>
     ),
   },
@@ -95,8 +95,8 @@ const FORWARD_LINES: AlgorithmLine[] = [
     update: true,
     content: (
       <>
-        <Math>{String.raw`\alpha \leftarrow`}</Math>
-        <Math>{String.raw`\exp(m-m')`}</Math>
+        <InlineMath>{String.raw`\alpha \leftarrow`}</InlineMath>
+        <InlineMath>{String.raw`\exp(m-m')`}</InlineMath>
       </>
     ),
   },
@@ -105,8 +105,8 @@ const FORWARD_LINES: AlgorithmLine[] = [
     depth: 2,
     content: (
       <>
-        <Math>{String.raw`W \leftarrow`}</Math>
-        <Math>{String.raw`\exp(S-m')`}</Math>
+        <InlineMath>{String.raw`W \leftarrow`}</InlineMath>
+        <InlineMath>{String.raw`\exp(S-m')`}</InlineMath>
       </>
     ),
   },
@@ -116,9 +116,9 @@ const FORWARD_LINES: AlgorithmLine[] = [
     update: true,
     content: (
       <>
-        <Math>{String.raw`\ell \leftarrow`}</Math>
-        <Math>{String.raw`\alpha\ell +`}</Math>
-        <Math>{String.raw`\operatorname{rowsum}(W)`}</Math>
+        <InlineMath>{String.raw`\ell \leftarrow`}</InlineMath>
+        <InlineMath>{String.raw`\alpha\ell +`}</InlineMath>
+        <InlineMath>{String.raw`\operatorname{rowsum}(W)`}</InlineMath>
       </>
     ),
   },
@@ -128,20 +128,20 @@ const FORWARD_LINES: AlgorithmLine[] = [
     update: true,
     content: (
       <>
-        <Math>{String.raw`U \leftarrow`}</Math>
-        <Math>{String.raw`\alpha U + WV_j`}</Math>
+        <InlineMath>{String.raw`U \leftarrow`}</InlineMath>
+        <InlineMath>{String.raw`\alpha U + WV_j`}</InlineMath>
       </>
     ),
   },
-  { id: 'advance', depth: 2, content: <Math>{String.raw`m \leftarrow m'`}</Math> },
+  { id: 'advance', depth: 2, content: <InlineMath>{String.raw`m \leftarrow m'`}</InlineMath> },
   { id: 'end-keys', depth: 1, content: <b>end for</b> },
   {
     id: 'normalize',
     depth: 1,
     content: (
       <>
-        <Math>{String.raw`O_i \leftarrow`}</Math>
-        <Math>{String.raw`U / \ell`}</Math>
+        <InlineMath>{String.raw`O_i \leftarrow`}</InlineMath>
+        <InlineMath>{String.raw`U / \ell`}</InlineMath>
         <span className="flash-algorithm-note">最后才归一化</span>
       </>
     ),
@@ -151,8 +151,8 @@ const FORWARD_LINES: AlgorithmLine[] = [
     depth: 1,
     content: (
       <>
-        <Math>{String.raw`L_i \leftarrow`}</Math>
-        <Math>{String.raw`m + \log\ell`}</Math>
+        <InlineMath>{String.raw`L_i \leftarrow`}</InlineMath>
+        <InlineMath>{String.raw`m + \log\ell`}</InlineMath>
       </>
     ),
   },
@@ -161,7 +161,7 @@ const FORWARD_LINES: AlgorithmLine[] = [
     depth: 1,
     content: (
       <>
-        <b>store</b> <Math>{String.raw`O_i,L_i`}</Math>
+        <b>store</b> <InlineMath>{String.raw`O_i,L_i`}</InlineMath>
       </>
     ),
   },
@@ -181,12 +181,12 @@ function FlashForwardAlgorithm() {
       </figcaption>
       <div className="flash-algorithm-contract">
         <p>
-          <b>Input</b> <Math>{String.raw`Q,K,V`}</Math> in HBM，按{' '}
-          <Math>{String.raw`B_r,B_c`}</Math> 分块
+          <b>Input</b> <InlineMath>{String.raw`Q,K,V`}</InlineMath> in HBM，按{' '}
+          <InlineMath>{String.raw`B_r,B_c`}</InlineMath> 分块
         </p>
         <p>
-          <b>Output</b> <Math>{String.raw`O`}</Math>，以及 backward 所需的{' '}
-          <Math>{String.raw`L`}</Math>
+          <b>Output</b> <InlineMath>{String.raw`O`}</InlineMath>，以及 backward 所需的{' '}
+          <InlineMath>{String.raw`L`}</InlineMath>
         </p>
       </div>
       <ol className="flash-algorithm-lines">

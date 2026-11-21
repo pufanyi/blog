@@ -12,15 +12,7 @@ for (const completion of ['message', 'error', 'terminate'] as const) {
       onmessage: unknown;
       terminate = vi.fn();
     }
-    const fake = new FakeWorker();
-    vi.stubGlobal(
-      'Worker',
-      class {
-        constructor() {
-          return fake;
-        }
-      },
-    );
+    vi.stubGlobal('Worker', FakeWorker);
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mathjax-worker');
     const revoke = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
     const listener = vi.fn();
@@ -32,9 +24,9 @@ for (const completion of ['message', 'error', 'terminate'] as const) {
     expect(revoke).not.toHaveBeenCalled();
     expect(worker.onmessage).toBe(listener);
     if (completion === 'terminate') worker.terminate();
-    else fake.dispatchEvent(new Event(completion));
+    else worker.dispatchEvent(new Event(completion));
     expect(revoke).toHaveBeenCalledExactlyOnceWith('blob:mathjax-worker');
-    fake.dispatchEvent(new Event('message'));
+    worker.dispatchEvent(new Event('message'));
     worker.terminate();
     expect(revoke).toHaveBeenCalledTimes(1);
   });

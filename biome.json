@@ -9,7 +9,7 @@
       "content/posts/**/scripts/**/*.{ts,mts,tsx}",
       "content/posts/**/*.css",
       "content/shared/**/*.{ts,tsx,css}",
-      "!!src/app/data/**"
+      "!!src/app/data"
     ]
   },
   "formatter": {
@@ -25,6 +25,60 @@
     }
   },
   "linter": {
-    "enabled": false
-  }
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "complexity": {
+        "noImportantStyles": "off",
+        "noUselessStringRaw": "off",
+        "useLiteralKeys": "off"
+      },
+      "correctness": {
+        "noComponentHookFactories": "off"
+      },
+      "style": {
+        "noDescendingSpecificity": "off",
+        "noNonNullAssertion": "off",
+        "useImportType": "off"
+      },
+      "suspicious": {
+        "useIterableCallbackReturn": "off"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["src/styles/icons/phosphor.css"],
+      "linter": {
+        "enabled": false
+      }
+    },
+    {
+      "includes": ["content/shared/chess/styles.css"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noInvalidDirectionInLinearGradient": "off",
+            "noUnknownTypeSelector": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["content/**/*.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noAriaHiddenOnFocusable": "off",
+            "noNoninteractiveTabindex": "off",
+            "useAriaPropsSupportedByRole": "off",
+            "useSemanticElements": "off"
+          },
+          "suspicious": {
+            "noArrayIndexKey": "off"
+          }
+        }
+      }
+    }
+  ]
 }

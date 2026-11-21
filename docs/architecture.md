@@ -31,7 +31,7 @@ The shell imports only search's small launcher; the dialog and engine retain the
 separate deferred boundaries. Root composition can connect feature-specific
 metadata builders to the platform's descriptor writer. `pnpm check:boundaries`
 resolves imports, re-exports and literal dynamic imports and enforces these
-boundaries as part of `pnpm check` and CI's generated checks.
+boundaries as part of `pnpm check`.
 
 Route pages coordinate their feature's state and register page chrome through
 `PageChromeService`. A registration exposes update/dispose operations; public

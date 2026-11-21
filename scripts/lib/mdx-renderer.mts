@@ -206,7 +206,7 @@ function repairCollapsedCitationLinks(document: Document, citations: CitationRec
     if (!citation || !year) continue;
 
     const walker = document.createTreeWalker(citation, 4);
-    let yearNode;
+    let yearNode: Text | undefined;
     let yearOffset = -1;
     while (walker.nextNode()) {
       const candidate = walker.currentNode as Text;
