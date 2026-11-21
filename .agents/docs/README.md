@@ -14,6 +14,8 @@ This directory holds investigations, implementation plans, and validation eviden
 
 ## Historical evidence
 
+- [Dependency refresh — 2026-11-21](maintenance/2026-11-21-dependency-refresh.md): Node `24.22.3` and pnpm `12.21.0`, Angular `22.3.0`, PDF viewer `32.0.2`, `jsdom` `31.0.1`, `marked` `18.2.1`, Wrangler `4.165.0`, Vite override cleanup, and validation results.
+
 - [Suicide Defence 6...Bd5 refutation — 2026-11-09](maintenance/2026-11-09-suicide-defence-bd5.md): solver-verified 7.Bxg8 recapture lines, unresolved alternatives, and validation.
 
 - [Antichess principles and basic tactics — 2026-10-29](maintenance/2026-10-29-antichess-principles.md): integrated lesson, verified tactical positions, rule qualifications, and production reading checks.

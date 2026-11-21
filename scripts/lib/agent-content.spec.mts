@@ -103,7 +103,7 @@ Proof with [@example2026] and [@collapsed2025; @collapsed2026]. Note[^note].
     .filter((token): token is Tokens.Code => token.type === 'code');
   assert.equal(codes.length, 1);
   assert.equal(codes[0]?.lang, 'js');
-  assert.equal(codes[0]?.text, code);
+  assert.equal(codes[0]?.text, `${code}\n`);
   assert.match(result, /\| \$x_i\$/);
   assert.match(result, /Proof/);
   assert.match(result, /Footnote with \[source\]\(https:\/\/example.com\/note\)/);
