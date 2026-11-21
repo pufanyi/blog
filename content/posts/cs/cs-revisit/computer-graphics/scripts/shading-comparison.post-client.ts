@@ -1,17 +1,13 @@
 import {
+  buildVectorScene,
   DEFAULT_TILT_DEG,
-  projectTiltedQuad,
-  RASTER_HEIGHT,
-  RASTER_WIDTH,
-  rasterizeQuad,
+  fmt,
   type ShadingMode,
+  VIEW_HEIGHT,
+  VIEW_WIDTH,
 } from './shading-rasterizer';
 
 const MODES: readonly ShadingMode[] = ['flat', 'smooth', 'perspective'];
-
-function fmt(n: number): string {
-  return n.toFixed(1);
-}
 
 export function enhancePost(container: HTMLElement): () => void {
   const cleanups: (() => void)[] = [];
@@ -24,37 +20,49 @@ export function enhancePost(container: HTMLElement): () => void {
     const wireToggle = root.querySelector<HTMLInputElement>('[data-shade-wire-toggle]');
     if (!controls || !tiltInput || !tiltOut || !wireToggle) continue;
 
-    const canvases = new Map<ShadingMode, HTMLCanvasElement>();
-    const images = new Map<ShadingMode, HTMLImageElement>();
+    const svgs = new Map<ShadingMode, SVGSVGElement>();
     for (const mode of MODES) {
-      const canvas = root.querySelector<HTMLCanvasElement>(`[data-shade-canvas="${mode}"]`);
-      const img = root.querySelector<HTMLImageElement>(`[data-shade-img="${mode}"]`);
-      if (canvas && img) {
-        canvases.set(mode, canvas);
-        images.set(mode, img);
-      }
+      const svg = root.querySelector<SVGSVGElement>(`[data-shade-svg="${mode}"]`);
+      if (svg) svgs.set(mode, svg);
     }
-    if (canvases.size !== MODES.length) continue;
+    if (svgs.size !== MODES.length) continue;
 
-    const wireSvgs = Array.from(root.querySelectorAll<SVGSVGElement>('[data-shade-wire]'));
     const events = new AbortController();
-    let canvasesActivated = false;
 
-    function updateWireframe(tiltDeg: number) {
-      const { corners, zNear, zFar } = projectTiltedQuad(tiltDeg, RASTER_WIDTH, RASTER_HEIGHT);
-      const [bl, br, tr, tl] = corners;
-      const outlinePoints = [bl, br, tr, tl].map((p) => `${fmt(p.x)},${fmt(p.y)}`).join(' ');
+    function render(tiltDeg: number) {
       const showWire = wireToggle?.checked ?? true;
+      let zNear = 1;
+      let zFar = 1;
 
-      for (const svg of wireSvgs) {
-        svg.style.display = showWire ? '' : 'none';
-        svg.querySelector('[data-shade-outline]')?.setAttribute('points', outlinePoints);
+      for (const mode of MODES) {
+        const svg = svgs.get(mode);
+        if (!svg) continue;
+        const scene = buildVectorScene(mode, tiltDeg, VIEW_WIDTH, VIEW_HEIGHT);
+        zNear = scene.zNear;
+        zFar = scene.zFar;
+
+        const polygons = svg.querySelectorAll<SVGPolygonElement>('[data-shade-tiles] polygon');
+        scene.tiles.forEach((tile, idx) => {
+          polygons[idx]?.setAttribute('points', tile.points);
+        });
+
+        const ring = svg.querySelector<SVGPathElement>('[data-shade-ring]');
+        if (ring && scene.ringPath) {
+          ring.setAttribute('d', scene.ringPath);
+        }
+
+        const wire = svg.querySelector<SVGGElement>('[data-shade-wire]');
+        if (wire) {
+          wire.style.display = showWire ? '' : 'none';
+        }
+        svg.querySelector('[data-shade-outline]')?.setAttribute('points', scene.outline);
         const diag = svg.querySelector('[data-shade-diag]');
         if (diag) {
-          diag.setAttribute('x1', fmt(bl.x));
-          diag.setAttribute('y1', fmt(bl.y));
-          diag.setAttribute('x2', fmt(tr.x));
-          diag.setAttribute('y2', fmt(tr.y));
+          const [d0, d1] = scene.diag;
+          diag.setAttribute('x1', fmt(d0.x));
+          diag.setAttribute('y1', fmt(d0.y));
+          diag.setAttribute('x2', fmt(d1.x));
+          diag.setAttribute('y2', fmt(d1.y));
         }
       }
 
@@ -70,38 +78,12 @@ export function enhancePost(container: HTMLElement): () => void {
       }
     }
 
-    function renderCanvases(tiltDeg: number) {
-      if (!canvasesActivated) {
-        for (const mode of MODES) {
-          const img = images.get(mode);
-          const canvas = canvases.get(mode);
-          if (img && canvas) {
-            img.hidden = true;
-            canvas.hidden = false;
-          }
-        }
-        canvasesActivated = true;
-      }
-
-      for (const mode of MODES) {
-        const canvas = canvases.get(mode);
-        const ctx = canvas?.getContext('2d');
-        if (!canvas || !ctx) continue;
-        const pixels = rasterizeQuad(mode, tiltDeg, RASTER_WIDTH, RASTER_HEIGHT);
-        const imageData = ctx.createImageData(RASTER_WIDTH, RASTER_HEIGHT);
-        imageData.data.set(pixels);
-        ctx.putImageData(imageData, 0, 0);
-      }
-    }
-
     const opts = { signal: events.signal };
 
     tiltInput.addEventListener(
       'input',
       () => {
-        const tiltDeg = Number(tiltInput.value);
-        updateWireframe(tiltDeg);
-        renderCanvases(tiltDeg);
+        render(Number(tiltInput.value));
       },
       opts,
     );
@@ -109,13 +91,13 @@ export function enhancePost(container: HTMLElement): () => void {
     wireToggle.addEventListener(
       'change',
       () => {
-        updateWireframe(Number(tiltInput.value));
+        render(Number(tiltInput.value));
       },
       opts,
     );
 
     controls.hidden = false;
-    updateWireframe(DEFAULT_TILT_DEG);
+    render(DEFAULT_TILT_DEG);
     root.dataset['shadeReady'] = 'true';
 
     cleanups.push(() => {
