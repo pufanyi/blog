@@ -166,3 +166,25 @@ $$
 $$
 
 <BarycentricCoordinatesFigure />
+
+由于 barycentric coordinates 有一些优雅的性质，我们用它来表示 pixel，在计算的时候，考虑我们之前 rasterization 已经算过 edge function $E_{AB}(x, y)$，我们只需要除以总面积 $E_{total}$ 就可以得到该 pixel 的 barycentric coordinate。
+
+现在我们考虑一个三角形投影之后的结果。假设三个顶点的 texture 是 $a(v_1), a(v_2), a(v_3)$。
+
+**Flat Shading**: 随便取一个点作为整个三角形的 texture
+
+$$
+a(\phi_x, \phi_y) = a(v_1)
+$$
+
+**Smooth Shading**: 做简单的线性插值，开销比较小但是没有立体感
+
+$$
+a(\phi_x, \phi_y) = a(v_1)\cdot \phi_x+a(v_2)\cdot\phi_y + a(v_3)\cdot(1 - \phi_x - \phi_y)
+$$
+
+**Perspective Correct Shading**: 算出真实的 $z$，然后根据这个 $z$ 做插值
+
+$$
+z(\phi_x, \phi_y) = 
+$$
