@@ -2,7 +2,7 @@
 <ng-template #navigation>
   <label class="docs-filter">
     Find a guide
-    <input type="search" placeholder="Filter page titles and summaries" [value]="filter()" (input)="filter.set($any($event.target).value)" />
+    <input #filterInput type="search" placeholder="Filter page titles and summaries" [value]="filter()" (input)="filter.set(filterInput.value)" />
   </label>
   <nav aria-label="Documentation pages">
     @for (group of groups(); track group.title) {

@@ -130,7 +130,8 @@ ${code}\`\`\`
   );
   const { document } = new JSDOM(result.html).window;
   const outer = document.querySelector('details');
-  assert.ok(outer && outer.hasAttribute('open'));
+  assert.ok(outer);
+  assert.ok(outer.hasAttribute('open'));
   assert.equal(outer.getAttribute('name'), 'implementation');
   assert.equal(outer.firstElementChild?.tagName, 'SUMMARY');
   const content = outer.querySelector(':scope > .details-content');

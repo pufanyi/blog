@@ -1,0 +1,158 @@
+.fm-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+.fm-heading span,
+.fm figcaption {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+.fm-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.fm svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.fm svg text {
+  fill: var(--text-color);
+  font-size: 12px;
+}
+.fm-axis {
+  stroke: var(--border-light);
+  fill: none;
+}
+.fm-target {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 5;
+  opacity: 0.65;
+}
+.fm-volume {
+  fill: color-mix(in srgb, var(--accent-sage) 7%, transparent);
+  stroke: var(--accent-sage);
+  stroke-width: 2;
+}
+.fm-slice {
+  stroke: var(--accent-sage);
+  stroke-width: 1;
+  opacity: 0.45;
+}
+.fm-ray {
+  stroke: var(--accent-ochre);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  fill: none;
+}
+.fm [data-fm-point] circle {
+  fill: var(--accent-ochre);
+}
+.fm-controls:not([hidden]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-light);
+}
+.fm-controls label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.fm-controls input[type="range"] {
+  flex: 1 1 10rem;
+  min-inline-size: 6rem;
+  min-block-size: 44px;
+  margin: 0;
+  accent-color: var(--accent-sage);
+  cursor: pointer;
+}
+@supports not (accent-color: var(--accent-sage)) {
+  .fm-controls input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+  }
+  .fm-controls input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--accent-sage) var(--fm-progress, 100%),
+      var(--border-light) var(--fm-progress, 100%)
+    );
+  }
+  .fm-controls input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: var(--accent-sage);
+    cursor: pointer;
+  }
+  .fm-controls input[type="range"]::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--border-light);
+  }
+  .fm-controls input[type="range"]::-moz-range-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent-sage);
+  }
+  .fm-controls input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--accent-sage);
+    cursor: pointer;
+  }
+}
+.fm button {
+  min-block-size: 44px;
+  min-inline-size: 4.5rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--paper-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+}
+.fm :focus-visible {
+  outline: 2px solid var(--accent-ochre);
+  outline-offset: 3px;
+}
+.fm output {
+  min-inline-size: 8.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+.fm figcaption {
+  margin-top: 0.75rem;
+  line-height: 1.7;
+}
+@media (max-width: 540px) {
+  .fm-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fm output {
+    min-inline-size: auto;
+    text-align: start;
+  }
+}

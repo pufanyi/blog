@@ -243,13 +243,15 @@ For Jekyll, Hexo, or Typst imports, also read
   narrow screens.
 - Pass one string to a React-rendered SVG `<title>` (use a template string for
   dynamic labels); mixed JSX children produce React warnings and empty titles.
-- Keep diagram colors in prefixed classes in the article's `styles.css` and use
-  only semantic variables from `src/styles/morandi.css`; verify both themes.
+- Keep diagram colors in prefixed classes in the article's `styles.css` or
+  modular `styles/*.css` partials and use only semantic variables from
+  `src/styles/morandi.css`; verify both themes.
   Distinguish edge roles with line patterns or weight as well as color, since
   muted hues can look alike at small sizes.
-  The generator includes this file only with its article. Do not register article
-  styles in `PostComponent.styleUrls`; served-route resource budgets cover the
-  actual payload, including inline styles.
+  The generator includes these files only with their article (`styles.css` first,
+  then sorted `styles/*.css`). Do not register article styles in
+  `PostComponent.styleUrls`; served-route resource budgets cover the actual
+  payload, including inline styles.
 - Keep one source of truth for a diagram's data. Derive related masks, cells,
   edges, and labels from the same arrays and predicates instead of duplicating
   hard-coded values that can drift apart.

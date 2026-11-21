@@ -53,7 +53,7 @@
                   "**/*.tsx",
                   "**/scripts/**/*.ts",
                   "**/scripts/**/*.mts",
-                  "**/styles.css"
+                  "**/*.css"
                 ]
               }
             ],

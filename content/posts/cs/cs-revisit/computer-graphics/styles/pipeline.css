@@ -1,0 +1,185 @@
+.cg-pipeline {
+  margin: 1.5rem 0;
+}
+
+.cg-pipeline-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--paper-bg);
+}
+
+.cg-pipeline-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 3px;
+}
+
+.cg-pipeline svg {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  height: auto;
+  font-family: inherit;
+  font-size: 16px;
+  fill: var(--text-color);
+}
+
+.cg-pipeline-space-geometry {
+  fill: color-mix(in srgb, var(--accent-blue) 6%, var(--paper-bg));
+}
+
+.cg-pipeline-space-screen {
+  fill: color-mix(in srgb, var(--accent-sage) 6%, var(--paper-bg));
+}
+
+.cg-pipeline-heading {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.cg-pipeline-label,
+.cg-pipeline-legend {
+  fill: var(--text-secondary);
+  font-size: 13px;
+}
+
+.cg-pipeline-wrap-label {
+  fill: var(--text-secondary);
+  font-size: 12px;
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--accent-blue) 3%, var(--paper-bg));
+  stroke-width: 6px;
+}
+
+.cg-pipeline-card-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Border color encodes who supplies the stage; a dashed border marks optional stages. */
+.cg-pipeline-stage {
+  stroke-width: 1.5;
+}
+
+.cg-pipeline-fixed {
+  fill: color-mix(in srgb, var(--accent-sage) 12%, var(--paper-bg));
+  stroke: var(--accent-sage);
+}
+
+.cg-pipeline-shader {
+  fill: color-mix(in srgb, var(--accent-ochre) 12%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+}
+
+.cg-pipeline-optional {
+  stroke-dasharray: 6 4;
+}
+
+.cg-pipeline-legend-optional {
+  fill: var(--paper-bg);
+  stroke: var(--text-secondary);
+  stroke-dasharray: 4 3;
+}
+
+.cg-pipeline-output {
+  fill: var(--paper-bg);
+  stroke: var(--border-color);
+  stroke-width: 1.5;
+}
+
+.cg-pipeline-edge {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.cg-pipeline-arrowhead,
+.cg-pipeline-point {
+  fill: var(--text-color);
+}
+
+.cg-pipeline-vertex {
+  fill: var(--text-secondary);
+  font-size: 11px;
+}
+
+.cg-pipeline-mesh {
+  fill: color-mix(in srgb, var(--accent-blue) 16%, transparent);
+  stroke: var(--accent-blue);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.cg-pipeline-mesh-new {
+  fill: color-mix(in srgb, var(--accent-ochre) 26%, transparent);
+  stroke: var(--accent-ochre);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.cg-pipeline-ghost,
+.cg-pipeline-discarded {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.7;
+}
+
+.cg-pipeline-subdivision {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 1;
+}
+
+.cg-pipeline-viewport {
+  fill: var(--paper-bg);
+  stroke: var(--text-color);
+  stroke-width: 1.2;
+}
+
+.cg-pipeline-canvas {
+  fill: var(--paper-bg);
+}
+
+.cg-pipeline-cell {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 0.5;
+}
+
+.cg-pipeline-frame {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1;
+}
+
+.cg-pipeline-coverage {
+  fill: var(--surface);
+}
+
+.cg-pipeline-outline {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 1.2;
+}
+
+.cg-pipeline-sample {
+  fill: var(--text-color);
+}
+
+.cg-pipeline-fragment {
+  fill: var(--accent-red);
+}
+
+.cg-pipeline-existing {
+  fill: color-mix(in srgb, var(--accent-sky) 60%, var(--paper-bg));
+}
+
+.cg-pipeline figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}

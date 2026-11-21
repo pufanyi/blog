@@ -37,7 +37,7 @@ export class RedirectComponent implements OnInit, OnDestroy {
       ? fullPath.slice(r.from.length).replace(/^\//, '')
       : '';
     // Append sub-path to target, ensuring proper slash handling
-    const base = r.to.endsWith('/') ? r.to : r.to + '/';
+    const base = r.to.endsWith('/') ? r.to : `${r.to}/`;
     return subPath ? base + subPath : r.to;
   });
 

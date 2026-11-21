@@ -54,7 +54,7 @@
       }
     },
     {
-      "includes": ["content/shared/chess/styles.css"],
+      "includes": ["content/shared/chess/**/*.css"],
       "linter": {
         "rules": {
           "correctness": {

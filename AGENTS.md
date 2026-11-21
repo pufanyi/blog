@@ -61,10 +61,12 @@ instead of accumulating unrelated rules here.
   shell owner, without descendant-sensitive selectors changing ancestors.
 - Authored sources live in `content` and `configs`. `src/app/data` and
   `.generated` are ignored outputs; change sources, never generated files.
-- Keep articles, styles, and browser examples together: article `styles.css`
-  and `scripts/*.post-client.ts` are discovered automatically, as are the
-  styles and clients of `content/shared/<kit>/` kits an article imports. Application
-  components own shared presentation and generic attachment/cleanup only.
+- Keep articles, styles, and browser examples together: article `styles.css`,
+  sorted `styles/*.css` partials, and `scripts/*.post-client.ts` are discovered
+  automatically, as are the styles and clients of `content/shared/<kit>/` kits
+  an article imports. Keep individual source files modular within the budgets
+  enforced by `pnpm check:sizes` (400 lines for CSS, 500 lines for code/templates).
+  Application components own shared presentation and generic attachment/cleanup only.
 - Keep article bodies and the full-text corpus out of eager summaries/shell.
   Open the small search dialog before dynamically loading its engine/index.
 - Preserve static HTML and Markdown meaning when adding interactivity. Dispose

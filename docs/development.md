@@ -11,7 +11,8 @@ Install with `pnpm install --frozen-lockfile`.
 | `pnpm watch` | Watch content and the Angular development build |
 | `pnpm generate:data` | One content generation; unchanged outputs keep their mtimes |
 | `pnpm check:boundaries` | Resolve source imports and enforce feature/shared/build dependency directions |
-| `pnpm check` | Generate, format/lint, Angular/templates, tooling/content typechecks |
+| `pnpm check:sizes` | Enforce single-file line budgets (400 lines for CSS, 500 lines for TS/TSX/MTS/HTML) |
+| `pnpm check` | Generate, format/lint, boundary/size checks, Angular/templates, tooling/content typechecks |
 | `pnpm test --watch=false` | Generate, Node content tests, then Angular unit tests |
 | `pnpm build` | Generate, production prerender, then deployment manifests/assets |
 | `pnpm preview` / `pnpm preview:cloudflare` | Serve the existing production build |

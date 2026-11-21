@@ -1,0 +1,152 @@
+.flash-algorithm {
+  container-type: inline-size;
+  margin: 2rem 0 1rem;
+  border-block: 2px solid var(--border-color);
+  text-align: left;
+  hyphens: none;
+  font-size: 0.92rem;
+}
+
+.flash-algorithm figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 1rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  font-family: var(--font-heading);
+}
+
+.flash-algorithm-number {
+  color: var(--accent-teal);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.flash-algorithm-contract {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.post-body .flash-algorithm-contract p {
+  margin: 0;
+  line-height: 1.9;
+}
+
+.flash-algorithm-contract b {
+  display: inline-block;
+  min-width: 4.5em;
+  font-family: var(--font-heading);
+  font-weight: 500;
+}
+
+.post-body .flash-algorithm-lines {
+  margin: 0;
+  padding: 0.75rem 0.85rem 0.75rem 3.1rem;
+  list-style: decimal-leading-zero;
+}
+
+.post-body .flash-algorithm-lines > li {
+  margin: 0;
+  padding: 0;
+  scroll-margin-top: 6rem;
+}
+
+.post-body .flash-algorithm-lines > li::marker {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+}
+
+.flash-algorithm-line {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.3em;
+  min-height: 2.05em;
+  padding: 0.18rem 0.5rem;
+  line-height: 1.8;
+}
+
+.flash-algorithm-line b {
+  color: var(--accent-blue);
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+.flash-algorithm-depth-1 {
+  padding-left: 1.7rem;
+}
+.flash-algorithm-depth-2 {
+  padding-left: 2.9rem;
+}
+
+.flash-algorithm-depth-1::before,
+.flash-algorithm-depth-2::before {
+  content: "";
+  position: absolute;
+  left: 0.9rem;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--border-color);
+  pointer-events: none;
+}
+
+.flash-algorithm-depth-2::before {
+  width: 1.2rem;
+  border-right: 1px solid var(--border-color);
+}
+
+.flash-algorithm-update {
+  background: color-mix(in srgb, var(--accent-teal) 9%, var(--paper-bg));
+  border-right: 2px solid var(--accent-teal);
+}
+
+.flash-algorithm-note {
+  margin-left: 0.8em;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.post-body .flash-algorithm-legend {
+  margin: 0;
+  padding: 0.65rem 1rem;
+  border-top: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+@container (max-width: 450px) {
+  .flash-algorithm figcaption,
+  .flash-algorithm-contract {
+    padding-inline: 0.5rem;
+  }
+  .post-body .flash-algorithm-lines {
+    padding-inline: 2rem 0.2rem;
+  }
+  .flash-algorithm-line {
+    font-size: 0.86rem;
+  }
+  .flash-algorithm-depth-1 {
+    padding-left: 1.3rem;
+  }
+  .flash-algorithm-depth-2 {
+    padding-left: 2.1rem;
+  }
+  .flash-algorithm-depth-1::before,
+  .flash-algorithm-depth-2::before {
+    left: 0.65rem;
+  }
+  .flash-algorithm-depth-2::before {
+    width: 0.8rem;
+  }
+  .flash-algorithm-note {
+    margin-left: 0;
+  }
+}
+
+.flash-algorithm-lines [data-playing-line] .flash-algorithm-line {
+  background: color-mix(in srgb, var(--accent-blue) 14%, var(--paper-bg));
+  border-right: 3px solid var(--accent-blue);
+}

@@ -1,0 +1,379 @@
+.cg-bres {
+  margin: 2rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  color: var(--text-color);
+}
+
+.cg-bres-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.6rem;
+}
+
+.cg-bres-heading span {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cg-bres-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 384fr) minmax(0, 312fr);
+  gap: 0.75rem;
+}
+
+.cg-bres-panel {
+  min-width: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--paper-bg);
+}
+
+.cg-bres-panel svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: inherit;
+  fill: var(--text-color);
+}
+
+.cg-bres-panel-title {
+  fill: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.cg-bres-legend text {
+  fill: var(--text-secondary);
+  font-size: 11px;
+}
+
+.cg-bres-cell {
+  fill: var(--paper-bg);
+  stroke: color-mix(in srgb, var(--border-color) 65%, transparent);
+  stroke-width: 0.75;
+}
+
+.cg-bres-cell[data-role="scanned"] {
+  fill: color-mix(in srgb, var(--accent-sage) 22%, var(--paper-bg));
+  stroke: color-mix(in srgb, var(--accent-sage) 70%, var(--border-color));
+  stroke-width: 1;
+}
+
+.cg-bres-cell[data-role="active-selected"] {
+  fill: color-mix(in srgb, var(--accent-sage) 34%, var(--paper-bg));
+  stroke: var(--accent-sage);
+  stroke-width: 1.75;
+}
+
+.cg-bres-cell[data-role="active-candidate"] {
+  fill: color-mix(in srgb, var(--surface-soft) 35%, var(--paper-bg));
+  stroke: color-mix(in srgb, var(--border-color) 85%, transparent);
+  stroke-width: 0.9;
+}
+
+.cg-bres-cell[data-role="upcoming"] {
+  fill: var(--paper-bg);
+  stroke: color-mix(in srgb, var(--border-color) 65%, transparent);
+  stroke-width: 0.75;
+}
+
+.cg-bres-dot {
+  fill: var(--border-color);
+}
+
+.cg-bres-panel:first-child .cg-bres-cell-group[data-role="empty"] .cg-bres-dot,
+.cg-bres-panel:first-child .cg-bres-cell-group[data-role="upcoming"] .cg-bres-dot,
+.cg-bres-panel:first-child .cg-bres-cell-group[data-role="active-candidate"] .cg-bres-dot {
+  opacity: 0;
+}
+
+.cg-bres-cell-group[data-role="scanned"] .cg-bres-dot,
+.cg-bres-cell-group[data-role="active-selected"] .cg-bres-dot {
+  fill: var(--accent-sage);
+}
+
+.cg-bres-cell-group[data-role="active-candidate"] .cg-bres-dot {
+  fill: var(--text-secondary);
+}
+
+.cg-bres-tick {
+  fill: var(--text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cg-bres-tick-boundary {
+  fill: var(--accent-rose);
+  font-weight: 700;
+}
+
+.cg-bres-axis-var {
+  fill: var(--text-color);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13.5px;
+  font-style: italic;
+}
+
+.cg-bres-window {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 3;
+  pointer-events: none;
+}
+
+.cg-bres-scan {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 1.25;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+.cg-bres-scan-label {
+  fill: var(--accent-blue);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.cg-bres-ideal {
+  fill: none;
+  stroke: var(--accent-ochre);
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.cg-bres-endpoint {
+  fill: var(--accent-ochre);
+  pointer-events: none;
+}
+
+.cg-bres-hit {
+  fill: var(--accent-ochre);
+  stroke: var(--paper-bg);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.cg-bres-boundary {
+  fill: none;
+  stroke: var(--accent-rose);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 3.5;
+}
+
+.cg-bres-snap {
+  fill: none;
+  stroke: var(--accent-sage);
+  stroke-width: 1.65;
+}
+
+.cg-bres-snap-head {
+  fill: var(--accent-sage);
+}
+
+.cg-bres-chosen-ring {
+  fill: none;
+  stroke: var(--accent-sage);
+  stroke-width: 1.5;
+}
+
+.cg-bres-exact-label {
+  fill: var(--accent-ochre);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke;
+  stroke: var(--paper-bg);
+  stroke-width: 4px;
+}
+
+.cg-bres-center-tick {
+  fill: var(--text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cg-bres-center-tick.is-active {
+  fill: var(--accent-blue);
+  font-weight: 700;
+}
+
+.cg-bres-callout-boundary {
+  fill: var(--accent-rose);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.cg-bres-callout-sub {
+  fill: var(--text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cg-bres-callout-sub.is-selected {
+  fill: var(--accent-sage);
+  font-weight: 700;
+}
+
+.cg-bres-col-hit {
+  fill: transparent;
+}
+
+.cg-bres[data-bres-ready="true"] .cg-bres-col-hit {
+  cursor: pointer;
+}
+
+.cg-bres[data-bres-ready="true"] .cg-bres-col-hit:hover {
+  fill: color-mix(in srgb, var(--accent-blue) 6%, transparent);
+}
+
+.cg-bres-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  align-items: baseline;
+  margin-top: 0.7rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-soft) 55%, var(--paper-bg));
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cg-bres-readout span {
+  color: var(--text-secondary);
+}
+
+.cg-bres-readout strong {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.cg-bres-controls:not([hidden]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.65rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.cg-bres-controls button {
+  min-block-size: 44px;
+  min-inline-size: 4.25rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--paper-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.cg-bres-controls button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.cg-bres-controls label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.cg-bres-controls input[type="range"] {
+  flex: 1 1 8rem;
+  min-inline-size: 6rem;
+  min-block-size: 44px;
+  margin: 0;
+  accent-color: var(--accent-sage);
+  cursor: pointer;
+}
+
+@supports not (accent-color: var(--accent-sage)) {
+  .cg-bres-controls input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+  }
+  .cg-bres-controls input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--accent-sage) var(--bres-progress, 20%),
+      var(--border-light) var(--bres-progress, 20%)
+    );
+  }
+  .cg-bres-controls input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: var(--accent-sage);
+    cursor: pointer;
+  }
+  .cg-bres-controls input[type="range"]::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--border-light);
+  }
+  .cg-bres-controls input[type="range"]::-moz-range-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent-sage);
+  }
+  .cg-bres-controls input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--accent-sage);
+    cursor: pointer;
+  }
+}
+
+.cg-bres :focus-visible {
+  outline: 2px solid var(--accent-ochre);
+  outline-offset: 3px;
+}
+
+.cg-bres output {
+  min-inline-size: 8.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.cg-bres figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 680px) {
+  .cg-bres-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cg-bres output {
+    min-inline-size: auto;
+    text-align: start;
+  }
+}

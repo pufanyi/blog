@@ -1,0 +1,85 @@
+/*
+ * Game viewer, modeled on the Lichess analysis board. The figure is the size
+ * container: the move panel sits right of the board whenever the column is at
+ * least 480px wide, and below it on phones. The layout is the same before and
+ * after the controller attaches, so enhancing it shifts nothing.
+ */
+.chess-game {
+  container-type: inline-size;
+}
+.chess-game__board {
+  max-width: 440px;
+  margin: 0 auto;
+}
+.chess-game__panel {
+  display: flex;
+  flex-direction: column;
+  margin: 10px auto 0;
+  max-width: 440px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface-soft) 40%, var(--paper-bg));
+  border-radius: 4px;
+  box-shadow: var(--chess-shadow);
+}
+.chess-game button {
+  color: var(--text-color);
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.chess-game button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+:is(.chess-game button, .chess-move):focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+/* Control bar: first, previous, next, last, then the PGN toggle. */
+.chess-controls {
+  display: flex;
+  order: -1;
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--chess-line);
+}
+.chess-controls[hidden] {
+  display: none;
+}
+.chess-controls button {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+}
+.chess-controls button:not(:disabled):hover {
+  color: var(--on-accent);
+  background: var(--accent-sage);
+}
+.chess-controls svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.chess-controls .chess-controls__pgn {
+  flex: 0 0 auto;
+  padding: 0 14px;
+  border-left: 1px solid var(--chess-line);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.chess-controls .chess-controls__pgn[aria-pressed="true"] {
+  color: var(--on-accent);
+  background: var(--accent-sage);
+}
+
+/*
+ * Move pane. Only this element scrolls: the controller centers the current
+ * move inside it and never scrolls the page. Fades mark hidden moves.
+ */

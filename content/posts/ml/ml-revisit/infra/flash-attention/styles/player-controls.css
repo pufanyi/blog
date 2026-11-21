@@ -1,0 +1,121 @@
+.flash-player {
+  container-type: inline-size;
+  margin: 2rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--paper-bg);
+  text-align: left;
+  hyphens: none;
+  font-size: 0.83rem;
+  line-height: 1.6;
+}
+.flash-player [hidden] {
+  display: none !important;
+}
+.flash-player .math-inline {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.flash-player figcaption {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.7rem;
+}
+.flash-player figcaption strong {
+  font-size: 1.08rem;
+  color: var(--text-color);
+}
+.flash-player-eyebrow {
+  color: var(--accent-teal);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.post-body .flash-player p {
+  margin: 0.5rem 0;
+  line-height: 1.7;
+}
+.flash-player-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  padding: 0.6rem 0;
+  margin-top: 0.75rem;
+  border-block: 1px solid var(--border-color);
+}
+.flash-player-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.flash-player :is(button, select) {
+  color: var(--text-color);
+  background: var(--paper-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  font: inherit;
+  cursor: pointer;
+}
+.flash-player-buttons button {
+  min-height: 40px;
+}
+.flash-player button[data-action="play"] {
+  color: var(--on-accent);
+  background: var(--accent-teal);
+  border-color: var(--accent-teal);
+  min-width: 4em;
+}
+.flash-player button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.flash-player button:hover:enabled {
+  border-color: var(--accent-blue);
+}
+.flash-player :is(button, input, select, a):focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+.flash-player-size {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+}
+.flash-player-timeline {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+.flash-player-timeline input {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent-teal);
+}
+.flash-player-timeline span {
+  min-width: 3.6em;
+  font-variant-numeric: tabular-nums;
+}
+.flash-player-stage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.6rem;
+  margin-top: 0.85rem;
+}
+.flash-player-stage a {
+  margin-left: auto;
+  font-size: 0.7rem;
+}
+.post-body .flash-player-explanation {
+  min-height: 3.4em;
+  margin-bottom: 0.8rem;
+  color: var(--text-secondary);
+}
