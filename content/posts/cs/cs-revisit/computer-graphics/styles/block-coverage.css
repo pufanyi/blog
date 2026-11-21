@@ -1,0 +1,286 @@
+.cg-tri {
+  margin: 2rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  color: var(--text-color);
+}
+
+.cg-tri-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.6rem;
+}
+
+.cg-tri-heading span {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cg-tri-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 384fr) minmax(0, 336fr);
+  gap: 0.75rem;
+}
+
+.cg-tri-panel {
+  min-width: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--paper-bg);
+}
+
+.cg-tri-panel svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: inherit;
+  fill: var(--text-color);
+}
+
+.cg-tri-panel-title {
+  fill: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.cg-tri-legend text {
+  fill: var(--text-secondary);
+  font-size: 10.75px;
+}
+
+.cg-tri-swatch[data-role="early-out"] {
+  fill: var(--paper-bg);
+  stroke: var(--border-color);
+  stroke-width: 1.1;
+}
+
+.cg-tri-swatch[data-role="early-in"] {
+  fill: color-mix(in srgb, var(--accent-sage) 24%, var(--paper-bg));
+  stroke: var(--accent-sage);
+  stroke-width: 1.2;
+}
+
+.cg-tri-swatch[data-role="else"] {
+  fill: color-mix(in srgb, var(--accent-rose) 18%, var(--paper-bg));
+  stroke: var(--accent-rose);
+  stroke-width: 1.25;
+}
+
+.cg-tri-canvas {
+  fill: var(--paper-bg);
+}
+
+.cg-tri-fine-grid line {
+  stroke: color-mix(in srgb, var(--border-color) 32%, transparent);
+  stroke-width: 0.5;
+}
+
+.cg-tri-coarse-grid line {
+  stroke: color-mix(in srgb, var(--text-secondary) 42%, var(--border-color));
+  stroke-width: 0.95;
+}
+
+.cg-tri-outer-border {
+  fill: none;
+  stroke: color-mix(in srgb, var(--text-color) 70%, transparent);
+  stroke-width: 1.25;
+  pointer-events: none;
+}
+
+.cg-tri-shape-fill,
+.cg-tri-zshape-fill {
+  fill: color-mix(in srgb, var(--accent-ochre) 20%, transparent);
+  pointer-events: none;
+}
+
+.cg-tri-shape-stroke,
+.cg-tri-zshape-stroke {
+  fill: none;
+  stroke: var(--accent-clay);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.cg-tri-vertex-dot {
+  fill: var(--accent-clay);
+  pointer-events: none;
+}
+
+.cg-tri-vertex-label {
+  fill: var(--accent-clay);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.cg-tri-block-tint[data-role="early-out"] {
+  fill: transparent;
+  pointer-events: none;
+}
+
+.cg-tri-block-tint[data-role="early-in"] {
+  fill: color-mix(in srgb, var(--accent-sage) 22%, transparent);
+  pointer-events: none;
+}
+
+.cg-tri-block-tint[data-role="else"] {
+  fill: color-mix(in srgb, var(--accent-rose) 15%, transparent);
+  pointer-events: none;
+}
+
+.cg-tri-active-frame {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+.cg-tri-block-hit {
+  fill: transparent;
+}
+
+.cg-tri[data-tri-ready="true"] .cg-tri-block-hit {
+  cursor: pointer;
+}
+
+.cg-tri[data-tri-ready="true"] .cg-tri-block-hit:hover {
+  fill: color-mix(in srgb, var(--accent-blue) 8%, transparent);
+}
+
+.cg-tri-tick {
+  fill: var(--text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cg-tri-axis-var {
+  fill: var(--text-color);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13.5px;
+  font-style: italic;
+}
+
+.cg-tri-legend-sample-box {
+  fill: color-mix(in srgb, var(--accent-rose) 14%, var(--paper-bg));
+  stroke: var(--accent-rose);
+  stroke-width: 1.4;
+}
+
+.cg-tri-legend-covered {
+  fill: color-mix(in srgb, var(--accent-sage) 22%, var(--paper-bg));
+  stroke: color-mix(in srgb, var(--accent-sage) 65%, var(--border-color));
+  stroke-width: 1.1;
+}
+
+.cg-tri-zcell {
+  fill: var(--paper-bg);
+  stroke: color-mix(in srgb, var(--border-color) 55%, transparent);
+  stroke-width: 0.75;
+}
+
+.cg-tri-zcell[data-covered="true"] {
+  fill: color-mix(in srgb, var(--accent-sage) 18%, var(--paper-bg));
+  stroke: color-mix(in srgb, var(--accent-sage) 50%, var(--border-color));
+}
+
+.cg-tri-zpixel-box {
+  fill: none;
+  stroke: color-mix(in srgb, var(--text-color) 65%, transparent);
+  stroke-width: 1.1;
+  pointer-events: none;
+}
+
+.cg-tri-zsample-box {
+  fill: none;
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+.cg-tri-zsample-box[data-role="else"] {
+  stroke: var(--accent-rose);
+}
+
+.cg-tri-zsample-box[data-role="early-in"] {
+  stroke: var(--accent-sage);
+}
+
+.cg-tri-zsample-box[data-role="early-out"] {
+  stroke: var(--accent-slate);
+  stroke-dasharray: 4 3;
+}
+
+.cg-tri-zcorner-ring {
+  fill: none;
+  stroke-width: 1.35;
+}
+
+[data-tri-zpt][data-covered="true"] .cg-tri-zcorner-ring {
+  stroke: var(--accent-sage);
+}
+
+[data-tri-zpt][data-covered="false"] .cg-tri-zcorner-ring {
+  stroke: var(--text-secondary);
+  stroke-dasharray: 2.5 2;
+}
+
+[data-tri-zpt][data-covered="true"] .cg-tri-zsample-dot {
+  fill: var(--accent-sage);
+  stroke: var(--paper-bg);
+  stroke-width: 1;
+}
+
+[data-tri-zpt][data-covered="false"] .cg-tri-zsample-dot {
+  fill: var(--paper-bg);
+  stroke: var(--text-secondary);
+  stroke-width: 1.25;
+}
+
+.cg-tri-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  align-items: baseline;
+  margin-top: 0.7rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-soft) 55%, var(--paper-bg));
+  font-size: 0.84rem;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.cg-tri-readout strong {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.cg-tri-readout span {
+  color: var(--text-secondary);
+}
+
+.cg-tri :focus-visible {
+  outline: 2px solid var(--accent-ochre);
+  outline-offset: 3px;
+}
+
+.cg-tri figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 680px) {
+  .cg-tri-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

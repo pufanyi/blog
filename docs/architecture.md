@@ -217,26 +217,26 @@ spans inside it, so CSS `:empty` alone is insufficient. Preserve interior and
 intentional trailing blank lines, and the source whitespace used by Copy and
 Markdown exports. Browser regressions cover article and handbook code blocks.
 
-Article `styles.css` is embedded in that article's rendered HTML under
-`style[data-post-style]`. Prefix selectors, preserve semantic theme variables,
-and keep same-document SVG fragment URLs intact. Styles exist before JavaScript
-and leave with the article DOM. Shared presentation remains in `ReaderPageComponent`.
-Build-only styles and scripts are excluded by Angular's article asset rules.
-Reusable build-time visual primitives live in `content/shared`; post components
-import them directly, and the content cache follows those imports so a shared
-change regenerates only its consumers. A single shared file, such as
-`vision-example.tsx`, keeps its prefixed presentation styles global because the
-same generated markup appears in more than one article.
+Article `styles.css` and optional sorted `styles/*.css` partials are embedded in
+that article's rendered HTML under `style[data-post-style]`. Prefix selectors,
+preserve semantic theme variables, and keep same-document SVG fragment URLs
+intact. Styles exist before JavaScript and leave with the article DOM. Shared
+presentation remains in `ReaderPageComponent`. Build-only styles and scripts are
+excluded by Angular's article asset rules. Reusable build-time visual primitives
+live in `content/shared`; post components import them directly, and the content
+cache follows those imports so a shared change regenerates only its consumers. A
+single shared file, such as `vision-example.tsx`, keeps its prefixed presentation
+styles global because the same generated markup appears in more than one article.
 
 A directory `content/shared/<kit>/` is a **shared component kit**. When any
 local module of an article imports a file inside the kit, directly or through
-other local modules, the generator embeds the kit's `styles.css` ahead of the
-article's own `styles.css` and registers the kit's `*.post-client.ts` modules as
-lazy enhancements for that article only. Articles therefore need no shim files,
-and pages that do not use a kit download none of its CSS or JavaScript. The
-article cache key hashes every file in each imported kit, because styles and
-clients are not reached through imports. `postKits` in
-`scripts/lib/post-assets.mts` owns this discovery.
+other local modules, the generator embeds the kit's `styles.css` and sorted
+`styles/*.css` partials ahead of the article's own stylesheets and registers the
+kit's `*.post-client.ts` modules as lazy enhancements for that article only.
+Articles therefore need no shim files, and pages that do not use a kit download
+none of its CSS or JavaScript. The article cache key hashes every file in each
+imported kit, because styles and clients are not reached through imports.
+`postKits` and `postStyles` in `scripts/lib/post-assets.mts` own this discovery.
 
 The generator discovers `scripts/*.post-client.ts` and generates per-slug lazy
 loaders. Each module exports `enhancePost(container): () => void`.

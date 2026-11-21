@@ -1,0 +1,172 @@
+.cg-scene {
+  margin: 1.25rem 0;
+}
+
+.cg-scene-scroll {
+  overflow-x: auto;
+}
+
+.cg-scene-scroll:focus-visible {
+  outline: 2px solid var(--accent-blue);
+}
+
+.cg-scene svg {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  height: auto;
+  font: 14px sans-serif;
+  fill: var(--text-color);
+}
+
+.cg-scene-part {
+  fill: var(--paper-bg);
+  stroke: var(--text-secondary);
+  stroke-width: 1.4;
+}
+
+.cg-scene-body {
+  fill: color-mix(in srgb, var(--accent-blue) 20%, var(--paper-bg));
+  stroke: var(--accent-blue);
+}
+
+.cg-scene-upper {
+  fill: color-mix(in srgb, var(--accent-ochre) 22%, var(--paper-bg));
+  stroke: var(--accent-ochre);
+}
+
+.cg-scene-lower {
+  fill: color-mix(in srgb, var(--accent-sage) 24%, var(--paper-bg));
+  stroke: var(--accent-sage);
+}
+
+.cg-scene-world {
+  stroke-dasharray: 5 4;
+}
+
+.cg-scene-edge {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.3;
+}
+
+.cg-scene-chain {
+  stroke: var(--accent-blue);
+  stroke-width: 2.4;
+}
+
+.cg-scene-chain-head {
+  fill: var(--accent-blue);
+}
+
+.cg-scene-divider {
+  stroke: var(--border-color);
+  stroke-dasharray: 4 5;
+}
+
+.cg-scene-label,
+.cg-scene figcaption {
+  color: var(--text-secondary);
+  fill: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.cg-scene-solid {
+  --cg-solid-color: var(--surface-strong);
+  --cg-solid-edge: var(--text-secondary);
+  stroke: var(--cg-solid-edge);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+}
+
+.cg-scene-solid-body {
+  --cg-solid-color: var(--accent-blue);
+  --cg-solid-edge: var(--accent-blue);
+}
+
+.cg-scene-solid-upper {
+  --cg-solid-color: var(--accent-ochre);
+  --cg-solid-edge: var(--accent-ochre);
+}
+
+.cg-scene-solid-lower {
+  --cg-solid-color: var(--accent-sage);
+  --cg-solid-edge: var(--accent-sage);
+}
+
+.cg-scene-face-front {
+  fill: color-mix(in srgb, var(--cg-solid-color) 20%, var(--paper-bg));
+}
+
+.cg-scene-face-top {
+  fill: color-mix(in srgb, var(--cg-solid-color) 8%, var(--paper-bg));
+}
+
+.cg-scene-face-side {
+  fill: color-mix(in srgb, var(--cg-solid-color) 40%, var(--paper-bg));
+}
+
+.cg-scene-joint {
+  fill: var(--paper-bg);
+  stroke: var(--text-secondary);
+  stroke-width: 1;
+}
+
+.cg-scene-canvas {
+  position: relative;
+  min-width: 640px;
+}
+
+.cg-scene-transform {
+  position: absolute;
+  color: var(--accent-blue);
+  font-size: 0.85rem;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
+/* Local frames reuse the tree colors so each axis pair matches its node. */
+.cg-scene-frame {
+  --cg-frame-color: var(--text-color);
+  fill: var(--cg-frame-color);
+  stroke: var(--cg-frame-color);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.cg-scene-frame-body {
+  --cg-frame-color: var(--accent-blue);
+}
+
+.cg-scene-frame-upper {
+  --cg-frame-color: var(--accent-ochre);
+}
+
+.cg-scene-frame-lower {
+  --cg-frame-color: var(--accent-sage);
+}
+
+.cg-scene-frame .cg-scene-frame-halo {
+  stroke: var(--paper-bg);
+  stroke-width: 4.5;
+}
+
+.cg-scene-frame .cg-scene-label {
+  stroke: none;
+}
+
+.cg-scene-frame-head-world {
+  fill: var(--text-color);
+}
+
+.cg-scene-frame-head-body {
+  fill: var(--accent-blue);
+}
+
+.cg-scene-frame-head-upper {
+  fill: var(--accent-ochre);
+}
+
+.cg-scene-frame-head-lower {
+  fill: var(--accent-sage);
+}

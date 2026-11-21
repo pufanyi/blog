@@ -21,11 +21,24 @@ export function postKits(sourcePath: string): string[] {
   return [...kits].sort();
 }
 
-/** Kit styles come first so the article's own stylesheet can refine them. */
+function directoryStyles(directory: string): string[] {
+  const paths: string[] = [];
+  const rootStyle = join(directory, 'styles.css');
+  if (existsSync(rootStyle)) paths.push(rootStyle);
+  const stylesDir = join(directory, 'styles');
+  if (existsSync(stylesDir)) {
+    const partials = readdirSync(stylesDir, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith('.css'))
+      .map((entry) => join(stylesDir, entry.name))
+      .sort();
+    paths.push(...partials);
+  }
+  return paths;
+}
+
+/** Kit styles come first so the article's own stylesheets can refine them. */
 export function postStyles(sourcePath: string): string {
-  const paths = [...postKits(sourcePath), dirname(sourcePath)]
-    .map((directory) => join(directory, 'styles.css'))
-    .filter((path) => existsSync(path));
+  const paths = [...postKits(sourcePath), dirname(sourcePath)].flatMap(directoryStyles);
   if (!paths.length) return '';
   const css = paths.map((path) => {
     const source = readFileSync(path, 'utf8');

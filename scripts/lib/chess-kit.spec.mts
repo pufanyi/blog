@@ -252,10 +252,14 @@ test('shared kits follow imports into exactly the articles that use them', (t) =
   write('content/shared/board/index.ts', "export { piece } from './piece';\n");
   write('content/shared/board/piece.ts', "export const piece = 'p';\n");
   write('content/shared/board/styles.css', '.kit {}\n');
+  write('content/shared/board/styles/b.css', '.kit-b {}\n');
+  write('content/shared/board/styles/a.css', '.kit-a {}\n');
   write('content/shared/board/board.post-client.ts', 'export {};\n');
   write('content/shared/loose.tsx', 'export const loose = 1;\n');
   write('content/posts/uses/index.mdx', '# Uses\n');
   write('content/posts/uses/styles.css', '.article {}\n');
+  write('content/posts/uses/styles/z.css', '.article-z {}\n');
+  write('content/posts/uses/styles/a.css', '.article-a {}\n');
   write('content/posts/uses/scripts/model.ts', "export { piece } from '../../../shared/board';\n");
   write(
     'content/posts/uses/scripts/a.post-component.tsx',
@@ -270,7 +274,10 @@ test('shared kits follow imports into exactly the articles that use them', (t) =
   const plain = join(root, 'content/posts/plain/index.mdx');
 
   assert.deepEqual(postKits(uses), [join(root, 'content/shared/board')]);
-  assert.equal(postStyles(uses), '<style data-post-style>.kit {}\n\n.article {}\n</style>');
+  assert.equal(
+    postStyles(uses),
+    '<style data-post-style>.kit {}\n\n.kit-a {}\n\n.kit-b {}\n\n.article {}\n\n.article-a {}\n\n.article-z {}\n</style>',
+  );
   assert.deepEqual(postClientModules(uses), [
     join(root, 'content/shared/board/board.post-client.ts'),
   ]);

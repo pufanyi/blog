@@ -1,0 +1,73 @@
+/* Static SVG board: no-JavaScript, print, and pre-hydration rendering. */
+.chess-board {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--font-body);
+}
+.chess-board[hidden] {
+  display: none;
+}
+.chess-square-light {
+  fill: var(--chess-square-light);
+}
+.chess-square-dark {
+  fill: var(--chess-square-dark);
+}
+.chess-coord {
+  fill: var(--text-secondary);
+  font-size: 10px;
+  text-anchor: middle;
+}
+.chess-mark-target {
+  fill: none;
+  stroke: var(--accent-red);
+  stroke-width: 3;
+}
+.chess-mark-area {
+  fill: color-mix(in srgb, var(--accent-ochre) 32%, transparent);
+}
+
+/* Arrow roles differ by pattern or weight as well as hue. */
+.chess-arrow {
+  stroke-width: 6.25;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+.chess-arrow-path {
+  stroke: var(--chess-arrow-path);
+}
+.chess-arrow-option {
+  stroke: var(--chess-arrow-option);
+  stroke-dasharray: 8 5;
+  stroke-linecap: butt;
+}
+.chess-arrow-threat {
+  stroke: var(--chess-arrow-threat);
+  stroke-width: 4;
+}
+.chess-arrow-idea {
+  stroke: var(--chess-arrow-idea);
+  stroke-dasharray: 0.1 7;
+}
+.chess-head-path {
+  fill: var(--chess-arrow-path);
+}
+.chess-head-option {
+  fill: var(--chess-arrow-option);
+}
+.chess-head-threat {
+  fill: var(--chess-arrow-threat);
+}
+.chess-head-idea {
+  fill: var(--chess-arrow-idea);
+}
+.chess-arrow-label circle {
+  fill: var(--chess-arrow-path);
+}
+.chess-arrow-label text {
+  fill: var(--on-accent);
+  font-size: 9px;
+  font-weight: 700;
+  text-anchor: middle;
+}

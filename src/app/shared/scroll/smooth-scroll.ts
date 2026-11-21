@@ -27,7 +27,7 @@ export function smoothScrollTo(
   const startTime = performance.now();
 
   const easeInOutCubic = (t: number): number =>
-    t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 
   const tick = (now: number): void => {
     const progress = Math.min((now - startTime) / durationMs, 1);

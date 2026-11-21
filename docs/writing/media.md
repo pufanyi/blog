@@ -51,7 +51,7 @@ Use unique accessible IDs when a component appears more than once. Give SVG titl
 
 ## Styling and mathematical labels
 
-An article's `styles.css` is discovered automatically. Prefix selectors with a unique article or figure class and use semantic variables from [`morandi.css`](../../src/styles/morandi.css). Distinguish different edge roles through line patterns or weights as well as colors.
+An article's `styles.css` and any sorted `styles/*.css` partials are discovered automatically (`styles.css` loads first for shared base rules, followed by `styles/*.css` for individual figures). Prefix selectors with a unique article or figure class and use semantic variables from [`morandi.css`](../../src/styles/morandi.css). Distinguish different edge roles through line patterns or weights as well as colors.
 
 Do not add article-specific styles to the shared post component. Small fragments inside SVG should use local fragment references. CSS and TSX asset URLs are not automatically rewritten when an article's slug changes.
 
@@ -67,7 +67,7 @@ focused/interacted with. Use the filename without `.post-client.ts`; multiple
 controllers use space-separated names. Without a matching marker, attachment
 remains immediate. Static content must stay useful before the controller loads.
 
-A shared component kit under `content/shared/<kit>/` carries its own `styles.css` and controller into every article that imports it; the [chess kit](chess.md) is the reference example. Render useful initial HTML in the build-time component. Keep playback opt-in, pause it when hidden or offscreen, and respect reduced motion. Mark transient controls with `data-agent-omit`, with a static explanation or transcript outside the omitted region. Follow the [architecture contracts](../architecture.md) when implementing controllers and readiness signals.
+A shared component kit under `content/shared/<kit>/` carries its own `styles.css`, `styles/*.css` partials, and controllers into every article that imports it; the [chess kit](chess.md) is the reference example. Render useful initial HTML in the build-time component. Keep playback opt-in, pause it when hidden or offscreen, and respect reduced motion. Mark transient controls with `data-agent-omit`, with a static explanation or transcript outside the omitted region. Follow the [architecture contracts](../architecture.md) when implementing controllers and readiness signals.
 
 ## PDFs and external embeds
 
