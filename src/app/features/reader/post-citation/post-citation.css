@@ -74,11 +74,38 @@ pre {
   margin: 0;
   padding: 1rem 1.1rem;
   overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   color: var(--text-color);
   font-family: var(--font-mono);
   font-size: 0.82rem;
   line-height: 1.6;
   white-space: pre;
+}
+
+@media (forced-colors: active) {
+  pre {
+    scrollbar-color: auto;
+  }
+}
+
+@supports not (scrollbar-color: auto) {
+  pre {
+    scrollbar-width: auto;
+  }
+
+  pre::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  pre::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  pre::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 3px;
+  }
 }
 
 code {
