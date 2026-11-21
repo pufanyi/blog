@@ -190,6 +190,7 @@
 }
 
 .post-body details > summary::before {
+  /* biome-ignore lint/a11y/useGenericFontNames: Phosphor is an icon font */
   font-family: "Phosphor";
   content: var(--icon-caret-right);
   font-size: 1em;

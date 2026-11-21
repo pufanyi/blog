@@ -13,6 +13,7 @@ function Scene() {
       height="160"
       viewBox={BIRD_SCENE_VIEW_BOX}
       preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
     >
       <BirdScene />
     </svg>

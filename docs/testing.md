@@ -11,7 +11,7 @@ pnpm test --watch=false
 
 Run these sequentially. Their lifecycle hooks write shared generated files. Before every push, run both check and noninteractive unit tests after the final change. If anything changes afterward, run them again. Browser behavior is reviewed manually; E2E automation has been removed.
 
-`pnpm check` includes Biome formatting, import-boundary validation, Angular application and strict-template compilation, strict tooling typechecks, ESLint, and article MDX/BibTeX checks. Documentation structure, internal links, and anchors are validated by its generation hook. It does not execute tests or build production pages.
+`pnpm check` includes Biome linting and formatting, import-boundary validation, Angular application and strict-template compilation, strict tooling typechecks, ESLint, and article MDX/BibTeX checks. Documentation structure, internal links, and anchors are validated by its generation hook. It does not execute tests or build production pages.
 
 `pnpm test --watch=false` runs Node content/tooling tests followed by Angular unit tests. If the host's CPU count causes Vitest worker failures, use `VITEST_MAX_WORKERS=2 pnpm test --watch=false`.
 
@@ -51,9 +51,10 @@ See [host troubleshooting](browser-troubleshooting.md) for local preview issues.
 
 ## CI and performance evidence
 
-The quality workflow continues to run source checks and unit tests. It generates
-once and uses `*:generated` commands afterward; the final required `check` status
-depends on the quality job. Removing E2E does not change those checks.
+The quality workflow runs lightweight Biome lint and formatting checks
+(`biome ci .`) via `biomejs/setup-biome` without generating content or running
+tests; the final required `check` status depends on the quality job. Run
+`pnpm check` and `pnpm test --watch=false` locally before pushing.
 
 The [performance records](maintenance/performance.md) retain historical browser
 measurements. They are reference data, not active automated resource budgets.

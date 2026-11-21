@@ -30,6 +30,7 @@ export class SearchService {
   private getEngine(): Promise<LoadedSearchEngine> {
     // Share the load across queries and dialog openings. Browsers can cache
     // failed module imports too; the dialog offers a page reload on failure.
-    return (this.engine ??= this.loadEngine());
+    this.engine ??= this.loadEngine();
+    return this.engine;
   }
 }
