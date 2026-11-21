@@ -104,6 +104,11 @@ their named articles.
   while retaining the intermediate reasoning a first-time reader needs.
   For wording corrections, fix the specific ambiguity without expanding
   familiar basics into a tutorial or adding redundant examples.
+- Even when writing technical posts in Chinese, keep established technical
+  terms in English as much as possible rather than translating them into
+  Chinese, and avoid routine Chinese parenthetical translations. Explain
+  mechanisms and tradeoffs directly rather than relying on translated term
+  names.
 - Choose the medium with the greater explanatory value. Use figures generously
   where spatial relationships, concrete vision examples, training flows, tensor
   layouts, or comparisons become clearer visually; do not require a figure for
