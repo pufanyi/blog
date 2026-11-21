@@ -37,7 +37,7 @@
 .cg-shade-card {
   display: flex;
   flex-direction: column;
-  gap: 0.42rem;
+  gap: 0.45rem;
   min-width: 0;
   padding: 0.65rem 0.7rem 0.72rem;
   border: 1px solid var(--border-color);
@@ -71,34 +71,52 @@
 }
 
 .cg-shade-viewport {
-  position: relative;
   width: 100%;
-  aspect-ratio: 320 / 200;
   border: 1px solid var(--border-light);
   border-radius: 6px;
   background: var(--paper-bg);
   overflow: hidden;
 }
 
-.cg-shade-img,
-.cg-shade-canvas {
+.cg-shade-svg {
   display: block;
   width: 100%;
-  height: 100%;
-  margin: 0;
+  height: auto;
 }
 
-.cg-shade-wire {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
+.cg-shade-tile {
+  stroke: color-mix(in srgb, var(--text-color) 46%, transparent);
+  stroke-width: 0.7;
+  stroke-linejoin: round;
+}
+
+.cg-shade-tile-dark {
+  fill: color-mix(in srgb, var(--accent-blue) 74%, var(--paper-bg));
+}
+
+.cg-shade-tile-light {
+  fill: color-mix(in srgb, var(--surface-soft) 72%, var(--paper-bg));
+}
+
+.cg-shade-tile-rose {
+  fill: color-mix(in srgb, var(--accent-rose) 76%, var(--paper-bg));
+}
+
+.cg-shade-tile-sage {
+  fill: color-mix(in srgb, var(--accent-sage) 74%, var(--paper-bg));
+}
+
+.cg-shade-ring {
+  fill: none;
+  stroke: var(--accent-rose);
+  stroke-width: 4.5;
+  stroke-linejoin: round;
+  opacity: 0.88;
 }
 
 .cg-shade-wire-outline {
   fill: none;
-  stroke: color-mix(in srgb, var(--text-color) 42%, transparent);
+  stroke: color-mix(in srgb, var(--text-color) 55%, transparent);
   stroke-width: 1.1;
   stroke-linejoin: round;
 }
@@ -107,15 +125,15 @@
   stroke: var(--accent-rose);
   stroke-width: 1.4;
   stroke-dasharray: 4.5 3.5;
-  opacity: 0.82;
+  opacity: 0.85;
 }
 
 .cg-shade-formula {
-  padding-top: 0.2rem;
+  padding: 0.25rem 0 0.1rem;
   color: var(--text-color);
   font-size: 0.82rem;
   text-align: center;
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .cg-shade-formula mjx-container {

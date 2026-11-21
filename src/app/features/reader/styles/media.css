@@ -63,6 +63,12 @@
   margin: 1.75rem 0;
 }
 
+.post-body .math-display mjx-container[display="true"] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.15rem;
+}
+
 .post-body .math-display:not(:has(mjx-container)),
 .post-body .math-inline:not(:has(mjx-container)) {
   overflow-wrap: anywhere;
