@@ -1,0 +1,191 @@
+/* ShadingComparisonFigure */
+.cg-shade {
+  margin: 1.5rem 0;
+  padding: 0.9rem 0.95rem 0.95rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--paper-bg);
+}
+
+.cg-shade-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.35rem 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.cg-shade-header strong {
+  color: var(--text-color);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.cg-shade-meta {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cg-shade-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.cg-shade-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.42rem;
+  min-width: 0;
+  padding: 0.65rem 0.7rem 0.72rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-soft) 28%, var(--paper-bg));
+}
+
+.cg-shade-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.cg-shade-card-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.cg-shade-card-flat .cg-shade-card-title {
+  color: var(--accent-ochre);
+}
+
+.cg-shade-card-smooth .cg-shade-card-title {
+  color: var(--accent-rose);
+}
+
+.cg-shade-card-perspective .cg-shade-card-title {
+  color: var(--accent-sage);
+}
+
+.cg-shade-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 320 / 200;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--paper-bg);
+  overflow: hidden;
+}
+
+.cg-shade-img,
+.cg-shade-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.cg-shade-wire {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.cg-shade-wire-outline {
+  fill: none;
+  stroke: color-mix(in srgb, var(--text-color) 42%, transparent);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+}
+
+.cg-shade-wire-diag {
+  stroke: var(--accent-rose);
+  stroke-width: 1.4;
+  stroke-dasharray: 4.5 3.5;
+  opacity: 0.82;
+}
+
+.cg-shade-formula {
+  padding-top: 0.2rem;
+  color: var(--text-color);
+  font-size: 0.82rem;
+  text-align: center;
+  overflow-x: auto;
+}
+
+.cg-shade-formula mjx-container {
+  margin: 0;
+}
+
+.cg-shade-note {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.48;
+}
+
+.cg-shade-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.68rem;
+  border-top: 1px solid var(--border-light);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.cg-shade-controls[hidden] {
+  display: none;
+}
+
+.cg-shade-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1 1 240px;
+}
+
+.cg-shade-slider-row input[type="range"] {
+  flex: 1 1 120px;
+  accent-color: var(--accent-blue);
+}
+
+.cg-shade-slider-row output {
+  min-width: 6.2rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-color);
+}
+
+.cg-shade-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cg-shade-toggle input {
+  accent-color: var(--accent-rose);
+}
+
+.cg-shade figcaption {
+  margin-top: 0.7rem;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 780px) {
+  .cg-shade-grid {
+    grid-template-columns: 1fr;
+  }
+}
