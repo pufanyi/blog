@@ -2208,7 +2208,7 @@
   }
 }
 
-/* Antialiasing: coverage failure & SSAA/MSAA comparison */
+/* Antialiasing: SSAA/MSAA comparison */
 .cg-aa {
   margin: 1.5rem 0;
 }
@@ -2256,51 +2256,13 @@
   stroke-dasharray: 3 3;
 }
 
-.cg-aa-hatch-line {
-  stroke: color-mix(in srgb, var(--border-color) 70%, transparent);
-  stroke-width: 1.25;
-}
-
 .cg-aa-tri-a {
   fill: color-mix(in srgb, var(--accent-rose) 28%, var(--paper-bg));
-}
-
-.cg-aa-tri-a-behind {
-  fill: color-mix(in srgb, var(--accent-rose) 18%, var(--paper-bg));
-}
-
-.cg-aa-tri-a-outline {
-  fill: none;
-  stroke: var(--accent-rose);
-  stroke-width: 1.4;
-  stroke-dasharray: 4 3;
-}
-
-.cg-aa-tri-b {
-  fill: color-mix(in srgb, var(--accent-blue) 28%, var(--paper-bg));
-}
-
-.cg-aa-shared-edge {
-  stroke: var(--text-color);
-  stroke-width: 1.25;
-  stroke-dasharray: 4 3;
 }
 
 .cg-aa-tri-edge {
   stroke: var(--accent-rose);
   stroke-width: 1.75;
-}
-
-.cg-aa-tri-label {
-  fill: var(--text-color);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.cg-aa-tri-sublabel,
-.cg-aa-bg-label {
-  fill: var(--text-secondary);
-  font-size: 11px;
 }
 
 .cg-aa-bar-caption {
@@ -2309,42 +2271,10 @@
   font-weight: 600;
 }
 
-.cg-aa-warn-text {
-  fill: var(--accent-rose);
-}
-
-.cg-aa-bar-frame {
-  fill: none;
-  stroke: var(--border-color);
-  stroke-width: 1.1;
-}
-
-.cg-aa-bar-value {
-  fill: var(--text-color);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.cg-aa-bar-bg-value {
-  fill: var(--text-secondary);
-  font-size: 11px;
-}
-
 .cg-aa-note {
   fill: var(--text-secondary);
   font-size: 10.5px;
   font-variant-numeric: tabular-nums;
-}
-
-.cg-aa-conflict-box {
-  fill: color-mix(in srgb, var(--accent-rose) 10%, var(--paper-bg));
-  stroke: color-mix(in srgb, var(--accent-rose) 55%, var(--border-color));
-  stroke-width: 1;
-}
-
-.cg-aa-conflict-line {
-  fill: var(--text-color);
-  font-size: 10.5px;
 }
 
 .cg-aa-arrow-head {
