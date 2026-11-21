@@ -183,7 +183,7 @@ $$
 a(\phi_x, \phi_y) = a(v_1)\cdot \phi_x+a(v_2)\cdot\phi_y + a(v_3)\cdot(1 - \phi_x - \phi_y)
 $$
 
-**Perspective Correct Shading**: 算出真实的 $z$，然后根据这个 $z$ 做插值。由于透视投影后在屏幕空间呈线性的是 $\frac{1}{z}$ 与 $\frac{a}{z}$（而非 $z$ 与 $a$ 本身），我们先用屏幕空间的 barycentric coordinates 插值 $\frac{1}{z}$ 还原真实深度，再对 $\frac{a}{z}$ 做同样的插值并乘回 $z(\phi_x, \phi_y)$：
+**Perspective Correct Shading**: 算出真实的 $z$，然后根据这个 $z$ 做插值：
 
 $$
 \begin{aligned}
@@ -193,7 +193,13 @@ a(\phi_x, \phi_y) &= z(\phi_x, \phi_y)\left[\frac{a(v_1)}{z_1}\cdot \phi_x + \fr
 \end{aligned}
 $$
 
-<ShadingComparisonFigure />
+为什么可以这样算？在 2D 屏幕上，**只要一个量是屏幕坐标 $(x_s, y_s)$ 的线性函数，就可以直接用屏幕空间的 barycentric coordinates 精确插值**。由于 3D 三角形落在某个平面 $Ax + By + Cz = D$ 上，两侧同除以 $z$ 并代入 pinhole camera 投影关系 $x_s = \frac{x}{z},\ y_s = \frac{y}{z}$，可得
 
-<PerspectiveCorrectFigure />
+$$
+A x_s + B y_s + C = \frac{D}{z} \implies \frac{1}{z} = \frac{A}{D}x_s + \frac{B}{D}y_s + \frac{C}{D},
+$$
+
+因此 $\frac{1}{z}$ 是 $(x_s, y_s)$ 的线性函数。同理，在 3D 三角形上呈线性的属性 $a = \alpha x + \beta y + \gamma z + \delta$ 除以 $z$ 后变为 $\frac{a}{z} = \alpha x_s + \beta y_s + \gamma + \delta\cdot\frac{1}{z}$，同样是 $(x_s, y_s)$ 的线性函数。于是我们可以直接在屏幕空间分别线性插值 $\frac{1}{z}$ 与 $\frac{a}{z}$，最后乘回 $z(\phi_x, \phi_y)$（即两者相除）即可还原真实的 $a(\phi_x, \phi_y)$。
+
+<ShadingComparisonFigure />
 
