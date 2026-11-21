@@ -1,17 +1,17 @@
 # Dependency policy and exceptions
 
-Use Node 24.22.3 from `.nvmrc`, pnpm 12.21.0 from `package.json`, and
-`pnpm install --frozen-lockfile`. Update
+Use Node 26.13.1 (Lithium LTS) from `.nvmrc`, pnpm 12.21.0 from `package.json`,
+and `pnpm install --frozen-lockfile`. Update
 `package.json`, `pnpm-lock.yaml`, relevant install-script permissions, CI, and
 operator instructions together when their workflow changes. Confirm peers,
 checks, unit tests, a production build, and affected browser behavior.
 
-Keep `@types/node` on the Node 24 line and TypeScript on 6.0.x while Angular 22
+Keep `@types/node` on the Node 26 line and TypeScript on 6.0.x while Angular 22
 requires `>=6.0 <6.1`. A newer TypeScript major is not a compatible update yet.
 
-Node 24.22.3 includes the eMudhra certificate-trust security fix landed in
-24.22.1 (see the [Render advisory](https://render.com/docs/advisory-emudhra)).
-Use this version or a newer patched Node 24 release in local development, CI,
+Node 26.13.1 is the patched Active LTS release (including the November 2026
+HTTP/2 and TLS security fixes and the earlier eMudhra certificate-trust fix).
+Use this version or a newer patched Node 26 release in local development, CI,
 and the actual deployment build environment; a platform `NODE_VERSION` override
 must not select an older runtime. Rebuild deployed assets after updating the
 build environment.
