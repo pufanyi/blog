@@ -10,10 +10,26 @@
 }
 
 .cg-bary-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   min-width: 0;
+  padding: 0.85rem 0.9rem 0.9rem;
   border: 1px solid var(--border-color);
   border-radius: 10px;
   background: var(--paper-bg);
+}
+
+.cg-bary-title {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.cg-bary-canvas {
+  position: relative;
+  width: 100%;
 }
 
 .cg-bary-panel svg {
@@ -22,12 +38,6 @@
   height: auto;
   font-family: inherit;
   fill: var(--text-color);
-}
-
-.cg-bary-title {
-  fill: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 600;
 }
 
 .cg-bary-tri-neutral {
@@ -69,6 +79,16 @@
   stroke: color-mix(in srgb, var(--accent-rose) 62%, var(--border-color));
   stroke-width: 1.15;
   stroke-dasharray: 3.5 3;
+}
+
+.cg-bary-leader-j {
+  stroke: var(--accent-sage);
+  stroke-width: 1.15;
+  stroke-linecap: round;
+}
+
+.cg-bary-leader-dot-j {
+  fill: var(--accent-sage);
 }
 
 .cg-bary-level-line {
@@ -127,124 +147,107 @@
   stroke-width: 1.5;
 }
 
+.cg-bary-tex {
+  position: absolute;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.cg-bary-tex mjx-container {
+  margin: 0;
+}
+
+.cg-bary-tex-center {
+  transform: translate(-50%, -50%);
+}
+
+.cg-bary-tex-start {
+  transform: translate(0, -50%);
+}
+
+.cg-bary-tex-end {
+  transform: translate(-100%, -50%);
+}
+
 .cg-bary-vertex-label,
 .cg-bary-point-label,
 .cg-bary-measure-label,
 .cg-bary-measure-accent {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 13px;
-  font-style: italic;
-  font-weight: 600;
+  font-size: 0.85rem;
 }
 
 .cg-bary-vertex-label {
-  fill: var(--text-color);
+  color: var(--text-color);
 }
 
 .cg-bary-point-label {
-  fill: var(--text-color);
-  paint-order: stroke;
-  stroke: var(--paper-bg);
-  stroke-width: 3.5px;
+  color: var(--text-color);
+  text-shadow:
+    0 0 3px var(--paper-bg),
+    0 0 3px var(--paper-bg);
 }
 
 .cg-bary-measure-label {
-  fill: var(--text-secondary);
+  color: var(--text-secondary);
 }
 
 .cg-bary-measure-accent {
-  fill: var(--accent-rose);
-  paint-order: stroke;
-  stroke: var(--paper-bg);
-  stroke-width: 3px;
-}
-
-.cg-bary-paren {
-  font-style: normal;
-  font-weight: 500;
+  color: var(--accent-rose);
+  text-shadow:
+    0 0 3px var(--paper-bg),
+    0 0 3px var(--paper-bg);
 }
 
 .cg-bary-role-i {
-  fill: var(--accent-rose);
+  color: var(--accent-rose);
 }
 
 .cg-bary-role-j {
-  fill: var(--accent-sage);
+  color: var(--accent-sage);
 }
 
 .cg-bary-role-k {
-  fill: var(--accent-blue);
+  color: var(--accent-blue);
 }
 
 .cg-bary-area-label {
-  font-size: 11.5px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  paint-order: stroke;
-  stroke: var(--paper-bg);
-  stroke-width: 3px;
-}
-
-.cg-bary-var {
-  font-family: Georgia, "Times New Roman", serif;
-  font-style: italic;
-}
-
-.cg-bary-sub {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 9px;
-  font-style: italic;
-}
-
-.cg-bary-num {
-  font-style: normal;
+  font-size: 0.78rem;
+  text-shadow:
+    0 0 3px var(--paper-bg),
+    0 0 3px var(--paper-bg);
 }
 
 .cg-bary-level-note {
-  fill: var(--accent-ochre);
-  font-size: 10px;
-  font-weight: 600;
+  color: var(--accent-ochre);
+  font-size: 0.72rem;
+  font-weight: 500;
 }
 
-.cg-bary-var-xs {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 10.5px;
-  font-style: italic;
+.cg-bary-summary {
+  margin-top: auto;
+  padding: 0.5rem 0.65rem;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--surface-soft) 55%, var(--paper-bg));
+  font-size: 0.76rem;
+  line-height: 1.55;
 }
 
-.cg-bary-sub-xs {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 7.5px;
-  font-style: italic;
+.cg-bary-summary p {
+  margin: 0;
 }
 
-.cg-bary-summary-bg {
-  fill: color-mix(in srgb, var(--surface-soft) 55%, var(--paper-bg));
+.cg-bary-summary p + p {
+  margin-top: 0.2rem;
 }
 
 .cg-bary-summary-accent {
-  fill: var(--text-color);
-  font-size: 10.5px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  color: var(--text-color);
+  font-weight: 500;
 }
 
 .cg-bary-summary-text {
-  fill: var(--text-secondary);
-  font-size: 10.5px;
-  font-variant-numeric: tabular-nums;
-}
-
-.cg-bary-var-sm {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 11px;
-  font-style: italic;
-}
-
-.cg-bary-sub-sm {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 8px;
-  font-style: italic;
+  color: var(--text-secondary);
 }
 
 .cg-bary figcaption {

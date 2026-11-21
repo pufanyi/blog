@@ -3,9 +3,11 @@ export interface Point {
   readonly y: number;
 }
 
-export const VERTEX_I: Point = { x: 116, y: 50 };
-export const VERTEX_J: Point = { x: 38, y: 184 };
-export const VERTEX_K: Point = { x: 274, y: 168 };
+export const CANVAS = { width: 320, height: 176 } as const;
+
+export const VERTEX_I: Point = { x: 116, y: 26 };
+export const VERTEX_J: Point = { x: 38, y: 160 };
+export const VERTEX_K: Point = { x: 274, y: 144 };
 
 // Exact barycentric weights (phi_i + phi_j + phi_k = 1) used as the single source of truth.
 export const WEIGHTS = {
@@ -29,6 +31,13 @@ export function pt(p: Point): string {
 
 export function poly(...points: readonly Point[]): string {
   return points.map(pt).join(' ');
+}
+
+export function posStyle(p: Point): { left: string; top: string } {
+  return {
+    left: `${((p.x / CANVAS.width) * 100).toFixed(2)}%`,
+    top: `${((p.y / CANVAS.height) * 100).toFixed(2)}%`,
+  };
 }
 
 export function lerp(a: Point, b: Point, t: number): Point {
@@ -87,13 +96,23 @@ export const RIGHT_ANGLE_DI = rightAnglePolyline(FOOT_DI, POINT_X, BASE_DIR_REV,
 // Label anchors inside each sub-triangle (derived from sub-triangle centroids).
 export const CENTROID_I: Point = {
   x: (POINT_X.x + VERTEX_J.x + VERTEX_K.x) / 3,
-  y: (POINT_X.y + VERTEX_J.y + VERTEX_K.y) / 3 + 3,
+  y: (POINT_X.y + VERTEX_J.y + VERTEX_K.y) / 3 + 2,
 };
-export const CENTROID_J: Point = {
-  x: (POINT_X.x + VERTEX_K.x + VERTEX_I.x) / 3 + 7,
-  y: (POINT_X.y + VERTEX_K.y + VERTEX_I.y) / 3 - 2,
+const CENTROID_J: Point = {
+  x: (POINT_X.x + VERTEX_K.x + VERTEX_I.x) / 3,
+  y: (POINT_X.y + VERTEX_K.y + VERTEX_I.y) / 3,
 };
 export const CENTROID_K: Point = {
-  x: (POINT_X.x + VERTEX_I.x + VERTEX_J.x) / 3 - 2,
-  y: (POINT_X.y + VERTEX_I.y + VERTEX_J.y) / 3 + 2,
+  x: (POINT_X.x + VERTEX_I.x + VERTEX_J.x) / 3 + 5,
+  y: (POINT_X.y + VERTEX_I.y + VERTEX_J.y) / 3 + 3,
 };
+
+// Narrow sub-triangle j uses a short callout into the upper-right margin to stay clear of x.
+export const LEADER_J_FROM: Point = { x: CENTROID_J.x + 12, y: CENTROID_J.y + 8 };
+export const LEADER_J_TO: Point = { x: 229, y: 74 };
+export const LABEL_J_POS: Point = { x: 233, y: 74 };
+
+export const VERTEX_I_LABEL: Point = { x: VERTEX_I.x, y: VERTEX_I.y - 14 };
+export const VERTEX_J_LABEL: Point = { x: VERTEX_J.x - 16, y: VERTEX_J.y + 2 };
+export const VERTEX_K_LABEL: Point = { x: VERTEX_K.x + 16, y: VERTEX_K.y + 2 };
+export const POINT_X_LABEL: Point = { x: POINT_X.x + 1, y: POINT_X.y - 13 };
