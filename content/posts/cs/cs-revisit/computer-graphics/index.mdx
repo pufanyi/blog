@@ -188,15 +188,9 @@ $$
 $$
 \begin{aligned}
 \frac{1}{z(\phi_x, \phi_y)} &= \frac{1}{z_1}\cdot \phi_x + \frac{1}{z_2}\cdot \phi_y + \frac{1}{z_3}\cdot(1 - \phi_x - \phi_y), \\
-a(\phi_x, \phi_y) &= z(\phi_x, \phi_y)\biggl[\frac{a(v_1)}{z_1}\cdot \phi_x + \frac{a(v_2)}{z_2}\cdot \phi_y \\
-&\qquad\qquad\quad + \frac{a(v_3)}{z_3}\cdot(1 - \phi_x - \phi_y)\biggr].
+a(\phi_x, \phi_y) &= z(\phi_x, \phi_y)\left[\frac{a(v_1)}{z_1}\cdot \phi_x + \frac{a(v_2)}{z_2}\cdot \phi_y + \frac{a(v_3)}{z_3}\cdot(1 - \phi_x - \phi_y)\right] \\
+&= \frac{\frac{a(v_1)}{z_1}\cdot \phi_x + \frac{a(v_2)}{z_2}\cdot \phi_y + \frac{a(v_3)}{z_3}\cdot(1 - \phi_x - \phi_y)}{\frac{1}{z_1}\cdot \phi_x + \frac{1}{z_2}\cdot \phi_y + \frac{1}{z_3}\cdot(1 - \phi_x - \phi_y)}.
 \end{aligned}
-$$
-
-若后续（例如 mipmap level 选择）还需要属性在屏幕空间的变化率，可以直接用相邻 pixel 处的差值近似：
-
-$$
-\frac{\mathrm{d}a}{\mathrm{d}x} \approx a(\phi_{x+1}, \phi_y) - a(\phi_x, \phi_y)
 $$
 
 <ShadingComparisonFigure />
