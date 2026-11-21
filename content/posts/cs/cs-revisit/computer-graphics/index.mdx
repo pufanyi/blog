@@ -156,3 +156,11 @@ $$
 <SupersamplingFigure />
 
 ## Transparency & Texturing
+
+**Barycentric Coordinates**: $(\phi_i, \phi_j, \phi_k)$ represent weighted average, $\phi_i+\phi_j+\phi_k=1$.
+
+这个过程可以可视化在三角形中：
+
+$$
+\phi_i(x) = \frac{\mathrm{area}(x, x_j, x_k)}{\mathrm{area}(x_i, x_j, x_k)} = \frac{d_i(x)}{h_i}
+$$
