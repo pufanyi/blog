@@ -25,9 +25,11 @@ For Jekyll, Hexo, or Typst imports, also read
   Write revised posts as standalone explanations for readers, without carrying
   review rebuttals or draft-correction framing into the prose.
 
-- In technical posts, prefer established English terminology without routine
-  Chinese parenthetical translations. Improve clarity by explaining mechanisms
-  and tradeoffs, not by translating basic terms such as gradient accumulation.
+- Even when writing technical posts in Chinese, keep established technical
+  terms in English as much as possible rather than translating them into
+  Chinese, and avoid routine Chinese parenthetical translations. Improve
+  clarity by explaining mechanisms and tradeoffs, not by translating basic
+  terms such as gradient accumulation, depth buffer, or rasterization.
 
 - For MathJax compatibility, expand legacy KaTeX aliases such as `\N` to
   equivalent standard TeX (`\mathbb{N}`), and `\empty` to `\emptyset`. Match complete commands so `\R`

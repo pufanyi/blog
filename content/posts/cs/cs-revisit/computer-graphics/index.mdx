@@ -18,7 +18,7 @@ authors:
 
 Components Of Graphics:
 
-1. Rasterization: 如何把三角形转换成屏幕上的像素？
+1. Rasterization: 如何把三角形转换成屏幕上的 pixels？
 2. Mesh Editing: 如何用数学和数据结构表示一个 3D 物体？
 3. Path Tracing: 如何模拟真实世界中的光线传播？
 4. Animation: 如何让 3D 场景随时间变化？
@@ -33,38 +33,38 @@ Shaders are any string of code run on the GPU
 
 ## Coordinate Spaces & Transformations
 
-**Homogeneous Coordinates**: 从二维视角来看，对于 $p'=(x, y)$，如果有 $p=(a, b, c)$ 使得 $\left(\frac{a}{c}, \frac{b}{c}\right)=(x, y)$ 是 $p'$ 的 homogeneous coordinates。
+**Homogeneous Coordinates**: 从二维视角来看，对于 $p'=(x, y)$，如果有 $p=(a, b, c)$（$c \ne 0$）使得 $\left(\frac{a}{c}, \frac{b}{c}\right)=(x, y)$，则称 $p$ 是 $p'$ 的 homogeneous coordinates。
 
-这样子的话，比如说平移就变成了 shear。
+这样子的话，比如说 translation 就变成了 shear。
 
 <HomogeneousCoordinatesFigure />
 
-通常情况下，我们用 $c=1$ 表示点，而 $c=0$ 代表一个方向，我们认为他是向量。
+通常情况下，我们用 $c=1$ 表示点，而 $c=0$ 代表一个方向，我们认为它是 vector。
 
-**Scene Graph**: 每个部件只保存相对父节点的变换，沿树组合就得到世界坐标；移动身体会带动整个人，移动大腿会连带小腿。
+**Scene Graph**: 每个部件只保存相对父节点的变换，沿树组合就得到 world coordinates；移动身体会带动整个人，移动大腿会连带小腿。
 
 <SceneGraphFigure />
 
-$p_{\mathrm{local}}$ 是一个点在左小腿自身坐标系中的齐次坐标，$p_{\mathrm{world}}$ 是同一个点在整个场景的世界坐标系中的齐次坐标。两者满足
+$p_{\mathrm{local}}$ 是一个点在左小腿 local space 中的 homogeneous coordinates，$p_{\mathrm{world}}$ 是同一个点在整个场景的 world space 中的 homogeneous coordinates。两者满足
 
 $$
 p_{\mathrm{world}}=A_0A_1A_2p_{\mathrm{local}},\qquad
 p_{\mathrm{local}}=(A_0A_1A_2)^{-1}p_{\mathrm{world}}.
 $$
 
-因此递归时只需传下 $W_{\mathrm{child}}=W_{\mathrm{parent}}A_{\mathrm{child}}$；逆变换存在时，$\mathrm{world} \to \mathrm{local}$ 为 $A_2^{-1}A_1^{-1}A_0^{-1}$。
+因此递归时只需传下 $W_{\mathrm{child}}=W_{\mathrm{parent}}A_{\mathrm{child}}$；inverse transform 存在时，$\mathrm{world} \to \mathrm{local}$ 为 $A_2^{-1}A_1^{-1}A_0^{-1}$。
 
-**Instancing**: 不同的地方 point to 一个物体。这样子 Scene Graph 就可以变成 DAG 了。Quaternion 能代表三维的旋转，但因为三维旋转不满足交换律，所以 quaternion 的乘法也不满足交换律。
+**Instancing**: 不同的地方 point to 一个物体。这样子 Scene Graph 就可以变成 DAG 了。
 
 <InstancingDagFigure />
 
-**Quaternions**: $\mathbb{H} := \mathrm{span}({1, i, j, k})$，三个正交的虚部，所以 $i^2=j^2=k^2=ijk=-1$。
+**Quaternions**: $\mathbb{H} := \mathrm{span}({1, i, j, k})$，三个正交的虚部，所以 $i^2=j^2=k^2=ijk=-1$。Quaternion 能代表三维的旋转，但因为三维旋转不满足交换律，所以 quaternion 的乘法也不满足交换律。
 
 <QuaternionRotationFigure />
 
 对于一个三维坐标中的点 $(x, y, z)$，我们可以用 quaternion $0 + xi + yj + zk$ 来表示。也就是说对于三维点 $p$，我们有 $p\in\mathrm{Im}(\mathbb{H})$。
 
-现在的目标是对于 $p=xi+yj+zk$，我们希望其对于 $u=x_ui+y_uj+z_uk$ 旋转 $\theta$。
+现在的目标是对于 $p=xi+yj+zk$，我们希望其绕 unit vector $u=x_ui+y_uj+z_uk$（$\Vert u\Vert=1$）旋转 $\theta$。
 
 我们可以构造
 
@@ -90,13 +90,13 @@ $$
 
 具体的线性变换可以看 [这里](https://www.songho.ca/opengl/gl_projectionmatrix.html)，不赘述。
 
-值得注意的是，假设原坐标是 $(x_e, y_e, z_e)$，经过投影矩阵与透视除法转成 NDC 后是 $(x_n, y_n, z_n)$，深度满足：
+值得注意的是，假设原坐标是 $(x_e, y_e, z_e)$，经过 projection matrix 与 perspective division 转成 NDC 后是 $(x_n, y_n, z_n)$，depth 满足：
 
 $$
 z_n = \frac{f+n}{f-n} + \frac{2fn}{(f-n)z_e}
 $$
 
-其中 $n = z_{\mathrm{near}}, f = z_{\mathrm{far}}$ 分别为近平面和远平面到相机的距离，它们在相机空间中的 $z$ 坐标为 $-n$ 和 $-f$。
+其中 $n = z_{\mathrm{near}}, f = z_{\mathrm{far}}$ 分别为 near plane 和 far plane 到相机的距离，它们在 camera space 中的 $z$ 坐标为 $-n$ 和 $-f$。
 
 考虑到
 
@@ -104,11 +104,11 @@ $$
 \left|\frac{\mathrm{d}z_n}{\mathrm{d}z_e}\right| = \frac{2fn}{(f-n)z_e^2} = \frac{2}{\left(\frac{1}{n}-\frac{1}{f}\right)z_e^2}
 $$
 
-当 $f \gg n$ 时，$\frac{1}{n}-\frac{1}{f} \approx \frac{1}{n}$，斜率近似为 $\frac{2n}{z_e^2}$。因此在 $n$ 较小时，一旦物体远离相机（$|z_e|$ 较大、靠近远平面 $-f$），$z_n$ 随深度的变化就会非常平缓，使得两个深度不同的物体在量化前 $z_n$ 的差值就已经很小。
+当 $f \gg n$ 时，$\frac{1}{n}-\frac{1}{f} \approx \frac{1}{n}$，斜率近似为 $\frac{2n}{z_e^2}$。因此在 $n$ 较小时，一旦物体远离相机（$|z_e|$ 较大、靠近 far plane $-f$），$z_n$ 随 depth 的变化就会非常平缓，使得两个深度不同的物体在 quantization 前 $z_n$ 的差值就已经很小。
 
-因为 depth buffer 只能以有限精度存储 $z_n$，在远处这段几乎水平的区间里，两个距离相机略有不同的表面（比如一张纸放在桌子上）经过量化和光栅化插值舍入后，很容易落到同一个深度值甚至发生大小反转。于是像素前后关系随视角微动或跨像素随机翻转，画面上就会出现交错闪烁的撕裂条纹，即 **z-fighting**。
+因为 depth buffer 只能以有限精度存储 $z_n$，在远处这段几乎水平的区间里，两个距离相机略有不同的表面（比如一张纸放在桌子上）经过 quantization 和 rasterization interpolation 舍入后，很容易落到同一个深度值甚至发生大小反转。于是 pixel 前后关系随视角微动或跨 pixel 随机翻转，画面上就会出现交错闪烁的撕裂条纹，即 **z-fighting**。
 
-因此，在保证不裁掉前景的前提下尽量增大近平面距离 $n$ 能有效改善远处的深度精度；此外，现代图形管线也常在 $[0, 1]$ 深度范围下采用浮点深度缓冲配合 reversed-Z（将近平面映射到 $1$、远平面映射到 $0$），利用浮点数在 $0$ 附近更高的指数密度来抵消 $\frac{1}{z_e}$ 带来的远端压缩。
+因此，在保证不裁掉前景的前提下尽量增大 near plane 距离 $n$ 能有效改善远处的 depth precision；此外，现代 graphics pipeline 也常在 $[0, 1]$ depth 范围下采用 floating-point depth buffer 配合 reversed-Z（将 near plane 映射到 $1$、far plane 映射到 $0$），利用浮点数在 $0$ 附近更高的指数密度来抵消 $\frac{1}{z_e}$ 带来的远端压缩。
 
 <DepthPrecisionFigure />
 
@@ -120,11 +120,11 @@ $$
 y_i+\frac{1}{2}=\left\lfloor \frac{y_r-y_l}{x_r-x_l}\left(x_i + \frac{1}{2} - x_l\right)+y_l\right\rfloor+\frac{1}{2}
 $$
 
-其中 $+\frac{1}{2}$ 是为了算中心。
+其中 $+\frac{1}{2}$ 是为了算中心；实际实现时，Bresenham 通过递推维护增量 error term，把每步的浮点乘除化为纯整数加减。
 
 <BresenhamFigure />
 
-对于三角形，我们先考虑一个点是否在三角形内。这个用三个叉积很容易判断。假设三角形 $\triangle ABC$，三个点 $A, B, C$ 逆时针转。对于有向边 $\overrightarrow{AB}$，我们定义 edge function
+对于三角形，我们先考虑一个点是否在三角形内。这个用三个 cross product 很容易判断。假设三角形 $\triangle ABC$，三个点 $A, B, C$ 逆时针转。对于有向边 $\overrightarrow{AB}$，我们定义 edge function
 
 $$
 E_{AB}(x, y) = (x_B-x_A)(y-y_A) - (y_B-y_A)(x-x_A)
@@ -146,12 +146,12 @@ $$
 
 不过对于每个 pixel，一个简单的想法是，假设一个红色三角形覆盖了某个 pixel 的 $10\%$，这个区块就应该是 $10\%$ 红色。
 
-但直接按覆盖面积比例混色在一般 3D 渲染中并不成立：当多个三角形在同一个像素内交叠并存在前后遮挡时，要在像素内部做精确的几何裁剪来计算各自可见的覆盖面积，计算开销极高且不适合 GPU 并行；而若沿用“逐三角形渲染 + 每像素单一深度”的管线，则无法表达亚像素级的遮挡关系（例如仅占 $10\%$ 的前景更新深度会误剔除其余 $90\%$ 的远景，不更新又会被远景覆盖）。
+但直接按覆盖面积比例混色在一般 3D rendering 中并不成立：当多个三角形在同一个 pixel 内交叠并存在前后 occlusion 时，要在 pixel 内部做精确的 geometric clipping 来计算各自可见的覆盖面积，计算开销极高且不适合 GPU 并行；而若沿用“逐三角形渲染 + 每 pixel 单一 depth”的 pipeline，则无法表达 sub-pixel 级的 occlusion 关系（例如仅占 $10\%$ 的前景更新 depth 会误剔除其余 $90\%$ 的远景，不更新又会被远景覆盖）。
 
-因此，图形管线改用离散子采样点同时记录子像素级的覆盖与深度，最后再 resolve（平均或滤波）成最终像素颜色：
+因此，graphics pipeline 改用离散 subsamples 同时记录 sub-pixel 级的 coverage 与 depth，最后再 resolve（averaging 或 filtering）成最终 pixel 颜色：
 
-- **SSAA**（Supersampling Anti-Aliasing）：在每个像素内放置 $k$ 个子采样点（如 $2\times 2$），每个点独立执行 coverage test、depth test 和 **shading**，等价于高分辨率渲染后再下采样。效果最完整，但着色与显存开销都放大 $k$ 倍。
-- **MSAA**（Multisampling Anti-Aliasing）：同样对 $k$ 个子采样点分别做 coverage test 和 depth test，但对同一个三角形只在像素中心（或质心）执行**一次 shading**，并将结果复制到所有通过测试的子采样点。这样能以接近单像素的着色成本消除几何边缘锯齿（纹理与 shader 内部的高频变化仍需 mipmap 等手段配合）。
+- **SSAA** (Supersampling Anti-Aliasing)：在每个 pixel 内放置 $k$ 个 subsamples（如 $2\times 2$），每个点独立执行 coverage test、depth test 和 **shading**，等价于高分辨率渲染后再 downsampling。效果最完整，但 shading 与显存开销都放大 $k$ 倍。
+- **MSAA** (Multisampling Anti-Aliasing)：同样对 $k$ 个 subsamples 分别做 coverage test 和 depth test，但对同一个三角形只在 pixel center（或 centroid）执行**一次 shading**，并将结果复制到所有通过测试的 subsamples。这样能以接近单 pixel 的 shading 成本消除几何边缘 aliasing（texture 与 shader 内部的高频变化仍需 mipmap 等手段配合）。
 
 <SupersamplingFigure />
 
