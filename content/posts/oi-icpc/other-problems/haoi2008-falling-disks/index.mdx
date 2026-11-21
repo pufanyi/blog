@@ -16,7 +16,7 @@ authors:
 
 有 $n$ 个圆盘从天而降，后面落下的可以盖住前面的。求最后形成的封闭区域的周长。看下面这副图, 所有的红色线条的总长度即为所求.
 
-![圆盘依次下落后，红色线条表示未被覆盖的圆周](./images/problem-statement.avif)
+<ProblemStatementFigure />
 
 ### Input
 
@@ -52,11 +52,11 @@ orz 千古神犇 wzp 一眼秒题。
 
 首先，我们来看其简化版：
 
-![圆 B 覆盖圆 A，两个圆交于 C、D](./images/two-disks.avif)
+<TwoDisksFigure />
 
 我们把 $\odot B$ 覆盖在 $\odot A$ 上，我们发现我们需要求出 $\angle A$ 的度数。我的方法是连结 $CB,AB,BD,AB$（如图）。我们发现 $\triangle ABC\cong\triangle ABD$，又在 $\triangle ABC$ 中，由[余弦定理](https://baike.baidu.com/item/%E4%BD%99%E5%BC%A6%E5%AE%9A%E7%90%86/957460?fr=aladdin)得：$\cos A=\frac{{AC}^2 + {AB}^2 - BC^2}{2\times AB \times AC}$ 于是我们就得到了 $\angle A$。
 
-![连接圆心和交点，用三角形 ABC 的余弦定理求覆盖圆弧的圆心角](./images/cosine-rule.avif)
+<CosineRuleFigure />
 
 恭喜你过了样例。
 
@@ -74,7 +74,7 @@ double alpha = acos((sqr(B.r)+sqr(dist)-sqr(A.r))/(B.r*dist*2.));
 
 那么如果有多个圆呢？
 
-![三个圆相交，圆 A 上的圆弧 EF 被另外两个圆重复覆盖](./images/overlapping-arcs.avif)
+<OverlappingArcsFigure />
 
 我们发现，对于 $\odot A$ 来说，$EF$ 被覆盖了两次，但我们之能减一次。于是我们就想到了：对于每个圆，枚举盖在其上面的圆，算出每个覆盖“线段”的左右端点，然后进行一次线段覆盖将其合并。最后，我们只要算出没有被覆盖到的线段长度即可。
 
@@ -82,7 +82,7 @@ double alpha = acos((sqr(B.r)+sqr(dist)-sqr(A.r))/(B.r*dist*2.));
 
 如图，$AE$ 平行 $x$ 轴，我们以算出 $AC$ 的斜率，加个 $\arctan$ 即可求出 $\angle CAE$，然后 $\angle EAD$、$\angle BAE$ 均可求出。
 
-![以平行于 x 轴的 AE 为基准，通过圆心连线 AC 确定覆盖圆弧的极角区间](./images/polar-angles.avif)
+<PolarAnglesFigure />
 
 于是理论上的问题就全部解决了。
 
