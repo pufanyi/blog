@@ -186,11 +186,10 @@ $$
 **Perspective Correct Shading**: 算出真实的 $z$，然后根据这个 $z$ 做插值。由于透视投影后在屏幕空间呈线性的是 $\frac{1}{z}$ 与 $\frac{a}{z}$（而非 $z$ 与 $a$ 本身），我们先用屏幕空间的 barycentric coordinates 插值 $\frac{1}{z}$ 还原真实深度，再对 $\frac{a}{z}$ 做同样的插值并乘回 $z(\phi_x, \phi_y)$：
 
 $$
-\frac{1}{z(\phi_x, \phi_y)} = \frac{1}{z_1}\cdot \phi_x + \frac{1}{z_2}\cdot \phi_y + \frac{1}{z_3}\cdot(1 - \phi_x - \phi_y)
-$$
-
-$$
-a(\phi_x, \phi_y) = z(\phi_x, \phi_y)\left[\frac{a(v_1)}{z_1}\cdot \phi_x + \frac{a(v_2)}{z_2}\cdot \phi_y + \frac{a(v_3)}{z_3}\cdot(1 - \phi_x - \phi_y)\right] = \frac{\frac{a(v_1)}{z_1}\cdot \phi_x + \frac{a(v_2)}{z_2}\cdot \phi_y + \frac{a(v_3)}{z_3}\cdot(1 - \phi_x - \phi_y)}{\frac{1}{z_1}\cdot \phi_x + \frac{1}{z_2}\cdot \phi_y + \frac{1}{z_3}\cdot(1 - \phi_x - \phi_y)}
+\begin{aligned}
+\frac{1}{z(\phi_x, \phi_y)} &= \frac{1}{z_1}\cdot \phi_x + \frac{1}{z_2}\cdot \phi_y + \frac{1}{z_3}\cdot(1 - \phi_x - \phi_y), \\
+a(\phi_x, \phi_y) &= z(\phi_x, \phi_y)\left[\frac{a(v_1)}{z_1}\cdot \phi_x + \frac{a(v_2)}{z_2}\cdot \phi_y + \frac{a(v_3)}{z_3}\cdot(1 - \phi_x - \phi_y)\right].
+\end{aligned}
 $$
 
 若后续（例如 mipmap level 选择）还需要属性在屏幕空间的变化率，可以直接用相邻 pixel 处的差值近似：
