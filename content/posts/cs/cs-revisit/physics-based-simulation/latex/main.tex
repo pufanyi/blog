@@ -30,57 +30,35 @@
 % =============================================================================
 \pagenumbering{Alph}
 \begin{titlepage}
-  \raggedright
-  \vspace*{2.0cm}
-
-  % Top series / edition label
-  {\footnotesize\scshape\color{AcademicAccent}
-    OPEN-SOURCE TEXTBOOK TRANSLATION \& STUDY NOTES \quad\textbar\quad VERSION 1.0.3\par}
+  \centering
+  \vspace*{2.6cm}
+  {\color{AcademicRule}\rule{0.75\textwidth}{0.6pt}\par}
   \vspace{1.2cm}
+  {\Huge\bfseries 基于物理的仿真\par}
+  \vspace{0.55cm}
+  {\Large\rmfamily Physics-Based Simulation\par}
+  \vspace{0.55cm}
+  {\normalsize\color{AcademicMuted} 学习与中文翻译笔记 \quad\textbar\quad Version 1.0.3\par}
+  \vspace{1.2cm}
+  {\color{AcademicRule}\rule{0.75\textwidth}{0.6pt}\par}
 
-  % Left-accent monograph title block
-  \noindent
-  \begin{tikzpicture}
-    \node[anchor=north west, inner sep=0pt, text width=0.9\textwidth] (titleblock) at (0.55cm, 0) {%
-      {\fontsize{30}{36}\selectfont\bfseries\rmfamily Physics-Based Simulation\par}
-      \vspace{0.4cm}
-      {\LARGE\rmfamily 基于物理的仿真\par}
-      \vspace{0.3cm}
-      {\normalsize\color{AcademicMuted} 学习与中文翻译笔记\par}
-    };
-    \draw[AcademicAccent, line width=2.4pt]
-      ([xshift=-0.55cm, yshift=0.1cm]titleblock.north west) --
-      ([xshift=-0.55cm, yshift=-0.1cm]titleblock.south west);
-  \end{tikzpicture}
+  \vspace{2.4cm}
 
-  \vspace{1.6cm}
-  {\color{AcademicRule}\rule{\textwidth}{0.5pt}\par}
-  \vspace{1.4cm}
-
-  % Original authors & metadata
-  {\footnotesize\scshape\color{AcademicAccent} ORIGINAL AUTHORS\par}
-  \vspace{0.45em}
-  {\small\color{AcademicMuted}
-    Minchen Li (CMU) \quad\textbullet\quad
-    Chenfanfu Jiang (UCLA)\\[0.3em]
-    Zhaofeng Luo (CMU) \quad\textbullet\quad
-    Wenxin Du (UCLA) \quad\textbullet\quad
-    Chang Yu (UCLA)\\[0.3em]
-    Žiga Kovačič (Cornell) \quad\textbullet\quad
-    Tianyi Xie (UCLA)\par}
-
-  \vspace{1.3cm}
-
-  {\footnotesize\scshape\color{AcademicAccent} TRANSLATION \& NOTES\par}
-  \vspace{0.4em}
-  {\normalsize Fanyi Pu\par}
+  \begin{minipage}{0.82\textwidth}
+    \centering
+    \small\color{AcademicMuted}
+    \textbf{\color{black}原著作者}\\[0.45em]
+    Minchen Li (CMU) \quad Chenfanfu Jiang (UCLA)\\
+    Zhaofeng Luo (CMU) \quad Wenxin Du (UCLA) \quad Chang Yu (UCLA)\\
+    Žiga Kovačič (Cornell) \quad Tianyi Xie (UCLA)\\[1.3em]
+    \textbf{\color{black}原书地址}\\[0.35em]
+    \url{https://phys-sim-book.github.io/}\\[1.3em]
+    \textbf{\color{black}译者 / 笔记整理}\\[0.35em]
+    Fanyi Pu
+  \end{minipage}
 
   \vfill
-
-  {\color{AcademicRule}\rule{\textwidth}{0.45pt}\par}
-  \vspace{0.55em}
-  {\footnotesize\color{AcademicMuted}
-    原书在线版本：\url{https://phys-sim-book.github.io/} \hfill \today\par}
+  {\small\color{AcademicMuted}\today\par}
 \end{titlepage}
 
 \frontmatter
