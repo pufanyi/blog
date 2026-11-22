@@ -1,0 +1,78 @@
+\chapter{Discrete Space and Time（离散空间与时间）}
+\label{ch:discrete-space-and-time}
+
+% 本章作为翻译模板示例，展示数学公式、定义/笔记框、算法伪代码、代码清单与章节小结的用法。
+% 开始正式翻译时可直接替换各节中的占位内容。
+
+\section{Representations of a Solid Geometry}
+\label{sec:solid-geometry}
+
+\todo{翻译第 1.1 节：固体几何的离散表示（粒子、网格、四面体/三角形单元等）。}
+
+\section{Newton's Second Law}
+\label{sec:newtons-second-law}
+
+在离散系统中，所有节点的广义位置向量记为 $\vx \in \R^{dN}$，质量矩阵记为 $\mM \in \R^{dN \times dN}$，则牛顿第二定律可写作：
+\begin{equation}
+  \label{eq:newton-second-law}
+  \mM \ddot{\vx} = \vf(\vx, \dot{\vx}),
+\end{equation}
+其中 $\vf$ 包含内力（如弹性恢复力 $-\grad E(\vx)$）与外力（如重力 $\mM \vg$）。
+
+\begin{definition}[离散状态向量]
+  \label{def:discrete-state}
+  对于由 $N$ 个节点构成的 $d$ 维离散物体，将节点位置与速度分别堆叠为
+  $\vx = (\vx_1\T, \dots, \vx_N\T)\T \in \R^{dN}$ 与
+  $\vv = (\vv_1\T, \dots, \vv_N\T)\T \in \R^{dN}$。
+\end{definition}
+
+\section{Time Integration}
+\label{sec:time-integration}
+
+\todo{翻译第 1.3 节：将二阶常微分方程~\cref{eq:newton-second-law} 离散为时间步长 $\dt$ 的递推格式。}
+
+\section{Explicit Time Integration}
+\label{sec:explicit-time-integration}
+
+\todo{翻译第 1.4 节：显式欧拉（Explicit Euler）与半隐式欧拉（Symplectic Euler），以及 CFL 稳定性条件。}
+
+\begin{studynote}[显式积分的步长限制]
+  可在此记录阅读时的个人推导、稳定性分析或与其他数值方法课程的联系。
+\end{studynote}
+
+\section{Implicit Time Integration}
+\label{sec:implicit-time-integration}
+
+\term{隐式欧拉}{Implicit Euler} 在新时刻 $t^{n+1}$ 处评估力与速度：
+\begin{equation}
+  \label{eq:implicit-euler}
+  \xnp = \xn + \dt \velnp, \qquad
+  \velnp = \veln + \dt \mM\inv \vf(\xnp).
+\end{equation}
+引入预测位置 $\xt = \xn + \dt \veln + \dt^2 \mM\inv \vf_{\mathrm{ext}}$ 后，\cref{eq:implicit-euler} 等价于求解非线性方程，这将在第 2 章自然过渡到基于优化的时间积分框架。
+
+\begin{algorithm}[htbp]
+  \caption{Implicit Time Integration Step（示例伪代码框架）}
+  \label{alg:implicit-step}
+  \KwIn{当前状态 $(\xn, \veln)$，时间步长 $\dt$}
+  \KwOut{下一时刻状态 $(\xnp, \velnp)$}
+  计算预测位置 $\xt \leftarrow \xn + \dt \veln$\;
+  求解非线性系统得到 $\xnp$\tcp*{详见第 2--3 章}
+  更新速度 $\velnp \leftarrow (\xnp - \xn) / \dt$\;
+  \Return $(\xnp, \velnp)$\;
+\end{algorithm}
+
+\begin{lstlisting}[language=Python,caption={示例 Python 代码片段（可用于 Case Study 章节）},label={lst:example-step}]
+def symplectic_euler_step(x, v, f, m_inv, dt):
+    """Single symplectic Euler update."""
+    v_next = v + dt * (m_inv @ f)
+    x_next = x + dt * v_next
+    return x_next, v_next
+\end{lstlisting}
+
+\section{Summary}
+\label{sec:ch01-summary}
+
+\begin{summarybox}
+  本章总结了离散空间表示、牛顿第二定律以及显式与隐式时间积分的基本形式，为后续将隐式时间积分转化为优化问题做好铺垫。
+\end{summarybox}

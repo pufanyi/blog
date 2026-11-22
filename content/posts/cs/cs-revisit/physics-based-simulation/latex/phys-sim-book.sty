@@ -1,0 +1,304 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{phys-sim-book}[2026/11/22 Style for Physics-Based Simulation translation and study notes]
+
+% -----------------------------------------------------------------------------
+% Page layout & typography
+% -----------------------------------------------------------------------------
+\RequirePackage[
+  a4paper,
+  top=2.6cm,
+  bottom=2.6cm,
+  left=2.6cm,
+  right=2.6cm,
+  headheight=24pt,
+  headsep=16pt,
+  footskip=24pt
+]{geometry}
+
+\RequirePackage{microtype}
+\RequirePackage{setspace}
+\setstretch{1.22}
+
+\RequirePackage{enumitem}
+\setlist{itemsep=0.25em, topsep=0.45em, parsep=0pt}
+
+% -----------------------------------------------------------------------------
+% Morandi color palette (aligned with src/styles/morandi.css)
+% -----------------------------------------------------------------------------
+\RequirePackage[dvipsnames,svgnames,table]{xcolor}
+
+\definecolor{MorandiBlue}{HTML}{536B80}
+\definecolor{MorandiSage}{HTML}{5D725F}
+\definecolor{MorandiOchre}{HTML}{75613E}
+\definecolor{MorandiRose}{HTML}{875F5A}
+\definecolor{MorandiLavender}{HTML}{69627C}
+\definecolor{MorandiTeal}{HTML}{526F6B}
+\definecolor{MorandiInk}{HTML}{454A47}
+\definecolor{MorandiMuted}{HTML}{656B66}
+\definecolor{MorandiBorder}{HTML}{C9C3BA}
+\definecolor{MorandiPaper}{HTML}{F4F1EB}
+
+% Subtle tints for callout boxes and code blocks
+\colorlet{MorandiBlueBg}{MorandiBlue!6!white}
+\colorlet{MorandiSageBg}{MorandiSage!6!white}
+\colorlet{MorandiOchreBg}{MorandiOchre!7!white}
+\colorlet{MorandiRoseBg}{MorandiRose!6!white}
+\colorlet{MorandiLavenderBg}{MorandiLavender!6!white}
+\colorlet{MorandiTealBg}{MorandiTeal!6!white}
+
+% -----------------------------------------------------------------------------
+% Mathematics, figures, tables, and diagrams
+% -----------------------------------------------------------------------------
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amsthm}
+\RequirePackage{mathtools}
+\RequirePackage{bm}
+\RequirePackage{graphicx}
+\RequirePackage{subcaption}
+\RequirePackage{booktabs}
+\RequirePackage{array}
+\RequirePackage{multirow}
+\RequirePackage{float}
+\RequirePackage{tikz}
+\usetikzlibrary{arrows.meta, calc, positioning, shapes.geometric}
+
+\graphicspath{{figures/}}
+\numberwithin{equation}{chapter}
+
+% -----------------------------------------------------------------------------
+% Chapter & section styling (ctex)
+% -----------------------------------------------------------------------------
+\ctexset{
+  part = {
+    name = {第,部分},
+    number = \chinese{part},
+    nameformat = \Large\sffamily\color{MorandiMuted},
+    titleformat = \Huge\bfseries\sffamily\color{MorandiBlue},
+  },
+  chapter = {
+    name = {第,章},
+    number = \arabic{chapter},
+    format = \raggedright\Huge\bfseries\sffamily\color{MorandiInk},
+    nameformat = \large\sffamily\color{MorandiBlue},
+    aftername = \par\vspace{0.3em},
+    beforeskip = 1.2em,
+    afterskip = 1.6em,
+  },
+  section = {
+    format = \Large\bfseries\sffamily\color{MorandiInk},
+  },
+  subsection = {
+    format = \large\bfseries\sffamily\color{MorandiBlue},
+  },
+  subsubsection = {
+    format = \normalsize\bfseries\sffamily\color{MorandiMuted},
+  },
+}
+
+% -----------------------------------------------------------------------------
+% Headers & footers
+% -----------------------------------------------------------------------------
+\RequirePackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{MorandiMuted}\nouppercase{\leftmark}}
+\fancyhead[R]{\small\color{MorandiMuted}\nouppercase{\rightmark}}
+\fancyfoot[C]{\small\color{MorandiMuted}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{MorandiBorder}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\small\color{MorandiMuted}\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% -----------------------------------------------------------------------------
+% Bibliography (biblatex + biber)
+% -----------------------------------------------------------------------------
+\RequirePackage[
+  backend=biber,
+  style=numeric-comp,
+  sorting=none,
+  doi=true,
+  url=true,
+  isbn=false
+]{biblatex}
+
+% -----------------------------------------------------------------------------
+% Code listings (Python / C++ / Taichi / Warp snippets in case studies)
+% -----------------------------------------------------------------------------
+\RequirePackage{listings}
+
+\lstdefinestyle{physsimcode}{
+  backgroundcolor=\color{MorandiPaper},
+  basicstyle=\ttfamily\small\color{MorandiInk},
+  commentstyle=\itshape\color{MorandiMuted},
+  keywordstyle=\bfseries\color{MorandiBlue},
+  stringstyle=\color{MorandiSage},
+  numberstyle=\tiny\color{MorandiMuted},
+  identifierstyle=\color{MorandiInk},
+  numbers=left,
+  numbersep=8pt,
+  stepnumber=1,
+  frame=single,
+  rulecolor=\color{MorandiBorder},
+  framerule=0.5pt,
+  xleftmargin=1.8em,
+  framexleftmargin=1.4em,
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  tabsize=4,
+  aboveskip=0.9em,
+  belowskip=0.9em,
+  captionpos=b
+}
+\lstset{style=physsimcode}
+
+% -----------------------------------------------------------------------------
+% Algorithms (algorithm2e)
+% -----------------------------------------------------------------------------
+\RequirePackage[ruled,vlined,linesnumbered]{algorithm2e}
+\SetAlgorithmName{算法}{算法}{算法目录}
+\SetKwInput{KwIn}{Input}
+\SetKwInput{KwOut}{Output}
+\SetAlCapFnt{\sffamily\bfseries\color{MorandiInk}}
+\SetAlCapNameFnt{\sffamily\color{MorandiInk}}
+\SetCommentSty{myalgcomment}
+\newcommand{\myalgcomment}[1]{\footnotesize\ttfamily\color{MorandiMuted}#1}
+
+% -----------------------------------------------------------------------------
+% Hyperlinks & clever cross-references (load after most packages)
+% -----------------------------------------------------------------------------
+\RequirePackage[
+  colorlinks=true,
+  linkcolor=MorandiBlue,
+  citecolor=MorandiSage,
+  urlcolor=MorandiTeal,
+  bookmarksnumbered=true,
+  bookmarksopen=true,
+  pdfencoding=auto
+]{hyperref}
+
+\RequirePackage[nameinlink,noabbrev]{cleveref}
+
+% -----------------------------------------------------------------------------
+% Callout & theorem environments (tcolorbox + amsthm)
+% -----------------------------------------------------------------------------
+\RequirePackage[most]{tcolorbox}
+
+% Shared left-accent box style for academic environments
+\tcbset{
+  physsimbox/.style={
+    enhanced,
+    breakable,
+    boxrule=0pt,
+    frame hidden,
+    borderline west={2.5pt}{0pt}{#1},
+    colback=#1!6!white,
+    coltitle=#1,
+    fonttitle=\bfseries\sffamily,
+    left=10pt,
+    right=10pt,
+    top=7pt,
+    bottom=7pt,
+    before skip=10pt,
+    after skip=10pt,
+    sharp corners
+  }
+}
+
+% Numbered mathematical environments
+\theoremstyle{definition}
+\newtheorem{definition}{定义}[chapter]
+\newtheorem{example}{例}[chapter]
+
+\theoremstyle{plain}
+\newtheorem{theorem}{定理}[chapter]
+\newtheorem{lemma}[theorem]{引理}
+\newtheorem{proposition}[theorem]{命题}
+\newtheorem{corollary}[theorem]{推论}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{注记}
+
+\tcolorboxenvironment{definition}{physsimbox=MorandiBlue}
+\tcolorboxenvironment{theorem}{physsimbox=MorandiSage}
+\tcolorboxenvironment{lemma}{physsimbox=MorandiSage}
+\tcolorboxenvironment{proposition}{physsimbox=MorandiSage}
+\tcolorboxenvironment{corollary}{physsimbox=MorandiSage}
+\tcolorboxenvironment{example}{physsimbox=MorandiLavender}
+\tcolorboxenvironment{remark}{physsimbox=MorandiMuted}
+
+% Study & translation callout boxes
+\newtcolorbox{studynote}[1][学习笔记]{
+  physsimbox=MorandiOchre,
+  title={#1},
+  attach title to upper={\par\vspace{0.3em}}
+}
+
+\newtcolorbox{transnote}[1][译注]{
+  physsimbox=MorandiTeal,
+  title={#1},
+  attach title to upper={\par\vspace{0.3em}}
+}
+
+\newtcolorbox{warningbox}[1][注意]{
+  physsimbox=MorandiRose,
+  title={#1},
+  attach title to upper={\par\vspace{0.3em}}
+}
+
+\newtcolorbox{summarybox}[1][本章小结]{
+  enhanced,
+  breakable,
+  colback=MorandiPaper,
+  colframe=MorandiBorder,
+  coltitle=MorandiInk,
+  fonttitle=\bfseries\sffamily,
+  boxrule=0.6pt,
+  arc=2pt,
+  left=10pt,
+  right=10pt,
+  top=8pt,
+  bottom=8pt,
+  before skip=12pt,
+  after skip=12pt,
+  title={#1}
+}
+
+% Cleveref Chinese labels
+\crefname{chapter}{第}{第}
+\Crefname{chapter}{第}{第}
+\crefformat{chapter}{#2第~#1~章#3}
+\Crefformat{chapter}{#2第~#1~章#3}
+\crefname{section}{第}{第}
+\crefformat{section}{#2第~#1~节#3}
+\Crefformat{section}{#2第~#1~节#3}
+\crefname{equation}{式}{式}
+\crefformat{equation}{#2式~(#1)#3}
+\Crefformat{equation}{#2式~(#1)#3}
+\crefname{figure}{图}{图}
+\crefname{table}{表}{表}
+\crefname{algocf}{算法}{算法}
+\crefname{definition}{定义}{定义}
+\crefname{theorem}{定理}{定理}
+\crefname{lemma}{引理}{引理}
+\crefname{proposition}{命题}{命题}
+\crefname{corollary}{推论}{推论}
+\crefname{example}{例}{例}
+
+% -----------------------------------------------------------------------------
+% Bilingual terminology & translation helpers
+% -----------------------------------------------------------------------------
+% First occurrence of a translated technical term: \term{隐式时间积分}{implicit time integration}
+\newcommand{\term}[2]{\textbf{#1}（\textit{#2}）}
+% Inline English technical term: \eng{Projected Newton}
+\newcommand{\eng}[1]{\textit{#1}}
+% Inline TODO marker while studying/translating
+\newcommand{\todo}[1]{\textcolor{MorandiRose}{\textbf{[TODO: #1]}}}
+
+\endinput

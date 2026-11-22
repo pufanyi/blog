@@ -1,0 +1,156 @@
+% !TEX program = xelatex
+% =============================================================================
+% Physics-Based Simulation — Chinese Translation & Study Notes
+% Original Book: https://phys-sim-book.github.io/ (Version 1.0.3, 2026/3)
+% =============================================================================
+
+% Use `oneside,openany` for screen reading; switch to `twoside,openright` for printing.
+\documentclass[UTF8,a4paper,11pt,oneside,openany]{ctexbook}
+
+\usepackage{phys-sim-book}
+\input{macros}
+
+\addbibresource{references.bib}
+
+% PDF metadata
+\hypersetup{
+  pdftitle={Physics-Based Simulation（基于物理的仿真）学习与翻译笔记},
+  pdfauthor={Fanyi Pu},
+  pdfsubject={Physics-Based Simulation},
+  pdfkeywords={Physics-Based Simulation, FEM, MPM, PBD, Optimization Time Integration}
+}
+
+% Uncomment to compile only specific chapters while studying:
+% \includeonly{chapters/part01-optimization/ch01-discrete-space-and-time}
+
+\begin{document}
+
+% =============================================================================
+% Title page & front matter
+% =============================================================================
+\pagenumbering{Alph}
+\begin{titlepage}
+  \centering
+  \vspace*{2.2cm}
+  {\small\sffamily\color{MorandiBlue} PHYSICS-BASED SIMULATION \textbullet\ VERSION 1.0.3\par}
+  \vspace{0.8cm}
+  {\Huge\bfseries\sffamily\color{MorandiInk} 基于物理的仿真\par}
+  \vspace{0.5cm}
+  {\Large\sffamily\color{MorandiMuted} Physics-Based Simulation\par}
+  \vspace{0.6cm}
+  {\color{MorandiBorder}\rule{0.45\textwidth}{0.8pt}\par}
+  \vspace{0.6cm}
+  {\large\sffamily\color{MorandiInk} 学习与中文翻译笔记\par}
+
+  \vspace{2.2cm}
+
+  \begin{minipage}{0.82\textwidth}
+    \centering
+    \small\color{MorandiMuted}
+    \textbf{原著作者}\\[0.4em]
+    Minchen Li (CMU) \quad Chenfanfu Jiang (UCLA)\\
+    Zhaofeng Luo (CMU) \quad Wenxin Du (UCLA) \quad Chang Yu (UCLA)\\
+    Žiga Kovačič (Cornell) \quad Tianyi Xie (UCLA)\\[1.2em]
+    \textbf{原书地址}\\[0.3em]
+    \url{https://phys-sim-book.github.io/}\\[1.2em]
+    \textbf{译者 / 笔记整理}\\[0.3em]
+    Fanyi Pu
+  \end{minipage}
+
+  \vfill
+  {\small\color{MorandiMuted} 编译日期：\today\par}
+\end{titlepage}
+
+\frontmatter
+\tableofcontents
+
+\include{chapters/00-preface}
+
+% =============================================================================
+% Main matter — Complete 9-Part, 37-Chapter Book Outline
+% Uncomment each `\include` line as you study and translate the chapter.
+% Chapters marked with (*) in the original book are case-study / code chapters.
+% =============================================================================
+\mainmatter
+
+% -----------------------------------------------------------------------------
+\part{Simulation with Optimization（基于优化的仿真）}
+% -----------------------------------------------------------------------------
+\include{chapters/part01-optimization/ch01-discrete-space-and-time}
+% \include{chapters/part01-optimization/ch02-optimization-framework}
+% \include{chapters/part01-optimization/ch03-projected-newton}
+% \include{chapters/part01-optimization/ch04-case-study-2d-mass-spring}
+
+% -----------------------------------------------------------------------------
+% \part{Boundary Treatments（边界处理）}
+% -----------------------------------------------------------------------------
+% \include{chapters/part02-boundary/ch05-dirichlet-boundary-conditions}
+% \include{chapters/part02-boundary/ch06-slip-dirichlet-boundary-conditions}
+% \include{chapters/part02-boundary/ch07-distance-barrier}
+% \include{chapters/part02-boundary/ch08-filter-line-search}
+% \include{chapters/part02-boundary/ch09-frictional-contact}
+% \include{chapters/part02-boundary/ch10-case-study-square-on-slope}
+% \include{chapters/part02-boundary/ch11-moving-boundary-conditions}
+
+% -----------------------------------------------------------------------------
+% \part{Hyperelasticity（超弹性）}
+% -----------------------------------------------------------------------------
+% \include{chapters/part03-hyperelasticity/ch12-kinematics-theory}
+% \include{chapters/part03-hyperelasticity/ch13-strain-energy}
+% \include{chapters/part03-hyperelasticity/ch14-stress-and-derivatives}
+% \include{chapters/part03-hyperelasticity/ch15-case-study-inversion-free-elasticity}
+
+% -----------------------------------------------------------------------------
+% \part{Governing Equations（控制方程）}
+% -----------------------------------------------------------------------------
+% \include{chapters/part04-governing-equations/ch16-strong-and-weak-forms}
+% \include{chapters/part04-governing-equations/ch17-discretization-of-weak-forms}
+% \include{chapters/part04-governing-equations/ch18-boundary-conditions-and-frictional-contact}
+
+% -----------------------------------------------------------------------------
+% \part{Finite Element Method（有限元方法）}
+% -----------------------------------------------------------------------------
+% \include{chapters/part05-fem/ch19-linear-finite-elements}
+% \include{chapters/part05-fem/ch20-piecewise-linear-boundaries}
+% \include{chapters/part05-fem/ch21-case-study-2d-self-contact}
+% \include{chapters/part05-fem/ch22-2d-frictional-self-contact}
+% \include{chapters/part05-fem/ch23-3d-elastodynamics}
+% \include{chapters/part05-fem/ch24-3d-frictional-self-contact}
+
+% -----------------------------------------------------------------------------
+% \part{Spatial Reductions（空间约简）}
+% -----------------------------------------------------------------------------
+% \include{chapters/part06-spatial-reductions/ch25-rigid-body-simulation}
+% \include{chapters/part06-spatial-reductions/ch26-modal-reductions}
+
+% -----------------------------------------------------------------------------
+% \part{Material Point Method（物质点法）}
+% -----------------------------------------------------------------------------
+% \include{chapters/part07-mpm/ch27-spatial-and-temporal-discretization}
+% \include{chapters/part07-mpm/ch28-plasticity-and-viscosity}
+% \include{chapters/part07-mpm/ch29-boundary-treatments}
+% \include{chapters/part07-mpm/ch30-case-study-colliding-elastic-blocks}
+% \include{chapters/part07-mpm/ch31-case-study-plastic-material-models}
+
+% -----------------------------------------------------------------------------
+% \part{Position Based Simulations（基于位置的仿真）}
+% -----------------------------------------------------------------------------
+% \include{chapters/part08-pbd/ch32-position-based-dynamics}
+% \include{chapters/part08-pbd/ch33-case-study-cloth-simulation}
+% \include{chapters/part08-pbd/ch34-case-study-mesh-simulation}
+% \include{chapters/part08-pbd/ch35-case-study-position-based-fluids}
+% \include{chapters/part08-pbd/ch36-other-common-constraints}
+
+% -----------------------------------------------------------------------------
+% \part{Special Topics（专题）}
+% -----------------------------------------------------------------------------
+% \include{chapters/part09-special-topics/ch37-linear-system}
+
+% =============================================================================
+% Back matter
+% =============================================================================
+\backmatter
+
+\printbibliography[heading=bibintoc,title={参考文献}]
+
+\end{document}
