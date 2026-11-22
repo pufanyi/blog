@@ -1,0 +1,214 @@
+/* UvMappingFigure */
+.cg-uv {
+  margin: 1.5rem 0;
+}
+
+.cg-uv-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.cg-uv-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.85rem 0.9rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--paper-bg);
+}
+
+.cg-uv-title {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.cg-uv-canvas {
+  position: relative;
+  width: 100%;
+}
+
+.cg-uv-panel svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: inherit;
+  fill: var(--text-color);
+}
+
+/* Bilinear Morandi (u, v) palette:
+ * (0,0)=blue, (1,0)=rose, (0,1)=sage, (1,1)=ochre */
+.cg-uv-tri {
+  --uv-lo: color-mix(in srgb, var(--accent-rose) var(--u), var(--accent-blue));
+  --uv-hi: color-mix(in srgb, var(--accent-ochre) var(--u), var(--accent-sage));
+  --uv-base: color-mix(in srgb, var(--uv-hi) var(--v), var(--uv-lo));
+  stroke: color-mix(in srgb, var(--text-color) 42%, transparent);
+  stroke-width: 0.55;
+  stroke-linejoin: round;
+}
+
+.cg-uv-tri-2d {
+  fill: color-mix(in srgb, var(--uv-base) 80%, var(--paper-bg));
+}
+
+.cg-uv-tri-3d {
+  fill: color-mix(in srgb, var(--uv-base) var(--lit), var(--background-deep));
+}
+
+.cg-uv-seam {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.cg-uv-seam-u {
+  stroke: var(--paper-bg);
+  stroke-width: 2.1;
+  stroke-dasharray: 5.5 3.5;
+}
+
+.cg-uv-seam-v {
+  stroke: var(--text-color);
+  stroke-width: 1.8;
+  stroke-dasharray: 2.2 3.2;
+}
+
+.cg-uv-axis {
+  stroke: var(--text-color);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.cg-uv-arrow-head {
+  fill: var(--text-color);
+}
+
+.cg-uv-tick {
+  stroke: var(--text-color);
+  stroke-width: 1.25;
+}
+
+.cg-uv-highlight-poly {
+  fill: color-mix(in srgb, var(--paper-bg) 34%, transparent);
+  stroke: var(--paper-bg);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 1.4px var(--text-color));
+}
+
+.cg-uv-highlight-dot {
+  fill: var(--paper-bg);
+  stroke: var(--text-color);
+  stroke-width: 1.5;
+}
+
+.cg-uv-tex {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  line-height: 1;
+  color: var(--text-color);
+}
+
+.cg-uv-tex mjx-container {
+  margin: 0;
+}
+
+.cg-uv-vertex-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-shadow:
+    0 0 3px var(--paper-bg),
+    0 0 3px var(--paper-bg),
+    0 0 5px var(--paper-bg);
+}
+
+.cg-uv-axis-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.cg-uv-tick-label {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+.cg-uv-note {
+  margin-top: auto;
+  padding: 0.5rem 0.65rem;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--surface-soft) 55%, var(--paper-bg));
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.cg-uv-note mjx-container,
+.cg-uv-legend mjx-container {
+  margin: 0;
+}
+
+.cg-uv-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 1rem;
+  margin-top: 0.65rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-soft) 35%, var(--paper-bg));
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.cg-uv-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.cg-uv-swatch {
+  display: inline-block;
+  flex: none;
+}
+
+.cg-uv-swatch-tri {
+  width: 0.72rem;
+  height: 0.72rem;
+  border: 1.6px solid var(--text-color);
+  background: var(--paper-bg);
+  clip-path: polygon(10% 90%, 92% 90%, 92% 10%);
+}
+
+.cg-uv-swatch-seam-u {
+  width: 1.35rem;
+  height: 0;
+  border-top: 2px dashed var(--text-secondary);
+}
+
+.cg-uv-swatch-seam-v {
+  width: 1.35rem;
+  height: 0;
+  border-top: 2px dotted var(--text-color);
+}
+
+.cg-uv figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 680px) {
+  .cg-uv-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

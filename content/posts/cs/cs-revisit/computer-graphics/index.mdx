@@ -193,7 +193,7 @@ a(\phi_x, \phi_y) &= z(\phi_x, \phi_y)\left[\frac{a(v_1)}{z_1}\cdot \phi_x + \fr
 \end{aligned}
 $$
 
-为什么可以这样算？在 2D 屏幕上，**只要一个量是屏幕坐标 $(x_s, y_s)$ 的线性函数，就可以直接用屏幕空间的 barycentric coordinates 精确插值**。由于 3D 三角形落在某个平面 $Ax + By + Cz = D$ 上，两侧同除以 $z$ 并代入 pinhole camera 投影关系 $x_s = \frac{x}{z},\ y_s = \frac{y}{z}$，可得
+为什么可以这样算？在 2D 屏幕上，只要一个量是屏幕坐标 $(x_s, y_s)$ 的线性函数，就可以直接用屏幕空间的 barycentric coordinates 精确插值。由于 3D 三角形落在某个平面 $Ax + By + Cz = D$ 上，两侧同除以 $z$ 并代入 pinhole camera 投影关系 $x_s = \frac{x}{z},\ y_s = \frac{y}{z}$，可得
 
 $$
 A x_s + B y_s + C = \frac{D}{z} \implies \frac{1}{z} = \frac{A}{D}x_s + \frac{B}{D}y_s + \frac{C}{D},
@@ -206,3 +206,5 @@ $$
 A single pixel of a texture is a **texel**.
 
 为了将二维 texture 贴到三维 surface 上，美术或建模工具会把 surface unwrap 到二维平面，为网格上的每个顶点分配对应的 $(u,v)$ 坐标，建立 3D 表面到 2D texture 的映射。这一过程称为 **UV mapping**。
+
+<UvMappingFigure />
