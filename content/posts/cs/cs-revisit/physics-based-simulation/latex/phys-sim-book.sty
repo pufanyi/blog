@@ -1,36 +1,37 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{phys-sim-book}[2026/11/22 Minimalist academic style for Physics-Based Simulation]
+\ProvidesPackage{phys-sim-book}[2026/11/22 Academic monograph style inspired by ClassicThesis and Princeton/Springer textbooks]
 
 % -----------------------------------------------------------------------------
-% Page layout & typography
+% Typography: Latin Modern (Unicode-native under XeLaTeX) + CJK (ctex)
 % -----------------------------------------------------------------------------
+\linespread{1.15}
+
 \RequirePackage[
   a4paper,
-  top=2.5cm,
-  bottom=2.5cm,
+  top=2.6cm,
+  bottom=2.6cm,
   left=2.8cm,
   right=2.8cm,
   headheight=24pt,
-  headsep=16pt,
-  footskip=24pt
+  headsep=18pt,
+  footskip=26pt
 ]{geometry}
 
 \RequirePackage{microtype}
-\RequirePackage{setspace}
-\setstretch{1.18}
-
 \RequirePackage{enumitem}
-\setlist{itemsep=0.2em, topsep=0.4em, parsep=0pt}
+\setlist{itemsep=0.22em, topsep=0.45em, parsep=0pt}
 
 % -----------------------------------------------------------------------------
-% Restrained academic palette (monochrome body + muted navy links)
+% Restrained academic press palette (Prussian blue accent + monochrome body)
 % -----------------------------------------------------------------------------
 \RequirePackage[dvipsnames,svgnames,table]{xcolor}
 
-\definecolor{AcademicLink}{HTML}{1F4E79}
-\definecolor{AcademicMuted}{HTML}{555555}
-\definecolor{AcademicRule}{HTML}{CCCCCC}
-\definecolor{AcademicTodo}{HTML}{8B2635}
+\definecolor{AcademicAccent}{HTML}{1B365D}   % Prussian / Oxford blue
+\definecolor{AcademicTint}{HTML}{F6F8FA}     % Ultra-light cool paper tint (theorems/summary)
+\definecolor{AcademicCodeBg}{HTML}{FAFAFB}   % Subtle neutral background for code blocks
+\definecolor{AcademicMuted}{HTML}{5C646D}    % Secondary text, headers, comments
+\definecolor{AcademicRule}{HTML}{D0D6DC}     % Hairline rules
+\definecolor{AcademicTodo}{HTML}{8B2635}     % Muted crimson for inline TODOs
 
 % -----------------------------------------------------------------------------
 % Mathematics, figures, tables, and diagrams
@@ -53,56 +54,102 @@
 \numberwithin{equation}{chapter}
 
 % -----------------------------------------------------------------------------
-% Chapter & section styling (classic academic monograph)
+% Weighted hairline rule helper (2.4cm accent bar + full-width hairline)
+% -----------------------------------------------------------------------------
+\newcommand{\academicchapterrule}{%
+  \par\vspace{-0.25em}\noindent
+  \begin{tikzpicture}[baseline=0pt]
+    \draw[AcademicRule, line width=0.45pt] (0,0) -- (\dimexpr\textwidth-0.6pt\relax,0);
+    \draw[AcademicAccent, line width=1.5pt] (0,0) -- (2.4cm,0);
+  \end{tikzpicture}%
+}
+
+% -----------------------------------------------------------------------------
+% Part, chapter, and section styling (ClassicThesis / Springer monograph)
 % -----------------------------------------------------------------------------
 \ctexset{
   part = {
-    name = {第,部分},
-    number = \chinese{part},
-    nameformat = \large\rmfamily\color{AcademicMuted},
+    name = {PART\ ,},
+    number = \Roman{part},
+    nameformat = \large\scshape\color{AcademicAccent},
+    aftername = \par\vspace{0.55em}{\color{AcademicAccent}\rule{0.18\textwidth}{0.8pt}}\par\vspace{0.9em},
     titleformat = \Huge\bfseries\rmfamily,
+    aftertitle = \par\vspace{1.0em}{\color{AcademicRule}\rule{0.42\textwidth}{0.45pt}},
   },
   chapter = {
-    name = {第,章},
+    name = {CHAPTER\ ,},
     number = \arabic{chapter},
-    format = \raggedright\huge\bfseries,
-    nameformat = \normalsize\mdseries\color{AcademicMuted},
-    aftername = \par\vspace{0.25em},
-    aftertitle = \par\vspace{0.45em}{\color{AcademicRule}\hrule height 0.5pt},
-    beforeskip = 1.0em,
-    afterskip = 1.6em,
+    format = \raggedright\Huge\bfseries\rmfamily,
+    nameformat = \small\scshape\color{AcademicAccent},
+    numberformat = \fontsize{42}{44}\selectfont\bfseries\color{AcademicAccent!22}\hfill,
+    aftername = \par\vspace{0.2em},
+    aftertitle = \academicchapterrule,
+    beforeskip = 0.6em,
+    afterskip = 1.8em,
   },
   section = {
-    format = \Large\bfseries,
-    beforeskip = 1.4em plus 0.3em minus 0.2em,
-    afterskip = 0.6em plus 0.1em,
+    format = \Large\bfseries\rmfamily,
+    numberformat = \color{AcademicAccent},
+    beforeskip = 1.5em plus 0.3em minus 0.2em,
+    afterskip = 0.65em plus 0.1em,
   },
   subsection = {
-    format = \large\bfseries,
-    beforeskip = 1.1em plus 0.2em minus 0.1em,
+    format = \large\bfseries\rmfamily,
+    numberformat = \color{AcademicAccent!85},
+    beforeskip = 1.15em plus 0.2em minus 0.1em,
     afterskip = 0.45em plus 0.1em,
   },
   subsubsection = {
-    format = \normalsize\bfseries,
+    format = \normalsize\bfseries\rmfamily,
   },
 }
 
 % -----------------------------------------------------------------------------
-% Headers & footers
+% Table of contents styling (titletoc)
+% -----------------------------------------------------------------------------
+\RequirePackage{titletoc}
+
+\titlecontents{part}[0pt]
+  {\addvspace{1.4em}\bfseries\large\color{AcademicAccent}}
+  {\contentslabel{0pt}}
+  {}
+  {\hfill\contentspage}
+  [\vspace{0.25em}{\color{AcademicRule}\titlerule[0.4pt]}\vspace{0.3em}]
+
+\titlecontents{chapter}[0pt]
+  {\addvspace{0.85em}\bfseries}
+  {\textcolor{AcademicAccent}{\thecontentslabel}\quad}
+  {}
+  {\hfill\contentspage}
+
+\titlecontents{section}[1.8em]
+  {\addvspace{0.15em}\small}
+  {\contentslabel{2.4em}}
+  {}
+  {\titlerule*[0.65pc]{.}\contentspage}
+
+\titlecontents{subsection}[4.2em]
+  {\addvspace{0.08em}\footnotesize\color{AcademicMuted}}
+  {\contentslabel{2.8em}}
+  {}
+  {\titlerule*[0.65pc]{.}\contentspage}
+
+% -----------------------------------------------------------------------------
+% Headers & footers (ClassicThesis running headers)
 % -----------------------------------------------------------------------------
 \RequirePackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small\color{AcademicMuted}\nouppercase{\leftmark}}
-\fancyhead[R]{\small\color{AcademicMuted}\nouppercase{\rightmark}}
-\fancyfoot[C]{\small\thepage}
+\fancyhead[L]{\footnotesize\color{AcademicMuted}\nouppercase{\leftmark}}
+\fancyhead[R]{\footnotesize\color{AcademicMuted}\itshape\nouppercase{\rightmark}}
+\fancyfoot[C]{\small\color{AcademicMuted}\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\headrule}{\hbox to\headwidth{\color{AcademicRule}\leaders\hrule height \headrulewidth\hfill}}
 \renewcommand{\footrulewidth}{0pt}
 
 \fancypagestyle{plain}{
   \fancyhf{}
-  \fancyfoot[C]{\small\thepage}
+  \fancyfoot[C]{\small\color{AcademicMuted}\thepage}
   \renewcommand{\headrulewidth}{0pt}
 }
 
@@ -119,15 +166,15 @@
 ]{biblatex}
 
 % -----------------------------------------------------------------------------
-% Code listings (clean academic top/bottom rules)
+% Code listings (booktabs-inspired top/bottom rules + subtle neutral tint)
 % -----------------------------------------------------------------------------
 \RequirePackage{listings}
 
 \lstdefinestyle{physsimcode}{
-  backgroundcolor=\color{white},
+  backgroundcolor=\color{AcademicCodeBg},
   basicstyle=\ttfamily\small,
   commentstyle=\itshape\color{AcademicMuted},
-  keywordstyle=\bfseries,
+  keywordstyle=\bfseries\color{AcademicAccent},
   stringstyle=\color{AcademicMuted},
   numberstyle=\scriptsize\color{AcademicMuted},
   numbers=left,
@@ -135,15 +182,16 @@
   stepnumber=1,
   frame=tb,
   rulecolor=\color{AcademicRule},
-  framerule=0.5pt,
+  framerule=0.6pt,
+  framesep=5pt,
   xleftmargin=1.6em,
   framexleftmargin=1.2em,
   breaklines=true,
   breakatwhitespace=true,
   showstringspaces=false,
   tabsize=4,
-  aboveskip=0.9em,
-  belowskip=0.9em,
+  aboveskip=1.0em,
+  belowskip=1.0em,
   captionpos=t
 }
 \lstset{style=physsimcode}
@@ -156,7 +204,7 @@
 \SetAlgorithmName{算法}{算法}{算法目录}
 \SetKwInput{KwIn}{Input}
 \SetKwInput{KwOut}{Output}
-\SetAlCapFnt{\bfseries}
+\SetAlCapFnt{\bfseries\color{AcademicAccent}}
 \SetAlCapNameFnt{\normalfont}
 \SetCommentSty{myalgcomment}
 \newcommand{\myalgcomment}[1]{\footnotesize\ttfamily\color{AcademicMuted}#1}
@@ -166,9 +214,9 @@
 % -----------------------------------------------------------------------------
 \RequirePackage[
   colorlinks=true,
-  linkcolor=AcademicLink,
-  citecolor=AcademicLink,
-  urlcolor=AcademicLink,
+  linkcolor=AcademicAccent,
+  citecolor=AcademicAccent,
+  urlcolor=AcademicAccent,
   bookmarksnumbered=true,
   bookmarksopen=true,
   pdfencoding=auto
@@ -177,45 +225,92 @@
 \RequirePackage[nameinlink,noabbrev]{cleveref}
 
 % -----------------------------------------------------------------------------
-% Classic native amsthm environments (no heavy colored boxes)
+% Theorem, definition, and editorial environments (Springer / Princeton style)
 % -----------------------------------------------------------------------------
 \newtheoremstyle{academicplain}
-  {0.75em}   % Space above
-  {0.75em}   % Space below
+  {0.6em}       % Space above
+  {0.6em}       % Space below
   {\normalfont} % Body font (upright for clean CJK + math)
-  {}         % Indent amount
-  {\bfseries}% Theorem head font
-  {.}        % Punctuation after theorem head
-  {0.6em}    % Space after theorem head
-  {}         % Theorem head spec
+  {}            % Indent amount
+  {\bfseries\color{AcademicAccent}} % Theorem head font
+  {.}           % Punctuation after theorem head
+  {0.6em}       % Space after theorem head
+  {}
+
+\newtheoremstyle{academicmuted}
+  {0.7em}
+  {0.7em}
+  {\normalfont}
+  {}
+  {\bfseries}
+  {.}
+  {0.6em}
+  {}
 
 \theoremstyle{academicplain}
-\newtheorem{definition}{定义}[chapter]
 \newtheorem{theorem}{定理}[chapter]
 \newtheorem{lemma}[theorem]{引理}
 \newtheorem{proposition}[theorem]{命题}
 \newtheorem{corollary}[theorem]{推论}
+
+\theoremstyle{academicmuted}
+\newtheorem{definition}{定义}[chapter]
 \newtheorem{example}{例}[chapter]
 \newtheorem*{remark}{注记}
 
-% -----------------------------------------------------------------------------
-% Minimalist editorial note & summary environments (tcolorbox)
-% -----------------------------------------------------------------------------
 \RequirePackage[skins,breakable]{tcolorbox}
 
+% Subtle left-accent academic framing for theorems and definitions
+\tcolorboxenvironment{theorem}{
+  enhanced, breakable, boxrule=0pt, frame hidden, sharp corners,
+  borderline west={1.6pt}{0pt}{AcademicAccent!80},
+  colback=AcademicTint,
+  left=10pt, right=10pt, top=6pt, bottom=6pt,
+  before skip=10pt, after skip=10pt
+}
+\tcolorboxenvironment{lemma}{
+  enhanced, breakable, boxrule=0pt, frame hidden, sharp corners,
+  borderline west={1.6pt}{0pt}{AcademicAccent!80},
+  colback=AcademicTint,
+  left=10pt, right=10pt, top=6pt, bottom=6pt,
+  before skip=10pt, after skip=10pt
+}
+\tcolorboxenvironment{proposition}{
+  enhanced, breakable, boxrule=0pt, frame hidden, sharp corners,
+  borderline west={1.6pt}{0pt}{AcademicAccent!80},
+  colback=AcademicTint,
+  left=10pt, right=10pt, top=6pt, bottom=6pt,
+  before skip=10pt, after skip=10pt
+}
+\tcolorboxenvironment{corollary}{
+  enhanced, breakable, boxrule=0pt, frame hidden, sharp corners,
+  borderline west={1.6pt}{0pt}{AcademicAccent!80},
+  colback=AcademicTint,
+  left=10pt, right=10pt, top=6pt, bottom=6pt,
+  before skip=10pt, after skip=10pt
+}
+\tcolorboxenvironment{definition}{
+  enhanced, breakable, boxrule=0pt, frame hidden, sharp corners,
+  borderline west={1.6pt}{0pt}{black!40},
+  colback=white,
+  left=10pt, right=6pt, top=4pt, bottom=4pt,
+  before skip=10pt, after skip=10pt
+}
+
+% Minimalist editorial notes (study notes, translator notes, warnings)
 \tcbset{
   academicnote/.style={
     enhanced,
     breakable,
     boxrule=0pt,
     frame hidden,
-    borderline west={1.2pt}{0pt}{black!35},
+    borderline west={1.2pt}{0pt}{AcademicRule},
     colback=white,
-    coltitle=black,
+    coltitle=AcademicMuted,
     fonttitle=\small\bfseries,
     fontupper=\small,
     left=10pt,
-    right=4pt,
+    right=6pt,
     top=3pt,
     bottom=3pt,
     before skip=9pt,
@@ -237,22 +332,24 @@
 
 \newtcolorbox{warningbox}[1][注意]{
   academicnote,
-  borderline west={1.5pt}{0pt}{black!65},
+  borderline west={1.5pt}{0pt}{AcademicTodo!75},
+  coltitle=AcademicTodo,
   title={#1}
 }
 
+% Classic textbook chapter summary box (accent top rule + hairline bottom rule)
 \newtcolorbox{summarybox}[1][本章小结]{
   enhanced,
   breakable,
   boxrule=0pt,
   frame hidden,
-  borderline north={0.6pt}{0pt}{black!45},
-  borderline south={0.6pt}{0pt}{black!45},
-  colback=white,
-  coltitle=black,
+  borderline north={1.2pt}{0pt}{AcademicAccent},
+  borderline south={0.5pt}{0pt}{AcademicRule},
+  colback=AcademicTint,
+  coltitle=AcademicAccent,
   fonttitle=\bfseries,
-  left=4pt,
-  right=4pt,
+  left=10pt,
+  right=10pt,
   top=8pt,
   bottom=8pt,
   before skip=12pt,
