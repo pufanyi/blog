@@ -1,0 +1,81 @@
+% =============================================================================
+% Mathematical macros for Physics-Based Simulation
+% =============================================================================
+
+% Number sets
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+
+% Vectors, matrices, and tensors
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\tensor}[1]{\mathbf{#1}}
+
+% Common physical & geometric vectors
+\newcommand{\vx}{\vect{x}}
+\newcommand{\vX}{\vect{X}}
+\newcommand{\vv}{\vect{v}}
+\newcommand{\va}{\vect{a}}
+\newcommand{\vu}{\vect{u}}
+\newcommand{\vf}{\vect{f}}
+\newcommand{\vg}{\vect{g}}
+\newcommand{\vp}{\vect{p}}
+\newcommand{\vq}{\vect{q}}
+\newcommand{\vn}{\vect{n}}
+\newcommand{\vt}{\vect{t}}
+\newcommand{\vzero}{\vect{0}}
+
+% Common matrices & tensors
+\newcommand{\mM}{\mat{M}}
+\newcommand{\mH}{\mat{H}}
+\newcommand{\mK}{\mat{K}}
+\newcommand{\mF}{\mat{F}}
+\newcommand{\mP}{\mat{P}}
+\newcommand{\mS}{\mat{S}}
+\newcommand{\mR}{\mat{R}}
+\newcommand{\mU}{\mat{U}}
+\newcommand{\mV}{\mat{V}}
+\newcommand{\mI}{\mat{I}}
+\newcommand{\mA}{\mat{A}}
+\newcommand{\mB}{\mat{B}}
+\newcommand{\mC}{\mat{C}}
+\newcommand{\mJ}{\mat{J}}
+
+% Time integration shorthands
+\newcommand{\dt}{\Delta t}
+\newcommand{\xn}{\vx^{n}}
+\newcommand{\xnp}{\vx^{n+1}}
+\newcommand{\xnm}{\vx^{n-1}}
+\newcommand{\xt}{\tilde{\vx}}
+\newcommand{\veln}{\vv^{n}}
+\newcommand{\velnp}{\vv^{n+1}}
+\newcommand{\fn}{\vf^{n}}
+\newcommand{\fnp}{\vf^{n+1}}
+
+% Calculus & differential operators
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\dv}[2]{\frac{\mathrm{d} #1}{\mathrm{d} #2}}
+\newcommand{\pdv}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\ppdv}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\grad}{\nabla}
+\newcommand{\divg}{\nabla \cdot}
+\newcommand{\lap}{\Delta}
+
+% Linear algebra & optimization operators
+\newcommand{\T}{^{\mathsf{T}}}
+\newcommand{\inv}{^{-1}}
+\newcommand{\invT}{^{-\mathsf{T}}}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+% Norms & inner products
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiterX{\inner}[2]{\langle}{\rangle}{#1, #2}
+\newcommand{\frobnorm}[1]{\norm{#1}_{\mathrm{F}}}
+\newcommand{\Mnorm}[1]{\norm{#1}_{\mM}}
