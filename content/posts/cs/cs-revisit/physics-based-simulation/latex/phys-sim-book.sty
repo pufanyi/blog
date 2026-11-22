@@ -39,6 +39,7 @@
 \RequirePackage{mathtools}
 \RequirePackage{bm}
 \RequirePackage{graphicx}
+\RequirePackage[font=small,labelfont=bf]{caption}
 \RequirePackage{subcaption}
 \RequirePackage{booktabs}
 \RequirePackage{array}
@@ -175,7 +176,7 @@
 \RequirePackage[nameinlink,noabbrev]{cleveref}
 
 % -----------------------------------------------------------------------------
-% Monochrome callout-framed amsthm environments (aligned with original book)
+% Monochrome textbook environments (white background + left hairline rules)
 % -----------------------------------------------------------------------------
 \newtheoremstyle{academicplain}
   {0pt}         % Space above (handled by tcolorbox)
@@ -185,7 +186,7 @@
   {\bfseries}   % Theorem head font
   {.}           % Punctuation after theorem head
   {0.6em}       % Space after theorem head
-  {}            % Theorem head spec
+  {\thmname{#1}\thmnumber{ #2}\thmnote{ \bfseries(#3)}}
 
 \theoremstyle{academicplain}
 \newtheorem{definition}{定义}[chapter]
@@ -203,21 +204,36 @@
 \RequirePackage[skins,breakable]{tcolorbox}
 
 \tcbset{
-  academicblock/.style={
+  academicformal/.style={
     enhanced,
     breakable,
     boxrule=0pt,
     frame hidden,
-    borderline north={0.5pt}{0pt}{black!18},
-    borderline south={0.5pt}{0pt}{black!18},
-    colback=black!3,
+    borderline west={1.5pt}{0pt}{black!55},
+    colback=white,
     left=10pt,
-    right=10pt,
-    top=7pt,
-    bottom=7pt,
+    right=4pt,
+    top=3pt,
+    bottom=3pt,
     before skip=10pt,
     after skip=10pt,
     sharp corners
+  },
+  academicexample/.style={
+    enhanced,
+    breakable,
+    boxrule=0pt,
+    frame hidden,
+    borderline west={1pt}{0pt}{black!25},
+    colback=white,
+    left=10pt,
+    right=4pt,
+    top=3pt,
+    bottom=3pt,
+    before skip=10pt,
+    after skip=10pt,
+    sharp corners,
+    after upper={\unskip\nobreak\hfill{\small\color{AcademicMuted}$\diamond$}}
   },
   academicnote/.style={
     enhanced,
@@ -240,14 +256,14 @@
   }
 }
 
-\tcolorboxenvironment{definition}{academicblock}
-\tcolorboxenvironment{theorem}{academicblock}
-\tcolorboxenvironment{lemma}{academicblock}
-\tcolorboxenvironment{proposition}{academicblock}
-\tcolorboxenvironment{corollary}{academicblock}
-\tcolorboxenvironment{method}{academicblock}
-\tcolorboxenvironment{example}{academicblock}
-\tcolorboxenvironment{remark}{academicblock}
+\tcolorboxenvironment{definition}{academicformal}
+\tcolorboxenvironment{theorem}{academicformal}
+\tcolorboxenvironment{lemma}{academicformal}
+\tcolorboxenvironment{proposition}{academicformal}
+\tcolorboxenvironment{corollary}{academicformal}
+\tcolorboxenvironment{method}{academicformal}
+\tcolorboxenvironment{example}{academicexample}
+\tcolorboxenvironment{remark}{academicexample}
 
 \newtcolorbox{studynote}[1][学习笔记]{
   academicnote,
