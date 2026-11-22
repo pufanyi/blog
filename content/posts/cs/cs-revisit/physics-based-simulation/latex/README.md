@@ -24,7 +24,7 @@ latex/
 Requires a TeX distribution with XeLaTeX, `ctex`, `tcolorbox`, `algorithm2e`, `listings`, `biblatex`, and `biber` (TeX Live 2023+ or MacTeX recommended).
 
 ```bash
-# Build PDF to build/main.pdf
+# Build PDF to build/main.pdf and copy to ../physics-based-simulation.pdf
 make
 
 # Watch for changes and recompile automatically
