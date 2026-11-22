@@ -39,6 +39,7 @@
 \RequirePackage{mathtools}
 \RequirePackage{bm}
 \RequirePackage{graphicx}
+\RequirePackage[font=small,labelfont=bf]{caption}
 \RequirePackage{subcaption}
 \RequirePackage{booktabs}
 \RequirePackage{array}
@@ -175,17 +176,17 @@
 \RequirePackage[nameinlink,noabbrev]{cleveref}
 
 % -----------------------------------------------------------------------------
-% Classic native amsthm environments (no heavy colored boxes)
+% Monochrome textbook environments (white background + left hairline rules)
 % -----------------------------------------------------------------------------
 \newtheoremstyle{academicplain}
-  {0.75em}   % Space above
-  {0.75em}   % Space below
+  {0pt}         % Space above (handled by tcolorbox)
+  {0pt}         % Space below (handled by tcolorbox)
   {\normalfont} % Body font (upright for clean CJK + math)
-  {}         % Indent amount
-  {\bfseries}% Theorem head font
-  {.}        % Punctuation after theorem head
-  {0.6em}    % Space after theorem head
-  {}         % Theorem head spec
+  {}            % Indent amount
+  {\bfseries}   % Theorem head font
+  {.}           % Punctuation after theorem head
+  {0.6em}       % Space after theorem head
+  {\thmname{#1}\thmnumber{ #2}\thmnote{ \bfseries(#3)}}
 
 \theoremstyle{academicplain}
 \newtheorem{definition}{定义}[chapter]
@@ -195,14 +196,28 @@
 \newtheorem{corollary}[theorem]{推论}
 \newtheorem{method}{方法}[chapter]
 \newtheorem{example}{例}[chapter]
-\newtheorem*{remark}{注记}
+\newtheorem{remark}{注记}[chapter]
 
 % -----------------------------------------------------------------------------
-% Minimalist editorial note & summary environments (tcolorbox)
+% Minimalist editorial note & callout environments (tcolorbox)
 % -----------------------------------------------------------------------------
 \RequirePackage[skins,breakable]{tcolorbox}
 
 \tcbset{
+  academicblock/.style={
+    enhanced,
+    breakable,
+    boxrule=0pt,
+    frame hidden,
+    colback=black!3,
+    left=10pt,
+    right=10pt,
+    top=7pt,
+    bottom=7pt,
+    before skip=10pt,
+    after skip=10pt,
+    sharp corners
+  },
   academicnote/.style={
     enhanced,
     breakable,
@@ -223,6 +238,15 @@
     attach title to upper={\quad}
   }
 }
+
+\tcolorboxenvironment{definition}{academicblock}
+\tcolorboxenvironment{theorem}{academicblock}
+\tcolorboxenvironment{lemma}{academicblock}
+\tcolorboxenvironment{proposition}{academicblock}
+\tcolorboxenvironment{corollary}{academicblock}
+\tcolorboxenvironment{method}{academicblock}
+\tcolorboxenvironment{example}{academicblock}
+\tcolorboxenvironment{remark}{academicblock}
 
 \newtcolorbox{studynote}[1][学习笔记]{
   academicnote,
@@ -287,6 +311,7 @@
 \crefname{corollary}{推论}{推论}
 \crefname{method}{方法}{方法}
 \crefname{example}{例}{例}
+\crefname{remark}{注记}{注记}
 
 % -----------------------------------------------------------------------------
 % Bilingual terminology & translation helpers

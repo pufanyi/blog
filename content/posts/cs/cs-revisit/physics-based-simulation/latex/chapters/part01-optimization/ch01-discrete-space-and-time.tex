@@ -32,26 +32,22 @@
 \begin{example}[Mesh]
   \label{exp:lec1:mesh}
   直接用边或三角形将采样点连接起来构成\textbf{网格}（mesh），是计算几何中最常用的方法之一。如\cref{fig:lec1:mesh} 所示，左图与中图使用了完全相同的采样点（节点），但由于连接关系不同，所表示的几何形状截然不同。右图则展示了由中图经形变得到的形状——通过将中图网格的上半部分沿竖直方向压缩而得到。
+  \begin{center}
+    \includegraphics[width=0.60\textwidth]{ch01/mesh.png}
+    \captionof{figure}{网格（Mesh）表示。左图与中图共享相同节点但连接关系不同；右图为中图上半部分竖直压缩后的形变结果。}
+    \label{fig:lec1:mesh}
+  \end{center}
 \end{example}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.62\textwidth]{ch01/mesh.png}
-  \caption{网格（Mesh）表示。左图与中图共享相同节点但连接关系不同；右图为中图上半部分竖直压缩后的形变结果。}
-  \label{fig:lec1:mesh}
-\end{figure}
 
 \begin{example}[Particle and Grid]
   \label{exp:lec1:particle_grid}
   在空间表示中引入均匀规则网格后，我们可以在每个网格节点处记录固体物质的分布情况，利用采样点计算各网格节点处的固体密度。这种方法既能定量刻画固体在网格中的分布，也能在原始采样点之间建立连接网络。如\cref{fig:lec1:particle_grid} 所示，绿色圆点表示采样点，黑色圆圈表示记录固体密度的网格节点，蓝色线段表示网格节点之间的连接关系。
+  \begin{center}
+    \includegraphics[width=0.44\textwidth]{ch01/MPM.png}
+    \captionof{figure}{粒子与背景网格（Particle and Grid）。绿色点为采样粒子，黑色圆圈为记录密度的网格节点，蓝色线为规则网格连接。}
+    \label{fig:lec1:particle_grid}
+  \end{center}
 \end{example}
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.45\textwidth]{ch01/MPM.png}
-  \caption{粒子与背景网格（Particle and Grid）。绿色点为采样粒子，黑色圆圈为记录密度的网格节点，蓝色线为规则网格连接。}
-  \label{fig:lec1:particle_grid}
-\end{figure}
 
 在现代固体仿真领域，上述两种连接关系的定义方式都至关重要。第一种方式通过边或三角形构成的网格建立连接，是有限元方法（Finite Element Method, FEM）仿真器的基础；第二种方式借助均匀网格计算固体密度并建立连接，则是物质点法（Material Point Method, MPM）仿真器的核心~\cite{jiang2016material}。本书主要聚焦于前者，深入讨论 FEM 的理论与算法。基于网格的 FEM 结构通过将复杂求解域划分为更简单的单元，能够高效地处理复杂几何，是研究与仿真可变形固体不可或缺的工具。
 
