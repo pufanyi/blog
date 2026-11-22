@@ -1,0 +1,184 @@
+/* StateVectorsFigure */
+.pbs-sv {
+  margin: 1.5rem 0;
+}
+
+.pbs-sv-panel {
+  padding: 0.9rem 1rem 0.95rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--paper-bg);
+}
+
+.pbs-sv-scroll {
+  overflow-x: auto;
+}
+
+.pbs-sv-stage {
+  position: relative;
+  width: 100%;
+  min-width: 580px;
+}
+
+.pbs-sv-stage svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: inherit;
+  fill: var(--text-color);
+}
+
+.pbs-sv-heading {
+  fill: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.pbs-sv-mesh-fill {
+  fill: color-mix(in srgb, var(--surface-soft) 50%, var(--paper-bg));
+}
+
+.pbs-sv-mesh-fill-alt {
+  fill: color-mix(in srgb, var(--surface-soft) 72%, var(--paper-bg));
+}
+
+.pbs-sv-mesh-edge {
+  fill: none;
+  stroke: var(--text-color);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+}
+
+.pbs-sv-vertex {
+  stroke: var(--paper-bg);
+  stroke-width: 1.6;
+}
+
+.pbs-sv-vertex-neutral {
+  fill: var(--text-secondary);
+}
+
+.pbs-sv-vertex-v1 {
+  fill: var(--accent-blue);
+}
+
+.pbs-sv-vertex-v2 {
+  fill: var(--accent-rose);
+}
+
+.pbs-sv-halo {
+  fill: none;
+  stroke-width: 1.4;
+}
+
+.pbs-sv-halo-v1 {
+  fill: color-mix(in srgb, var(--accent-blue) 16%, transparent);
+  stroke: color-mix(in srgb, var(--accent-blue) 42%, transparent);
+}
+
+.pbs-sv-halo-v2 {
+  fill: color-mix(in srgb, var(--accent-rose) 16%, transparent);
+  stroke: color-mix(in srgb, var(--accent-rose) 42%, transparent);
+}
+
+.pbs-sv-arrow {
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+}
+
+.pbs-sv-arrow-v1 {
+  stroke: var(--accent-blue);
+}
+
+.pbs-sv-arrow-v2 {
+  stroke: var(--accent-rose);
+}
+
+.pbs-sv-arrowhead-v1 {
+  fill: var(--accent-blue);
+}
+
+.pbs-sv-arrowhead-v2 {
+  fill: var(--accent-rose);
+}
+
+.pbs-sv-pill {
+  stroke-width: 1.15;
+}
+
+.pbs-sv-pill-v1 {
+  fill: color-mix(in srgb, var(--accent-blue) 12%, var(--paper-bg));
+  stroke: color-mix(in srgb, var(--accent-blue) 38%, transparent);
+}
+
+.pbs-sv-pill-v2 {
+  fill: color-mix(in srgb, var(--accent-rose) 12%, var(--paper-bg));
+  stroke: color-mix(in srgb, var(--accent-rose) 38%, transparent);
+}
+
+.pbs-sv-bracket {
+  fill: none;
+  stroke: var(--text-color);
+  stroke-width: 2;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.pbs-sv-tex {
+  position: absolute;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.pbs-sv-tex mjx-container {
+  margin: 0;
+}
+
+.pbs-sv-tex-center {
+  transform: translate(-50%, -50%);
+}
+
+.pbs-sv-tex-start {
+  transform: translate(0, -50%);
+}
+
+.pbs-sv-tex-end {
+  transform: translate(-100%, -50%);
+}
+
+.pbs-sv-label {
+  font-size: 0.92rem;
+}
+
+.pbs-sv-eq,
+.pbs-sv-space {
+  color: var(--text-color);
+  font-size: 0.96rem;
+}
+
+.pbs-sv-entry {
+  font-size: 0.94rem;
+}
+
+.pbs-sv-dots {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.pbs-sv-role-v1 {
+  color: var(--accent-blue);
+}
+
+.pbs-sv-role-v2 {
+  color: var(--accent-rose);
+}
+
+.pbs-sv figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
