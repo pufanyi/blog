@@ -11,6 +11,19 @@ authors:
 
 [中文翻译 PDF](/posts/cs/cs-revisit/physics-based-simulation/physics-based-simulation.pdf)
 
-## Simulation with Optimization
+## Shape Representation and Time Integration
 
-### Discrete Space and Time 
+主要表达方式有 Algebraic Equation, Signed Distance Field (SDF), Mesh, Particles，这里简单讲一下 SDF。
+
+SDF 指的是用一个标量函数
+
+$$
+\operatorname{SDF}(p)=
+\begin{cases}
+-d(p,\partial\Omega), & p\text{ 在物体内部}\\
+0, & p\text{ 在物体表面}\\
++d(p,\partial\Omega), & p\text{ 在物体外部}
+\end{cases}
+$$
+
+来描述空间中任意一个点到物体的距离，$d$ 是距离函数，$\partial\Omega$ 是物体的边界。
