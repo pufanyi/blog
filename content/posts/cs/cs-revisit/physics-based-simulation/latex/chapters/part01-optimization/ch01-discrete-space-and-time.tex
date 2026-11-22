@@ -1,4 +1,4 @@
-\chapter{Discrete Space and Time}
+\chapter{离散空间与时间}
 \label{ch:discrete-space-and-time}
 
 在这一章中，我们将探讨可变形固体（deformable solids）的仿真，目标是构建一个离散且可在计算机上求解的问题。本章的主要目的是引出该问题所固有的抽象代数概念。我们将从自顶向下（top-down）的架构视角切入弹性仿真，把数学建模置于核心位置。
@@ -11,7 +11,7 @@
 
 我们的目标是对可变形固体仿真提供全面、深入且引人入胜的探讨，使之对初学该领域的学生与经验丰富的研究者都具有价值。
 
-\section{Representations of a Solid Geometry}
+\section{固体几何的表示方法}
 \label{sec:solid-geometry}
 
 在日常生活中，固体被感知为连续的物体。但在计算机的数字世界中，我们使用离散的数值进行表示，由此衍生出一系列有趣的表示方法。
@@ -26,27 +26,27 @@
 
 在连续介质力学中，物体被视为具有连续的密度场。在数字表示中，这种连续性必须以离散方式表达，通常正是通过定义固体几何的\textbf{连接关系}（connectivity）来实现。
 
-\begin{remark}[Other Solid Representations]
+\begin{remark}[其他固体表示方法]
   \label{rem:lec1:other_solid_rep}
   还有其他表示固体几何的方法，例如基于体素（voxel）的方法。这类方法将空间划分为由小方盒（即体素）组成的三维网格，每个体素代表物体的一部分，类似于二维图像中的像素。基于体素的方法有若干优势。首先，它们可以作为离散的水平集（level set）表示，能够建模复杂几何并追踪其随时间的演化。每个体素都包含其相对于物体表面的位置信息，从而为连续的水平集函数提供高效的离散近似。这对于涉及表面演化、形状优化与碰撞检测的算法非常有利。其次，基于体素的方法有助于执行构造实体几何（Constructive Solid Geometry, CSG）操作。这种实体建模技术利用布尔算子将较简单的形状组合成复杂的三维模型。体素化框架允许在体素网格上直接且高效地执行并、交、差等运算，从而便于创建和修改复杂形状。
 \end{remark}
 
-\begin{example}[Mesh]
+\begin{example}[网格]
   \label{exp:lec1:mesh}
   直接用边或三角形将点连接起来以创建\textbf{网格}（mesh），是计算几何中一种常用的技术。如\cref{fig:lec1:mesh} 所示，左图与中图展示了两个不同的网格。值得注意的是，尽管这两个网格使用了相同的采样点（或节点），但它们具有不同的连接关系，因而形成了不同的形状。图中最右侧的网格展示了从一种形状到另一种形状的变换：该网格是中间网格发生形变的结果，通过将其上半部分沿竖直方向压缩而得到。
   \begin{center}
     \input{figures/ch01/mesh.tikz}
-    \captionof{figure}{Mesh}
+    \captionof{figure}{网格}
     \label{fig:lec1:mesh}
   \end{center}
 \end{example}
 
-\begin{example}[Particle and Grid]
+\begin{example}[粒子与网格]
   \label{exp:lec1:particle_grid}
   通过在空间表示中引入均匀网格结构，我们可以在每个节点位置记录固体物质的多少。这使我们能够利用采样点计算每个网格节点处的固体密度。该方法有助于量化固体在网格中的分布，并在原始采样点之间建立连接网络。这一概念的直观示意如\cref{fig:lec1:particle_grid} 所示。在图中，采样点以绿色圆点表示；记录固体密度的网格节点以黑色圆圈表示；这些节点通过网格相互连接，以蓝色线段表示。
   \begin{center}
     \input{figures/ch01/mpm.tikz}
-    \captionof{figure}{Particle and grid}
+    \captionof{figure}{粒子与网格}
     \label{fig:lec1:particle_grid}
   \end{center}
 \end{example}
@@ -62,11 +62,11 @@
 \begin{figure}[htbp]
   \centering
   \input{figures/ch01/stacked_var.tikz}
-  \caption{Stacked position vector}
+  \caption{堆叠位置向量}
   \label{fig:lec1:stacked_var}
 \end{figure}
 
-\section{Newton's Second Law}
+\section{牛顿第二定律}
 \label{sec:newtons-second-law}
 
 在定义了固体几何在某一时刻的表示方法之后，我们现在面临的挑战是预测固体随时间的运动与形变。这一预测是实现精确仿真的关键组成部分。
@@ -81,7 +81,7 @@
 \end{equation}
 在这一表示中，$M \in \R^{dn \times dn}$ 是质量矩阵（mass matrix），$\vx$、$\vv$ 和 $\vf$ 分别是堆叠了位置、速度和受力的列向量。该方法将离散空间与连续时间中的运动定律结合起来，为我们的可变形固体仿真奠定了基础。
 
-\begin{remark}[Stacked Variables]
+\begin{remark}[堆叠变量]
   \label{rem:lec2:stacked_var}
   尽管理论上质量矩阵 $M$ 不一定是对角矩阵，但在实际应用中常将其简化为对角矩阵。由此得到\emph{集中质量矩阵}（lumped mass matrix），它表示一个离散质点系统，为处理复杂系统提供了高效途径。下面以二维空间中的两质点系统为例加以说明。该系统的集中质量矩阵表示为：
   \[
@@ -99,33 +99,33 @@
   其中 $v_{i\alpha}$ 表示第 $i$ 个质点的速度 $\vv_i$ 的第 $\alpha$ 个分量。这种有序的结构显著简化了计算，也有助于理解系统的动力学特性。
 \end{remark}
 
-\section{Time Integration}
+\section{时间积分}
 \label{sec:time-integration}
 
 牛顿第二定律为一组连续形式的常微分方程（Ordinary Differential Equations, ODEs）奠定了基础。这与前文在空间上使用采样点离散表示连续几何的做法类似；现在我们在时间维度上采取同样的方法。通过对时间点进行采样，我们可以有效地表示时间导数 $\dv{\vx}{t}$ 与 $\dv{\vv}{t}$。
 
-\begin{definition}[Time Integration]
+\begin{definition}[时间积分]
   \label{def:lec1:time_integration}
   将时间离散为固定长度的小区间时，记第 $n$ 步的时刻为 $t^n$，通常称为一个\textbf{时间步}（timestep）。该区间的长度，即\textbf{时间步长}（timestep size），由 $\dt = t^{n+1} - t^n$ 给出。时间步计数 $n$ 通常是从零开始的整数，使得 $t^0 = 0\,\mathrm{s}$ 成为仿真的起始点。
 \end{definition}
 
-时间步概念的引入使我们能够用符号 $\xn$、$\veln$ 和 $\fn$ 分别表示第 $n$ 个时间步上各节点的位置、速度和受力。术语\textbf{时间步进}（timestepping）或时间积分（time integration），指的是在每个递增的时间步 $n = 0, 1, 2, \dots$ 上，由 $\xn, \veln$ 计算 $\xnp, \velnp$ 的过程。作为直观展示，考虑\cref{fig:lec1:slingshot} 中的 Armadillo 弹弓动画：从左到右，动画中的每一帧都是逐步计算得到的。在这种语境下，时间步进如同逐帧推进的电影，一步步展现出系统不断演化的动力学过程。
+时间步概念的引入使我们能够用符号 $\xn$、$\veln$ 和 $\fn$ 分别表示第 $n$ 个时间步上各节点的位置、速度和受力。术语\textbf{时间步进}（timestepping）或时间积分（time integration），指的是在每个递增的时间步 $n = 0, 1, 2, \dots$ 上，由 $\xn, \veln$ 计算 $\xnp, \velnp$ 的过程。作为直观展示，考虑\cref{fig:lec1:slingshot} 中的犰狳（Armadillo）弹弓动画：从左到右，动画中的每一帧都是逐步计算得到的。在这种语境下，时间步进如同逐帧推进的电影，一步步展现出系统不断演化的动力学过程。
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.92\textwidth]{ch01/slingshot.jpg}
-  \caption{Armadillo slingshot frame by frame}
+  \caption{犰狳弹弓逐帧动画}
   \label{fig:lec1:slingshot}
 \end{figure}
 
 在本书及我们所考察的仿真场景中，必须强调一项关键假设：在仿真开始时，我们总是精确已知初始值 $\vx^0$ 和 $\vv^0$。此外，对于每个时间步，我们要么有办法基于物理模型计算 $\fn$，要么直接已知其精确值（例如重力这类恒定外力）。这一假设是我们方法的基础，确保仿真建立在已知的初始条件与受力之上，从而获得更准确可靠的结果。
 
-\section{Explicit Time Integration}
+\section{显式时间积分}
 \label{sec:explicit-time-integration}
 
-显式时间积分（explicit time integration）格式通过将已知量代入简单公式直接计算 $\xnp$ 和 $\velnp$，这正是它们被称为\emph{显式}（explicit）的原因。本节重点介绍两种基础的显式格式：Forward Euler 与 Symplectic Euler 方法。
+显式时间积分（explicit time integration）格式通过将已知量代入简单公式直接计算 $\xnp$ 和 $\velnp$，这正是它们被称为\emph{显式}（explicit）的原因。本节重点介绍两种基础的显式格式：前向欧拉法（Forward Euler）与辛欧拉法（Symplectic Euler）。
 
-\subsection{Forward Euler}
+\subsection{前向欧拉法}
 \label{subsec:forward-euler}
 
 为了将连续时间系统转化为离散形式，我们采用向前差分（forward difference）近似。在这种近似中，导数 $\bigl(\dv{\vx}{t}\bigr)^n$ 估计为 $\frac{\xnp - \xn}{\dt}$，同理 $\bigl(\dv{\vv}{t}\bigr)^n$ 估计为 $\frac{\velnp - \veln}{\dt}$。上标 $n$ 表示第 $n$ 个时间步的状态变量。因此，系统的离散形式表示为：
@@ -138,9 +138,9 @@
 \end{equation}
 假设质量不随时间变化，这组方程为更新状态变量提供了清晰的机制：已知第 $n$ 个时间步的当前值 $\xn$、$\veln$ 和 $\fn$，便可以直接确定下一时间步 $n+1$ 的值。
 
-\begin{method}[Forward Euler Time Integration for Newton's Second Law]
+\begin{method}[牛顿第二定律的前向欧拉时间积分]
   \label{met:lec1:forward_euler}
-  在 Forward Euler 方法中，下一时间步 $n+1$ 的状态变量 $\xnp$ 和 $\velnp$ 根据当前值 $\xn$ 和 $\veln$ 计算得到，更新规则为：
+  在前向欧拉法中，下一时间步 $n+1$ 的状态变量 $\xnp$ 和 $\velnp$ 根据当前值 $\xn$ 和 $\veln$ 计算得到，更新规则为：
   \begin{equation}
     \label{eq:lec1:updateRule_explicit}
     \begin{aligned}
@@ -151,14 +151,14 @@
   这里，$\dt$ 表示时间步长，$M$ 是质量矩阵，$\fn$ 是当前时间步 $n$ 的受力。
 \end{method}
 
-Forward Euler 方法被认为是\emph{无条件不稳定}（unconditionally unstable）的，这意味着无论所选的时间步长 $\dt$ 多么小，对于 $\vf$ 非恒定的方程，数值解最终都会显著增长（\emph{发散爆炸}），而精确解本身不受影响（参见\cref{fig:lec1:time_integrators} 左图）。
+前向欧拉法被认为是\emph{无条件不稳定}（unconditionally unstable）的，这意味着无论所选的时间步长 $\dt$ 多么小，对于 $\vf$ 非恒定的方程，数值解最终都会显著增长（\emph{发散爆炸}），而精确解本身不受影响（参见\cref{fig:lec1:time_integrators} 左图）。
 
-\subsection{Symplectic Euler}
+\subsection{辛欧拉法}
 \label{subsec:symplectic-euler}
 
 如果在位置导数的离散中给 $\vv$ 加上上标 $n+1$，同时保持速度导数的离散形式不变，我们就会得到一种新的更新规则：
 
-\begin{method}[Symplectic Euler Time Integration for Newton's Second Law]
+\begin{method}[牛顿第二定律的辛欧拉时间积分]
   \label{met:lec1:symplectic_euler}
   给定当前状态变量、质量矩阵以及从 $t^n$ 到 $t^{n+1}$ 的时间步长，有：
   \begin{equation}
@@ -171,21 +171,21 @@ Forward Euler 方法被认为是\emph{无条件不稳定}（unconditionally unst
   其中 $n = 0, 1, 2, \dots$。
 \end{method}
 
-仅这一处微小改动，积分便成为\textbf{条件稳定}（conditionally stable）的。这意味着只要 $\dt$ 保持在与具体问题相关的上限之内，就能有效限制解的数值误差。此外，Symplectic Euler 方法还展现出保持系统能量的良好特性，如\cref{fig:lec1:time_integrators} 中图所示。
+仅这一处微小改动，积分便成为\textbf{条件稳定}（conditionally stable）的。这意味着只要 $\dt$ 保持在与具体问题相关的上限之内，就能有效限制解的数值误差。此外，辛欧拉法还展现出保持系统能量的良好特性，如\cref{fig:lec1:time_integrators} 中图所示。
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.92\textwidth]{ch01/time_integrators.jpg}
-  \caption{Stability of Time Integrators。图示展示了一个做匀速圆周运动的质点，从左到右分别使用 Forward Euler、Symplectic Euler 和 Implicit Euler 方法模拟，颜色变化表示时间的推进。每种方法在仿真中都呈现出显著不同的特征：Forward Euler 最终发生不稳定发散，Symplectic Euler 紧密贴合理论轨迹，而 Implicit Euler 在保持稳定的同时逐渐使运动停止。}
+  \caption{时间积分器的稳定性。图示展示了一个做匀速圆周运动的质点，从左到右分别使用前向欧拉法、辛欧拉法和隐式欧拉法模拟，颜色变化表示时间的推进。每种方法在仿真中都呈现出显著不同的特征：前向欧拉法最终发生不稳定发散，辛欧拉法紧密贴合理论轨迹，而隐式欧拉法在保持稳定的同时逐渐使运动停止。}
   \label{fig:lec1:time_integrators}
 \end{figure}
 
-\section{Implicit Time Integration}
+\section{隐式时间积分}
 \label{sec:implicit-time-integration}
 
-与显式时间积分不同，隐式时间积分（implicit time integration）需要求解方程组来确定 $\xnp$ 和 $\velnp$ 的值。这种方法的一个显著优势在于其有望大幅提升稳定性。下面介绍最简单的隐式积分形式——Backward Euler 方法。
+与显式时间积分不同，隐式时间积分（implicit time integration）需要求解方程组来确定 $\xnp$ 和 $\velnp$ 的值。这种方法的一个显著优势在于其有望大幅提升稳定性。下面介绍最简单的隐式积分形式——后向欧拉法（Backward Euler）。
 
-\begin{method}[Backward Euler Time Integration Application to Newton's Second Law]
+\begin{method}[牛顿第二定律的后向欧拉时间积分]
   \label{met:lec1:backward_euler}
   给定当前状态变量、质量矩阵以及从 $t^n$ 到 $t^{n+1}$ 的时间间隔，更新规则如下：
   \begin{equation}
@@ -205,13 +205,13 @@ Forward Euler 方法被认为是\emph{无条件不稳定}（unconditionally unst
 \end{equation}
 鉴于力 $\vf$ 通常关于位置 $\vx$ 呈现非线性，\cref{eq:lec1:system_IE} 一般是非线性的，需要使用\textbf{牛顿法}（Newton's method）等非线性求根技术来求解。
 
-\begin{method}[Newton's Method Applied to Backward Euler Time Integration]
+\begin{method}[用于后向欧拉时间积分的牛顿法]
   \label{met:lec1:newton_backward_euler}
   如\cref{alg:lec1:newton_method_IE} 所述，牛顿法是一种从解的初始估计 $\vx^i$ 出发的迭代技术。在当前迭代点 $\vx^i$ 处，它对力做线性近似 $\vf(\xnp) \approx \vf(\vx^i) + \grad \vf(\vx^i)(\xnp - \vx^i)$，然后求解一个线性方程组并更新迭代点。重复这一过程，直至达到令人满意的收敛程度。
 \end{method}
 
 \begin{algorithm}[htbp]
-  \caption{Newton's Method for Backward Euler Time Integration}
+  \caption{用于后向欧拉时间积分的牛顿法}
   \label{alg:lec1:newton_method_IE}
   \KwResult{$\xnp,\ \velnp$}
   $\vx^i \leftarrow \xn$\;
@@ -223,11 +223,11 @@ Forward Euler 方法被认为是\emph{无条件不稳定}（unconditionally unst
   $\velnp \leftarrow (\xnp - \xn)/\dt$\;
 \end{algorithm}
 
-尽管 Backward Euler 方法即使对于较大的 $\dt$ 也能保证\textbf{无条件稳定}（unconditional stability），但必须认识到，增大 $\dt$ 可能会导致系统的条件数变差，从而使线性方程组的求解更加困难。此外，力的线性化本质上只是一种近似：如果解的初始估计距离真实解较远，标准牛顿法迭代可能无法收敛，甚至可能发散。
+尽管后向欧拉法即使对于较大的 $\dt$ 也能保证\textbf{无条件稳定}（unconditional stability），但必须认识到，增大 $\dt$ 可能会导致系统的条件数变差，从而使线性方程组的求解更加困难。此外，力的线性化本质上只是一种近似：如果解的初始估计距离真实解较远，标准牛顿法迭代可能无法收敛，甚至可能发散。
 
 在后续讨论中，我们将介绍一种改进版的牛顿法。该改进方法旨在针对特定类型的问题保证收敛性，而不论初始估计如何或 $\dt$ 的大小如何。
 
-\section{Summary}
+\section{小结}
 \label{sec:ch01-summary}
 
 \begin{summarybox}
@@ -242,7 +242,7 @@ Forward Euler 方法被认为是\emph{无条件不稳定}（unconditionally unst
 
   时间被离散为若干离散时刻，并结合牛顿第二定律，采用有限差分法计算物理量的时间导数。
 
-  Forward Euler 方法由于无条件不稳定通常避免使用。相比之下，Symplectic Euler 方法是显式且条件稳定的，常用于良态问题。对于刚性（stiff）问题，虽然 Backward Euler 方法计算开销较大且可能出现数值不稳定，但因其无条件稳定且仅需配合非线性方程组求解，仍然是被广泛采用的选择。
+  前向欧拉法由于无条件不稳定通常避免使用。相比之下，辛欧拉法是显式且条件稳定的，常用于良态问题。对于刚性（stiff）问题，虽然后向欧拉法计算开销较大且可能出现数值不稳定，但因其无条件稳定且仅需配合非线性方程组求解，仍然是被广泛采用的选择。
 
   在下一章中，我们将探讨隐式时间积分的优化视角，为稳健求解这类问题提供方法。
 \end{summarybox}
