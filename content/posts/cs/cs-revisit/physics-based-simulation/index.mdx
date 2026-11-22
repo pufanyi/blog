@@ -32,3 +32,35 @@ $$
 关于物体的 $x$ 和 $v$ 向量，我们可以直接对每个点做展开，摊平成一个大向量：
 
 <StateVectorsFigure />
+
+然后对应的，我们把 $M$ 摊成一个大矩阵，每个 $x_i, v_i$ 对应的那个质量就是 $M_{ii}$，对于二维来说就是
+
+$$
+M = \begin{bmatrix}
+m_1 & & & & \\
+& m_1 & & & \\
+& & m_2 & & \\
+& & & m_2 & \\
+& & & & \ddots
+\end{bmatrix} \in \mathbb{R}^{2n \times 2n}
+$$
+
+那么我们有牛顿第二定律
+
+$$
+\begin{aligned}
+\dot{x} &= v\\
+M\dot{v} &= f
+\end{aligned}
+$$
+
+那么一种简单方法解这个方程，显然是
+
+$$
+\begin{aligned}
+x^{n+1} &= x^{n} + \Delta t v^{n}\\
+v^{n+1} &= v^{n} + \Delta t M^{-1}f^{n}
+\end{aligned}
+$$
+
+这个就是 **Forward Euler**。
