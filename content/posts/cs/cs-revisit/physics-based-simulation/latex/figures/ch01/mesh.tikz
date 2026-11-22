@@ -1,0 +1,54 @@
+\begin{tikzpicture}[
+  x=1.85cm,
+  y=1.85cm,
+  edge/.style={black, line width=0.95pt, line join=round},
+  node dot/.style={fill=black, circle, inner sep=0pt, minimum size=4.6pt},
+]
+  % Left mesh: closed square with center node
+  \begin{scope}[shift={(0,0)}]
+    \coordinate (bl) at (0,0);
+    \coordinate (br) at (1.15,0);
+    \coordinate (tr) at (1.15,1.25);
+    \coordinate (tl) at (0,1.25);
+    \coordinate (c)  at (0.58,0.52);
+
+    \draw[edge] (bl) -- (br) -- (tr) -- (tl) -- cycle;
+    \draw[edge] (c) -- (bl) (c) -- (br) (c) -- (tr) (c) -- (tl);
+
+    \foreach \p in {bl,br,tr,tl,c} {
+      \node[node dot] at (\p) {};
+    }
+  \end{scope}
+
+  % Middle mesh: same nodes, different connectivity (no right vertical edge)
+  \begin{scope}[shift={(1.78,0)}]
+    \coordinate (bl) at (0,0);
+    \coordinate (br) at (1.15,0);
+    \coordinate (tr) at (1.15,1.25);
+    \coordinate (tl) at (0,1.25);
+    \coordinate (c)  at (0.58,0.52);
+
+    \draw[edge] (br) -- (bl) -- (tl) -- (tr);
+    \draw[edge] (c) -- (bl) (c) -- (br) (c) -- (tr) (c) -- (tl);
+
+    \foreach \p in {bl,br,tr,tl,c} {
+      \node[node dot] at (\p) {};
+    }
+  \end{scope}
+
+  % Right mesh: upper half compressed vertically
+  \begin{scope}[shift={(3.56,0)}]
+    \coordinate (bl) at (0,0);
+    \coordinate (br) at (1.15,0);
+    \coordinate (tr) at (1.15,0.80);
+    \coordinate (tl) at (0,0.80);
+    \coordinate (c)  at (0.58,0.52);
+
+    \draw[edge] (br) -- (bl) -- (tl) -- (tr);
+    \draw[edge] (c) -- (bl) (c) -- (br) (c) -- (tr) (c) -- (tl);
+
+    \foreach \p in {bl,br,tr,tl,c} {
+      \node[node dot] at (\p) {};
+    }
+  \end{scope}
+\end{tikzpicture}

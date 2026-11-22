@@ -1,0 +1,48 @@
+\begin{tikzpicture}[
+  x=1cm,
+  y=1cm,
+  edge/.style={black, line width=0.95pt, line join=round},
+  node dot/.style={fill=black, circle, inner sep=0pt, minimum size=4.6pt},
+  maparrow/.style={black, line width=1.0pt, -{Stealth[length=6pt, width=4.2pt]}},
+]
+  % Mesh on the left
+  \coordinate (bl) at (0,0);
+  \coordinate (br) at (1.95,0);
+  \coordinate (tr) at (1.95,2.15);
+  \coordinate (tl) at (0,2.15);
+  \coordinate (c)  at (0.98,0.88);
+
+  \draw[edge] (br) -- (bl) -- (tl) -- (tr);
+  \draw[edge] (c) -- (bl) (c) -- (br) (c) -- (tr) (c) -- (tl);
+  \foreach \p in {bl,br,tr,tl,c} {
+    \node[node dot] at (\p) {};
+  }
+
+  % Vertex coordinate labels
+  \node[above=4pt] (p1) at (tr) {$(a_1, b_1)$};
+  \node[below=4pt] (p2) at (br) {$(a_2, b_2)$};
+
+  % Stacked position vector on the right
+  \node[anchor=west, inner sep=2pt] (vec) at (4.35, 1.12) {%
+    $\begin{bmatrix}
+      a_1 \\[2pt]
+      b_1 \\[2pt]
+      a_2 \\[2pt]
+      b_2 \\[1pt]
+      \vdots
+    \end{bmatrix}$%
+  };
+  \node[left=2pt of vec.west, yshift=3pt] {$\vx =$};
+  \node[right=3pt of vec.east, yshift=3pt] {$\in \R^{2n}$};
+
+  % Curved arrows from vertex labels to vector entries
+  \draw[maparrow]
+    ([xshift=4pt, yshift=1pt]p1.north)
+    to[out=42, in=152]
+    ([xshift=3pt, yshift=-14pt]vec.north west);
+
+  \draw[maparrow]
+    ([xshift=2pt, yshift=2pt]p2.east)
+    to[out=40, in=170]
+    ([xshift=3pt, yshift=-10pt]vec.west);
+\end{tikzpicture}

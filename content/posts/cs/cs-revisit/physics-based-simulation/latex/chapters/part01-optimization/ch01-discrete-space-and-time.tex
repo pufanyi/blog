@@ -35,7 +35,7 @@
   \label{exp:lec1:mesh}
   直接用边或三角形将点连接起来以创建\textbf{网格}（mesh），是计算几何中一种常用的技术。如\cref{fig:lec1:mesh} 所示，左图与中图展示了两个不同的网格。值得注意的是，尽管这两个网格使用了相同的采样点（或节点），但它们具有不同的连接关系，因而形成了不同的形状。图中最右侧的网格展示了从一种形状到另一种形状的变换：该网格是中间网格发生形变的结果，通过将其上半部分沿竖直方向压缩而得到。
   \begin{center}
-    \includegraphics[width=0.60\textwidth]{ch01/mesh.png}
+    \input{figures/ch01/mesh.tikz}
     \captionof{figure}{Mesh}
     \label{fig:lec1:mesh}
   \end{center}
@@ -45,7 +45,7 @@
   \label{exp:lec1:particle_grid}
   通过在空间表示中引入均匀网格结构，我们可以在每个节点位置记录固体物质的多少。这使我们能够利用采样点计算每个网格节点处的固体密度。该方法有助于量化固体在网格中的分布，并在原始采样点之间建立连接网络。这一概念的直观示意如\cref{fig:lec1:particle_grid} 所示。在图中，采样点以绿色圆点表示；记录固体密度的网格节点以黑色圆圈表示；这些节点通过网格相互连接，以蓝色线段表示。
   \begin{center}
-    \includegraphics[width=0.44\textwidth]{ch01/MPM.png}
+    \input{figures/ch01/mpm.tikz}
     \captionof{figure}{Particle and grid}
     \label{fig:lec1:particle_grid}
   \end{center}
@@ -61,7 +61,7 @@
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.52\textwidth]{ch01/stacked_var.png}
+  \input{figures/ch01/stacked_var.tikz}
   \caption{Stacked position vector}
   \label{fig:lec1:stacked_var}
 \end{figure}
