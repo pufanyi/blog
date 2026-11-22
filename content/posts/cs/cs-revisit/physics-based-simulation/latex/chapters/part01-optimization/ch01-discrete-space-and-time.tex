@@ -14,9 +14,9 @@
 
 在日常生活中，固体被感知为连续的物体。但在计算机的离散数字世界中，我们需要用离散数值来表达几何，由此衍生出多种表示方法。
 
-一种方法是\textbf{参数化表示}（parametrization）。以三维球体为例，以 $\mathbf{c}\in\R^3$ 为球心、$r>0$ 为半径的球体可表示为
+一种方法是\textbf{参数化表示}（parametrization）。以三维球体为例，以 $\vect{c}\in\R^3$ 为球心、$r>0$ 为半径的球体可表示为
 \[
-  \{\mathbf{x} \in \R^{3} \mid \norm{\mathbf{x} - \mathbf{c}} \le r,\ \mathbf{c} \in \R^{3},\ r > 0\}.
+  \{\vx \in \R^{3} \mid \norm{\vx - \vect{c}} \le r,\ \vect{c} \in \R^{3},\ r > 0\}.
 \]
 这一思路可推广到半空间、长方体、椭球、圆环面等规则几何体，通常借助有向距离函数（signed distance function）等函数来刻画其\emph{内部}。然而，面对现实世界中广泛存在的复杂几何形状，参数化表示往往力不从心。一个新兴的例外是基于神经网络的神经几何表示（neural representations），它在表达复杂几何形态方面展现出了良好前景。
 
@@ -59,12 +59,12 @@
 
 然而，在仿真精度控制方面，FEM 具有明显优势。FEM 直接在网格上求解，无需在粒子与网格之间反复传递信息，从而能够获得更高的数值精度。正因如此，本书以 FEM 为主要框架来展开可变形固体的高精度仿真。
 
-在连接关系保持不变的前提下，将所有采样点的坐标按序堆叠为一个扩展向量 $x \in \R^{dn}$（见\cref{fig:lec1:stacked_var}），便能简洁地描述物体在某一时刻的几何构型，其中 $d \in \{1,2,3\}$ 为空间维数，$n$ 为采样点总数。类似地，各采样点的速度、加速度和受力也可分别堆叠为对应的扩展向量 $v$、$a$ 与 $f$。这种组织方式不仅便于清晰把握各物理量之间的对应关系，也极大简化了后续仿真过程的数学表述。
+在连接关系保持不变的前提下，将所有采样点的坐标按序堆叠为一个扩展向量 $\vx \in \R^{dn}$（见\cref{fig:lec1:stacked_var}），便能简洁地描述物体在某一时刻的几何构型，其中 $d \in \{1,2,3\}$ 为空间维数，$n$ 为采样点总数。类似地，各采样点的速度、加速度和受力也可分别堆叠为对应的扩展向量 $\vv$、$\va$ 与 $\vf$。这种组织方式不仅便于清晰把握各物理量之间的对应关系，也极大简化了后续仿真过程的数学表述。
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.52\textwidth]{ch01/stacked_var.png}
-  \caption{堆叠位置向量（Stacked position vector）$x \in \R^{dn}$ 的结构示意。}
+  \caption{堆叠位置向量（Stacked position vector）$\vx \in \R^{dn}$ 的结构示意。}
   \label{fig:lec1:stacked_var}
 \end{figure}
 
@@ -73,15 +73,15 @@
 
 在明确了如何表示固体在单一时刻的几何构型之后，接下来的核心问题是预测固体随时间的运动与形变，这也是精确仿真的关键所在。
 
-牛顿第二定律 $\mathbf{f} = m\mathbf{a}$ 指出，力 $\mathbf{f}$ 是引起速度变化（即加速度 $\mathbf{a}$）的根本原因。需要指出的是，当固体的位移场超出了单纯的刚体平移、旋转或其线性组合时，物体便发生了形变。将牛顿第二定律应用于每一个采样点，即可预测固体的运动与形变。以向量形式可简洁写作：
+牛顿第二定律 $\vf = m\va$ 指出，力 $\vf$ 是引起速度变化（即加速度 $\va$）的根本原因。需要指出的是，当固体的位移场超出了单纯的刚体平移、旋转或其线性组合时，物体便发生了形变。将牛顿第二定律应用于每一个采样点，即可预测固体的运动与形变。以向量形式可简洁写作：
 \begin{equation}
   \label{eq:lec1:governing_discSpace_contTime}
   \begin{aligned}
-    \dv{x}{t} &= v, \\
-    M\dv{v}{t} &= f.
+    \dv{\vx}{t} &= \vv, \\
+    M\dv{\vv}{t} &= \vf.
   \end{aligned}
 \end{equation}
-其中 $M \in \R^{dn \times dn}$ 为质量矩阵（mass matrix），$x$、$v$ 与 $f$ 分别为堆叠后的位置、速度与力列向量。\cref{eq:lec1:governing_discSpace_contTime} 将离散空间与连续时间中的运动定律结合起来，为后续可变形固体仿真奠定了基础。
+其中 $M \in \R^{dn \times dn}$ 为质量矩阵（mass matrix），$\vx$、$\vv$ 与 $\vf$ 分别为堆叠后的位置、速度与力列向量。\cref{eq:lec1:governing_discSpace_contTime} 将离散空间与连续时间中的运动定律结合起来，为后续可变形固体仿真奠定了基础。
 
 \begin{remark}[Stacked Variables]
   \label{rem:lec2:stacked_var}
@@ -94,24 +94,24 @@
           &     &     & m_2
     \end{pmatrix},
   \]
-  这里假设速度向量 $v$（以及位置 $x$、力 $f$）按如下顺序堆叠：
+  这里假设速度向量 $\vv$（以及位置 $\vx$、力 $\vf$）按如下顺序堆叠：
   \[
-    v = (v_{11}, v_{12}, v_{21}, v_{22})\T,
+    \vv = (v_{11}, v_{12}, v_{21}, v_{22})\T,
   \]
-  其中 $v_{i\alpha}$ 表示第 $i$ 个质点速度 $\mathbf{v}_i$ 的第 $\alpha$ 个分量。这种规整的排列方式显著简化了代数运算，也有助于直观理解系统的动力学结构。
+  其中 $v_{i\alpha}$ 表示第 $i$ 个质点速度 $\vv_i$ 的第 $\alpha$ 个分量。这种规整的排列方式显著简化了代数运算，也有助于直观理解系统的动力学结构。
 \end{remark}
 
 \section{Time Integration}
 \label{sec:time-integration}
 
-牛顿第二定律导出一组连续形式的常微分方程（Ordinary Differential Equations, ODEs）。正如前文在空间上通过采样点来离散表示连续几何一样，我们在时间维度上采取类似思路：通过对时间进行离散采样，来近似表示时间导数 $\dv{x}{t}$ 与 $\dv{v}{t}$。
+牛顿第二定律导出一组连续形式的常微分方程（Ordinary Differential Equations, ODEs）。正如前文在空间上通过采样点来离散表示连续几何一样，我们在时间维度上采取类似思路：通过对时间进行离散采样，来近似表示时间导数 $\dv{\vx}{t}$ 与 $\dv{\vv}{t}$。
 
 \begin{definition}[Time Integration]
   \label{def:lec1:time_integration}
   将时间离散为固定长度的小区间时，记第 $n$ 步对应的时刻为 $t^n$，通常称为一个\textbf{时间步}（timestep）；相邻时刻的间隔称为\textbf{时间步长}（timestep size），记作 $\dt = t^{n+1} - t^n$。步数索引 $n$ 通常为从零开始的非负整数，因此 $t^0 = 0\,\mathrm{s}$ 表示仿真的起始时刻。
 \end{definition}
 
-引入时间步后，我们用 $x^n$、$v^n$ 和 $f^n$ 分别表示第 $n$ 个时间步上所有节点的位置、速度与受力。所谓\textbf{时间步进}（timestepping）或\textbf{时间积分}（time integration），是指在每个递增的时间步 $n = 0, 1, 2, \dots$ 上，由当前状态 $(x^n, v^n)$ 计算下一时刻状态 $(x^{n+1}, v^{n+1})$ 的过程。以\cref{fig:lec1:slingshot} 中的犰狳弹弓（Armadillo slingshot）动画为例，从左到右每一帧都是逐步递推计算得到的；时间步进就像逐帧推进的电影，将系统的动力学演化一步步呈现出来。
+引入时间步后，我们用 $\xn$、$\veln$ 和 $\fn$ 分别表示第 $n$ 个时间步上所有节点的位置、速度与受力。所谓\textbf{时间步进}（timestepping）或\textbf{时间积分}（time integration），是指在每个递增的时间步 $n = 0, 1, 2, \dots$ 上，由当前状态 $(\xn, \veln)$ 计算下一时刻状态 $(\xnp, \velnp)$ 的过程。以\cref{fig:lec1:slingshot} 中的犰狳弹弓（Armadillo slingshot）动画为例，从左到右每一帧都是逐步递推计算得到的；时间步进就像逐帧推进的电影，将系统的动力学演化一步步呈现出来。
 
 \begin{figure}[htbp]
   \centering
@@ -120,45 +120,45 @@
   \label{fig:lec1:slingshot}
 \end{figure}
 
-在本书讨论的仿真设定中，有一项关键前提需要明确：我们在仿真开始时总是精确已知初始条件 $x^0$ 与 $v^0$；此外，在每一个时间步，我们总能根据物理模型计算受力 $f^n$，或者直接掌握其精确值（例如重力等恒定外力）。这一前提确保了仿真建立在明确的初值与力模型之上，从而能够得到可靠的计算结果。
+在本书讨论的仿真设定中，有一项关键前提需要明确：我们在仿真开始时总是精确已知初始条件 $\vx^0$ 与 $\vv^0$；此外，在每一个时间步，我们总能根据物理模型计算受力 $\fn$，或者直接掌握其精确值（例如重力等恒定外力）。这一前提确保了仿真建立在明确的初值与力模型之上，从而能够得到可靠的计算结果。
 
 \section{Explicit Time Integration}
 \label{sec:explicit-time-integration}
 
-显式时间积分（explicit time integration）方案将已知量直接代入简单公式即可算出 $x^{n+1}$ 与 $v^{n+1}$，这正是其被称为\emph{显式}（explicit）的原因。本节介绍两种基础的显式方案：Forward Euler 与 Symplectic Euler 方法。
+显式时间积分（explicit time integration）方案将已知量直接代入简单公式即可算出 $\xnp$ 与 $\velnp$，这正是其被称为\emph{显式}（explicit）的原因。本节介绍两种基础的显式方案：Forward Euler 与 Symplectic Euler 方法。
 
 \subsection{Forward Euler}
 \label{subsec:forward-euler}
 
-为了将连续时间系统转化为离散形式，我们采用向前差分（forward difference）近似：将第 $n$ 步的导数 $\bigl(\dv{x}{t}\bigr)^n$ 近似为 $\frac{x^{n+1} - x^n}{\dt}$，同理将 $\bigl(\dv{v}{t}\bigr)^n$ 近似为 $\frac{v^{n+1} - v^n}{\dt}$。由此得到离散化后的控制方程：
+为了将连续时间系统转化为离散形式，我们采用向前差分（forward difference）近似：将第 $n$ 步的导数 $\bigl(\dv{\vx}{t}\bigr)^n$ 近似为 $\frac{\xnp - \xn}{\dt}$，同理将 $\bigl(\dv{\vv}{t}\bigr)^n$ 近似为 $\frac{\velnp - \veln}{\dt}$。由此得到离散化后的控制方程：
 \begin{equation}
   \label{eq:lec1:governing_discSpace_discTime}
   \begin{aligned}
-    \frac{x^{n+1} - x^n}{\dt} &= v^n, \\
-    M\frac{v^{n+1} - v^n}{\dt} &= f^n.
+    \frac{\xnp - \xn}{\dt} &= \veln, \\
+    M\frac{\velnp - \veln}{\dt} &= \fn.
   \end{aligned}
 \end{equation}
-假设质量不随时间变化，这组方程给出了清晰的状态更新规则：已知第 $n$ 步的 $x^n$、$v^n$ 与 $f^n$，即可直接求出第 $n+1$ 步的状态。
+假设质量不随时间变化，这组方程给出了清晰的状态更新规则：已知第 $n$ 步的 $\xn$、$\veln$ 与 $\fn$，即可直接求出第 $n+1$ 步的状态。
 
 \begin{method}[Forward Euler Time Integration for Newton's Second Law]
   \label{met:lec1:forward_euler}
-  在 Forward Euler 方法中，下一时间步 $n+1$ 的状态变量 $x^{n+1}$ 与 $v^{n+1}$ 完全由当前步 $n$ 的 $x^n$、$v^n$ 计算得到，更新规则为：
+  在 Forward Euler 方法中，下一时间步 $n+1$ 的状态变量 $\xnp$ 与 $\velnp$ 完全由当前步 $n$ 的 $\xn$、$\veln$ 计算得到，更新规则为：
   \begin{equation}
     \label{eq:lec1:updateRule_explicit}
     \begin{aligned}
-      x^{n+1} &= x^n + \dt v^n, \\
-      v^{n+1} &= v^n + \dt M\inv f^n.
+      \xnp &= \xn + \dt \veln, \\
+      \velnp &= \veln + \dt M\inv \fn.
     \end{aligned}
   \end{equation}
-  其中 $\dt$ 为时间步长，$M$ 为质量矩阵，$f^n$ 为第 $n$ 步的受力。
+  其中 $\dt$ 为时间步长，$M$ 为质量矩阵，$\fn$ 为第 $n$ 步的受力。
 \end{method}
 
-Forward Euler 方法是\emph{无条件不稳定}（unconditionally unstable）的：对于受力 $f$ 非恒定的方程，无论时间步长 $\dt$ 取多小，即使精确解保持有界，数值解最终仍会剧烈增长乃至\emph{发散爆炸}（见\cref{fig:lec1:time_integrators} 左图）。
+Forward Euler 方法是\emph{无条件不稳定}（unconditionally unstable）的：对于受力 $\vf$ 非恒定的方程，无论时间步长 $\dt$ 取多小，即使精确解保持有界，数值解最终仍会剧烈增长乃至\emph{发散爆炸}（见\cref{fig:lec1:time_integrators} 左图）。
 
 \subsection{Symplectic Euler}
 \label{subsec:symplectic-euler}
 
-如果在位置导数的离散中将 $v$ 的上标改为 $n+1$，同时保持速度导数的离散形式不变，便得到一种新的更新规则：
+如果在位置导数的离散中将 $\vv$ 的上标改为 $n+1$，同时保持速度导数的离散形式不变，便得到一种新的更新规则：
 
 \begin{method}[Symplectic Euler Time Integration for Newton's Second Law]
   \label{met:lec1:symplectic_euler}
@@ -166,8 +166,8 @@ Forward Euler 方法是\emph{无条件不稳定}（unconditionally unstable）�
   \begin{equation}
     \label{eq:lec1:updateRule_symplectic}
     \begin{aligned}
-      v^{n+1} &= v^n + \dt M\inv f^n, \\
-      x^{n+1} &= x^n + \dt v^{n+1}.
+      \velnp &= \veln + \dt M\inv \fn, \\
+      \xnp &= \xn + \dt \velnp.
     \end{aligned}
   \end{equation}
 \end{method}
@@ -184,7 +184,7 @@ Forward Euler 方法是\emph{无条件不稳定}（unconditionally unstable）�
 \section{Implicit Time Integration}
 \label{sec:implicit-time-integration}
 
-与显式时间积分不同，隐式时间积分（implicit time integration）需要求解方程组来确定 $x^{n+1}$ 与 $v^{n+1}$。其显著优势在于稳定性大幅提升。最基础的隐式积分格式是 Backward Euler 方法，定义如下。
+与显式时间积分不同，隐式时间积分（implicit time integration）需要求解方程组来确定 $\xnp$ 与 $\velnp$。其显著优势在于稳定性大幅提升。最基础的隐式积分格式是 Backward Euler 方法，定义如下。
 
 \begin{method}[Backward Euler Time Integration for Newton's Second Law]
   \label{met:lec1:backward_euler}
@@ -192,24 +192,24 @@ Forward Euler 方法是\emph{无条件不稳定}（unconditionally unstable）�
   \begin{equation}
     \label{eq:lec1:updateRule_implicit}
     \begin{aligned}
-      x^{n+1} &= x^n + \dt v^{n+1}, \\
-      v^{n+1} &= v^n + \dt M\inv f^{n+1}.
+      \xnp &= \xn + \dt \velnp, \\
+      \velnp &= \veln + \dt M\inv \fnp.
     \end{aligned}
   \end{equation}
 \end{method}
 
-在本书讨论的大多数场景中，力是位置向量 $x$ 的函数，因此可记作 $f^{n+1} = f(x^{n+1})$。注意 $x^{n+1}$ 的更新依赖于 $v^{n+1}$，而 $v^{n+1}$ 的计算又依赖于 $x^{n+1}$；这种循环耦合使得我们必须求解方程组才能求得 $x^{n+1}$ 与 $v^{n+1}$。将 $v^{n+1} = (x^{n+1} - x^n)/\dt$ 代入\cref{eq:lec1:updateRule_implicit}，可将其改写为：
+在本书讨论的大多数场景中，力是位置向量 $\vx$ 的函数，因此可记作 $\fnp = \vf(\xnp)$。注意 $\xnp$ 的更新依赖于 $\velnp$，而 $\velnp$ 的计算又依赖于 $\xnp$；这种循环耦合使得我们必须求解方程组才能求得 $\xnp$ 与 $\velnp$。将 $\velnp = (\xnp - \xn)/\dt$ 代入\cref{eq:lec1:updateRule_implicit}，可将其改写为：
 \begin{equation}
   \label{eq:lec1:system_IE}
-  M\bigl(x^{n+1} - (x^n + \dt v^n)\bigr) - \dt^2 f(x^{n+1}) = 0.
+  M\bigl(\xnp - (\xn + \dt \veln)\bigr) - \dt^2 \vf(\xnp) = \vzero.
 \end{equation}
-由于力 $f$ 通常关于位置 $x$ 呈非线性关系，\cref{eq:lec1:system_IE} 一般是非线性方程组，需要借助\textbf{牛顿法}（Newton's method）等非线性求根算法来求解。
+由于力 $\vf$ 通常关于位置 $\vx$ 呈非线性关系，\cref{eq:lec1:system_IE} 一般是非线性方程组，需要借助\textbf{牛顿法}（Newton's method）等非线性求根算法来求解。
 
 \begin{method}[Newton's Method Applied to Backward Euler Time Integration]
   \label{met:lec1:newton_backward_euler}
-  如\cref{alg:lec1:newton_method_IE} 所示，牛顿法从解的初始估计 $x^i$ 出发进行迭代。在当前迭代点 $x^i$ 处，对力做一阶线性近似
+  如\cref{alg:lec1:newton_method_IE} 所示，牛顿法从解的初始估计 $\vx^i$ 出发进行迭代。在当前迭代点 $\vx^i$ 处，对力做一阶线性近似
   \[
-    f(x^{n+1}) \approx f(x^i) + \grad f(x^i)(x^{n+1} - x^i),
+    \vf(\xnp) \approx \vf(\vx^i) + \grad \vf(\vx^i)(\xnp - \vx^i),
   \]
   随后求解对应的线性方程组并更新迭代点，重复上述过程直至满足收敛判据。
 \end{method}
@@ -217,14 +217,14 @@ Forward Euler 方法是\emph{无条件不稳定}（unconditionally unstable）�
 \begin{algorithm}[htbp]
   \caption{Newton's Method for Backward Euler Time Integration}
   \label{alg:lec1:newton_method_IE}
-  \KwResult{$x^{n+1},\ v^{n+1}$}
-  $x^i \leftarrow x^n$\;
-  \While{$\norm{M(x^i - (x^n + \dt v^n)) - \dt^2 f(x^i)} > \epsilon$}{
-    solve $M(x - (x^n + \dt v^n)) - \dt^2 \bigl(f(x^i) + \grad f(x^i)(x - x^i)\bigr) = 0$ for $x$\;
-    $x^i \leftarrow x$\;
+  \KwResult{$\xnp,\ \velnp$}
+  $\vx^i \leftarrow \xn$\;
+  \While{$\norm{M(\vx^i - (\xn + \dt \veln)) - \dt^2 \vf(\vx^i)} > \epsilon$}{
+    solve $M(\vx - (\xn + \dt \veln)) - \dt^2 \bigl(\vf(\vx^i) + \grad \vf(\vx^i)(\vx - \vx^i)\bigr) = \vzero$ for $\vx$\;
+    $\vx^i \leftarrow \vx$\;
   }
-  $x^{n+1} \leftarrow x^i$\;
-  $v^{n+1} \leftarrow (x^{n+1} - x^n)/\dt$\;
+  $\xnp \leftarrow \vx^i$\;
+  $\velnp \leftarrow (\xnp - \xn)/\dt$\;
 \end{algorithm}
 
 尽管 Backward Euler 方法即便在较大步长 $\dt$ 下也能保证\textbf{无条件稳定}（unconditional stability），但增大 $\dt$ 往往会导致线性系统的条件数恶化，从而增加线性求解的难度。此外，力的线性化本质上是局部近似：若初始估计远离真实解，标准牛顿迭代可能无法收敛，甚至发散。
