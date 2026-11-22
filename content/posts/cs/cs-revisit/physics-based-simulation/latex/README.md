@@ -7,7 +7,7 @@ LaTeX book template for studying and translating [*Physics-Based Simulation*](ht
 ```text
 latex/
 ├── main.tex                  # Master book file (full 9-part, 37-chapter outline)
-├── phys-sim-book.sty         # Layout, Morandi palette, callout boxes, listings, algorithms
+├── phys-sim-book.sty         # Minimalist academic layout, amsthm, notes, listings, algorithms
 ├── macros.tex                # Physics-based simulation math notation macros
 ├── references.bib            # BibLaTeX bibliography (seeded with li2026physics)
 ├── .latexmkrc                # XeLaTeX + Biber config (outputs to build/)
