@@ -1,4 +1,4 @@
-\chapter{Discrete Space and Time（离散空间与时间）}
+\chapter{Discrete Space and Time}
 \label{ch:discrete-space-and-time}
 
 % 本章作为翻译模板示例，展示数学公式、定义/笔记框、算法伪代码、代码清单与章节小结的用法。
@@ -62,7 +62,7 @@
   \Return $(\xnp, \velnp)$\;
 \end{algorithm}
 
-\begin{lstlisting}[language=Python,caption={示例 Python 代码片段（可用于 Case Study 章节）},label={lst:example-step}]
+\begin{lstlisting}[float=htbp,language=Python,caption={示例 Python 代码片段（可用于 Case Study 章节）},label={lst:example-step}]
 def symplectic_euler_step(x, v, f, m_inv, dt):
     """Single symplectic Euler update."""
     v_next = v + dt * (m_inv @ f)

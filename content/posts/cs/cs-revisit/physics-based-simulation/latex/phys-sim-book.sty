@@ -1,15 +1,15 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{phys-sim-book}[2026/11/22 Style for Physics-Based Simulation translation and study notes]
+\ProvidesPackage{phys-sim-book}[2026/11/22 Minimalist academic style for Physics-Based Simulation]
 
 % -----------------------------------------------------------------------------
 % Page layout & typography
 % -----------------------------------------------------------------------------
 \RequirePackage[
   a4paper,
-  top=2.6cm,
-  bottom=2.6cm,
-  left=2.6cm,
-  right=2.6cm,
+  top=2.5cm,
+  bottom=2.5cm,
+  left=2.8cm,
+  right=2.8cm,
   headheight=24pt,
   headsep=16pt,
   footskip=24pt
@@ -17,34 +17,18 @@
 
 \RequirePackage{microtype}
 \RequirePackage{setspace}
-\setstretch{1.22}
+\setstretch{1.18}
 
 \RequirePackage{enumitem}
-\setlist{itemsep=0.25em, topsep=0.45em, parsep=0pt}
+\setlist{itemsep=0.2em, topsep=0.4em, parsep=0pt}
 
 % -----------------------------------------------------------------------------
-% Morandi color palette (aligned with src/styles/morandi.css)
+% Strictly monochrome academic palette (pure black, white, and neutral gray)
 % -----------------------------------------------------------------------------
 \RequirePackage[dvipsnames,svgnames,table]{xcolor}
 
-\definecolor{MorandiBlue}{HTML}{536B80}
-\definecolor{MorandiSage}{HTML}{5D725F}
-\definecolor{MorandiOchre}{HTML}{75613E}
-\definecolor{MorandiRose}{HTML}{875F5A}
-\definecolor{MorandiLavender}{HTML}{69627C}
-\definecolor{MorandiTeal}{HTML}{526F6B}
-\definecolor{MorandiInk}{HTML}{454A47}
-\definecolor{MorandiMuted}{HTML}{656B66}
-\definecolor{MorandiBorder}{HTML}{C9C3BA}
-\definecolor{MorandiPaper}{HTML}{F4F1EB}
-
-% Subtle tints for callout boxes and code blocks
-\colorlet{MorandiBlueBg}{MorandiBlue!6!white}
-\colorlet{MorandiSageBg}{MorandiSage!6!white}
-\colorlet{MorandiOchreBg}{MorandiOchre!7!white}
-\colorlet{MorandiRoseBg}{MorandiRose!6!white}
-\colorlet{MorandiLavenderBg}{MorandiLavender!6!white}
-\colorlet{MorandiTealBg}{MorandiTeal!6!white}
+\definecolor{AcademicMuted}{HTML}{555555}
+\definecolor{AcademicRule}{HTML}{CCCCCC}
 
 % -----------------------------------------------------------------------------
 % Mathematics, figures, tables, and diagrams
@@ -67,32 +51,37 @@
 \numberwithin{equation}{chapter}
 
 % -----------------------------------------------------------------------------
-% Chapter & section styling (ctex)
+% Chapter & section styling (classic academic monograph)
 % -----------------------------------------------------------------------------
 \ctexset{
   part = {
     name = {第,部分},
     number = \chinese{part},
-    nameformat = \Large\sffamily\color{MorandiMuted},
-    titleformat = \Huge\bfseries\sffamily\color{MorandiBlue},
+    nameformat = \large\rmfamily\color{AcademicMuted},
+    titleformat = \Huge\bfseries\rmfamily,
   },
   chapter = {
     name = {第,章},
     number = \arabic{chapter},
-    format = \raggedright\Huge\bfseries\sffamily\color{MorandiInk},
-    nameformat = \large\sffamily\color{MorandiBlue},
-    aftername = \par\vspace{0.3em},
-    beforeskip = 1.2em,
+    format = \raggedright\huge\bfseries,
+    nameformat = \normalsize\mdseries\color{AcademicMuted},
+    aftername = \par\vspace{0.25em},
+    aftertitle = \par\vspace{0.45em}{\color{AcademicRule}\hrule height 0.5pt},
+    beforeskip = 1.0em,
     afterskip = 1.6em,
   },
   section = {
-    format = \Large\bfseries\sffamily\color{MorandiInk},
+    format = \Large\bfseries,
+    beforeskip = 1.4em plus 0.3em minus 0.2em,
+    afterskip = 0.6em plus 0.1em,
   },
   subsection = {
-    format = \large\bfseries\sffamily\color{MorandiBlue},
+    format = \large\bfseries,
+    beforeskip = 1.1em plus 0.2em minus 0.1em,
+    afterskip = 0.45em plus 0.1em,
   },
   subsubsection = {
-    format = \normalsize\bfseries\sffamily\color{MorandiMuted},
+    format = \normalsize\bfseries,
   },
 }
 
@@ -102,16 +91,16 @@
 \RequirePackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small\color{MorandiMuted}\nouppercase{\leftmark}}
-\fancyhead[R]{\small\color{MorandiMuted}\nouppercase{\rightmark}}
-\fancyfoot[C]{\small\color{MorandiMuted}\thepage}
+\fancyhead[L]{\small\color{AcademicMuted}\nouppercase{\leftmark}}
+\fancyhead[R]{\small\color{AcademicMuted}\nouppercase{\rightmark}}
+\fancyfoot[C]{\small\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
-\renewcommand{\headrule}{\hbox to\headwidth{\color{MorandiBorder}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{AcademicRule}\leaders\hrule height \headrulewidth\hfill}}
 \renewcommand{\footrulewidth}{0pt}
 
 \fancypagestyle{plain}{
   \fancyhf{}
-  \fancyfoot[C]{\small\color{MorandiMuted}\thepage}
+  \fancyfoot[C]{\small\thepage}
   \renewcommand{\headrulewidth}{0pt}
 }
 
@@ -128,35 +117,35 @@
 ]{biblatex}
 
 % -----------------------------------------------------------------------------
-% Code listings (Python / C++ / Taichi / Warp snippets in case studies)
+% Code listings (clean academic top/bottom rules)
 % -----------------------------------------------------------------------------
 \RequirePackage{listings}
 
 \lstdefinestyle{physsimcode}{
-  backgroundcolor=\color{MorandiPaper},
-  basicstyle=\ttfamily\small\color{MorandiInk},
-  commentstyle=\itshape\color{MorandiMuted},
-  keywordstyle=\bfseries\color{MorandiBlue},
-  stringstyle=\color{MorandiSage},
-  numberstyle=\tiny\color{MorandiMuted},
-  identifierstyle=\color{MorandiInk},
+  backgroundcolor=\color{white},
+  basicstyle=\ttfamily\small,
+  commentstyle=\itshape\color{AcademicMuted},
+  keywordstyle=\bfseries,
+  stringstyle=\color{AcademicMuted},
+  numberstyle=\scriptsize\color{AcademicMuted},
   numbers=left,
-  numbersep=8pt,
+  numbersep=10pt,
   stepnumber=1,
-  frame=single,
-  rulecolor=\color{MorandiBorder},
+  frame=tb,
+  rulecolor=\color{AcademicRule},
   framerule=0.5pt,
-  xleftmargin=1.8em,
-  framexleftmargin=1.4em,
+  xleftmargin=1.6em,
+  framexleftmargin=1.2em,
   breaklines=true,
   breakatwhitespace=true,
   showstringspaces=false,
   tabsize=4,
   aboveskip=0.9em,
   belowskip=0.9em,
-  captionpos=b
+  captionpos=t
 }
 \lstset{style=physsimcode}
+\renewcommand{\lstlistingname}{代码}
 
 % -----------------------------------------------------------------------------
 % Algorithms (algorithm2e)
@@ -165,19 +154,19 @@
 \SetAlgorithmName{算法}{算法}{算法目录}
 \SetKwInput{KwIn}{Input}
 \SetKwInput{KwOut}{Output}
-\SetAlCapFnt{\sffamily\bfseries\color{MorandiInk}}
-\SetAlCapNameFnt{\sffamily\color{MorandiInk}}
+\SetAlCapFnt{\bfseries}
+\SetAlCapNameFnt{\normalfont}
 \SetCommentSty{myalgcomment}
-\newcommand{\myalgcomment}[1]{\footnotesize\ttfamily\color{MorandiMuted}#1}
+\newcommand{\myalgcomment}[1]{\footnotesize\ttfamily\color{AcademicMuted}#1}
 
 % -----------------------------------------------------------------------------
 % Hyperlinks & clever cross-references (load after most packages)
 % -----------------------------------------------------------------------------
 \RequirePackage[
   colorlinks=true,
-  linkcolor=MorandiBlue,
-  citecolor=MorandiSage,
-  urlcolor=MorandiTeal,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=black,
   bookmarksnumbered=true,
   bookmarksopen=true,
   pdfencoding=auto
@@ -186,91 +175,94 @@
 \RequirePackage[nameinlink,noabbrev]{cleveref}
 
 % -----------------------------------------------------------------------------
-% Callout & theorem environments (tcolorbox + amsthm)
+% Classic native amsthm environments (no heavy colored boxes)
 % -----------------------------------------------------------------------------
-\RequirePackage[most]{tcolorbox}
+\newtheoremstyle{academicplain}
+  {0.75em}   % Space above
+  {0.75em}   % Space below
+  {\normalfont} % Body font (upright for clean CJK + math)
+  {}         % Indent amount
+  {\bfseries}% Theorem head font
+  {.}        % Punctuation after theorem head
+  {0.6em}    % Space after theorem head
+  {}         % Theorem head spec
 
-% Shared left-accent box style for academic environments
-\tcbset{
-  physsimbox/.style={
-    enhanced,
-    breakable,
-    boxrule=0pt,
-    frame hidden,
-    borderline west={2.5pt}{0pt}{#1},
-    colback=#1!6!white,
-    coltitle=#1,
-    fonttitle=\bfseries\sffamily,
-    left=10pt,
-    right=10pt,
-    top=7pt,
-    bottom=7pt,
-    before skip=10pt,
-    after skip=10pt,
-    sharp corners
-  }
-}
-
-% Numbered mathematical environments
-\theoremstyle{definition}
+\theoremstyle{academicplain}
 \newtheorem{definition}{定义}[chapter]
-\newtheorem{example}{例}[chapter]
-
-\theoremstyle{plain}
 \newtheorem{theorem}{定理}[chapter]
 \newtheorem{lemma}[theorem]{引理}
 \newtheorem{proposition}[theorem]{命题}
 \newtheorem{corollary}[theorem]{推论}
-
-\theoremstyle{remark}
+\newtheorem{example}{例}[chapter]
 \newtheorem*{remark}{注记}
 
-\tcolorboxenvironment{definition}{physsimbox=MorandiBlue}
-\tcolorboxenvironment{theorem}{physsimbox=MorandiSage}
-\tcolorboxenvironment{lemma}{physsimbox=MorandiSage}
-\tcolorboxenvironment{proposition}{physsimbox=MorandiSage}
-\tcolorboxenvironment{corollary}{physsimbox=MorandiSage}
-\tcolorboxenvironment{example}{physsimbox=MorandiLavender}
-\tcolorboxenvironment{remark}{physsimbox=MorandiMuted}
+% -----------------------------------------------------------------------------
+% Minimalist editorial note & summary environments (tcolorbox)
+% -----------------------------------------------------------------------------
+\RequirePackage[skins,breakable]{tcolorbox}
 
-% Study & translation callout boxes
+\tcbset{
+  academicnote/.style={
+    enhanced,
+    breakable,
+    boxrule=0pt,
+    frame hidden,
+    borderline west={1.2pt}{0pt}{black!35},
+    colback=white,
+    coltitle=black,
+    fonttitle=\small\bfseries,
+    fontupper=\small,
+    left=10pt,
+    right=4pt,
+    top=3pt,
+    bottom=3pt,
+    before skip=9pt,
+    after skip=9pt,
+    sharp corners,
+    attach title to upper={\quad}
+  }
+}
+
 \newtcolorbox{studynote}[1][学习笔记]{
-  physsimbox=MorandiOchre,
-  title={#1},
-  attach title to upper={\par\vspace{0.3em}}
+  academicnote,
+  title={#1}
 }
 
 \newtcolorbox{transnote}[1][译注]{
-  physsimbox=MorandiTeal,
-  title={#1},
-  attach title to upper={\par\vspace{0.3em}}
+  academicnote,
+  title={#1}
 }
 
 \newtcolorbox{warningbox}[1][注意]{
-  physsimbox=MorandiRose,
-  title={#1},
-  attach title to upper={\par\vspace{0.3em}}
+  academicnote,
+  borderline west={1.5pt}{0pt}{black!65},
+  title={#1}
 }
 
 \newtcolorbox{summarybox}[1][本章小结]{
   enhanced,
   breakable,
-  colback=MorandiPaper,
-  colframe=MorandiBorder,
-  coltitle=MorandiInk,
-  fonttitle=\bfseries\sffamily,
-  boxrule=0.6pt,
-  arc=2pt,
-  left=10pt,
-  right=10pt,
+  boxrule=0pt,
+  frame hidden,
+  borderline north={0.6pt}{0pt}{black!45},
+  borderline south={0.6pt}{0pt}{black!45},
+  colback=white,
+  coltitle=black,
+  fonttitle=\bfseries,
+  left=4pt,
+  right=4pt,
   top=8pt,
   bottom=8pt,
   before skip=12pt,
   after skip=12pt,
+  sharp corners,
+  attach title to upper={\par\vspace{0.35em}},
   title={#1}
 }
 
+% -----------------------------------------------------------------------------
 % Cleveref Chinese labels
+% -----------------------------------------------------------------------------
 \crefname{chapter}{第}{第}
 \Crefname{chapter}{第}{第}
 \crefformat{chapter}{#2第~#1~章#3}
@@ -299,6 +291,6 @@
 % Inline English technical term: \eng{Projected Newton}
 \newcommand{\eng}[1]{\textit{#1}}
 % Inline TODO marker while studying/translating
-\newcommand{\todo}[1]{\textcolor{MorandiRose}{\textbf{[TODO: #1]}}}
+\newcommand{\todo}[1]{\textcolor{AcademicMuted}{\small\textbf{[TODO: #1]}}}
 
 \endinput
