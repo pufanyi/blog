@@ -151,7 +151,7 @@
 % -----------------------------------------------------------------------------
 % Algorithms (algorithm2e)
 % -----------------------------------------------------------------------------
-\RequirePackage[ruled,vlined,linesnumbered]{algorithm2e}
+\RequirePackage[ruled,vlined,linesnumbered,algosection]{algorithm2e}
 \SetAlgorithmName{算法}{算法}{算法目录}
 \SetKwInput{KwIn}{Input}
 \SetKwInput{KwOut}{Output}
@@ -159,6 +159,11 @@
 \SetAlCapNameFnt{\normalfont}
 \SetCommentSty{myalgcomment}
 \newcommand{\myalgcomment}[1]{\footnotesize\ttfamily\color{AcademicMuted}#1}
+
+% Match original book's per-section numbering (mdbook-numeq / mdbook-numthm)
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
 
 % -----------------------------------------------------------------------------
 % Hyperlinks & clever cross-references (load after most packages)
@@ -176,7 +181,7 @@
 \RequirePackage[nameinlink,noabbrev]{cleveref}
 
 % -----------------------------------------------------------------------------
-% Monochrome textbook environments (white background + left hairline rules)
+% Monochrome textbook environments (borderless light-gray callout blocks)
 % -----------------------------------------------------------------------------
 \newtheoremstyle{academicplain}
   {0pt}         % Space above (handled by tcolorbox)
@@ -189,14 +194,14 @@
   {\thmname{#1}\thmnumber{ #2}\thmnote{ \bfseries(#3)}}
 
 \theoremstyle{academicplain}
-\newtheorem{definition}{定义}[chapter]
-\newtheorem{theorem}{定理}[chapter]
-\newtheorem{lemma}[theorem]{引理}
-\newtheorem{proposition}[theorem]{命题}
-\newtheorem{corollary}[theorem]{推论}
-\newtheorem{method}{方法}[chapter]
-\newtheorem{example}{例}[chapter]
-\newtheorem{remark}{注记}[chapter]
+\newtheorem{definition}{定义}[section]
+\newtheorem{theorem}{定理}[section]
+\newtheorem{lemma}{引理}[section]
+\newtheorem{proposition}{命题}[section]
+\newtheorem{corollary}{推论}[section]
+\newtheorem{method}{方法}[section]
+\newtheorem{example}{例}[section]
+\newtheorem{remark}{注记}[section]
 
 % -----------------------------------------------------------------------------
 % Minimalist editorial note & callout environments (tcolorbox)

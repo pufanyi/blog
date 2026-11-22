@@ -207,21 +207,22 @@
 
 \begin{method}[用于后向欧拉时间积分的牛顿法]
   \label{met:lec1:newton_backward_euler}
-  如\cref{alg:lec1:newton_method_IE} 所述，牛顿法是一种从解的初始估计 $\vx^i$ 出发的迭代技术。在当前迭代点 $\vx^i$ 处，它对力做线性近似 $\vf(\xnp) \approx \vf(\vx^i) + \grad \vf(\vx^i)(\xnp - \vx^i)$，然后求解一个线性方程组并更新迭代点。重复这一过程，直至达到令人满意的收敛程度。
-\end{method}
+  如下方\cref{alg:lec1:newton_method_IE} 所述，牛顿法是一种从解的初始估计 $\vx^i$ 出发的迭代技术。在当前迭代点 $\vx^i$ 处，它对力做线性近似 $\vf(\xnp) \approx \vf(\vx^i) + \grad \vf(\vx^i)(\xnp - \vx^i)$，然后求解一个线性方程组并更新迭代点。重复这一过程，直至达到令人满意的收敛程度。
 
-\begin{algorithm}[htbp]
-  \caption{用于后向欧拉时间积分的牛顿法}
-  \label{alg:lec1:newton_method_IE}
-  \KwResult{$\xnp,\ \velnp$}
-  $\vx^i \leftarrow \xn$\;
-  \While{$\norm{M(\vx^i - (\xn + \dt \veln)) - \dt^2 \vf(\vx^i)} > \epsilon$}{
-    solve $M(\vx - (\xn + \dt \veln)) - \dt^2 \bigl(\vf(\vx^i) + \grad \vf(\vx^i)(\vx - \vx^i)\bigr) = \vzero$ for $\vx$\;
-    $\vx^i \leftarrow \vx$\;
-  }
-  $\xnp \leftarrow \vx^i$\;
-  $\velnp \leftarrow (\xnp - \xn)/\dt$\;
-\end{algorithm}
+  \vspace{0.5em}
+  \begin{algorithm}[H]
+    \caption{用于后向欧拉时间积分的牛顿法}
+    \label{alg:lec1:newton_method_IE}
+    \KwResult{$\xnp,\ \velnp$}
+    $\vx^i \leftarrow \xn$\;
+    \While{$\norm{M(\vx^i - (\xn + \dt \veln)) - \dt^2 \vf(\vx^i)} > \epsilon$}{
+      solve $M(\vx - (\xn + \dt \veln)) - \dt^2 \bigl(\vf(\vx^i) + \grad \vf(\vx^i)(\vx - \vx^i)\bigr) = \vzero$ for $\vx$\;
+      $\vx^i \leftarrow \vx$\;
+    }
+    $\xnp \leftarrow \vx^i$\;
+    $\velnp \leftarrow (\xnp - \xn)/\dt$\;
+  \end{algorithm}
+\end{method}
 
 尽管后向欧拉法即使对于较大的 $\dt$ 也能保证\textbf{无条件稳定}（unconditional stability），但必须认识到，增大 $\dt$ 可能会导致系统的条件数变差，从而使线性方程组的求解更加困难。此外，力的线性化本质上只是一种近似：如果解的初始估计距离真实解较远，标准牛顿法迭代可能无法收敛，甚至可能发散。
 
