@@ -64,3 +64,12 @@ v^{n+1} &= v^{n} + \Delta t M^{-1}f^{n}
 $$
 
 这个就是 **Forward Euler**。
+
+这里有一个问题，可能需要用到物理知识，我来尝试解释一下。就是我们从 Hamitonian 的视角看这个转移：
+
+$$
+\begin{aligned}
+q_{n+1} &= q_n + \frac{\partial H}{\partial p_n}\Delta t\\
+p_{n+1} &= p_{n}-\frac{\partial H}{\partial \dot{q}_n}\Delta t
+\end{aligned}
+$$
