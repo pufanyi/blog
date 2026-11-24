@@ -172,7 +172,7 @@ $$
 如果有多个物体的话，我们可以把他们的集合看成整体
 
 $$
-\mathcal{L}(\{x\}, \dot{\{x\}}, t) = \sum_{i}\left(\frac{1}{2}m_i \dot{x}_i^2\right)-V(\{x\}, t)
+\mathcal{L}(\{x\}, \{\dot{x}\}, t) = \sum_{i}\left(\frac{1}{2}m_i \dot{x}_i^2\right)-V(\{x\}, t)
 $$
 
 Generalized momentum conjugate / Conjugate momentum:
@@ -371,7 +371,7 @@ $$
 $$
 \begin{aligned}
 \delta\mathcal{H} &= \sum_{i}(p_i\delta\dot{q}_i+\dot{q}_i\delta p_i)-\delta\mathcal{L}\\
-&=\sum_i\left(p_i\delta\dot{q}_i + \dot{q}_i\delta p_i-\frac{\partial\mathcal{L}}{\partial q_i}\delta q_i-\frac{\partial\mathcal{L}}{\partial\dot{q}_i}\delta q_i\right)
+&=\sum_i\left(p_i\delta\dot{q}_i + \dot{q}_i\delta p_i-\frac{\partial\mathcal{L}}{\partial q_i}\delta q_i-\frac{\partial\mathcal{L}}{\partial\dot{q}_i}\delta\dot{q}_i\right)
 \end{aligned}
 $$
 
