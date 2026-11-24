@@ -100,3 +100,15 @@ main .gsc-comment-box-textarea::placeholder {
 main .gsc-loading-image {
   background-image: url('https://github.githubassets.com/images/mona-loading-default.gif');
 }
+
+::selection {
+  color: #454a47;
+  background-color: rgb(83 107 128 / 26%);
+}
+
+@media (forced-colors: active) {
+  ::selection {
+    color: HighlightText;
+    background-color: Highlight;
+  }
+}
