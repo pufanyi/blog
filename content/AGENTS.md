@@ -38,6 +38,9 @@ For Jekyll, Hexo, or Typst imports, also read
   producing an error node.
   When composing TeX labels from string fragments, separate a command from
   following letters so concatenation does not create an undefined command.
+  Inside GFM Markdown tables, write vertical-bar math delimiters with `\lvert`,
+  `\rvert`, `\lVert`, `\rVert`, or `\mid` rather than bare `|`, since GFM splits
+  table cells on `|` before inline math is parsed.
 
 - Each blog post lives at `content/posts/<slug>/index.mdx`; the slug is its full
   relative directory path, such as `oi-icpc/codeforces/cf551c`. The generator and

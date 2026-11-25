@@ -60,7 +60,7 @@ $$
 $$
 ```
 
-Use standard TeX. Legacy shortcuts such as `\N`, `\R`, and `\empty` should become `\mathbb{N}`, `\mathbb{R}`, and `\emptyset`. Match complete commands when replacing macros; replacing a prefix can corrupt commands such as `\Rightarrow`.
+Use standard TeX. Legacy shortcuts such as `\N`, `\R`, and `\empty` should become `\mathbb{N}`, `\mathbb{R}`, and `\emptyset`. Match complete commands when replacing macros; replacing a prefix can corrupt commands such as `\Rightarrow`. Inside Markdown tables, write vertical-bar delimiters with `\lvert`, `\rvert`, `\lVert`, `\rVert`, or `\mid` instead of bare `|`, which GFM treats as a cell separator before inline math runs.
 
 MathJax loads only when the page contains formulas. Long display equations scroll within their own region on narrow screens. Inspect actual rendering for undefined commands as well as explicit error nodes. Code blocks display literal text and are not MathJax containers.
 
