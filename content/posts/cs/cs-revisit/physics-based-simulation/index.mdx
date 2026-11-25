@@ -90,18 +90,77 @@ q_{n}\\p_{n}
 \end{bmatrix}\nabla H
 $$
 
-为了方便我们记 $z_n = \begin{bmatrix}q_{n}\\p_{n}\end{bmatrix}$，$\Omega = \begin{bmatrix}0&I\\-I&0\end{bmatrix}$：
+为了方便我们记 $z_n = \begin{bmatrix}q_{n}\\p_{n}\end{bmatrix}$ 来代表相空间，$\Omega = \begin{bmatrix}0&I\\-I&0\end{bmatrix}$：
 
 $$
 z_{n+1} = z_n+\Delta t\Omega\nabla H(z_n)
 $$
 
-其中 $\Omega$ 的几何意义和面积相关，这里不展开。
-
-我们考虑对泰勒展开：
+在物理里，我们有个性质，就是这个相空间
 
 $$
-H(z_{n+1}) = H(z_n) + \Delta t (\nabla H)^{\top}\Omega \nabla H + \frac{1}{2}\Delta t^2 (\Omega\nabla H)^\top (\nabla^2 H)(\Omega\nabla H) + O(\Delta t^2)
+\left(\frac{\partial z_{n+1}}{\partial z_n}\right)^{\top}\Omega\left(\frac{\partial z_{n+1}}{\partial z_n}\right) = \Omega
 $$
 
-根据 $\Omega$ 的性质，我们有 $(\nabla H)^{\top}\Omega \nabla H=0$
+$$
+\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
+=
+\begin{bmatrix}
+1 + \frac{\partial^2 H}{\partial q_n\partial p_n}\Delta t & \frac{\partial^2 H}{\partial p_n^2}\Delta t\\
+-\frac{\partial^2 H}{\partial q_n^2}\Delta t & 1 - \frac{\partial^2 H}{\partial p_n\partial q_n}\Delta t
+\end{bmatrix}
+$$
+
+$$
+\left(
+\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
+\right)^{\top}\Omega\left(
+\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
+\right) = 
+\left[
+1+
+\left(
+\frac{\partial^2H}{\partial q_n^2}
+\frac{\partial^2H}{\partial p_n^2}
+-
+\left(
+\frac{\partial^2H}{\partial q_n\partial p_n}
+\right)^2
+\right)\Delta t^2
+\right]\Omega
+$$
+
+$$
+\begin{aligned}
+q_{n+1} &= q_n + \frac{\partial H}{\partial p_{n+1}}\Delta t\\
+p_{n+1} &= p_{n}-\frac{\partial H}{\partial q_n}\Delta t
+\end{aligned}
+$$
+
+$$
+\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
+=
+\begin{bmatrix}
+1 + \frac{\partial^2 H}{\partial q_n\partial p_n}\Delta t & \frac{\partial^2 H}{\partial p_n^2}\Delta t\\
+-\frac{\partial^2 H}{\partial q_n^2}\Delta t & 1 - \frac{\partial^2 H}{\partial p_n\partial q_n}\Delta t
+\end{bmatrix}
+$$
+
+$$
+\left(
+\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
+\right)^{\top}\Omega\left(
+\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
+\right) = 
+\left[
+1+
+\left(
+\frac{\partial^2H}{\partial q_n^2}
+\frac{\partial^2H}{\partial p_n^2}
+-
+\left(
+\frac{\partial^2H}{\partial q_n\partial p_n}
+\right)^2
+\right)\Delta t^2
+\right]\Omega
+$$
