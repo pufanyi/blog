@@ -7,12 +7,12 @@
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\Z}{\mathbb{Z}}
 
-% Vectors, matrices, and tensors
+% Vectors, matrices, and tensors (single-point spatial quantities use \boldsymbol)
 \newcommand{\vect}[1]{\boldsymbol{#1}}
-\newcommand{\mat}[1]{\mathbf{#1}}
-\newcommand{\tensor}[1]{\mathbf{#1}}
+\newcommand{\mat}[1]{\boldsymbol{#1}}
+\newcommand{\tensor}[1]{\boldsymbol{#1}}
 
-% Common physical & geometric vectors
+% Common single-point spatial vectors (\in \R^d)
 \newcommand{\vx}{\vect{x}}
 \newcommand{\vX}{\vect{X}}
 \newcommand{\vv}{\vect{v}}
@@ -26,7 +26,7 @@
 \newcommand{\vt}{\vect{t}}
 \newcommand{\vzero}{\vect{0}}
 
-% Common matrices & tensors
+% Common bold matrices & tensors
 \newcommand{\mM}{\mat{M}}
 \newcommand{\mH}{\mat{H}}
 \newcommand{\mK}{\mat{K}}
@@ -42,16 +42,16 @@
 \newcommand{\mC}{\mat{C}}
 \newcommand{\mJ}{\mat{J}}
 
-% Time integration shorthands
+% Time integration shorthands (stacked global vectors \in \R^{dn} use plain italic)
 \newcommand{\dt}{\Delta t}
-\newcommand{\xn}{\vx^{n}}
-\newcommand{\xnp}{\vx^{n+1}}
-\newcommand{\xnm}{\vx^{n-1}}
-\newcommand{\xt}{\tilde{\vx}}
-\newcommand{\veln}{\vv^{n}}
-\newcommand{\velnp}{\vv^{n+1}}
-\newcommand{\fn}{\vf^{n}}
-\newcommand{\fnp}{\vf^{n+1}}
+\newcommand{\xn}{x^{n}}
+\newcommand{\xnp}{x^{n+1}}
+\newcommand{\xnm}{x^{n-1}}
+\newcommand{\xt}{\tilde{x}}
+\newcommand{\veln}{v^{n}}
+\newcommand{\velnp}{v^{n+1}}
+\newcommand{\fn}{f^{n}}
+\newcommand{\fnp}{f^{n+1}}
 
 % Calculus & differential operators
 \newcommand{\dd}{\,\mathrm{d}}
@@ -78,4 +78,4 @@
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
 \DeclarePairedDelimiterX{\inner}[2]{\langle}{\rangle}{#1, #2}
 \newcommand{\frobnorm}[1]{\norm{#1}_{\mathrm{F}}}
-\newcommand{\Mnorm}[1]{\norm{#1}_{\mM}}
+\newcommand{\Mnorm}[1]{\norm{#1}_{M}}

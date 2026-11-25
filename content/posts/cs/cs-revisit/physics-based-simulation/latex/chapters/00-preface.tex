@@ -9,8 +9,8 @@
 
 \begin{transnote}[翻译与笔记约定]
   \begin{itemize}
-    \item 保留常见且约定俗成的英文专业术语（如 \eng{Implicit Euler}、\eng{Projected Newton}、\eng{Incremental Potential}），首次出现时使用 \verb|\term{中文}{English}| 标注。
-    \item 数学符号尽量与原书保持一致，常用向量、矩阵与算子统一定义在 \texttt{macros.tex} 中。
+    \item 专业术语首次出现时统一使用 \texttt{\string\term\{中文\}\{English\}} 标注中英文对照，例如 \term{隐式欧拉法}{Implicit Euler}、\term{投影牛顿法}{Projected Newton}、\term{增量势}{Incremental Potential}；后续行文沿用中文译名或通用英文缩写（如 FEM、MPM、PDE、KKT、IPC）。
+    \item 数学符号与原书保持一致：单个采样点的空间向量及粗体张量统一采用粗斜体 \texttt{\string\boldsymbol}（如 $\vx, \vv_i \in \R^d$），所有节点堆叠而成的全局状态向量使用普通斜体（如 $x, v, f \in \R^{dn}$），常用算子与记号统一定义在 \texttt{macros.tex} 中。
     \item 个人推导、直觉补充与疑问放入 \texttt{studynote} 环境，术语说明与勘误放入 \texttt{transnote} 环境，以便与原书正文清晰区分。
   \end{itemize}
 \end{transnote}
