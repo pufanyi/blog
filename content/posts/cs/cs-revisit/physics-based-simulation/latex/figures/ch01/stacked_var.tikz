@@ -32,7 +32,7 @@
       \vdots
     \end{bmatrix}$%
   };
-  \node[left=2pt of vec.west, yshift=3pt] {$\vx =$};
+  \node[left=2pt of vec.west, yshift=3pt] {$x =$};
   \node[right=3pt of vec.east, yshift=3pt] {$\in \R^{2n}$};
 
   % Curved arrows from vertex labels to vector entries

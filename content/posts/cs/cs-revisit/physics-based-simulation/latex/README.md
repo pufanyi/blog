@@ -16,7 +16,8 @@ latex/
 └── chapters/
     ├── 00-preface.tex
     └── part01-optimization/
-        └── ch01-discrete-space-and-time.tex
+        ├── ch01-discrete-space-and-time.tex
+        └── ch02-optimization-framework.tex
 ```
 
 ## Build
@@ -44,7 +45,7 @@ You can also invoke `latexmk main.tex` directly, or upload this directory to Ove
 - **Incremental chapters**: `main.tex` lists all 9 parts and 37 chapters from the original book. Uncomment `\include{...}` as you create each chapter file.
 - **Fast single-chapter compilation**: Uncomment `\includeonly{...}` in `main.tex` to compile only the chapter you are currently translating while keeping cross-references intact.
 - **Environments**:
-  - Math: `definition`, `theorem`, `lemma`, `proposition`, `corollary`, `example`, `remark`
+  - Math: `definition`, `theorem`, `lemma`, `proposition`, `corollary`, `method`, `example`, `remark`
   - Notes & summaries: `studynote`, `transnote`, `warningbox`, `summarybox`
   - Helpers: `\term{中文}{English}`, `\eng{English}`, `\todo{...}`
 - **Print layout**: Change `oneside,openany` to `twoside,openright` in `\documentclass[...]{ctexbook}` inside `main.tex`.

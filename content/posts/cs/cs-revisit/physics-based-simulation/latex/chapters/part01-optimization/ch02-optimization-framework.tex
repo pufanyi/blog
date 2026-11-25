@@ -8,17 +8,17 @@
 \begin{equation}
   \label{eq:lec2:optimization_IE}
   \begin{aligned}
-    \xnp &= \argmin_{\vx} E(\vx), \\
-    \text{其中}\quad E(\vx) &= \frac{1}{2}\norm{\vx - \xt^n}_M^2 + \dt^2 P(\vx).
+    \xnp &= \argmin_{x} E(x), \\
+    \text{其中}\quad E(x) &= \frac{1}{2}\norm{x - \xt^n}_M^2 + \dt^2 P(x).
   \end{aligned}
 \end{equation}
-这里，$\xt^n = \xn + \dt \veln$，$\frac{1}{2}\norm{\vx - \xt^n}_M^2 = \frac{1}{2}(\vx - \xt^n)\T M (\vx - \xt^n)$ 表示惯性项（inertia term），$P(\vx)$ 表示力 $\vf(\vx)$ 对应的势能（potential energy），满足 $\pdv{P}{\vx}(\vx) = -\vf(\vx)$，而 $E(\vx)$ 被称为\textbf{增量势}（Incremental Potential）。在 $E(\vx)$ 的局部极小值处，有 $\pdv{E}{\vx}(\xnp) = \vzero$，恰好对应\cref{eq:lec1:system_IE}。
+这里，$\xt^n = \xn + \dt \veln$，$\frac{1}{2}\norm{x - \xt^n}_M^2 = \frac{1}{2}(x - \xt^n)\T M (x - \xt^n)$ 表示\term{惯性项}{inertia term}，$P(x)$ 表示力 $f(x)$ 对应的\term{势能}{potential energy}，满足 $\pdv{P}{x}(x) = -f(x)$，而 $E(x)$ 被称为\term{增量势}{Incremental Potential}。在 $E(x)$ 的局部极小点处，有 $\pdv{E}{x}(\xnp) = 0$，恰好对应\cref{eq:lec1:system_IE}。
 
 将时间积分视为一个优化问题，使我们能够运用成熟的优化方法稳健地求得解，同时也为建模更复杂的物理现象提供了一个统一的框架。
 
 \begin{definition}[保守力]
   \label{def:lec2:conserv_force}
-  若存在势能 $P(\vx)$ 使得力 $\vf(\vx)$ 满足 $\pdv{P(\vx)}{\vx} = -\vf(\vx)$，则称 $\vf(\vx)$ 为\textbf{保守力}（conservative forces）。常见的弹性力以及重力等体力都是保守力的例子。只需将相应的势能项加入增量势中，即可将它们轻松纳入优化框架。
+  若存在势能 $P(x)$ 使得力 $f(x)$ 满足 $\pdv{P(x)}{x} = -f(x)$，则称 $f(x)$ 为\term{保守力}{conservative forces}。常见的弹性力以及重力等\term{体积力}{body forces}都是保守力的例子。只需将相应的势能项加入增量势中，即可将它们轻松纳入优化框架。
 \end{definition}
 
 \begin{remark}[重力]
@@ -28,42 +28,42 @@
 
 \begin{remark}[弹性]
   \label{rem:lec2:elasticity}
-  弹性（elasticity）是固体在外力作用下保持其静止形状的能力。在弹性的作用下，同一固体上的采样点在仿真过程中会彼此\emph{绑定}在一起。越刚硬的固体具有越高的弹性能量刚度，在相同形变程度下会提供更大的弹性力，从而有助于恢复静止形状。犰狳弹弓的例子（\cref{fig:lec1:slingshot}）展示了典型的弹性效应。弹性是所有固体的共同属性，无论其几何形态如何，也无论在直觉上属于刚体还是非刚体，例如金属、木材、软组织、橡胶、布料、毛发、沙子等。
+  \term{弹性}{elasticity}是固体在外力作用下保持其\term{静止形状}{resting shape}的能力。在弹性的作用下，同一固体上的采样点在仿真过程中会彼此\emph{绑定}在一起。越刚硬的固体具有刚度越大的弹性势能，在相同形变程度下会提供更大的弹性力，从而有助于恢复静止形状。犰狳弹弓的例子（\cref{fig:lec1:slingshot}）展示了典型的弹性效应。弹性是所有固体的共同属性，无论其几何形态如何，也无论在直觉上属于刚体还是非刚体，例如金属、木材、软组织、橡胶、布料、毛发、沙子等。
 \end{remark}
 
 \section{狄利克雷边界条件}
 \label{sec:dirichlet-bc}
 
-势能并非建模物理现象的唯一手段，约束同样至关重要。让我们先从最简单的形式——\textbf{线性等式约束}（linear equality constraints）开始。该约束优化问题定义如下：
+势能并非建模物理现象的唯一手段，约束同样至关重要。让我们先从最简单的形式——\term{线性等式约束}{linear equality constraints}开始。该约束优化问题定义如下：
 \begin{equation}
   \label{eq:lec2:LEC_problem}
-  \min_{\vx} E(\vx) \quad \text{s.t.} \quad A\vx = \vect{b},
+  \min_{x} E(x) \quad \text{s.t.} \quad Ax = b,
 \end{equation}
-其中 $A \in \R^{m \times dn}$ 和 $\vect{b} \in \R^{m}$ 表示 $m$ 个线性等式约束。
+其中 $A \in \R^{m \times dn}$ 和 $b \in \R^{m}$ 表示 $m$ 个线性等式约束。
 
-在仿真过程中，我们常常需要在每个时间步控制固体上某些点的位置。这可能涉及固定一组节点以建模不可移动的物体（如地面或障碍物），或者通过让特定节点沿预定轨迹运动来引导固体的运动。例如，在弹弓场景（\cref{fig:lec1:slingshot}）中，犰狳的脚部与耳部保持静止。这类控制被称为\textbf{狄利克雷边界条件}（Dirichlet boundary conditions, BC）。在优化时间积分器框架中，这些条件可以表示为线性等式约束。
+在仿真过程中，我们常常需要在每个时间步控制固体上某些点的位置。这可能涉及固定一组节点以建模不可移动的物体（如地面或障碍物），或者通过让特定节点沿预定轨迹运动来引导固体的运动。例如，在弹弓场景（\cref{fig:lec1:slingshot}）中，犰狳的脚部与耳部保持静止。这类控制被称为\term{狄利克雷边界条件}{Dirichlet boundary conditions, BC}。在优化时间积分器框架中，这些条件可以表示为线性等式约束。
 
-具体而言，\cref{eq:lec2:LEC_problem} 中的矩阵 $A$ 通常是一个 $m \times dn$ 矩阵（满足 $m \le dn$ 且 $m \bmod d = 0$），用于选取边界条件点的坐标；相应地，$\vect{b}$ 是一个 $m \times 1$ 向量，用于定义指定的目标位置。通过求解该优化问题，所选点便被固定在这些指定位置上，且这些位置可以随时间步变化。
+具体而言，\cref{eq:lec2:LEC_problem} 中的矩阵 $A$ 通常是一个 $m \times dn$ 矩阵（满足 $m \le dn$ 且 $m \bmod d = 0$），用于选取受边界条件约束节点的坐标；相应地，$b$ 是一个 $m \times 1$ 向量，用于定义给定的目标位置。通过求解该优化问题，所选点便被固定在这些指定位置上，且这些位置可以随时间步变化。
 
-在\cref{eq:lec2:LEC_problem} 的局部极小值处，满足 \textbf{KKT 条件}：
+在\cref{eq:lec2:LEC_problem} 的局部极小点处，满足 \term{KKT 条件}{Karush-Kuhn-Tucker condition}：
 \begin{equation}
   \label{eq:lec2:LEC_KKT}
   \begin{aligned}
-    \grad E(\vx) - A\T \vect{\lambda} &= \vzero, \\
-    A\vx &= \vect{b},
+    \grad E(x) - A\T \lambda &= 0, \\
+    Ax &= b,
   \end{aligned}
 \end{equation}
-其中 $\vect{\lambda} \in \R^m$ 表示\textbf{拉格朗日乘子}（Lagrange multiplier）向量，包含所有的拉格朗日乘子。
+其中 $\lambda \in \R^m$ 表示\term{拉格朗日乘子}{Lagrange multiplier}向量，包含所有的拉格朗日乘子。
 
 \begin{remark}[求解 KKT 系统]
   \label{rem:lec2:solving_KKT}
-  带等式约束的非线性优化问题可以通过直接求解如\cref{eq:lec2:LEC_KKT} 所示的非线性 KKT（Karush-Kuhn-Tucker）系统来解决，通常采用牛顿法等方法。然而，这种做法的计算开销可能很大。针对边界条件，我们可以利用矩阵 $A$ 的特殊结构，以无约束的方式求解这一约束问题。相关技术将在后续章节中介绍。
+  带等式约束的非线性优化问题可以通过直接求解如\cref{eq:lec2:LEC_KKT} 所示的非线性 KKT 系统来解决，通常采用牛顿法等方法。然而，这种做法的计算开销可能很大。针对边界条件，我们可以利用矩阵 $A$ 的特殊结构，以无约束的方式求解这一约束问题。相关技术将在后续章节中介绍。
 \end{remark}
 
 \section{接触}
 \label{sec:contact}
 
-为了准确仿真固体，必须确保它们不会相互穿透（interpenetrate），如下方\cref{fig:lec2:contact_and_friction} 左侧所示。一种有效方法是对时间步长施加 \textbf{CFL}（Courant-Friedrichs-Lewy 条件）上限，这在 MPM 等方法中尤为常见。而在有限元方法（FEM）中，这需要对接触力进行精确建模。然而，精确建模接触充满挑战：接触本质上是一个非光滑过程，在固体相互碰触的瞬间突然发生，并不存在某种势能形式能够精确刻画这一现象。
+为了准确仿真固体，必须确保它们不会\term{相互穿透}{interpenetrate}，如下方\cref{fig:lec2:contact_and_friction} 左侧所示。一种有效方法是对时间步长施加 \term{CFL 条件}{Courant-Friedrichs-Lewy condition}上限，这在 MPM 等方法中尤为常见。而在 FEM 中，这需要对接触力进行精确建模。然而，精确建模接触充满挑战：接触本质上是一个非光滑过程，在固体相互碰触的瞬间突然发生，并不存在某种势能形式能够精确刻画这一现象。
 
 \begin{figure}[htbp]
   \centering
@@ -72,42 +72,42 @@
   \label{fig:lec2:contact_and_friction}
 \end{figure}
 
-在实际应用中，判断两个物体是否发生碰撞通常依赖于直观评估它们之间的接近程度：当两者之间的距离不为零时，说明它们之间仍有空隙，尚未发生碰撞。这一概念在计算环境中建模物体交互时至关重要。
+在日常直觉中，判断两个物体是否发生碰撞通常依赖于观察并评估它们之间的接近程度：当两者之间的距离不为零时，说明它们之间仍有空隙，尚未发生碰撞。这一概念在计算环境中建模物体交互时至关重要。
 
 为避免碰撞或穿透，我们可以确保运动物体表面之间的距离永远不会减小到零。这一思路在计算仿真的时间积分问题中尤为有用。我们采用不等式约束来建模这一情形；将其与边界条件结合后，时间积分问题可表述如下：
 \begin{equation}
   \label{eq:lec2:IC}
-  \min_{\vx} E(\vx) \quad \text{s.t.} \quad A\vx = \vect{b} \ \text{且}\ \forall k,\ c_k(\vx) \ge \epsilon.
+  \min_{x} E(x) \quad \text{s.t.} \quad Ax = b \ \text{且}\ \forall k,\ c_k(x) \ge \epsilon.
 \end{equation}
-这里，$c_k$ 度量固体表面上特定成对区域之间的距离，$\epsilon \to 0$ 是一个极小的正数，用以保证 $c_k(\vx)$ 严格为正。
+这里，$c_k$ 度量固体表面上特定成对区域之间的距离，$\epsilon \to 0$ 是一个极小的正数，用以保证 $c_k(x)$ 严格为正。
 
-在\cref{eq:lec2:IC} 的局部极小值处，满足如下 Karush-Kuhn-Tucker（KKT）条件：
+在\cref{eq:lec2:IC} 的局部极小点处，满足如下 KKT 条件：
 \begin{equation}
   \label{eq:lec2:IC_KKT}
   \begin{aligned}
-    \grad E(\vx) - A\T \vect{\lambda} - \sum_k \gamma_k \grad c_k(\vx) &= \vzero, \\
-    A\vx &= \vect{b}, \\
-    \forall k,\ c_k(\vx) - \epsilon \ge 0,\ \gamma_k \ge 0,\ \gamma_k \bigl(c_k(\vx) - \epsilon\bigr) &= 0.
+    \grad E(x) - A\T \lambda - \sum_k \gamma_k \grad c_k(x) &= 0, \\
+    Ax &= b, \\
+    \forall k,\ c_k(x) - \epsilon \ge 0,\ \gamma_k \ge 0,\ \gamma_k \bigl(c_k(x) - \epsilon\bigr) &= 0.
   \end{aligned}
 \end{equation}
-在该条件中，$\gamma_k$ 是约束 $c_k(\vx) \ge \epsilon$ 对应的拉格朗日乘子。具体来说，$\grad c_k(\vx)$ 指向第 $k$ 对接触区域的接触力方向，将该方向与 $\gamma_k$ 所表示的大小相结合，便得到该点处实际的接触力。
+在该条件中，$\gamma_k$ 是约束 $c_k(x) \ge \epsilon$ 对应的拉格朗日乘子。具体来说，$\grad c_k(x)$ 指向第 $k$ 对接触区域的接触力方向，将该方向与 $\gamma_k$ 所表示的大小相结合，便得到该点处实际的接触力。
 
 \begin{remark}[互补松弛条件]
   \label{rem:lec2:complementarity_slack}
-  互补松弛条件（complementarity slackness condition）$\gamma_k (c_k(\vx) - \epsilon) = 0$ 起着关键作用：它确保接触力仅在固体相互接触（$c_k(\vx) = \epsilon$）时才存在（$\gamma_k \neq 0$）；相反，当固体未接触（$c_k(\vx) > \epsilon$）时，不应存在接触力（$\gamma_k = 0$）。
+  \term{互补松弛条件}{complementary slackness condition} $\gamma_k (c_k(x) - \epsilon) = 0$ 起着关键作用：它确保接触力仅在固体相互接触（$c_k(x) = \epsilon$）时才存在（$\gamma_k \neq 0$）；相反，当固体未接触（$c_k(x) > \epsilon$）时，不应存在接触力（$\gamma_k = 0$）。
 \end{remark}
 
 \begin{definition}[有效集]
   \label{def:lec2:active_set}
   在带有如下不等式约束的优化问题中：
   \[
-    \forall k,\ c_k(\vx) \ge 0,
+    \forall k,\ c_k(x) \ge 0,
   \]
-  \textbf{有效集}（active set）定义为
+  \term{有效集}{active set}定义为
   \[
-    \{ l \mid c_l(\vx^*) = 0 \},
+    \{ l \mid c_l(x^*) = 0 \},
   \]
-  其中 $\vx^*$ 为该问题的一个局部最优解。
+  其中 $x^*$ 为该问题的一个局部最优解。
 \end{definition}
 
 \begin{remark}[组合困难性]
@@ -117,30 +117,30 @@
 
 针对带不等式约束的优化问题，已有多种技术可供选择。每种方法都引入了不同的思路，有效针对问题的不同侧面：
 \begin{itemize}
-  \item \textbf{原始-对偶方法（Primal-Dual Methods）：}这类方法同时求解原始问题（原优化问题）及其对偶问题。对偶问题往往能为原始问题的解提供有价值的洞察，因此该方法颇具吸引力。这类方法通过迭代，利用原始问题与对偶问题之间的联系逐步改进初始解。然而，设计与实现原始-对偶算法可能相当复杂，需要在两类问题之间精细平衡。尽管有效，但对于复杂的高维问题，这类方法未必高效或直观。
-  \item \textbf{投影最速下降法（Projected Steepest Descent Methods）：}这是经典最速下降法针对约束问题的改进。在每次迭代中，算法沿最速下降方向移动，若因约束而偏离可行域，则将其投影回可行集。该方法因简单直观而广受欢迎，但在面对收敛缓慢的病态问题或难以投影的约束时可能会陷入困境。
-  \item \textbf{内点法（Interior-Point Methods）：}又称障碍法（barrier methods），这类技术引入一个障碍函数来惩罚不可行解，从而将解引导至可行域内部。这种方法有效地将约束问题转化为无约束问题，使其可用常规技术求解。然而，障碍函数的选择会显著影响方法的性能。尽管对特定类型的问题非常高效，但当可行域难以定义或缺乏简单内部时，这类方法可能会表现不佳。
+  \item \term{原始-对偶方法}{Primal-Dual Methods}：这类方法同时求解原始问题（原优化问题）及其对偶问题。对偶问题往往能为原始问题的解提供有价值的洞察，因此该方法颇具吸引力。这类方法通过迭代，利用原始问题与对偶问题之间的联系逐步改进初始解。然而，设计与实现原始-对偶算法可能相当复杂，需要在两类问题之间精细平衡。尽管有效，但对于复杂的高维问题，这类方法未必高效或直观。
+  \item \term{投影最速下降法}{Projected Steepest Descent Methods}：这是经典最速下降法针对约束问题的改进。在每次迭代中，算法沿最速下降方向移动，若步进后超出约束所限定的可行集，则将其投影回可行集。该方法因简单直观而广受欢迎，但在面对收敛缓慢的\term{病态}{ill-conditioned}问题或难以投影的约束时可能会陷入困境。
+  \item \term{内点法}{Interior-Point Methods}：又称\term{障碍法}{barrier methods}，这类技术引入一个障碍函数来惩罚不可行解，从而将解引导至可行域内部。这种方法有效地将约束问题转化为无约束问题，使其可用常规技术求解。然而，障碍函数的选择会显著影响方法的性能。尽管对特定类型的问题非常高效，但当可行域难以定义或缺乏简单内部时，这类方法可能会表现不佳。
 \end{itemize}
 
-尽管上述每种方法各有优劣，但我们的主要关注点将放在一种稳健且精确的接触建模方法上，即\textbf{增量势接触}（Incremental Potential Contact, IPC）。IPC 的独特之处在于利用光滑势能来近似接触过程。这一转化有效地将问题变为无约束问题，从而便于应用各种高效且稳健的优化技术。IPC 的一项核心特性是能够将相对于非光滑表述的近似误差控制在预设界限之内。这一特点为该方法增添了稳健性与可靠性，使其成为解决当前问题极具前景的方案。
+尽管上述每种方法各有优劣，但我们的主要关注点将放在一种稳健且精确的接触建模方法上，即\term{增量势接触}{Incremental Potential Contact, IPC}。IPC 的独特之处在于利用光滑势能来近似接触过程。这一转化有效地将问题变为无约束问题，从而便于应用各种高效且稳健的优化技术。IPC 的一项核心特性是能够将相对于非光滑表述的近似误差控制在预设界限之内。这一特点为该方法增添了稳健性与可靠性，使其成为解决当前问题极具前景的方案。
 
 \section{摩擦}
 \label{sec:friction}
 
-摩擦（friction）是涉及运动的物理交互中的关键要素，常常会显著影响仿真结果。因此，对其精确建模对于实现真实可靠的仿真至关重要。可参见\cref{fig:lec2:contact_and_friction} 右侧，它展示了一个需要精确刻画摩擦的场景。
+\term{摩擦}{friction}是涉及运动的物理交互中的关键要素，常常会显著影响仿真结果。因此，对其精确建模对于实现真实可靠的仿真至关重要。可参见\cref{fig:lec2:contact_and_friction} 右侧，它展示了一个需要精确刻画摩擦的场景。
 
-应用最广泛的摩擦模型之一是\textbf{库仑摩擦模型}（Coulomb Friction model）。该模型建立在\textbf{最大耗散原理}（Maximal Dissipation Principle, MDP）之上，能够有效刻画静摩擦与动摩擦之间的非光滑转变。静摩擦（static friction）是阻止物体开始运动的力，而动摩擦（dynamic friction，又称滑动摩擦 kinetic friction）则阻碍运动物体的运动。库仑摩擦模型精确地描述了这两种摩擦类型之间的关键转变。
+应用最广泛的摩擦模型之一是\term{库仑摩擦模型}{Coulomb Friction model}。该模型建立在\term{最大耗散原理}{Maximal Dissipation Principle, MDP}之上，能够有效刻画静摩擦与动摩擦之间的非光滑转变。\term{静摩擦}{static friction}是阻止物体开始运动的力；\term{动摩擦}{dynamic friction}又称\term{滑动摩擦}{kinetic friction}，则阻碍运动物体的运动。库仑摩擦模型精确地描述了这两种摩擦类型之间的关键转变。
 
-在标准物质点法（MPM）中，摩擦由背景网格隐式建模。然而，这种做法存在缺点，尤其是摩擦系数不可控且大得不切实际。
+在标准 MPM 中，摩擦由背景网格内生体现。然而，这种做法存在缺点，尤其是摩擦系数不可控且大得不切实际。
 
-在有限元方法（FEM）中，可以通过增量势接触（IPC）模型中的近似势能，更真实且可控地表示摩擦。这与我们的优化时间积分框架高度契合。通过使用势能来近似摩擦，我们不仅保持了仿真的稳健性，还获得了对摩擦模型精度的控制能力。
+在 FEM 中，可以通过 IPC 模型中的近似势能，更真实且可控地表示摩擦。这与我们的优化时间积分框架高度契合。通过使用势能来近似摩擦，我们不仅保持了仿真的稳健性，还获得了对摩擦模型精度的控制能力。
 
 在后续章节中，我们将深入探讨 IPC 模型中用于表示摩擦力的具体技术与方法，以及它们在提升仿真精度与真实感方面的作用。
 
 \section{小结}
 \label{sec:ch02-summary}
 
-至此，我们讨论的目标一直在于为无条件稳定的隐式时间积分问题设计可靠的求解方案，旨在解决由截断误差引发的迭代不收敛问题。为此，我们将时间积分问题重新表述为一个极小化问题。这一表述不仅使我们能够应用成熟的优化技术，也为不同物理现象提供了统一的建模框架。
+至此，我们讨论的目标一直在于为无条件稳定的隐式时间积分问题设计可靠的求解方案，旨在解决由线性化截断误差引发的迭代不收敛问题。为此，我们将时间积分问题重新表述为一个极小化问题。这一表述不仅使我们能够应用成熟的优化技术，也为不同物理现象提供了统一的建模框架。
 
 以下简要总结该框架内用于建模各类物理现象的技术：
 \begin{itemize}
@@ -153,4 +153,4 @@
 
 此外，我们还介绍了增量势接触（IPC）方法的概念。IPC 方法以可控的精度将接触与摩擦建模为光滑势能，从而确保对固体对象进行稳健、精确且无穿透的仿真。
 
-接下来，在下一章中，我们将深入学习用于求解无约束优化问题的投影牛顿法（projected Newton method）。该方法的优势在于具备全局收敛性，即只要初始构型可行，无论初始状态如何，方法都能保证收敛。这一特性对于复杂仿真极具价值，有助于使整个方法更加稳健可靠。
+接下来，在下一章中，我们将深入学习用于求解无约束优化问题的\term{投影牛顿法}{Projected Newton method}。该方法的优势在于具备全局收敛性，即只要初始构型可行，无论其具体取值如何，方法都能保证收敛。这一特性对于复杂仿真极具价值，有助于使整个方法更加稳健可靠。
