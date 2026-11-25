@@ -96,13 +96,14 @@ function SymplecticPhaseSpaceFigure() {
             <svg
               viewBox={`0 0 ${CANVAS.width} ${CANVAS.height}`}
               role="img"
-              aria-label="一维谐振子相空间对比：左图展示 Forward Euler 向外螺旋发散、Backward Euler 向内螺旋阻尼收缩，而 Symplectic Euler 沿闭合阴影椭圆保持有界；右图展示单步更新中 Forward Euler 沿切线外冲，而 Symplectic Euler 拆分为竖直与水平两次错切变换"
+              aria-label="主模态二维共轭相平面对比：左图展示归一化模态（ω_i = 1）下 Forward Euler 向外螺旋发散、Backward Euler 向内螺旋阻尼收缩，而 Symplectic Euler 沿闭合阴影椭圆保持有界；右图展示单步更新中 Forward Euler 沿切线外冲，而 Symplectic Euler 拆分为竖直与水平两次错切变换"
             >
-              <title>三种一阶欧拉积分在谐振子相空间中的轨迹与单步错切几何对比</title>
+              <title>三种一阶欧拉积分在单个主模态相平面上的轨迹与单步错切几何对比</title>
               <desc>
-                采用 IEEE 754 双精度浮点数模拟一维谐振子 H(q, p) = (q^2 + p^2) / 2，初值 (q_0, p_0)
-                = (0.6, 0.8) 位于单位圆 r = 1 上。左图以步长 dt = 0.30 演化：Forward Euler 在 19
-                步后相空间半径膨胀至 r = {feFinalR}；Backward Euler 在 19 步后收缩至 r = {beFinalR}
+                采用 IEEE 754 双精度浮点数模拟高维系统解耦后的归一化主模态相平面 H_i(q, p) = (q^2 +
+                p^2) / 2（固有频率 ω_i = 1），初值 (q_0, p_0) = (0.6, 0.8) 位于等能单位圆 r = 1
+                上。左图以步长 dt = 0.30 演化：Forward Euler 在 19 步后相空间半径膨胀至 r ={' '}
+                {feFinalR}；Backward Euler 在 19 步后收缩至 r = {beFinalR}
                 ；Symplectic Euler 在 21 步（约一整圈）后半径为 r = {seFinalR}
                 ，始终落在闭合倾斜椭圆上。右图以步长 dt = 0.55 放大展示单步几何：Forward Euler
                 同时用旧动量更新位置，落到圆外的 ({DEMO_FE_NEXT.q.toFixed(2)},{' '}
@@ -154,7 +155,7 @@ function SymplecticPhaseSpaceFigure() {
                 y="21"
                 textAnchor="middle"
               >
-                Phase Portrait (m = k = 1, Δt = 0.30)
+                Modal Phase Portrait (ω = 1, Δt = 0.30)
               </text>
               <text
                 className="se-ps-heading"
@@ -331,19 +332,19 @@ function SymplecticPhaseSpaceFigure() {
       </div>
 
       <figcaption>
-        一维弹簧振子（
-        <span className="math-inline">{String.raw`\(H(q,p)=\frac{1}{2}(q^2+p^2)\)`}</span>
-        ，双精度递推）的相空间对比。左图从{' '}
+        高维线性系统在单个归一化主模态共轭平面（
+        <span className="math-inline">{String.raw`\(\omega_i=1,\;H_i(q,p)=\frac{1}{2}(q^2+p^2)\)`}</span>
+        ，双精度递推）上的相空间切片对比。左图从{' '}
         <span className="math-inline">{String.raw`\((q_0,p_0)=(0.6,0.8)\)`}</span> 出发演化：Forward
-        Euler 相面积每步放大 <span className="math-inline">{String.raw`\(1+\Delta t^2\)`}</span>{' '}
-        倍而向外发散，Backward Euler 每步缩小至{' '}
-        <span className="math-inline">{String.raw`\((1+\Delta t^2)^{-1}\)`}</span>{' '}
-        而向内阻尼收缩，Symplectic Euler 则沿闭合倾斜椭圆（
-        <span className="math-inline">{String.raw`\(\tilde{H}=\mathrm{const}\)`}</span>
+        Euler 在该模态平面上的投影有向面积每步放大{' '}
+        <span className="math-inline">{String.raw`\(1+\Delta t^2\)`}</span> 倍而向外发散，Backward
+        Euler 每步缩小至 <span className="math-inline">{String.raw`\((1+\Delta t^2)^{-1}\)`}</span>{' '}
+        而向内阻尼收缩，Symplectic Euler 则沿闭合倾斜椭圆（阴影超椭球在该模态平面上的截口{' '}
+        <span className="math-inline">{String.raw`\(\hat{H}_i=\mathrm{const}\)`}</span>
         ）保持能量有界。右图展示单步几何：Forward Euler 用旧动量{' '}
         <span className="math-inline">{String.raw`\(p_n\)`}</span>{' '}
         沿切线同步外推而冲出等能圆；Symplectic Euler
-        拆为竖直错切与水平错切，每步严格保持相面积守恒。
+        拆为动量与位置两次分块错切，每步严格保持共轭相平面有向面积守恒。
       </figcaption>
     </figure>
   );
