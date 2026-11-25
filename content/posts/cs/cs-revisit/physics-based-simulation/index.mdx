@@ -65,7 +65,7 @@ v^{n+1} &= v^{n} + \Delta t M^{-1}f^{n}
 \end{aligned}
 $$
 
-这个就是 **Forward Euler**。但它在振荡保守系统上是 **unconditionally unstable** 的：由于 $x^{n+1}$ 和 $v^{n+1}$ 都只读取旧状态同步外推，每一步都会沿着等能面切线向外冲出并把相空间面积放大 $1 + O(\Delta t^2)$ 倍，无论 $\Delta t > 0$ 多小，轨迹与机械能最终都会发散爆炸。
+这个就是 **Forward Euler**。但它在振荡保守系统上是 unconditionally unstable 的：由于 $x^{n+1}$ 和 $v^{n+1}$ 都只读取旧状态同步外推，每一步都会沿着等能面切线向外冲出并把相空间面积放大 $1 + O(\Delta t^2)$ 倍，无论 $\Delta t > 0$ 多小，轨迹与机械能最终都会发散爆炸。
 
 把同步更新改成先后交替的两步——先算出新速度 $v^{n+1}$，再立刻用 $v^{n+1}$ 更新位置 $x^{n+1}$：
 
@@ -76,4 +76,4 @@ x^{n+1} &= x^{n} + \Delta t v^{n+1}
 \end{aligned}
 $$
 
-这就是 **Symplectic Euler**（又称 Semi-Implicit Euler）。在相空间 $(q, p) = (x, Mv)$ 中，这两步分别对应竖直与水平方向的三角错切（shear）变换，单步 Jacobian 行列式恒为 $1$，严格保持辛面积结构。它依然完全是 **explicit** 的，同时变为 **conditionally stable**：只要 $\Delta t$ 不超过系统固有频率决定的稳定上限，总能量就会在真实值附近有界振荡而不会发散。关于相空间面积守恒、交替错切推导、Backward Euler 阻尼对比以及 Shadow Hamiltonian 的详细展开，参见专文 [Symplectic Euler](/blog/cs/notes/symplectic-euler)。
+这就是 **Symplectic Euler**（又称 Semi-Implicit Euler）。在相空间 $(q, p) = (x, Mv)$ 中，这两步分别对应竖直与水平方向的三角错切（shear）变换，单步 Jacobian 行列式恒为 $1$，严格保持辛面积结构。它依然完全是 explicit 的，同时变为 conditionally stable：只要 $\Delta t$ 不超过系统固有频率决定的稳定上限，总能量就会在真实值附近有界振荡而不会发散。关于三种欧拉格式的谱稳定性、Backward Euler 的隐式求解与增量势、相空间错切推导以及 Shadow Hamiltonian 的详细展开，参见专文 [Euler Time Integration](/blog/cs/notes/symplectic-euler)。

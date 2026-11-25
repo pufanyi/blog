@@ -1,13 +1,13 @@
 ---
-title: "Symplectic Euler"
+title: "Euler Time Integration"
 date: "2026-11-25"
-description: "从一维谐振子的能量失真出发，对比 Forward、Backward 与 Symplectic Euler 的相空间面积涨缩，推导交替错切更新、高维与非分离 Hamiltonian 辛性、Shadow Hamiltonian 及条件稳定阈值。"
+description: "从一阶有限差分的截断误差与谱稳定性出发，系统展开 Forward Euler、Backward Euler（Newton 求解与增量势）与 Symplectic Euler（相空间错切、非分离辛性与 Shadow Hamiltonian）的机制与工程边界。"
 authors:
   - "Fanyi Pu"
   - "Gemini 4 Carbon"
 ---
 
-在物理仿真与常微分方程数值积分中，位置 $x$ 与速度 $v$ 的演化由牛顿第二定律给出：
+在物理仿真与常微分方程数值求解中，二阶力学系统的演化由位置 $x$ 与速度 $v$ 组成的初值问题给出：
 
 $$
 \begin{aligned}
@@ -16,104 +16,144 @@ $$
 \end{aligned}
 $$
 
-其中 $M$ 为对称正定的质量矩阵，$f(x)$ 为保守力。将连续时间按步长 $\Delta t$ 离散为 $t^n = n\Delta t$ 后，对导数取不同时间步上的近似，会得到三种基础的一阶时间积分器。
+其中 $M$ 为对称正定的质量矩阵，$f(x) = -\nabla V(x)$ 为由势能 $V(x)$ 导出的保守力。给定初值 $(x_0, v_0)$，time integration 将时间轴按步长 $\Delta t$ 离散为 $t_n = n\Delta t$，逐步由 $(x_n, v_n)$ 推进至 $(x_{n+1}, v_{n+1})$。
 
-## 三种一阶时间积分的定性差异
+## 从连续动力学到一阶有限差分
 
-最直接的离散方式是 **Forward Euler**，即在旧时刻 $n$ 同时估计位置和速度的变化率：
+对光滑轨迹在 $t_n$ 附近做 Taylor 展开：
+
+$$
+x(t_n + \Delta t) = x(t_n) + \Delta t\,\dot{x}(\tau) + O(\Delta t^2), \qquad \tau \in [t_n, t_{n+1}]
+$$
+
+无论右端导数取在区间左端点 $t_n$、右端点 $t_{n+1}$，还是分别取在两个端点上，单步引入的 local truncation error 都是 $O(\Delta t^2)$；在有限时长 $T$ 内累积 $T/\Delta t$ 步后，global error 均为 $O(\Delta t)$。因此，所有欧拉型离散格式在收敛阶数上同属一阶精度——真正拉开它们定性差距的不是局部泰勒阶数，而是稳定性与几何结构。
+
+最自然的两种对称端点选择分别对应显式与隐式欧拉法：
+
+- **Forward Euler**（右端全部取在已知时刻 $t_n$）：
 
 $$
 \begin{aligned}
-x^{n+1} &= x^{n} + \Delta t v^{n}\\
-v^{n+1} &= v^{n} + \Delta t M^{-1}f(x^{n})
+x_{n+1} &= x_{n} + \Delta t v_{n}\\
+v_{n+1} &= v_{n} + \Delta t M^{-1}f(x_{n})
 \end{aligned}
 $$
 
-它完全是 **explicit** 的，无需解方程组；但在任何非平凡的保守振荡系统（例如一维无阻尼弹簧振子 $m\ddot{x} = -kx$）上，它是 **unconditionally unstable** 的——无论把 $\Delta t > 0$ 取多小，数值轨迹都会向外螺旋发散，机械能单调爆炸。
+它是完全 explicit 的：当 $M$ 为对角阵（集中质量矩阵）时，每一步只需做向量加法与乘法，单步开销极低。
 
-如果把右侧全部改为新时刻 $n+1$ 的状态，则得到隐式的 **Backward Euler**：
+- **Backward Euler**（右端全部取在未知时刻 $t_{n+1}$）：
 
 $$
 \begin{aligned}
-x^{n+1} &= x^{n} + \Delta t v^{n+1}\\
-v^{n+1} &= v^{n} + \Delta t M^{-1}f(x^{n+1})
+x_{n+1} &= x_{n} + \Delta t v_{n+1}\\
+v_{n+1} &= v_{n} + \Delta t M^{-1}f(x_{n+1})
 \end{aligned}
 $$
 
-由于 $f(x^{n+1})$ 依赖未知的 $x^{n+1}$，每一步都需要通过 Newton 法等求根算法联立求解非线性方程组。它的优势是 **unconditionally stable**，在 stiff 系统和大步长下也不会爆炸；代价则是引入显著的 **numerical damping**，轨迹向平衡点内缩，原本守恒的机械能被人为耗散掉。
+由于未知的 $x_{n+1}$ 同时出现在非线性力 $f(x_{n+1})$ 内部，它是 implicit 的，每一步都必须联立求解方程组。
 
-介于两者之间的 **Symplectic Euler**（又称 Semi-Implicit Euler）只做了一处时间步上标改动——先用当前力算出新速度 $v^{n+1}$，再立刻用新速度更新位置 $x^{n+1}$：
+## 线性稳定性与谱半径：发散与数值阻尼
+
+先从线性稳定性理论考察这两种格式为何在振荡系统上表现出截然相反的失真。考虑最基础的一维无阻尼弹簧振子 $m\ddot{x} = -kx$，记固有频率为 $\omega = \sqrt{k/m}$，连续系统化为 $\dot{x} = v,\; \dot{v} = -\omega^2 x$，精确解的机械能 $E = \frac{1}{2}mv^2 + \frac{1}{2}kx^2$ 恒定守恒。
+
+将单步更新写为线性转移 $\begin{bmatrix} x_{n+1} \\ v_{n+1} \end{bmatrix} = G \begin{bmatrix} x_n \\ v_n \end{bmatrix}$，稳定性取决于放大矩阵 $G$ 的特征值模长（谱半径 $\rho(G)$）：
+
+1. Forward Euler 无条件失稳：单步转移矩阵及其特征值为
 
 $$
-\begin{aligned}
-v^{n+1} &= v^{n} + \Delta t M^{-1}f(x^{n})\\
-x^{n+1} &= x^{n} + \Delta t v^{n+1}
-\end{aligned}
+G_{\mathrm{FE}} =
+\begin{bmatrix}
+1 & \Delta t \\
+-\omega^2\Delta t & 1
+\end{bmatrix},
+\qquad
+\lambda_{1,2} = 1 \pm i\omega\Delta t
 $$
 
-整个计算依然是完全 explicit 的，却消除了单向的能量爆炸与耗散。要理解为何仅改动一个上标就会带来定性差异，需要进入 **Hamiltonian** 与 phase space 的几何视角。
+对任意步长 $\Delta t > 0$，特征值模长恒满足 $|\lambda_{1,2}| = \sqrt{1 + \omega^2\Delta t^2} > 1$。在标准复测试方程 $\dot{y} = \mu y$ 中，Forward Euler 的绝对稳定域 $|1 + \mu\Delta t| \le 1$ 是复平面上以 $-1$ 为圆心、$1$ 为半径的圆盘，除原点外完全不包含虚轴 $\mu = \pm i\omega$。因此只要系统存在无阻尼振荡模态，无论 $\Delta t$ 缩得多小，振幅都会按 $(1 + \omega^2\Delta t^2)^{n/2}$ 指数级爆炸。
 
-## Hamiltonian 视角与相空间面积守恒
+2. Backward Euler 无条件稳定但伴随数值阻尼：隐式线性方程组 $\begin{bmatrix} 1 & -\Delta t \\ \omega^2\Delta t & 1 \end{bmatrix}\begin{bmatrix} x_{n+1} \\ v_{n+1} \end{bmatrix} = \begin{bmatrix} x_n \\ v_n \end{bmatrix}$ 求逆后得到
 
-对于保守力 $f(x) = -\nabla V(x)$，令广义坐标 $q = x$、广义动量 $p = Mv$，系统总能量（Hamiltonian）可分离为动能 $T(p)$ 与势能 $V(q)$ 之和：
+$$
+G_{\mathrm{BE}} = \frac{1}{1 + \omega^2\Delta t^2}
+\begin{bmatrix}
+1 & \Delta t \\
+-\omega^2\Delta t & 1
+\end{bmatrix},
+\qquad
+\lambda_{1,2} = \frac{1}{1 \mp i\omega\Delta t}
+$$
+
+对任意 $\Delta t > 0$ 都有 $|\lambda_{1,2}| = (1 + \omega^2\Delta t^2)^{-1/2} < 1$。其绝对稳定域 $|1 - \mu\Delta t| \ge 1$ 覆盖整个左半复平面及虚轴（满足 A-stable，且当 $\omega\Delta t \to \infty$ 时 $|\lambda| \to 0$，满足 L-stable，能在单步内强力抹平极高频刚性振荡）。但对于原本应当持续的物理振动，$|\lambda| < 1$ 意味着每一步振幅都会人为衰减，系统机械能被数值格式凭空耗散，即 numerical damping。
+
+## 隐式求解机制：Newton 迭代与增量势
+
+在实际非线性仿真中，Backward Euler 不仅有数值阻尼，还需要承担每步求解非线性方程组的代价。将 $v_{n+1} = (x_{n+1} - x_n)/\Delta t$ 代入速度更新式消去 $v_{n+1}$，并记无外力惯性预测位置为 $\tilde{x}_n = x_n + \Delta t v_n$，后向欧拉步等价于求解关于 $x_{n+1}$ 的非线性残差方程：
+
+$$
+g(x) = M(x - \tilde{x}_n) - \Delta t^2 f(x) = M(x - \tilde{x}_n) + \Delta t^2 \nabla V(x) = 0
+$$
+
+使用 Newton's method 求解时，在第 $k$ 次迭代点 $x^{(k)}$ 处对残差做一阶泰勒展开 $g(x^{(k)} + \Delta x) \approx g(x^{(k)}) + \nabla g(x^{(k)})\Delta x = 0$，每轮迭代需要求解如下稀疏线性方程组并更新 $x^{(k+1)} = x^{(k)} + \Delta x$：
+
+$$
+\left(M + \Delta t^2 \nabla^2 V(x^{(k)})\right)\Delta x = -\left(M(x^{(k)} - \tilde{x}_n) + \Delta t^2 \nabla V(x^{(k)})\right)
+$$
+
+进一步观察残差 $g(x)$，它恰好是标量函数
+
+$$
+E(x) = \frac{1}{2}(x - \tilde{x}_n)^{\top}M(x - \tilde{x}_n) + \Delta t^2 V(x)
+$$
+
+的梯度 $\nabla E(x) = 0$。$E(x)$ 被称为 **Incremental Potential**（增量势）：第一项衡量新位置偏离惯性预测 $\tilde{x}_n$ 的动能代价，第二项衡量势能代价，隐式时间步由此转化为无约束优化问题 $x_{n+1} = \arg\min_x E(x)$。
+
+这一形式清晰揭示了 Backward Euler 的工程权衡：
+
+- 大步长下的病态与收敛问题：线性系统的系数矩阵 $\nabla^2 E = M + \Delta t^2 \nabla^2 V$ 在弹簧模型下的条件数随 $1 + \omega_{\max}^2\Delta t^2$ 增长，$\Delta t$ 越大线性求解越慢；当材料受压屈曲导致局部 $\nabla^2 V$ 非正定时，纯 Newton 步可能失去下降方向，工程上需配合 Hessian 修正与 line search 保证全局收敛。
+- 保守与显式的两难：Forward Euler 显式廉价却因 $|\lambda| > 1$ 必然爆炸；Backward Euler 无条件稳定却需迭代解线性系统，且因 $|\lambda| < 1$ 不断损耗能量。
+
+这就引出一个核心问题：在一阶欧拉框架下，能否既保持完全 explicit 的零求解开销，又令保守振荡的特征值严格落在单位圆 $|\lambda| = 1$ 上？
+
+## Hamiltonian 视角与交替错切：引出 Symplectic Euler
+
+要找到不放大也不缩小振荡能量的离散方式，需要从 Hamiltonian 视角审视 phase space 的几何变换。令广义坐标 $q = x$、广义动量 $p = Mv$，可分离力学系统的总能量为：
 
 $$
 H(q, p) = T(p) + V(q) = \frac{1}{2}p^{\top}M^{-1}p + V(q)
 $$
 
-由于 $\frac{\partial H}{\partial p} = M^{-1}p = v$ 且 $-\frac{\partial H}{\partial q} = -\nabla V(q) = f(q)$，牛顿第二定律等价于 Hamilton 方程：
-
-$$
-\dot{q} = \frac{\partial H}{\partial p}(q, p), \qquad \dot{p} = -\frac{\partial H}{\partial q}(q, p)
-$$
-
-将状态合并为 phase space 向量 $z = \begin{bmatrix} q \\ p \end{bmatrix}$，并定义反对称的 symplectic matrix $\Omega = \begin{bmatrix} 0 & I \\ -I & 0 \end{bmatrix}$，连续演化可紧凑地写为
+牛顿第二定律等价于 Hamilton 方程 $\dot{q} = \frac{\partial H}{\partial p}(q, p),\; \dot{p} = -\frac{\partial H}{\partial q}(q, p)$。记 phase space 向量 $z = \begin{bmatrix} q \\ p \end{bmatrix}$，引入反对称的 symplectic matrix $\Omega = \begin{bmatrix} 0 & I \\ -I & 0 \end{bmatrix}$，连续动力学可写为：
 
 $$
 \dot{z} = \Omega\nabla H(z)
 $$
 
-真实哈密顿流的本质几何特征是它构成一个 **symplectic map**。记单步离散映射 $z_n \mapsto z_{n+1}$ 的 Jacobian 为 $J = \frac{\partial z_{n+1}}{\partial z_n}$，保持辛结构要求：
+连续哈密顿流的本质几何不变量是它构成一个 symplectic map。记单步离散映射 $z_n \mapsto z_{n+1}$ 的 Jacobian 为 $J = \frac{\partial z_{n+1}}{\partial z_n}$，保持辛结构要求：
 
 $$
 J^{\top}\Omega J = \Omega
 $$
 
-先看一维单自由度情形（$q, p \in \mathbb{R}$，此时 $\Omega = \begin{bmatrix} 0 & 1 \\ -1 & 0 \end{bmatrix}$）。对任意 $2 \times 2$ 矩阵 $J = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$，直接展开可得
+在一维单自由度（$q, p \in \mathbb{R}$，$\Omega = \begin{bmatrix} 0 & 1 \\ -1 & 0 \end{bmatrix}$）下，对任意 $2 \times 2$ 矩阵 $J = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$ 直接展开可得
 
 $$
 J^{\top}\Omega J = \begin{bmatrix} 0 & ad - bc \\ -(ad - bc) & 0 \end{bmatrix} = (\det J)\,\Omega
 $$
 
-因此在一维下，$J^{\top}\Omega J = \Omega$ 完全等价于 **$\det J = 1$**，即每一步更新都严格保持 $(q, p)$ 相平面上的有向面积（高维 $q, p \in \mathbb{R}^d$ 下则要求在每一对共轭坐标 $(q_i, p_i)$ 平面上的投影有向面积之和守恒，两边取行列式结合 $J(\Delta t = 0) = I$ 同样蕴含相体积守恒 $\det J = 1$）。
+即一维辛条件完全等价于 $\det J = 1$——单步映射严格保持 $(q, p)$ 相平面上的有向面积。由于保守振荡系统的等能面 $H(q, p) = E$ 在相平面上围成固定面积的闭合曲线，一旦每步将相面积放大（$\det J > 1$），轨迹必然向外螺旋漂移；每步将相面积压缩（$\det J < 1$），轨迹则必然向内坍缩。
 
-相平面面积直接制约着长期能量表现：保守振荡系统的等能面 $H(q, p) = E$ 在相平面上围成固定面积的闭合轨道（例如弹簧振子的椭圆）。如果积分器每一步都将相面积均匀放大（$\det J > 1$），闭合曲线映射后围成的面积必然严格增大，轨道无法闭合，状态只能向外螺旋漂移至更高能级；反之，若每一步都压缩相面积（$\det J < 1$），所围面积不断缩小，轨道便只能向内坍缩。
+用这一几何判据重新审视一维下的 Forward 与 Backward Euler：
 
-## Forward 与 Backward Euler 的相面积涨缩
-
-用 $J^{\top}\Omega J$ 检验一维下的 **Forward Euler**：
+- Forward Euler 在旧点 $(q_n, p_n)$ 同步求导，$q_{n+1} = q_n + \frac{\partial H}{\partial p}(q_n, p_n)\Delta t,\; p_{n+1} = p_n - \frac{\partial H}{\partial q}(q_n, p_n)\Delta t$，其 Jacobian 为
 
 $$
-\begin{aligned}
-q_{n+1} &= q_n + \frac{\partial H}{\partial p}(q_n, p_n)\Delta t\\
-p_{n+1} &= p_{n} - \frac{\partial H}{\partial q}(q_n, p_n)\Delta t
-\end{aligned}
-$$
-
-在 $(q_n, p_n)$ 处求导，单步 Jacobian 为
-
-$$
-J_{\mathrm{FE}} = \frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-=
+J_{\mathrm{FE}} =
 \begin{bmatrix}
 1 + \frac{\partial^2 H}{\partial q\partial p}\Delta t & \frac{\partial^2 H}{\partial p^2}\Delta t\\[6pt]
 -\frac{\partial^2 H}{\partial q^2}\Delta t & 1 - \frac{\partial^2 H}{\partial p\partial q}\Delta t
-\end{bmatrix}
-$$
-
-代入辛条件展开行列式：
-
-$$
+\end{bmatrix},
+\qquad
 J_{\mathrm{FE}}^{\top}\Omega J_{\mathrm{FE}} =
 \left[
 1 +
@@ -128,34 +168,11 @@ J_{\mathrm{FE}}^{\top}\Omega J_{\mathrm{FE}} =
 \right]\Omega
 $$
 
-对于力学系统 $H(q, p) = \frac{p^2}{2m} + V(q)$，混合偏导 $\frac{\partial^2 H}{\partial q\partial p} = 0$，且 $\frac{\partial^2 H}{\partial p^2} = \frac{1}{m} > 0$。在任意稳定平衡点附近（$V''(q) > 0$，例如弹簧势能 $V(q) = \frac{1}{2}kq^2$，固有频率 $\omega = \sqrt{k/m}$），面积缩放因子恒为
+在弹簧振子 $H(q, p) = \frac{p^2}{2m} + \frac{1}{2}kq^2$ 下，$\det J_{\mathrm{FE}} = 1 + \omega^2\Delta t^2 > 1$（恰好等于前文特征值模长的平方 $|\lambda|^2$），每一步都把相面积放大 $1 + \omega^2\Delta t^2$ 倍。
 
-$$
-\det J_{\mathrm{FE}} = 1 + \frac{k}{m}\Delta t^2 = 1 + \omega^2\Delta t^2 > 1
-$$
+- Backward Euler 将旧状态表为新状态的函数时，等价于在 $(q_{n+1}, p_{n+1})$ 处取步长 $-\Delta t$ 的 Forward Euler。由于偶次项 $(-\Delta t)^2 = \Delta t^2$ 不变，逆映射行列式为 $1 + \omega^2\Delta t^2$，从而 $\det J_{\mathrm{BE}} = (1 + \omega^2\Delta t^2)^{-1} < 1$，每一步都严格压缩相面积。
 
-无论 $\Delta t$ 多小，每一步都会把相面积乘上 $1 + \omega^2\Delta t^2$，能量随之呈指数级膨胀。
-
-用同样的办法可以立即算出 **Backward Euler** 的相面积变化。将隐式格式移项，把旧状态 $(q_n, p_n)$ 表为新状态 $(q_{n+1}, p_{n+1})$ 的函数：
-
-$$
-\begin{aligned}
-q_n &= q_{n+1} - \frac{\partial H}{\partial p}(q_{n+1}, p_{n+1})\Delta t\\
-p_n &= p_{n+1} + \frac{\partial H}{\partial q}(q_{n+1}, p_{n+1})\Delta t
-\end{aligned}
-$$
-
-这恰好是在 $(q_{n+1}, p_{n+1})$ 处取步长 $-\Delta t$ 的 Forward Euler。由于前式的面积因子只含偶次项 $(-\Delta t)^2 = \Delta t^2$，逆映射在弹簧振子下的行列式满足 $\det(J_{\mathrm{BE}}^{-1}) = 1 + \omega^2\Delta t^2$，取倒数即得：
-
-$$
-\det J_{\mathrm{BE}} = \frac{1}{1 + \omega^2\Delta t^2} < 1
-$$
-
-对任意步长 $\Delta t > 0$，Backward Euler 每一步都严格压缩相面积。这既解释了它为何无条件稳定、绝不发散，也说明了数值阻尼是相面积收缩的必然结果。
-
-## 用交替错切构造 Symplectic Euler
-
-回到一维可分离系统 $H(q, p) = T(p) + V(q)$，审视 $\det J_{\mathrm{FE}}$ 偏离 $1$ 的代数原因：
+现在看可分离系统 $H(q, p) = T(p) + V(q)$ 下 $\det J_{\mathrm{FE}}$ 偏离 $1$ 的根源：
 
 $$
 J_{\mathrm{FE}} =
@@ -165,11 +182,11 @@ J_{\mathrm{FE}} =
 \end{bmatrix}
 $$
 
-因为 $q_{n+1}$ 和 $p_{n+1}$ 都只读取旧状态 $(q_n, p_n)$ **同步更新**，主对角元保持为 $1$，而两个副对角元同时非零，求行列式时便多出了副对角线乘积 $+T''(p_n)V''(q_n)\Delta t^2$。
+因为 $q_{n+1}$ 与 $p_{n+1}$ 同时只读取旧状态 $(q_n, p_n)$ 更新，主对角元保持为 $1$ 而两个副对角元同时非零，行列式必然多出副对角线乘积 $+T''(p_n)V''(q_n)\Delta t^2$。
 
-要想在不求解隐式方程的前提下严格令 $\det J = 1$，可以利用 $T(p)$ 与 $V(q)$ 互不耦合（$\frac{\partial H}{\partial q} = V'(q)$ 只依赖 $q$，$\frac{\partial H}{\partial p} = T'(p)$ 只依赖 $p$）的性质，把一步更新拆成相平面上两次**交替的 shear（错切）变换**——每次固定一个坐标，只平移另一个坐标：
+要在不引入隐式求解的前提下严格令 $\det J = 1$，只需利用 $T(p)$ 与 $V(q)$ 互不耦合的性质，把同步外推拆成相平面上两次交替的 shear（错切）变换——每次固定一个坐标，只平移另一个坐标：
 
-1. **先固定 $q_n$ 更新动量 $p$**（竖直错切）：
+1. 先固定 $q_n$ 更新动量 $p$（竖直错切）：
 
 $$
 p_{n+1} = p_n - V'(q_n)\Delta t, \qquad
@@ -180,7 +197,7 @@ J_1 = \frac{\partial (q_n, p_{n+1})}{\partial (q_n, p_n)} =
 \end{bmatrix}
 $$
 
-2. **再固定刚算出的新动量 $p_{n+1}$ 更新位置 $q$**（水平错切）：
+2. 再固定刚算出的新动量 $p_{n+1}$ 更新位置 $q$（水平错切）：
 
 $$
 q_{n+1} = q_n + T'(p_{n+1})\Delta t, \qquad
@@ -191,7 +208,7 @@ J_2 = \frac{\partial (q_{n+1}, p_{n+1})}{\partial (q_n, p_{n+1})} =
 \end{bmatrix}
 $$
 
-两个三角矩阵的主对角元均为 $1$，因此每次错切都精确保持相面积（$\det J_1 = \det J_2 = 1$）。按链式法则将两步复合，由于 $q_{n+1}$ 中代入了随 $q_n$ 变化的 $p_{n+1}$，单步总 Jacobian 变为：
+两个三角矩阵的主对角元均为 $1$，每次错切都精确保持相面积（$\det J_1 = \det J_2 = 1$）。按链式法则将两步复合，由于 $q_{n+1}$ 中代入了随 $q_n$ 变化的 $p_{n+1}$，单步总 Jacobian 变为：
 
 $$
 J_{\mathrm{SE}} = \frac{\partial (q_{n+1}, p_{n+1})}{\partial (q_n, p_n)} = J_2 J_1 =
@@ -201,23 +218,28 @@ J_{\mathrm{SE}} = \frac{\partial (q_{n+1}, p_{n+1})}{\partial (q_n, p_n)} = J_2 
 \end{bmatrix}
 $$
 
-左上角由链式法则自然带出的 $-T''(p_{n+1})V''(q_n)\Delta t^2$ **恰好抵消**了副对角线的乘积，从而对任意步长 $\Delta t$ 恒有：
-
-$$
-J_{\mathrm{SE}}^{\top}\Omega J_{\mathrm{SE}} = (\det J_2 \det J_1)\,\Omega = \Omega
-$$
+左上角由链式法则自然带出的 $-T''(p_{n+1})V''(q_n)\Delta t^2$ 恰好抵消了副对角线乘积，对任意 $\Delta t$ 恒有 $J_{\mathrm{SE}}^{\top}\Omega J_{\mathrm{SE}} = \Omega$。
 
 <SymplecticPhaseSpaceFigure />
 
-将 $q_n = x^n$、$p_n = Mv^n$ 以及 $-\nabla V(q_n) = f(x^n)$ 代回，即得前文先更新 $v^{n+1}$、再用 $v^{n+1}$ 更新 $x^{n+1}$ 的 **Symplectic Euler**。若调换两次错切的先后顺序——先固定 $v^n$ 做水平错切得到 $x^{n+1} = x^n + \Delta t v^n$，再用新位置上的力 $f(x^{n+1})$ 做竖直错切得到 $v^{n+1} = v^n + \Delta t M^{-1}f(x^{n+1})$——同样是 $\det J = 1$ 的显式辛格式，两者互为伴随变体。
+将 $q_n = x_n$、$p_n = Mv_n$ 与 $-\nabla V(q_n) = f(x_n)$ 代回，就自然得到了 **Symplectic Euler**（又称 Semi-Implicit Euler）：
+
+$$
+\begin{aligned}
+v_{n+1} &= v_{n} + \Delta t M^{-1}f(x_{n})\\
+x_{n+1} &= x_{n} + \Delta t v_{n+1}
+\end{aligned}
+$$
+
+若调换两次错切顺序——先用旧速度做水平错切 $x_{n+1} = x_n + \Delta t v_n$，再用新位置上的力做竖直错切 $v_{n+1} = v_n + \Delta t M^{-1}f(x_{n+1})$——同样满足 $\det J = 1$，两者互为伴随变体。（若进一步将这两个互为伴随的一阶辛欧拉半步对称拼合，即先走半步速度、再走整步位置、最后走半步速度，便会消去一阶误差项，升级为二阶精度的 Störmer–Verlet / Leapfrog 格式。）
 
 ## 高维与非分离 Hamiltonian 下的严格辛性
 
-上面的推导在一维下利用了 $\det J = 1 \iff J^{\top}\Omega J = \Omega$。推广到多自由度系统甚至不可分离的 Hamiltonian 时，需要直接验证完整的矩阵条件 $J^{\top}\Omega J = \Omega$。
+一维推导利用了 $\det J = 1 \iff J^{\top}\Omega J = \Omega$。推广到多自由度网格或不可分离的 Hamiltonian 时，需要直接验证完整的分块矩阵条件 $J^{\top}\Omega J = \Omega$。
 
 ### 高维可分离系统：对称 Hessian 保证分块错切保辛
 
-当 $q, p \in \mathbb{R}^d$（例如包含 $N$ 个顶点的三维网格有 $d = 3N$）时，$\det J = 1$ 只是保辛的必要条件而非充分条件。此时两步交替更新 $p_{n+1} = p_n - \nabla V(q_n)\Delta t$ 与 $q_{n+1} = q_n + \nabla T(p_{n+1})\Delta t$ 对应的分块 Jacobian 为：
+当 $q, p \in \mathbb{R}^d$（$d > 1$，例如含 $N$ 个顶点的三维网格有 $d = 3N$）时，两边取行列式结合 $J(\Delta t = 0) = I$ 虽仍能从 $J^{\top}\Omega J = \Omega$ 推出相体积守恒 $\det J = 1$，但反过来 $\det J = 1$ 已不足以保证保辛（还需保持每一对共轭坐标平面上的投影有向面积之和）。此时两步交替更新对应的分块 Jacobian 为：
 
 $$
 J_1 = \begin{bmatrix} I & 0 \\ -\nabla^2 V(q_n)\Delta t & I \end{bmatrix}, \qquad
@@ -239,17 +261,13 @@ J_1^{\top}\Omega J_1
 \end{aligned}
 $$
 
-注意左上角之所以精确归零，正是因为保守力来源于标量势函数 $f(q) = -\nabla V(q)$，其导数矩阵（Hessian $\nabla^2 V$）**必然对称**（若受力是非保守旋度场，即便只做动量更新也不再保辛）。同理，由于动能 Hessian $\nabla^2 T(p_{n+1})$（在 $T(p) = \frac{1}{2}p^{\top}M^{-1}p$ 下即对称矩阵 $M^{-1}$）对称，也有 $J_2^{\top}\Omega J_2 = \Omega$。于是两步复合仍然严格保辛：
-
-$$
-J_{\mathrm{SE}}^{\top}\Omega J_{\mathrm{SE}} = (J_2 J_1)^{\top}\Omega(J_2 J_1) = J_1^{\top}(J_2^{\top}\Omega J_2)J_1 = \Omega
-$$
+左上角之所以精确归零，是因为保守力来源于标量势函数 $f(q) = -\nabla V(q)$，其导数矩阵（Hessian $\nabla^2 V$）必然对称；若受力是非保守旋度场，即便只做动量更新也不再保辛。同理，动能 Hessian $\nabla^2 T(p_{n+1}) = M^{-1}$ 对称保证了 $J_2^{\top}\Omega J_2 = \Omega$，两步复合依然严格满足 $J_{\mathrm{SE}}^{\top}\Omega J_{\mathrm{SE}} = J_1^{\top}(J_2^{\top}\Omega J_2)J_1 = \Omega$。
 
 ### 一般非分离系统：混合点求值与 Semi-Implicit 的由来
 
-更一般地，如果 $H(q, p)$ 不能拆成互不耦合的 $T(p) + V(q)$（例如广义坐标下质量矩阵随位形变化的铰接多体系统 $H(q, p) = \frac{1}{2}p^{\top}M(q)^{-1}p + V(q)$，或带磁矢势的带电粒子），交叉二阶偏导 $H_{qp} = \frac{\partial(\nabla_q H)}{\partial p} \neq 0$。此时若第一步仍在旧点 $(q_n, p_n)$ 处求导，对角块 $\frac{\partial p_{n+1}}{\partial p_n} = I - \Delta t\,H_{qp}$ 已不再是单位阵，错切结构随即失效。
+如果 $H(q, p)$ 不能拆成互不耦合的 $T(p) + V(q)$（例如广义坐标下质量矩阵随位形变化的铰接多体系统 $H(q, p) = \frac{1}{2}p^{\top}M(q)^{-1}p + V(q)$，或带磁矢势的带电粒子），交叉二阶偏导 $H_{qp} = \frac{\partial(\nabla_q H)}{\partial p} \neq 0$。此时若第一步仍在旧点 $(q_n, p_n)$ 处求导，对角块 $\frac{\partial p_{n+1}}{\partial p_n} = I - \Delta t\,H_{qp}$ 已不再是单位阵，错切结构随即失效。
 
-一般形式的 **Symplectic Euler** 通过将两个偏导数统一取在**混合状态** $(q_n, p_{n+1})$ 处来恢复辛结构 [@hairer2006geometric]：
+一般形式的 Symplectic Euler 通过将两个偏导数统一取在混合状态 $(q_n, p_{n+1})$ 处来恢复辛结构：
 
 $$
 \begin{aligned}
@@ -288,15 +306,15 @@ $$
 J^{\top}\Omega J = B^{-\top}\left(A^{\top}\Omega A\right)B^{-1} = B^{-\top}\left(B^{\top}\Omega B\right)B^{-1} = \Omega
 $$
 
-这一推广也解释了 **Semi-Implicit Euler** 这一名称的真正含义：在一般非分离系统下，第一式右端含有未知的 $p_{n+1}$，需要隐式求解，而第二式在求得 $p_{n+1}$ 后直接显式代入，整个格式“半隐半显”。只是在笛卡尔坐标牛顿力学常见的可分离系统 $H(q, p) = T(p) + V(q)$ 中，$\nabla_q H(q_n, p_{n+1}) = \nabla V(q_n)$ 恰好不含 $p_{n+1}$（$H_{qp} = 0$，$B = J_1^{-1}$，$A = J_2$），隐式方程自动退化成了无需迭代的显式更新。
+这一推广也解释了 Semi-Implicit Euler 这一名称的真正由来：在一般非分离系统下，第一式右端含有未知的 $p_{n+1}$，需要隐式求解，而第二式在求得 $p_{n+1}$ 后直接显式代入，整个格式“半隐半显”。只是在笛卡尔坐标牛顿力学常见的可分离系统 $H(q, p) = T(p) + V(q)$ 中，$\nabla_q H(q_n, p_{n+1}) = \nabla V(q_n)$ 恰好不含 $p_{n+1}$（$H_{qp} = 0$，$B = J_1^{-1}$，$A = J_2$），隐式方程自动退化成了无需迭代的显式更新。
 
-## Shadow Hamiltonian 与条件稳定阈值
+## Shadow Hamiltonian、稳定阈值与方法选型
 
-严格保持辛结构并不意味着每一步都精确守恒原始能量 $H(q_n, p_n)$。事实上，Ge–Marsden 定理指出：对一般非可积哈密顿系统，固定步长的辛积分器不可能在严格保辛的同时精确守恒原 Hamiltonian，否则它只能是精确轨迹的时间重参数化 [@zhong1988lie]。
+严格保辛并不意味着每一步都精确守恒原始能量 $H(q_n, p_n)$。Ge–Marsden 定理指出：对一般非可积哈密顿系统，固定步长的辛积分器不可能在严格保辛的同时精确守恒原 Hamiltonian，否则它只能是精确轨迹的时间重参数化。
 
-Symplectic Euler 之所以不会发生长期能量漂移，是因为 backward error analysis 保证辛积分器的离散轨迹在指数级长的时间尺度上精确（或高精度）落在某个微扰后的 **Shadow Hamiltonian** $\tilde{H}(q, p) = H(q, p) + O(\Delta t)$ 的等值面上 [@hairer2006geometric]。
+Symplectic Euler 之所以不会发生长期能量漂移，是因为 backward error analysis 保证辛积分器的离散轨迹在指数级长的时间尺度上精确（或高精度）落在某个微扰后的 **Shadow Hamiltonian** $\tilde{H}(q, p) = H(q, p) + O(\Delta t)$ 的等值面上。
 
-在一维弹簧振子 $H(q, p) = \frac{p^2}{2m} + \frac{1}{2}kq^2$ 上，可以不用渐近级数，直接写出精确封闭的 $\tilde{H}$。利用两步更新关系 $p_n = p_{n+1} + k\Delta t\,q_n$ 与 $q_{n+1} = q_n + \frac{\Delta t}{m}p_{n+1}$，将前后两步的 $H - \frac{k\Delta t}{2m}qp$ 同时用中间量 $(q_n, p_{n+1})$ 展开：
+在一维弹簧振子 $H(q, p) = \frac{p^2}{2m} + \frac{1}{2}kq^2$ 上，可以直接配出精确封闭的 $\tilde{H}$。利用两步更新关系 $p_n = p_{n+1} + k\Delta t\,q_n$ 与 $q_{n+1} = q_n + \frac{\Delta t}{m}p_{n+1}$，将前后两步的 $H - \frac{k\Delta t}{2m}qp$ 同时用中间量 $(q_n, p_{n+1})$ 展开：
 
 $$
 \begin{aligned}
@@ -308,7 +326,7 @@ H(q_n, p_n) - \frac{k\Delta t}{2m}q_n p_n
 \end{aligned}
 $$
 
-于是，离散轨迹在每一步都**精确守恒**如下二次型 Shadow Hamiltonian：
+于是，离散轨迹在每一步都精确守恒如下二次型 Shadow Hamiltonian：
 
 $$
 \tilde{H}(q, p) = \frac{p^2}{2m} + \frac{1}{2}kq^2 - \frac{k\Delta t}{2m}qp
@@ -318,10 +336,10 @@ $$
 \begin{bmatrix} q \\ p \end{bmatrix}
 $$
 
-从这个守恒量可以直接读出两条核心性质：
+从这个守恒量可以直接读出两条性质：
 
-1. **真实能量的 $O(\Delta t)$ 有界振荡**：当上式矩阵正定时，$\tilde{H}(q, p) = \tilde{H}(q_0, p_0)$ 是相平面上一条略微倾斜的闭合椭圆（即相空间对比图中贴合单位圆的实线轨迹）。离散状态点永远被限制在这条闭合椭圆上，因此真实能量 $H(q_n, p_n) = \tilde{H}(q_0, p_0) + \frac{k\Delta t}{2m}q_n p_n$ 不可能单向发散或衰减，只会在初值附近做幅度为 $O(\Delta t)$ 的周期性有界波动。
-2. **精确的条件稳定步长上限**：由于左上角 $k > 0$，二次型 $\tilde{H}$ 正定当且仅当其矩阵行列式严格大于零：
+1. 真实能量的 $O(\Delta t)$ 有界振荡：当上式矩阵正定时，$\tilde{H}(q, p) = \tilde{H}(q_0, p_0)$ 是相平面上一条略微倾斜的闭合椭圆（即前文相空间图中贴合单位圆的实线轨迹）。离散状态永远被限制在这条闭合椭圆上，因此真实能量 $H(q_n, p_n) = \tilde{H}(q_0, p_0) + \frac{k\Delta t}{2m}q_n p_n$ 不可能单向发散或衰减，只会在初值附近做幅度为 $O(\Delta t)$ 的周期性有界波动。
+2. 精确的条件稳定步长上限：由于左上角 $k > 0$，二次型 $\tilde{H}$ 正定当且仅当其矩阵行列式严格大于零：
 
 $$
 k \cdot \frac{1}{m} - \left(\frac{k\Delta t}{2m}\right)^2 > 0
@@ -329,14 +347,14 @@ k \cdot \frac{1}{m} - \left(\frac{k\Delta t}{2m}\right)^2 > 0
 \iff \Delta t < \frac{2}{\omega}, \qquad \omega = \sqrt{\frac{k}{m}}
 $$
 
-这与单步转移矩阵 $J_{\mathrm{SE}}$ 的特征方程 $\lambda^2 - (2 - \omega^2\Delta t^2)\lambda + 1 = 0$ 给出完全一致的判据：当 $\Delta t < \frac{2}{\omega}$ 时判别式小于零，一对共轭复特征值的模长恒为 $|\lambda| = \sqrt{\det J_{\mathrm{SE}}} = 1$；一旦步长越过阈值 $\Delta t > \frac{2}{\omega}$，二次型 $\tilde{H}$ 变为不定型，原本闭合的阴影椭圆撕裂成双曲线（尽管每步相面积依然满足 $\det J_{\mathrm{SE}} = 1$），状态点便会沿双曲线渐近线发散。
+这也把全文的谱半径分析与相空间几何分析完全统一起来：$J_{\mathrm{SE}}$ 的特征方程为 $\lambda^2 - (2 - \omega^2\Delta t^2)\lambda + 1 = 0$。当 $\Delta t < \frac{2}{\omega}$ 时判别式小于零，一对共轭复特征值的模长恒为 $|\lambda_{1,2}| = \sqrt{\det J_{\mathrm{SE}}} = 1$，恰好落在单位圆上；一旦步长越过阈值 $\Delta t > \frac{2}{\omega}$，二次型 $\tilde{H}$ 变为不定型，两个实特征值虽然乘积仍满足 $\lambda_1\lambda_2 = \det J_{\mathrm{SE}} = 1$，但其中一个模长严格大于 $1$，闭合阴影椭圆撕裂成双曲线，状态点便沿双曲线渐近线发散。
 
-这也清晰划定了工程仿真中的方法边界 [@li2026physics]：
+综合收敛阶数、单步开销、谱半径与辛结构，三种一阶欧拉时间积分的边界对比如下：
 
-| 积分格式 | 单步求解开销 | 谐振子 $\det J$ | 稳定性条件 | 长期能量表现 |
-| --- | --- | --- | --- | --- |
-| **Forward Euler** | 显式，极低 | $1 + \omega^2\Delta t^2 > 1$ | 无条件不稳定 | 相面积持续膨胀，能量单调发散 |
-| **Symplectic Euler** | 显式，极低 | $1$ | 条件稳定（$\Delta t < \frac{2}{\omega}$） | 精确守恒 $\tilde{H}$，真实能量有界振荡 |
-| **Backward Euler** | 隐式，需解方程组 | $(1 + \omega^2\Delta t^2)^{-1} < 1$ | 无条件稳定 | 相面积持续收缩，产生数值阻尼 |
+| 积分格式 | 全局精度 | 单步求解开销 | 谐振子 $|\lambda|$ 与 $\det J$ | 稳定性条件 | 长期能量表现 |
+| --- | --- | --- | --- | --- | --- |
+| Forward Euler | $O(\Delta t)$ | 显式，极低 | $|\lambda| = \sqrt{1 + \omega^2\Delta t^2} > 1$，$\det J > 1$ | 振荡无条件失稳 | 相面积持续膨胀，能量单调发散 |
+| Symplectic Euler | $O(\Delta t)$ | 显式（可分离系统），极低 | $|\lambda| = 1$（稳定步长内），$\det J = 1$ | 条件稳定（$\Delta t < \frac{2}{\omega}$） | 精确守恒 $\tilde{H}$，真实能量有界振荡 |
+| Backward Euler | $O(\Delta t)$ | 隐式，需 Newton 迭代与线性求解 | $|\lambda| = (1 + \omega^2\Delta t^2)^{-1/2} < 1$，$\det J < 1$ | 无条件稳定（A/L-stable） | 相面积持续收缩，产生数值阻尼 |
 
-当系统最高固有频率 $\omega_{\max}$ 适中时，Symplectic Euler 以显式格式的计算代价同时保证了稳定性与长期能量守恒；而面对刚度极高（$k \gg m$ 导致 $2/\omega_{\max}$ 极小）的布料、弹性体或接触问题时，显式步长受限于稳定性上限，才需要转向无条件稳定的隐式时间积分。
+在工程仿真中，Forward Euler 因振荡失稳极少直接用于二阶力学系统；当系统最高固有频率 $\omega_{\max}$ 适中时，Symplectic Euler 以显式计算的低成本同时保证了稳定性与长期能量守恒；而面对杨氏模量极高或网格极密（导致 $\omega_{\max}$ 巨大、显式稳定步长 $2/\omega_{\max}$ 苛刻）的刚性弹性体、布料与接触仿真时，则通常采用基于 Incremental Potential 优化的 Backward Euler 等隐式积分器以换取大步长稳定性。
