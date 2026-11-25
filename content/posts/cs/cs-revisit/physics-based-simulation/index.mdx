@@ -69,34 +69,12 @@ $$
 
 $$
 \begin{aligned}
-q_{n+1} &= q_n + \frac{\partial H}{\partial p_n}\Delta t\\
-p_{n+1} &= p_{n}-\frac{\partial H}{\partial q_n}\Delta t
+q_{n+1} &= q_n + \frac{\partial H}{\partial p}(q_n, p_n)\Delta t\\
+p_{n+1} &= p_{n}-\frac{\partial H}{\partial q}(q_n, p_n)\Delta t
 \end{aligned}
 $$
 
-如果我们直接把 $q$ 和 $p$ 压到一个向量里：
-
-$$
-\begin{bmatrix}
-q_{n+1}\\p_{n+1}
-\end{bmatrix}
-=
-\begin{bmatrix}
-q_{n}\\p_{n}
-\end{bmatrix}
-+
-\Delta t\begin{bmatrix}
-0&I\\-I&0
-\end{bmatrix}\nabla H
-$$
-
-为了方便我们记 $z_n = \begin{bmatrix}q_{n}\\p_{n}\end{bmatrix}$ 来代表相空间，$\Omega = \begin{bmatrix}0&I\\-I&0\end{bmatrix}$：
-
-$$
-z_{n+1} = z_n+\Delta t\Omega\nabla H(z_n)
-$$
-
-在物理里，我们有个性质，就是这个相空间
+我们希望
 
 $$
 \left(\frac{\partial z_{n+1}}{\partial z_n}\right)^{\top}\Omega\left(\frac{\partial z_{n+1}}{\partial z_n}\right) = \Omega
