@@ -1,0 +1,185 @@
+/* SymplecticPhaseSpaceFigure */
+.pbs-ps {
+  margin: 1.5rem 0;
+}
+
+.pbs-ps-panel {
+  padding: 0.9rem 1rem 0.95rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--paper-bg);
+}
+
+.pbs-ps-scroll {
+  overflow-x: auto;
+}
+
+.pbs-ps-stage {
+  position: relative;
+  width: 100%;
+  min-width: 590px;
+}
+
+.pbs-ps-stage svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: inherit;
+  fill: var(--text-color);
+}
+
+.pbs-ps-heading {
+  fill: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+}
+
+.pbs-ps-plot-bg {
+  fill: color-mix(in oklab, var(--surface-soft) 36%, var(--paper-bg));
+  stroke: color-mix(in oklab, var(--border-color) 55%, transparent);
+  stroke-width: 1.1;
+}
+
+.pbs-ps-axis {
+  stroke: color-mix(in oklab, var(--text-secondary) 62%, transparent);
+  stroke-width: 1.2;
+}
+
+.pbs-ps-axis-head {
+  fill: color-mix(in oklab, var(--text-secondary) 78%, transparent);
+}
+
+.pbs-ps-exact-curve {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+  stroke-dasharray: 3.5 3.5;
+}
+
+.pbs-ps-fe-curve {
+  fill: none;
+  stroke: var(--accent-rose);
+  stroke-width: 1.85;
+  stroke-dasharray: 6 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pbs-ps-se-curve {
+  fill: none;
+  stroke: var(--accent-teal);
+  stroke-width: 1.95;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pbs-ps-fe-step {
+  fill: none;
+  stroke: var(--accent-rose);
+  stroke-width: 2.05;
+  stroke-dasharray: 5.5 3.2;
+  stroke-linecap: round;
+}
+
+.pbs-ps-se-step {
+  fill: none;
+  stroke: var(--accent-teal);
+  stroke-width: 2.15;
+  stroke-linecap: round;
+}
+
+.pbs-ps-overshoot-guide {
+  stroke: color-mix(in oklab, var(--accent-rose) 48%, transparent);
+  stroke-width: 1.25;
+  stroke-dasharray: 2.5 2.5;
+}
+
+.pbs-ps-fe-head {
+  fill: var(--accent-rose);
+}
+
+.pbs-ps-se-head {
+  fill: var(--accent-teal);
+}
+
+.pbs-ps-fe-dot,
+.pbs-ps-fe-dot-lg {
+  fill: var(--paper-bg);
+  stroke: var(--accent-rose);
+  stroke-width: 1.75;
+}
+
+.pbs-ps-se-dot,
+.pbs-ps-se-dot-lg {
+  fill: var(--accent-teal);
+  stroke: var(--paper-bg);
+  stroke-width: 1.4;
+}
+
+.pbs-ps-shear-mid {
+  fill: color-mix(in oklab, var(--accent-teal) 24%, var(--paper-bg));
+  stroke: var(--accent-teal);
+  stroke-width: 1.75;
+}
+
+.pbs-ps-start-dot {
+  fill: var(--text-color);
+  stroke: var(--paper-bg);
+  stroke-width: 1.6;
+}
+
+.pbs-ps-legend {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
+
+.pbs-ps-tex {
+  position: absolute;
+  left: var(--pbs-ps-x);
+  top: var(--pbs-ps-y);
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.pbs-ps-tex mjx-container {
+  margin: 0;
+}
+
+.pbs-ps-tex-center {
+  transform: translate(-50%, -50%);
+}
+
+.pbs-ps-tex-start {
+  transform: translate(0, -50%);
+}
+
+.pbs-ps-tex-end {
+  transform: translate(-100%, -50%);
+}
+
+.pbs-ps-axis-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.pbs-ps-state-label {
+  color: var(--text-color);
+  font-size: 0.88rem;
+}
+
+.pbs-ps-role-fe {
+  color: var(--accent-rose);
+}
+
+.pbs-ps-role-se {
+  color: var(--accent-teal);
+}
+
+.pbs-ps figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}

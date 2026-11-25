@@ -1,6 +1,7 @@
 ---
 title: "Physics-Based Simulation"
 date: "2026-11-22"
+updated: "2026-11-25"
 authors:
   - "Fanyi Pu"
   - "Gemini 4 Neon"
@@ -66,80 +67,172 @@ $$
 
 这个就是 **Forward Euler**。
 
-这里有一个问题，可能需要用到物理知识，我来尝试解释一下。就是我们从 Hamitonian 的视角看这个转移：
+Forward Euler 虽然直接，但它是 **unconditionally unstable** 的：哪怕在最简单的无阻尼弹簧振子（$m\ddot{x} = -kx$）或匀速圆周运动这类保守系统上，无论把时间步长 $\Delta t > 0$ 取多小，每一步沿着当前切线同时外推位置和速度都会让状态冲出等能面外侧，导致数值解向外螺旋发散、系统能量不断膨胀。
+
+要看清能量发散的根源并找到修复方案，可以从 **Hamiltonian** 的视角审视这一状态转移。对于保守力系统 $f(x) = -\nabla V(x)$，令广义坐标 $q = x$、广义动量 $p = Mv$，系统的总能量（Hamiltonian）可分离为动能与势能之和：
+
+$$
+H(q, p) = T(p) + V(q) = \frac{1}{2}p^{\top}M^{-1}p + V(q)
+$$
+
+此时 $\frac{\partial H}{\partial p} = M^{-1}p = v$、$-\frac{\partial H}{\partial q} = -\nabla V(q) = f(q)$，牛顿第二定律等价于 Hamilton 方程：
+
+$$
+\dot{q} = \frac{\partial H}{\partial p}(q, p), \qquad \dot{p} = -\frac{\partial H}{\partial q}(q, p)
+$$
+
+记 phase space 状态向量为 $z = \begin{bmatrix} q \\ p \end{bmatrix}$，引入反对称的 symplectic matrix $\Omega = \begin{bmatrix} 0 & I \\ -I & 0 \end{bmatrix}$，上式即可紧凑地写为 $\dot{z} = \Omega\nabla H(z)$。
+
+真实物理系统的连续演化是一个 **symplectic map**。记单步离散转移 $z_n \mapsto z_{n+1}$ 的 Jacobian 为 $J = \frac{\partial z_{n+1}}{\partial z_n}$，我们希望离散积分器同样保持这一几何结构：
+
+$$
+J^{\top}\Omega J = \Omega
+$$
+
+不妨先在一维单自由度（$q, p \in \mathbb{R}$，此时 $\Omega = \begin{bmatrix} 0 & 1 \\ -1 & 0 \end{bmatrix}$）下看它的几何意义。对任意 $2 \times 2$ 矩阵 $J = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$，直接展开有
+
+$$
+J^{\top}\Omega J = \begin{bmatrix} 0 & ad - bc \\ -(ad - bc) & 0 \end{bmatrix} = (\det J)\,\Omega
+$$
+
+因此在一维情形下，$J^{\top}\Omega J = \Omega$ 等价于 **$\det J = 1$**，即每一步更新都严格保持 $(q, p)$ 相平面上的有向面积（高维下则要求在每一对共轭坐标 $(q_i, p_i)$ 平面上的投影有向面积之和守恒，同样蕴含相体积守恒 $\det J = 1$）。由于保守系统的等能轨道在相平面上围成固定面积的闭合曲线（例如弹簧振子的椭圆），一旦每一步都将相面积放大（$\det J > 1$），闭合轨道便无法维持，状态必然向外螺旋漂移至更高能级；反之若每一步压缩相面积（$\det J < 1$），轨道则会向内收缩、产生人为的数值阻尼。
+
+现在用这一判据检验一维下的 **Forward Euler**。它在旧状态 $(q_n, p_n)$ 处同时离散两个偏导数：
 
 $$
 \begin{aligned}
 q_{n+1} &= q_n + \frac{\partial H}{\partial p}(q_n, p_n)\Delta t\\
-p_{n+1} &= p_{n}-\frac{\partial H}{\partial q}(q_n, p_n)\Delta t
+p_{n+1} &= p_{n} - \frac{\partial H}{\partial q}(q_n, p_n)\Delta t
 \end{aligned}
 $$
 
-我们希望
+在 $(q_n, p_n)$ 处求导得到单步 Jacobian：
 
 $$
-\left(\frac{\partial z_{n+1}}{\partial z_n}\right)^{\top}\Omega\left(\frac{\partial z_{n+1}}{\partial z_n}\right) = \Omega
-$$
-
-$$
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
+J_{\mathrm{FE}} = \frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
 =
 \begin{bmatrix}
-1 + \frac{\partial^2 H}{\partial q_n\partial p_n}\Delta t & \frac{\partial^2 H}{\partial p_n^2}\Delta t\\
--\frac{\partial^2 H}{\partial q_n^2}\Delta t & 1 - \frac{\partial^2 H}{\partial p_n\partial q_n}\Delta t
+1 + \frac{\partial^2 H}{\partial q\partial p}\Delta t & \frac{\partial^2 H}{\partial p^2}\Delta t\\[6pt]
+-\frac{\partial^2 H}{\partial q^2}\Delta t & 1 - \frac{\partial^2 H}{\partial p\partial q}\Delta t
 \end{bmatrix}
 $$
 
+代入辛条件可得：
+
 $$
-\left(
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-\right)^{\top}\Omega\left(
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-\right) = 
+J_{\mathrm{FE}}^{\top}\Omega J_{\mathrm{FE}} =
 \left[
-1+
+1 +
 \left(
-\frac{\partial^2H}{\partial q_n^2}
-\frac{\partial^2H}{\partial p_n^2}
+\frac{\partial^2 H}{\partial q^2}
+\frac{\partial^2 H}{\partial p^2}
 -
 \left(
-\frac{\partial^2H}{\partial q_n\partial p_n}
+\frac{\partial^2 H}{\partial q\partial p}
 \right)^2
 \right)\Delta t^2
 \right]\Omega
 $$
+
+对于力学系统 $H(q, p) = \frac{p^2}{2m} + V(q)$，混合偏导 $\frac{\partial^2 H}{\partial q\partial p} = 0$，且 $\frac{\partial^2 H}{\partial p^2} = \frac{1}{m} > 0$。在任意稳定平衡点附近（$V''(q) > 0$，例如弹簧势能 $V(q) = \frac{1}{2}kq^2$ 有 $\frac{\partial^2 H}{\partial q^2} = k > 0$），括号内的系数恒为 $1 + \frac{k}{m}\Delta t^2 > 1$。无论 $\Delta t$ 多小，Forward Euler 每一步都会把相面积乘上 $1 + \frac{k}{m}\Delta t^2$，这正是能量单调爆炸的原因。
+
+进一步观察 $H(q, p) = T(p) + V(q)$ 下 $\det J_{\mathrm{FE}}$ 偏离 $1$ 的来源：
+
+$$
+J_{\mathrm{FE}} =
+\begin{bmatrix}
+1 & T''(p_n)\Delta t \\
+-V''(q_n)\Delta t & 1
+\end{bmatrix}
+$$
+
+由于 $q_{n+1}$ 和 $p_{n+1}$ 都只读取旧状态 $(q_n, p_n)$ **同步更新**，主对角元保持为 $1$，而两个副对角元同时非零，计算行列式时便多出了副对角线乘积 $+T''(p_n)V''(q_n)\Delta t^2$。
+
+要想在不求解隐式方程的前提下严格实现 $\det J = 1$，可以利用 $H(q, p) = T(p) + V(q)$ **动能与势能分离**（$\frac{\partial H}{\partial q} = V'(q)$ 只依赖 $q$，$\frac{\partial H}{\partial p} = T'(p)$ 只依赖 $p$）的结构，把一步更新拆成相平面上两次**交替的 shear（错切）变换**——每次固定一个变量，只更新另一个变量：
+
+1. **先固定 $q_n$ 更新动量 $p$**（竖直错切）：
+
+$$
+p_{n+1} = p_n - V'(q_n)\Delta t, \qquad
+J_1 = \frac{\partial (q_n, p_{n+1})}{\partial (q_n, p_n)} =
+\begin{bmatrix}
+1 & 0 \\
+-V''(q_n)\Delta t & 1
+\end{bmatrix}
+$$
+
+2. **再固定刚算出的新动量 $p_{n+1}$ 更新位置 $q$**（水平错切）：
+
+$$
+q_{n+1} = q_n + T'(p_{n+1})\Delta t, \qquad
+J_2 = \frac{\partial (q_{n+1}, p_{n+1})}{\partial (q_n, p_{n+1})} =
+\begin{bmatrix}
+1 & T''(p_{n+1})\Delta t \\
+0 & 1
+\end{bmatrix}
+$$
+
+也就是说，状态转移改为分先后两步完成：
 
 $$
 \begin{aligned}
-q_{n+1} &= q_n + \frac{\partial H}{\partial p_{n+1}}\Delta t\\
-p_{n+1} &= p_{n}-\frac{\partial H}{\partial q_n}\Delta t
+p_{n+1} &= p_{n} - \frac{\partial H}{\partial q}(q_n)\Delta t\\
+q_{n+1} &= q_n + \frac{\partial H}{\partial p}(p_{n+1})\Delta t
 \end{aligned}
 $$
 
+两个三角矩阵的对角元均为 $1$，每次错切都精确保持相面积（$\det J_1 = \det J_2 = 1$）。按链式法则将两步复合，由于 $q_{n+1}$ 中代入了随 $q_n$ 变化的 $p_{n+1}$，单步总 Jacobian 变为：
+
 $$
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-=
+J_{\mathrm{SE}} = \frac{\partial (q_{n+1}, p_{n+1})}{\partial (q_n, p_n)} = J_2 J_1 =
 \begin{bmatrix}
-1 + \frac{\partial^2 H}{\partial q_n\partial p_n}\Delta t & \frac{\partial^2 H}{\partial p_n^2}\Delta t\\
--\frac{\partial^2 H}{\partial q_n^2}\Delta t & 1 - \frac{\partial^2 H}{\partial p_n\partial q_n}\Delta t
+1 - T''(p_{n+1})V''(q_n)\Delta t^2 & T''(p_{n+1})\Delta t \\[4pt]
+-V''(q_n)\Delta t & 1
 \end{bmatrix}
 $$
 
+可以看到，左上角由链式法则自然带出的 $-T''(p_{n+1})V''(q_n)\Delta t^2$ **恰好抵消**了副对角线的乘积，从而对任意步长 $\Delta t$ 恒有：
+
 $$
-\left(
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-\right)^{\top}\Omega\left(
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-\right) = 
-\left[
-1+
-\left(
-\frac{\partial^2H}{\partial q_n^2}
-\frac{\partial^2H}{\partial p_n^2}
--
-\left(
-\frac{\partial^2H}{\partial q_n\partial p_n}
-\right)^2
-\right)\Delta t^2
-\right]\Omega
+J_{\mathrm{SE}}^{\top}\Omega J_{\mathrm{SE}} = (\det J_2 \det J_1)\,\Omega = \Omega
 $$
+
+<details>
+<summary>高维系统与一般非分离 Hamiltonian 下的严格辛性验证</summary>
+
+对于高维可分离系统 $q, p \in \mathbb{R}^{2n}$，两步错切对应的分块 Jacobian 分别为
+
+$$
+J_1 = \begin{bmatrix} I & 0 \\ -\nabla^2 V(q_n)\Delta t & I \end{bmatrix}, \qquad
+J_2 = \begin{bmatrix} I & \nabla^2 T(p_{n+1})\Delta t \\ 0 & I \end{bmatrix}
+$$
+
+由于势能与动能的 Hessian 矩阵 $\nabla^2 V(q_n)$ 和 $\nabla^2 T(p_{n+1})$ 均为实对称矩阵，直接分块相乘即可验证 $J_1^{\top}\Omega J_1 = \Omega$ 与 $J_2^{\top}\Omega J_2 = \Omega$，因此复合映射 $J_{\mathrm{SE}} = J_2 J_1$ 严格满足 $J_{\mathrm{SE}}^{\top}\Omega J_{\mathrm{SE}} = J_1^{\top}(J_2^{\top}\Omega J_2)J_1 = \Omega$。
+
+对于不可分离的一般 $H(q, p)$，Symplectic Euler 则将两个偏导数统一取在混合状态 $(q_n, p_{n+1})$ 处：
+
+$$
+\begin{aligned}
+p_{n+1} &= p_n - \frac{\partial H}{\partial q}(q_n, p_{n+1})\Delta t\\
+q_{n+1} &= q_n + \frac{\partial H}{\partial p}(q_n, p_{n+1})\Delta t
+\end{aligned}
+$$
+
+在一般情形下第一式关于 $p_{n+1}$ 是隐式的；但在牛顿力学常见的可分离系统 $H(q, p) = T(p) + V(q)$ 中，$\frac{\partial H}{\partial q}$ 不依赖 $p_{n+1}$，该格式便自动退化为完全 explicit 的两步交替更新。
+
+</details>
+
+<SymplecticPhaseSpaceFigure />
+
+把 $q_n = x^n$、$p_n = Mv^n$ 以及 $-\nabla V(q_n) = f^n$ 代回上面的交替更新，就自然得到了牛顿第二定律下的 **Symplectic Euler**（又称 Semi-Implicit Euler）：
+
+$$
+\begin{aligned}
+v^{n+1} &= v^{n} + \Delta t M^{-1}f^{n}\\
+x^{n+1} &= x^{n} + \Delta t v^{n+1}
+\end{aligned}
+$$
+
+（若反过来先固定 $v^n$ 做水平错切得到 $x^{n+1} = x^n + \Delta t v^n$，再用新位置上的力 $f(x^{n+1})$ 做竖直错切更新 $v^{n+1}$，同样满足 $J^{\top}\Omega J = \Omega$，是它的对称变体。）
+
+对比 Forward Euler，代码上唯一的区别只是**先算出新速度 $v^{n+1}$，并立刻用 $v^{n+1}$ 而不是旧速度 $v^n$ 去更新位置 $x^{n+1}$**，整个推进过程依然是完全 explicit 的。但定性稳定性发生了本质变化：以固有频率 $\omega = \sqrt{k/m}$ 的一维弹簧振子为例，$J_{\mathrm{SE}}$ 的特征方程为 $\lambda^2 - (2 - \omega^2\Delta t^2)\lambda + 1 = 0$。只要步长满足 $\Delta t < \frac{2}{\omega}$，判别式小于零，一对共轭复特征值的模长恒为 $|\lambda| = \sqrt{\det J_{\mathrm{SE}}} = 1$。因此 Symplectic Euler 是 **conditionally stable** 的——在稳定步长上限内，数值轨迹既不会像 Forward Euler 那样向外爆炸，也不会凭空耗散停止，系统总能量始终在真实能量附近做有界振荡。
