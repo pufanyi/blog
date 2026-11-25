@@ -1,6 +1,7 @@
 ---
 title: "Physics-Based Simulation"
 date: "2026-11-22"
+updated: "2026-11-25"
 authors:
   - "Fanyi Pu"
   - "Gemini 4 Neon"
@@ -64,82 +65,15 @@ v^{n+1} &= v^{n} + \Delta t M^{-1}f^{n}
 \end{aligned}
 $$
 
-这个就是 **Forward Euler**。
+这个就是 **Forward Euler**。但它在振荡保守系统上是 **unconditionally unstable** 的：由于 $x^{n+1}$ 和 $v^{n+1}$ 都只读取旧状态同步外推，每一步都会沿着等能面切线向外冲出并把相空间面积放大 $1 + O(\Delta t^2)$ 倍，无论 $\Delta t > 0$ 多小，轨迹与机械能最终都会发散爆炸。
 
-这里有一个问题，可能需要用到物理知识，我来尝试解释一下。就是我们从 Hamitonian 的视角看这个转移：
-
-$$
-\begin{aligned}
-q_{n+1} &= q_n + \frac{\partial H}{\partial p}(q_n, p_n)\Delta t\\
-p_{n+1} &= p_{n}-\frac{\partial H}{\partial q}(q_n, p_n)\Delta t
-\end{aligned}
-$$
-
-我们希望
-
-$$
-\left(\frac{\partial z_{n+1}}{\partial z_n}\right)^{\top}\Omega\left(\frac{\partial z_{n+1}}{\partial z_n}\right) = \Omega
-$$
-
-$$
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-=
-\begin{bmatrix}
-1 + \frac{\partial^2 H}{\partial q_n\partial p_n}\Delta t & \frac{\partial^2 H}{\partial p_n^2}\Delta t\\
--\frac{\partial^2 H}{\partial q_n^2}\Delta t & 1 - \frac{\partial^2 H}{\partial p_n\partial q_n}\Delta t
-\end{bmatrix}
-$$
-
-$$
-\left(
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-\right)^{\top}\Omega\left(
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-\right) = 
-\left[
-1+
-\left(
-\frac{\partial^2H}{\partial q_n^2}
-\frac{\partial^2H}{\partial p_n^2}
--
-\left(
-\frac{\partial^2H}{\partial q_n\partial p_n}
-\right)^2
-\right)\Delta t^2
-\right]\Omega
-$$
+把同步更新改成先后交替的两步——先算出新速度 $v^{n+1}$，再立刻用 $v^{n+1}$ 更新位置 $x^{n+1}$：
 
 $$
 \begin{aligned}
-q_{n+1} &= q_n + \frac{\partial H}{\partial p_{n+1}}\Delta t\\
-p_{n+1} &= p_{n}-\frac{\partial H}{\partial q_n}\Delta t
+v^{n+1} &= v^{n} + \Delta t M^{-1}f^{n}\\
+x^{n+1} &= x^{n} + \Delta t v^{n+1}
 \end{aligned}
 $$
 
-$$
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-=
-\begin{bmatrix}
-1 + \frac{\partial^2 H}{\partial q_n\partial p_n}\Delta t & \frac{\partial^2 H}{\partial p_n^2}\Delta t\\
--\frac{\partial^2 H}{\partial q_n^2}\Delta t & 1 - \frac{\partial^2 H}{\partial p_n\partial q_n}\Delta t
-\end{bmatrix}
-$$
-
-$$
-\left(
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-\right)^{\top}\Omega\left(
-\frac{\partial (q_{n+1}, p_{n+1})}{\partial(q_n, p_n)}
-\right) = 
-\left[
-1+
-\left(
-\frac{\partial^2H}{\partial q_n^2}
-\frac{\partial^2H}{\partial p_n^2}
--
-\left(
-\frac{\partial^2H}{\partial q_n\partial p_n}
-\right)^2
-\right)\Delta t^2
-\right]\Omega
-$$
+这就是 **Symplectic Euler**（又称 Semi-Implicit Euler）。在相空间 $(q, p) = (x, Mv)$ 中，这两步分别对应竖直与水平方向的三角错切（shear）变换，单步 Jacobian 行列式恒为 $1$，严格保持辛面积结构。它依然完全是 **explicit** 的，同时变为 **conditionally stable**：只要 $\Delta t$ 不超过系统固有频率决定的稳定上限，总能量就会在真实值附近有界振荡而不会发散。关于相空间面积守恒、交替错切推导、Backward Euler 阻尼对比以及 Shadow Hamiltonian 的详细展开，参见专文 [Symplectic Euler](/blog/cs/notes/symplectic-euler)。
