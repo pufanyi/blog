@@ -155,7 +155,7 @@ function SymplecticPhaseSpaceFigure() {
                 y="21"
                 textAnchor="middle"
               >
-                Modal Phase Portrait (ω = 1, Δt = 0.30)
+                Phase Portrait (ω = 1, Δt = 0.30)
               </text>
               <text
                 className="se-ps-heading"
@@ -332,19 +332,19 @@ function SymplecticPhaseSpaceFigure() {
       </div>
 
       <figcaption>
-        高维线性系统在单个归一化主模态共轭平面（
-        <span className="math-inline">{String.raw`\(\omega_i=1,\;H_i(q,p)=\frac{1}{2}(q^2+p^2)\)`}</span>
-        ，双精度递推）上的相空间切片对比。左图从{' '}
+        一维弹簧振子（或高维系统的单个归一化主模态，
+        <span className="math-inline">{String.raw`\(\omega=1,\;H(q,p)=\frac{1}{2}(q^2+p^2)\)`}</span>
+        ，双精度递推）的相空间对比。左图从{' '}
         <span className="math-inline">{String.raw`\((q_0,p_0)=(0.6,0.8)\)`}</span> 出发演化：Forward
-        Euler 在该模态平面上的投影有向面积每步放大{' '}
-        <span className="math-inline">{String.raw`\(1+\Delta t^2\)`}</span> 倍而向外发散，Backward
-        Euler 每步缩小至 <span className="math-inline">{String.raw`\((1+\Delta t^2)^{-1}\)`}</span>{' '}
-        而向内阻尼收缩，Symplectic Euler 则沿闭合倾斜椭圆（阴影超椭球在该模态平面上的截口{' '}
-        <span className="math-inline">{String.raw`\(\hat{H}_i=\mathrm{const}\)`}</span>
+        Euler 相面积每步放大 <span className="math-inline">{String.raw`\(1+\Delta t^2\)`}</span>{' '}
+        倍而向外发散，Backward Euler 每步缩小至{' '}
+        <span className="math-inline">{String.raw`\((1+\Delta t^2)^{-1}\)`}</span>{' '}
+        而向内阻尼收缩，Symplectic Euler 则沿闭合倾斜椭圆（
+        <span className="math-inline">{String.raw`\(\hat{H}=\mathrm{const}\)`}</span>
         ）保持能量有界。右图展示单步几何：Forward Euler 用旧动量{' '}
         <span className="math-inline">{String.raw`\(p_n\)`}</span>{' '}
         沿切线同步外推而冲出等能圆；Symplectic Euler
-        拆为动量与位置两次分块错切，每步严格保持共轭相平面有向面积守恒。
+        拆为竖直与水平两次错切，每步严格保持相平面面积守恒。
       </figcaption>
     </figure>
   );
