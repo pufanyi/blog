@@ -219,11 +219,6 @@ q_{n+1} &= q_n + \Delta t\,\nabla_p H(q_n, p_{n+1})
 \end{aligned}
 $$
 
-这也解释了 Semi-Implicit Euler 这一名称的真正由来：在一般非分离系统下，第一式右端含有未知的 $p_{n+1}$，需要隐式求解，求得后再显式代入第二式更新 $q_{n+1}$，整个格式“半隐半显”。只是在笛卡尔网格仿真常见的可分离系统 $H(q, p) = T(p) + V(q)$ 中，$\nabla_q H(q_n, p_{n+1}) = \nabla V(q_n)$ 恰好不含 $p_{n+1}$，隐式方程自动退化成了无需迭代的显式更新。
-
-<details>
-<summary>补充推导：一般非分离系统的保辛证明</summary>
-
 记混合点 $(q_n, p_{n+1})$ 处的二阶偏导分块为 $H_{qq}$、$H_{pp}$、$H_{qp} = \frac{\partial(\nabla_q H)}{\partial p}$ 与 $H_{pq} = H_{qp}^{\top}$（其中 $H_{qq}, H_{pp}$ 对称）。对两步更新式同时取微分并整理到混合微分 $(\mathrm{d}q_n, \mathrm{d}p_{n+1})$ 上：
 
 $$
@@ -250,7 +245,7 @@ $$
 
 当步长 $\Delta t$ 使 $I + \Delta t\,H_{qp}$ 可逆时，单步 Jacobian $J = A B^{-1}$ 严格满足 $J^{\top}\Omega J = B^{-\top}\left(A^{\top}\Omega A\right)B^{-1} = \Omega$。
 
-</details>
+这也解释了 Semi-Implicit Euler 这一名称的真正由来：在一般非分离系统下，第一式右端含有未知的 $p_{n+1}$，需要隐式求解，求得后再显式代入第二式更新 $q_{n+1}$，整个格式“半隐半显”。只是在笛卡尔网格仿真常见的可分离系统 $H(q, p) = T(p) + V(q)$ 中，$\nabla_q H(q_n, p_{n+1}) = \nabla V(q_n)$ 恰好不含 $p_{n+1}$（$H_{qp} = 0$，$B = J_1^{-1}$，$A = J_2$），隐式方程自动退化成了无需迭代的显式更新。
 
 ## Shadow Hamiltonian
 
@@ -275,24 +270,17 @@ $$
 
 该矩阵正定当且仅当行列式 $\frac{k}{m} - \left(\frac{k\Delta t}{2m}\right)^2 > 0 \iff \Delta t < \frac{2}{\omega}$。满足这一步长条件时，$\hat{H}(q, p) = \text{const}$ 就是前文相空间图中那条略微倾斜的闭合椭圆，离散点永远被锁在椭圆上，真实能量只在初值附近做 $O(\Delta t)$ 的周期性有界波动。
 
-现在将这一结论直接推广到高维耦合弹性系统 $H(q, p) = \frac{1}{2}p^{\top}M^{-1}p + \frac{1}{2}q^{\top}Kq$。将标量 $k$ 与 $\frac{1}{m}$ 替换为刚度矩阵 $K$ 与质量逆矩阵 $M^{-1}$，离散轨迹在每一步都精确守恒如下 $2d$ 维二次型能量（对一般非线性势 $V(q)$，其首阶微扰项同样为 $-\frac{\Delta t}{2}\nabla V(q)^{\top}M^{-1}p$）：
+现在将这一结论推广到高维耦合弹性系统 $H(q, p) = \frac{1}{2}p^{\top}M^{-1}p + \frac{1}{2}q^{\top}Kq$。将标量 $k$ 与 $\frac{1}{m}$ 替换为刚度矩阵 $K$ 与质量逆矩阵 $M^{-1}$，构造如下 $2d$ 维对称分块二次型（对一般非线性势 $V(q)$，首阶微扰项同样为 $-\frac{\Delta t}{2}\nabla V(q)^{\top}M^{-1}p$）：
 
 $$
 \hat{H}(q, p) = \frac{1}{2}p^{\top}M^{-1}p + \frac{1}{2}q^{\top}Kq - \frac{\Delta t}{2}q^{\top}KM^{-1}p
+= \frac{1}{2}
+\begin{bmatrix} q^{\top} & p^{\top} \end{bmatrix}
+\begin{bmatrix} K & -\frac{\Delta t}{2}KM^{-1} \\[4pt] -\frac{\Delta t}{2}M^{-1}K & M^{-1} \end{bmatrix}
+\begin{bmatrix} q \\ p \end{bmatrix}
 $$
 
-在 $\mathbb{R}^{2d}$ 相空间中，要让 $\hat{H}(q, p) = \hat{H}(q_0, p_0)$ 围成一个紧致闭合的高维超椭球面，系统的**全部 $d$ 个主模态**都必须同时处于各自的椭圆稳定区内（$\Delta t < \frac{2}{\omega_i}$）。因此，多自由度系统的全局稳定步长上限由最高固有频率 $\omega_{\max}$ 决定：
-
-$$
-\Delta t < \frac{2}{\omega_{\max}}
-$$
-
-这也把全文的模态谱分析与相空间几何统一起来：当 $\Delta t < \frac{2}{\omega_{\max}}$ 时，所有模态的放大矩阵特征值均满足 $|\lambda| = 1$，系统是 **conditionally stable** 的，总机械能在真实值附近做 $O(\Delta t)$ 有界振荡；一旦步长越过 $\frac{2}{\omega_{\max}}$，即便绝大部分低频光滑模态仍稳定，最高频模态 $\omega_{\max}$ 对应的截面也会率先从闭合椭圆撕裂成双曲线（出现实特征值 $|\lambda| > 1$），导致网格沿最硬或最短边发生高频爆炸。
-
-<details>
-<summary>补充推导：高维二次型守恒与 Schur 补正定条件</summary>
-
-即使 $K$ 与 $M$ 互不对易，仅凭两者的对称性（$K^{\top} = K,\; M^{-\top} = M^{-1}$），代入 $p_n = p_{n+1} + \Delta t\,Kq_n$ 与 $q_{n+1} = q_n + \Delta t\,M^{-1}p_{n+1}$ 即可直接验证高维 $\hat{H}$ 的精确守恒：
+即使 $K$ 与 $M$ 互不对易，仅凭两者的对称性（$K^{\top} = K,\; M^{-\top} = M^{-1}$），代入 $p_n = p_{n+1} + \Delta t\,Kq_n$ 与 $q_{n+1} = q_n + \Delta t\,M^{-1}p_{n+1}$ 即可直接验证高维 $\hat{H}$ 在每一步都精确守恒：
 
 $$
 \begin{aligned}
@@ -304,15 +292,13 @@ $$
 \end{aligned}
 $$
 
-将 $\hat{H}(q, p)$ 写为对称分块二次型 $\frac{1}{2}\begin{bmatrix} q^{\top} & p^{\top} \end{bmatrix}\begin{bmatrix} K & -\frac{\Delta t}{2}KM^{-1} \\ -\frac{\Delta t}{2}M^{-1}K & M^{-1} \end{bmatrix}\begin{bmatrix} q \\ p \end{bmatrix}$。由于右下块 $M^{-1} \succ 0$，整块矩阵正定当且仅当关于 $M^{-1}$ 的 Schur 补满足
+要让 $\hat{H}(q, p) = \hat{H}(q_0, p_0)$ 在 $\mathbb{R}^{2d}$ 中围成一个紧致闭合的高维超椭球面，上述分块二次型矩阵必须严格正定。由于右下块 $M^{-1} \succ 0$，整块矩阵正定当且仅当关于 $M^{-1}$ 的 Schur 补满足 $S = K - \frac{\Delta t^2}{4}KM^{-1}K \succ 0$。在满足 $\Phi^{\top}M\Phi = I,\; \Phi^{\top}K\Phi = \Lambda = \operatorname{diag}(\omega_1^2, \dots, \omega_{\max}^2)$ 的模态基下，$\Phi^{\top}S\Phi = \Lambda\left(I - \frac{\Delta t^2}{4}\Lambda\right) \succ 0$ 等价于全部 $d$ 个主模态同时处于各自的椭圆稳定区内（$1 - \frac{\omega_i^2\Delta t^2}{4} > 0$），从而给出多自由度系统的全局稳定步长上限：
 
 $$
-S = K - \frac{\Delta t^2}{4}KM^{-1}K \succ 0
+\Delta t < \frac{2}{\omega_{\max}}
 $$
 
-在满足 $\Phi^{\top}M\Phi = I,\; \Phi^{\top}K\Phi = \Lambda = \operatorname{diag}(\omega_1^2, \dots, \omega_{\max}^2)$ 的模态基下，$\Phi^{\top}S\Phi = \Lambda\left(I - \frac{\Delta t^2}{4}\Lambda\right) \succ 0$ 当且仅当对所有 $i$ 有 $1 - \frac{\omega_i^2\Delta t^2}{4} > 0$，即 $\Delta t < \frac{2}{\omega_{\max}}$。
-
-</details>
+这也把全文的模态谱分析与相空间几何统一起来：当 $\Delta t < \frac{2}{\omega_{\max}}$ 时，所有模态的放大矩阵特征值均满足 $|\lambda| = 1$，系统是 **conditionally stable** 的，总机械能在真实值附近做 $O(\Delta t)$ 有界振荡；一旦步长越过 $\frac{2}{\omega_{\max}}$，即便绝大部分低频光滑模态仍稳定，最高频模态 $\omega_{\max}$ 对应的截面也会率先从闭合椭圆撕裂成双曲线（出现实特征值 $|\lambda| > 1$），导致网格沿最硬或最短边发生高频爆炸。
 
 ## 对比与适用场景
 
